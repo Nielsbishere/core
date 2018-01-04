@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+.vs/
+OGCore/x64/
+OSock/x64/
+OSTLCore/x64/
+OWCore/x64/
+x64/
