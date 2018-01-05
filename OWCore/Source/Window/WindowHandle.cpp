@@ -37,7 +37,7 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 				if (wi != nullptr)
 					wi->onKeyRelease(b);
 
-				w->handleBinding(b, false);
+				w->handleBinding(b.toKey(), false);
 			}
 		}
 		break;
@@ -49,7 +49,7 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 				if (wi != nullptr && !w->getInput().isDown(b))
 					wi->onKeyPress(b);
 
-				w->handleBinding(b, true);
+				w->handleBinding(b.toKey(), true);
 			}
 		}
 		break;

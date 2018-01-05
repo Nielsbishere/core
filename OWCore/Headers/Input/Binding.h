@@ -27,7 +27,7 @@ namespace oi {
 			u32 getControllerId();
 			u32 getCode();
 
-			operator Key();				//Returns Key if possible
+			Key toKey();				//Returns Key if possible
 
 		private:
 

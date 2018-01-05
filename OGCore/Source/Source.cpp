@@ -7,9 +7,6 @@ using namespace oi::gc;
 using namespace oi;
 
 int main() {
-
-	Log::println(ShaderInputType::stringify());
-
 	Window &w = Window::create(WindowInfo("Graphics test"));
 	w.setInterface(new GraphicInterface());
 	w.waitAll();

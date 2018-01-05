@@ -16,7 +16,7 @@ u32 Binding::getCode() {
 	return (u32)code;
 }
 
-Binding::operator Key() {
+Key Binding::toKey() {
 	if (getType() == BindingType::KEYBOARD)
 		return Key::get(getCode());
 	return Key::get(0);
