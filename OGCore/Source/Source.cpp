@@ -7,9 +7,15 @@ using namespace oi::gc;
 using namespace oi;
 
 int main() {
+
 	Window &w = Window::create(WindowInfo("Graphics test"));
+
+	Graphics::startGraphics();
+
 	w.setInterface(new GraphicInterface());
 	w.waitAll();
+
+	Graphics::endGraphics();
 
 	return 0;
 }

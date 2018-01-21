@@ -1,7 +1,9 @@
 #include "OGCore/Properties.h"
-
-#ifdef CAN_HANDLE_OPENGL
 #include "API/OpenGL.h"
+
+#pragma comment(lib, "OSTLCore.lib")
+#pragma comment(lib, "OWCore.lib")
+#pragma comment(lib, "opengl32.lib")
 
 using namespace oi::gc;
 using namespace oi;
@@ -47,6 +49,11 @@ PFNGLBINDBUFFERPROC OpenGL::glBindBuffer = nullptr;
 PFNGLBUFFERDATAPROC OpenGL::glBufferData = nullptr;
 PFNGLVERTEXATTRIBPOINTERPROC OpenGL::glVertexAttribPointer = nullptr;
 PFNGLGETACTIVEUNIFORMPROC OpenGL::glGetActiveUniform = nullptr;
+PFNGLGETACTIVEATTRIBPROC OpenGL::glGetActiveAttrib = nullptr;
+PFNGLBINDVERTEXARRAYPROC OpenGL::glBindVertexArray = nullptr;
+PFNGLDELETEVERTEXARRAYSPROC OpenGL::glDeleteVertexArrays = nullptr;
+PFNGLGENVERTEXARRAYSPROC OpenGL::glGenVertexArrays = nullptr;
+//PFNxPROC OpenGL::x = nullptr;
 
 OString OpenGL::getVersion() {
 	return version;
@@ -168,6 +175,11 @@ bool OpenGL::init() {
 	glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
 	glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
 	glGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC)wglGetProcAddress("glGetActiveUniform");
+	glGetActiveAttrib = (PFNGLGETACTIVEATTRIBPROC)wglGetProcAddress("glGetActiveAttrib");
+	glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
+	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
+	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
+	//x = (PFNxPROC)wglGetProcAddress("x");
 
 	// VBO
 	glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
@@ -177,5 +189,3 @@ bool OpenGL::init() {
 
 	return isInitialized = true;
 }
-
-#endif

@@ -52,6 +52,11 @@ namespace oi {
 			static PFNGLBINDBUFFERPROC glBindBuffer;
 			static PFNGLBUFFERDATAPROC glBufferData;
 			static PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+			static PFNGLGETACTIVEATTRIBPROC glGetActiveAttrib;
+			static PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+			static PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+			static PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+			//static PFNxPROC x;
 
 			static u32 getUVersion();
 			static OString getVersion();

@@ -11,35 +11,41 @@ namespace oi {
 
 		public:
 
+			GraphicInterface(): gl(Graphics::get()) { }
+
 			void init() override {
-				gl.init(getParent());
+				gl->init(getParent());
 				initScene();
 			}
 
 			void render() override {
-				gl.clear();
+				gl->clear(RGBAf(1, 1, 0, 1));
 				renderScene();
 				getParent()->swapBuffers();
 			}
 
 			virtual void initScene() {
-				s.init(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
+				s = gl->compileShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
 			}
 
 			virtual void renderScene() {
-				s.bind();
+				s->bind();
 
-				s.unbind();
+				s->unbind();
 			}
 
 			~GraphicInterface() {
-				s.destroy();
+				delete s;
+				delete gl;
 			}
+
+		protected:
+
+			Graphics *&gl;
 
 		private:
 
-			Graphics gl;
-			Shader s;
+			Shader *s;
 
 		};
 

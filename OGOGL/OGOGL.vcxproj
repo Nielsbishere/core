@@ -19,49 +19,46 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Graphics\Graphics.cpp" />
-    <ClCompile Include="Source\Source.cpp" />
+    <ClInclude Include="Headers\API\glext.h" />
+    <ClInclude Include="Headers\API\OpenGL.h" />
+    <ClInclude Include="Headers\API\wglext.h" />
+    <ClInclude Include="Headers\Graphics\OpenGLGraphics.h" />
+    <ClInclude Include="Headers\Graphics\Material\ShaderInput.h" />
+    <ClInclude Include="Headers\Graphics\Material\OpenGLShader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\Graphics\GraphicsInterface.h" />
-    <ClInclude Include="Headers\Graphics\Graphics.h" />
-    <ClInclude Include="Headers\Graphics\Material\Shader.h" />
-    <ClInclude Include="Headers\Graphics\Material\ShaderInfo.h" />
-    <ClInclude Include="Headers\Graphics\Material\ShaderStage.h" />
-    <ClInclude Include="Headers\Graphics\Material\ShaderType.h" />
-    <ClInclude Include="Headers\Graphics\Model\ModelData.h" />
-    <ClInclude Include="Headers\Graphics\Model\ModelInfo.h" />
-    <ClInclude Include="Headers\OGCore\Properties.h" />
-    <ClInclude Include="Headers\OGCore\OGDependencies.h" />
+    <ClCompile Include="Source\API\OpenGL.cpp" />
+    <ClCompile Include="Source\Graphics\Material\OpenGLShader.cpp" />
+    <ClCompile Include="Source\Graphics\OpenGLGraphics.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{1073FF2D-E5AF-427C-AEB1-C5057C26CEAB}</ProjectGuid>
+    <ProjectGuid>{90C7314C-3457-4965-BE4B-16F4DF099053}</ProjectGuid>
     <RootNamespace>OGCore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -86,19 +83,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(SolutionDir)OGOGL/Headers;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(SolutionDir)OGOGL/Headers;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(SolutionDir)OGOGL/Headers;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)OSTLCore/Headers;$(SolutionDir)OWCore/Headers;$(SolutionDir)OGCore/Headers;$(SolutionDir)OGOGL/Headers;$(IncludePath)</IncludePath>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,7 +106,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <PreBuildEvent>
-      <Command>XCOPY /Y /F /I /E "$(ProjectDir)Resources" "$(OutDir)Resources"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -120,7 +118,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <PreBuildEvent>
-      <Command>XCOPY /Y /F /I /E "$(ProjectDir)Resources" "$(OutDir)Resources"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -137,7 +136,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>XCOPY /Y /F /I /E "$(ProjectDir)Resources" "$(OutDir)Resources"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,7 +154,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>XCOPY /Y /F /I /E "$(ProjectDir)Resources" "$(OutDir)Resources"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

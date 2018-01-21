@@ -3,7 +3,7 @@ namespace oi {
 	namespace gc {
 
 		enum class ShaderStage {
-			VERTEX, FRAGMENT, GEOMETRY, COMPUTE, LAST
+			VERTEX, FRAGMENT, GEOMETRY, COMPUTE, LENGTH
 		};
 
 	}

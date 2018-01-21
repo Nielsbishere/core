@@ -1,25 +1,39 @@
 #pragma once
 
-#include "ShaderData.h"
+#include <Types/Generic.h>
+#include "OGCore/Properties.h"
+#include "ShaderStage.h"
+#include "Graphics/Material/ShaderInfo.h"
 
 namespace oi {
 	namespace gc {
+
+		struct ShaderStageData { 
+			virtual ~ShaderStageData() {}
+		};
 
 		class Shader {
 
 		public:
 
-			bool init(ShaderInfo info) { return data.init(info); }
-			void bind() { data.bind(); }
-			void unbind() { data.unbind(); }
-			void destroy() { data.destroy(); }
-			bool isValid() { return data.isValid(); }
-			const std::vector<ShaderInput> getInputs() { return data.getInputs(); }
+			virtual ~Shader() {}
 
-		private:
+			virtual bool init(ShaderInfo info) = 0;
+			virtual void bind() = 0;
+			virtual void unbind() = 0;
+			virtual bool isValid() = 0;
 
-			ShaderData<OI_GRAPHICS_TYPE> data;
+		protected:
+
+			virtual void cleanup(ShaderStageData *stage) = 0;
+
+			virtual OString getExtension(ShaderStage stage) = 0;
+
+			virtual ShaderStageData *compile(ShaderInfo &si, ShaderStage which) = 0;
+			virtual bool link(ShaderStageData **data, u32 count) = 0;
+
+			virtual bool genReflectionData() = 0;
+
 		};
-
 	}
 }

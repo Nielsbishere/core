@@ -1,12 +1,14 @@
 #pragma once
 #include <Types/OString.h>
 #include <Template/Enum.h>
+#include "API/OpenGL.h"
+
 namespace oi {
 
 	namespace gc {
 
-		#if OI_GRAPHICS_TYPE == OI_GRAPHICS_OPENGL
 		UEnum(ShaderInputType, 
+			"Undefined",
 			"Float", GL_FLOAT, "Float2", GL_FLOAT_VEC2, "Float3", GL_FLOAT_VEC3, "Float4", GL_FLOAT_VEC4,
 			"Double", GL_DOUBLE, "Double2", GL_DOUBLE_VEC2, "Double3", GL_DOUBLE_VEC3, "Double4", GL_DOUBLE_VEC4,
 			"Int", GL_INT, "Int2", GL_INT_VEC2, "Int3", GL_INT_VEC3, "Int4", GL_INT_VEC4,
@@ -37,7 +39,47 @@ namespace oi {
 
 			"aUint", GL_UNSIGNED_INT_ATOMIC_COUNTER
 		);
-		#endif
+
+		struct ShaderInputHelper {
+
+			///Returns Undefined when it is not of default types
+			static ShaderInputType getBase(ShaderInputType t) {
+				u32 i = t.getIndex();
+				if (i == 0) return ShaderInputType();
+				--i;
+				if (i < 4) return ShaderInputType::get(1);		//Float[x]
+				if (i < 8) return ShaderInputType::get(5);		//Double[x]
+				if (i < 12) return ShaderInputType::get(9);		//Int[x]
+				if (i < 16) return ShaderInputType::get(13);	//Uint[x]
+				if (i < 20) return ShaderInputType::get(17);	//Bool[x]
+				if (i < 29) return ShaderInputType::get(1);		//Float[x][y]
+				if (i < 38) return ShaderInputType::get(5);		//Double[x][y]
+				return ShaderInputType();
+			}
+
+			///Returns 0 when it is not of default types
+			static u32 getCount(ShaderInputType t) {
+				u32 i = t.getIndex();
+				if (i == 0) return 0;
+				--i;
+				if (i < 4) return i + 1;				//Float[x]
+				if (i < 8) return i - 3;				//Double[x]
+				if (i < 12) return i - 7;				//Int[x]
+				if (i < 16) return i - 11;				//Uint[x]
+				if (i < 20) return i - 15;				//Bool[x]
+				if (i == 20 || i == 29) return 4;		//mat[2][2]
+				if (i == 21 || i == 30) return 9;		//mat[3][3]	  
+				if (i == 22 || i == 31) return 16;		//mat[4][4]
+				if (i == 23 || i == 32) return 6;		//mat[2][3]
+				if (i == 24 || i == 33) return 8;		//mat[2][4]
+				if (i == 25 || i == 34) return 6;		//mat[3][2]
+				if (i == 26 || i == 35) return 12;		//mat[3][4]
+				if (i == 27 || i == 36) return 12;		//mat[4][3]
+				if (i == 28 || i == 37) return 8;		//mat[4][2]
+				return 0;
+			}
+
+		};
 
 		struct ShaderInput {
 			OString name;

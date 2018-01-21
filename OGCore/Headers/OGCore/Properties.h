@@ -1,17 +1,22 @@
 #pragma once
+#include <Types/Generic.h>
 #include <Template/PlatformDefines.h>
 
-#define OI_GRAPHICS_OPENGL 0
-#define OI_GRAPHICS_DX11 1
+namespace oi {
 
-#ifdef __WINDOWS__
-//#define __DX__
-//#define OI_GRAPHICS_TYPE 1
-//#define __DX11__
-//#define CAN_HANDLE_DX11
-//#else
-#define __OGL__
-#define OI_GRAPHICS_TYPE OI_GRAPHICS_OPENGL
-#include "API/OpenGL.h"
-#define CAN_HANDLE_OPENGL
-#endif
+	namespace gc {
+
+		enum class GraphicLibrary {
+			OpenGL, DirectX, Vulkan, MetalGL, Undefined
+		};
+
+		#ifdef __WINDOWS__
+		//#define __DX__
+		//const GraphicsType type = GraphicsType::DirectX;
+		//#else
+		#define __OGL__
+		const GraphicLibrary graphicLibrary = GraphicLibrary::OpenGL;
+		#endif
+
+	}
+}
