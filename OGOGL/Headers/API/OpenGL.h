@@ -1,10 +1,10 @@
 #pragma once
 
+#include <Window/Window.h>
 #include <gl/GL.h>
 #include "glext.h"
 #include "wglext.h"
 #include <Utils/Log.h>
-#include <Window/Window.h>
 
 namespace oi {
 
@@ -56,6 +56,13 @@ namespace oi {
 			static PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 			static PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
 			static PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+			static PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+			static PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
+			static PFNGLBUFFERSTORAGEPROC glBufferStorage;
+			static PFNGLUNMAPBUFFERPROC glUnmapBuffer;
+			static PFNGLDELETESYNCPROC glDeleteSync;
+			static PFNGLFENCESYNCPROC glFenceSync;
+			static PFNGLCLIENTWAITSYNCPROC glClientWaitSync;
 			//static PFNxPROC x;
 
 			static u32 getUVersion();

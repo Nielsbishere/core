@@ -31,14 +31,18 @@ namespace oi {
 		std::string toOctal() const;
 		std::string toBinary() const;
 
+		Buffer operator+(u32 off) {
+			return offset(off);
+		}
+
 		template<typename T = u8>
 		T &operator[](u32 where) {									//Gets data at location
-			return (T&)data[where];
+			return *(T*)&data[where];
 		}
 
 		template<typename T = u8>
 		T get(u32 where) const {											//Gets data at location (no reference)
-			return (T&)data[where];
+			return *(T*)&data[where];
 		}
 
 		std::string getString(u32 where, u32 length) const;

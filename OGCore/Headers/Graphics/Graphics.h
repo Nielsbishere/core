@@ -4,6 +4,7 @@
 #include "OGCore/Properties.h"
 #include <Types/OString.h>
 #include <Types/Color.h>
+#include "GPU/BufferType.h"
 
 namespace oi {
 
@@ -15,6 +16,7 @@ namespace oi {
 
 		class Shader;
 		class ShaderInfo;
+		class BufferGPU;
 
 		class Graphics {
 
@@ -22,9 +24,12 @@ namespace oi {
 
 			virtual ~Graphics() {}
 			virtual bool init(wc::Window *w) = 0;
+
 			virtual void clear() = 0;
 			virtual void clear(RGBAf color) = 0;
+
 			virtual Shader *compileShader(ShaderInfo sinf) = 0;
+			virtual BufferGPU *createBuffer(BufferType type, Buffer b) = 0;
 
 			typedef Graphics *(*f_createGraphics)();
 

@@ -1,6 +1,7 @@
 #include "Graphics/OpenGLGraphics.h"
 #include <Graphics/Material/ShaderInfo.h>
 #include "Graphics/Material/OpenGLShader.h"
+#include "Graphics/GPU/OpenGLBufferGPU.h"
 #include "API/OpenGL.h"
 
 using namespace oi;
@@ -31,6 +32,10 @@ Shader *OpenGLGraphics::compileShader(ShaderInfo sinf) {
 void OpenGLGraphics::clear(RGBAf color) {
 	glClearColor(color[0], color[1], color[2], color[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
+BufferGPU *OpenGLGraphics::createBuffer(BufferType type, Buffer buf) {
+	return new OpenGLBufferGPU(type, buf);
 }
 
 extern "C" __declspec(dllexport) Graphics *createGraphics() {

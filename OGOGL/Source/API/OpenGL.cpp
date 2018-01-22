@@ -53,6 +53,13 @@ PFNGLGETACTIVEATTRIBPROC OpenGL::glGetActiveAttrib = nullptr;
 PFNGLBINDVERTEXARRAYPROC OpenGL::glBindVertexArray = nullptr;
 PFNGLDELETEVERTEXARRAYSPROC OpenGL::glDeleteVertexArrays = nullptr;
 PFNGLGENVERTEXARRAYSPROC OpenGL::glGenVertexArrays = nullptr;
+PFNGLDELETEBUFFERSPROC OpenGL::glDeleteBuffers = nullptr;
+PFNGLBUFFERSTORAGEPROC OpenGL::glBufferStorage = nullptr;
+PFNGLUNMAPBUFFERPROC OpenGL::glUnmapBuffer = nullptr;
+PFNGLMAPBUFFERRANGEPROC OpenGL::glMapBufferRange = nullptr;
+PFNGLDELETESYNCPROC OpenGL::glDeleteSync = nullptr;
+PFNGLFENCESYNCPROC OpenGL::glFenceSync = nullptr;
+PFNGLCLIENTWAITSYNCPROC OpenGL::glClientWaitSync = nullptr;
 //PFNxPROC OpenGL::x = nullptr;
 
 OString OpenGL::getVersion() {
@@ -176,16 +183,23 @@ bool OpenGL::init() {
 	glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
 	glGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC)wglGetProcAddress("glGetActiveUniform");
 	glGetActiveAttrib = (PFNGLGETACTIVEATTRIBPROC)wglGetProcAddress("glGetActiveAttrib");
+
+
+	//Buffer
 	glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
 	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
 	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
-	//x = (PFNxPROC)wglGetProcAddress("x");
-
-	// VBO
+	glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
+	glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC)wglGetProcAddress("glMapBufferRange");
+	glBufferStorage = (PFNGLBUFFERSTORAGEPROC)wglGetProcAddress("glBufferStorage");
+	glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
 	glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
 	glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
 	glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
+	glDeleteSync = (PFNGLDELETESYNCPROC)wglGetProcAddress("glDeleteSync");
+	glFenceSync = (PFNGLFENCESYNCPROC)wglGetProcAddress("glFenceSync");
+	glClientWaitSync = (PFNGLCLIENTWAITSYNCPROC)wglGetProcAddress("glClientWaitSync");
 
 	return isInitialized = true;
 }

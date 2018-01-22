@@ -22,6 +22,7 @@
     <ClInclude Include="Headers\API\glext.h" />
     <ClInclude Include="Headers\API\OpenGL.h" />
     <ClInclude Include="Headers\API\wglext.h" />
+    <ClInclude Include="Headers\Graphics\GPU\OpenGLBufferGPU.h" />
     <ClInclude Include="Headers\Graphics\OpenGLGraphics.h" />
     <ClInclude Include="Headers\Graphics\Material\ShaderInput.h" />
     <ClInclude Include="Headers\Graphics\Material\OpenGLShader.h" />

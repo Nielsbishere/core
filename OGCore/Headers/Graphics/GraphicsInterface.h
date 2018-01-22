@@ -26,11 +26,16 @@ namespace oi {
 
 			virtual void initScene() {
 				s = gl->compileShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
+
+				struct Vertex {
+					Vec3 pos;
+				};
+
 			}
 
 			virtual void renderScene() {
 				s->bind();
-
+				
 				s->unbind();
 			}
 

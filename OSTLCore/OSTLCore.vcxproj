@@ -131,7 +131,6 @@
     <ClInclude Include="Headers\API\stbi\stbi_write.h" />
     <ClInclude Include="Headers\Math\SimplexNoise.h" />
     <ClInclude Include="Headers\Template\Enum.h" />
-    <ClInclude Include="Headers\Types\BufferAllocator.h" />
     <ClInclude Include="Headers\Types\Grid.h" />
     <ClInclude Include="Headers\Types\Resource.h" />
     <ClInclude Include="Headers\Types\Thread.h" />
@@ -154,7 +153,6 @@
   <ItemGroup>
     <ClCompile Include="Source\API\stbi\stbi.cpp" />
     <ClCompile Include="Source\Math\SimplexNoise.cpp" />
-    <ClCompile Include="Source\Types\BufferAllocator.cpp" />
     <ClCompile Include="Source\Utils\BinaryHelper.cpp" />
     <ClCompile Include="Source\Types\Buffer.cpp" />
     <ClCompile Include="Source\Utils\Log.cpp" />

@@ -13,6 +13,7 @@ namespace oi {
 			void clear() override;
 			void clear(RGBAf color) override;
 			Shader *compileShader(ShaderInfo sinf) override;
+			BufferGPU *createBuffer(BufferType type, Buffer buf) override;
 
 		private:
 
