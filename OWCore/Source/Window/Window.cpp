@@ -69,6 +69,10 @@ void Window::handleBinding(Key key, bool value) {
 	input.handleKey(key, value);
 }
 
+void Window::handleBinding(Click mouse, bool value) {
+	input.handleClick(mouse, value);
+}
+
 void Window::update() {
 
 	f64 dt = t.count(lastTick);

@@ -27,6 +27,7 @@
     <ClCompile Include="Source\Window\WindowInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\Input\Click.h" />
     <ClInclude Include="Headers\OWDependencies.h" />
     <ClInclude Include="Headers\Input\InputHandler.h" />
     <ClInclude Include="Headers\Input\Key.h" />

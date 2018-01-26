@@ -11,38 +11,15 @@ namespace oi {
 
 		public:
 
-			GraphicInterface(): gl(Graphics::get()) { }
+			GraphicInterface();
 
-			void init() override {
-				gl->init(getParent());
-				initScene();
-			}
+			void init() override;
+			void render() override;
 
-			void render() override {
-				gl->clear(RGBAf(1, 1, 0, 1));
-				renderScene();
-				getParent()->swapBuffers();
-			}
+			virtual void initScene();
+			virtual void renderScene();
 
-			virtual void initScene() {
-				s = gl->compileShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
-
-				struct Vertex {
-					Vec3 pos;
-				};
-
-			}
-
-			virtual void renderScene() {
-				s->bind();
-				
-				s->unbind();
-			}
-
-			~GraphicInterface() {
-				delete s;
-				delete gl;
-			}
+			~GraphicInterface();
 
 		protected:
 

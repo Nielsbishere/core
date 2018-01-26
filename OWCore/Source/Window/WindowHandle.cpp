@@ -28,6 +28,8 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 	WindowInterface *wi = w->getInterface();
 	WindowInfo &win = w->getInfo();
 
+	WORD xid = GET_XBUTTON_WPARAM(wParam);
+
 	switch (message) {
 	case WM_KEYUP:
 		{
@@ -103,6 +105,93 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 
 		if (wi != nullptr)
 			wi->setFocus(false);
+
+		break;
+	case WM_MOUSEMOVE:
+
+		win.moveCursor(Vec2u((u32)LOWORD(lParam), (u32)HIWORD(lParam)));
+
+		if (wi != nullptr)
+			wi->onMouseMove(w->getInfo().getCursor());
+
+		break;
+	case WM_LBUTTONDOWN:
+
+		w->handleBinding(Click::get(1), true);
+
+		if (wi != nullptr)
+			wi->onKeyPress(Click::get(1));
+
+		break;
+	case WM_LBUTTONUP:
+
+		w->handleBinding(Click::get(1), false);
+
+		if (wi != nullptr)
+			wi->onKeyRelease(Click::get(1));
+
+		break;
+	case WM_MBUTTONDOWN:
+
+		w->handleBinding(Click::get(2), true);
+
+		if (wi != nullptr)
+			wi->onKeyPress(Click::get(2));
+
+		break;
+	case WM_MBUTTONUP:
+
+		w->handleBinding(Click::get(2), false);
+
+		if (wi != nullptr)
+			wi->onKeyRelease(Click::get(2));
+
+		break;
+	case WM_RBUTTONDOWN:
+
+		w->handleBinding(Click::get(3), true);
+
+		if (wi != nullptr)
+			wi->onKeyPress(Click::get(3));
+
+		break;
+	case WM_RBUTTONUP:
+
+		w->handleBinding(Click::get(3), false);
+
+		if (wi != nullptr)
+			wi->onKeyRelease(Click::get(3));
+
+		break;
+	case WM_XBUTTONUP:
+
+		if (xid == XBUTTON1) {
+			w->handleBinding(Click::get(4), false);
+
+			if (wi != nullptr)
+				wi->onKeyRelease(Click::get(4));
+		} else {
+			w->handleBinding(Click::get(5), false);
+
+			if (wi != nullptr)
+				wi->onKeyRelease(Click::get(5));
+		}
+
+		break;
+	case WM_XBUTTONDOWN:
+
+		if (xid == XBUTTON1) {
+			w->handleBinding(Click::get(4), true);
+
+			if (wi != nullptr)
+				wi->onKeyPress(Click::get(4));
+		}
+		else {
+			w->handleBinding(Click::get(5), true);
+
+			if (wi != nullptr)
+				wi->onKeyPress(Click::get(5));
+		}
 
 		break;
 	default:

@@ -15,6 +15,7 @@ OString::OString(char c): source(1, c) {}
 
 u32 OString::size() const { return (u32)source.size(); }
 char &OString::operator[](u32 i) { return source[i]; }
+char OString::at(u32 i) const { return source[i]; }
 
 OString OString::cutBegin(u32 start) const {
 

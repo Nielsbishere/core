@@ -173,7 +173,7 @@ namespace oi {
 																																				\
 		ename(): in(0){}																														\
 																																				\
-		static constexpr u32 length = oi::EnumFactory::CountNamesArgs::get(__VA_ARGS__);														\
+		static constexpr u32 length = oi::EnumFactory::CountNamesArgs::get(earg0, __VA_ARGS__);														\
 																																				\
 	protected:																																	\
 																																				\

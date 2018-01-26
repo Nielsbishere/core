@@ -24,6 +24,8 @@ namespace oi {
 			virtual void onKeyPress(Binding b) {}
 			virtual void onKeyRelease(Binding b) {}
 
+			virtual void onMouseMove(Vec2 pos) {}
+
 			virtual void update(f64 delta) {}
 			virtual void render() {}
 			virtual void repaint() { render(); }

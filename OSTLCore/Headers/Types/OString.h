@@ -23,6 +23,7 @@ namespace oi {
 
 		u32 size() const;
 		char &operator[](u32 i);
+		char at(u32 i) const;
 
 		OString operator+(const OString &s) const;
 		OString &operator+=(const OString &s);

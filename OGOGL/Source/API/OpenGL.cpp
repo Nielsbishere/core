@@ -103,7 +103,8 @@ bool OpenGL::initWindow(wc::Window *w, HGLRC &hrc, HGLRC &arb) {
 
 	int nPixelFormat = ChoosePixelFormat(hdc, &pfd);
 
-	if (nPixelFormat == 0) return Log::error("Couldn't create pixel format");
+	if (nPixelFormat == 0) 
+		return Log::error("Couldn't create pixel format");
 
 	BOOL bResult = SetPixelFormat(hdc, nPixelFormat, &pfd);
 

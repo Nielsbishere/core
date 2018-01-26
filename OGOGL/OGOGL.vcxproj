@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\API\OpenGL.cpp" />
+    <ClCompile Include="Source\Graphics\GPU\OpenGLBufferGPU.cpp" />
     <ClCompile Include="Source\Graphics\Material\OpenGLShader.cpp" />
     <ClCompile Include="Source\Graphics\OpenGLGraphics.cpp" />
   </ItemGroup>

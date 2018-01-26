@@ -11,7 +11,7 @@ void WindowInfo::notifyUpdate(WindowAction action) {
 	}
 }
 
-WindowInfo::WindowInfo(OString _title, Vec2u _size, Vec2i _position, bool _inFocus): title(_title), size(_size), position(_position), inFocus(_inFocus) { }
+WindowInfo::WindowInfo(OString _title, Vec2u _size, Vec2i _position, bool _inFocus): title(_title), size(_size), position(_position), inFocus(_inFocus), cursor(0, 0) { }
 
 OString WindowInfo::getTitle() { return title; }
 Vec2i WindowInfo::getPosition() { return position; }
@@ -37,4 +37,12 @@ void WindowInfo::initParent(Window *w) {
 void WindowInfo::focus() {
 	inFocus = true;
 	notifyUpdate(WindowAction::IN_FOCUS);
+}
+
+void WindowInfo::moveCursor(Vec2u pos) {
+	cursor = pos;
+}
+
+Vec2 WindowInfo::getCursor() {
+	return (Vec2(cursor) / Vec2(size)).clamp(0, 1);
 }

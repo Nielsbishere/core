@@ -20,6 +20,7 @@ namespace oi {
 			OString getTitle();
 			Vec2i getPosition();
 			Vec2u getSize();
+			Vec2 getCursor();
 			Window *getParent();
 
 			void move(Vec2i newPos);
@@ -34,10 +35,12 @@ namespace oi {
 			void initParent(Window *w);
 			void notifyUpdate(WindowAction action);
 
+			void moveCursor(Vec2u pos);
+
 		private:
 
 			Vec2i position;
-			Vec2u size;
+			Vec2u size, cursor;
 			bool inFocus;
 			WindowAction pending;
 

@@ -24,6 +24,7 @@ namespace oi {
 			~Window();
 			void destroy();
 			void handleBinding(Key key, bool value);
+			void handleBinding(Click click, bool value);
 			void setInterface(WindowInterface *wi);
 			void swapBuffers();
 

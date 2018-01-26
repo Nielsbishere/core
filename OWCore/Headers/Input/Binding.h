@@ -1,5 +1,6 @@
 #pragma once
 #include "Key.h"
+#include "Click.h"
 namespace oi {
 	namespace wc {
 
@@ -19,6 +20,7 @@ namespace oi {
 		public:
 
 			Binding(Key k);
+			Binding(Click c);
 
 			//Get as uint
 			operator u32();
@@ -28,6 +30,9 @@ namespace oi {
 			u32 getCode();
 
 			Key toKey();				//Returns Key if possible
+			Click toClick();			//Returns Click if possible
+
+			OString toString();
 
 		private:
 
