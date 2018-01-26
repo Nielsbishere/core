@@ -72,23 +72,24 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 			GetClientRect(hwnd, &rect);
 
 			Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
+
 			win.size = size;
 
 			if (wi != nullptr)
-				wi->resize(size);
+				wi->onResize(size);
 		}
 		break;
 	case WM_MOVE:
 		{
 			RECT rect;
-			GetWindowRect(hwnd, &rect);
+			GetClientRect(hwnd, &rect);
 
 			Vec2i pos = Vec2i(rect.left, rect.top);
 
 			win.position = pos;
 
 			if (wi != nullptr)
-				wi->reposition(pos);
+				wi->onMove(pos);
 		}
 		break;
 	case WM_SETFOCUS:
@@ -115,6 +116,11 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 			wi->onMouseMove(w->getInfo().getCursor());
 
 		break;
+
+	case WM_MOUSELEAVE:
+		printf("NO! Don't go pls\n");
+		break;
+
 	case WM_LBUTTONDOWN:
 
 		w->handleBinding(Click::get(1), true);
@@ -238,9 +244,24 @@ bool WindowHandle::instantiate(WindowHandle &result, WindowInfo &info) {
 		info.resize(Vec2u(screenWidth, screenHeight));
 
 	result.window = CreateWindowEx(WS_EX_APPWINDOW, str.c_str(), str.c_str(), nStyle, info.getPosition().x(), info.getPosition().y(), info.getSize().x(), info.getSize().y(), NULL, NULL, result.instance, NULL);
-
+	
 	if (result.window == NULL) 
 		return false;
+
+	//Resize to actually become the desired size
+
+	RECT rect;
+	GetClientRect(result.window, &rect);
+
+	i32 width = (i32)(rect.right - rect.left);
+	i32 height = (i32)(rect.bottom - rect.top);
+
+	i32 difX = (i32)info.getSize().x() - width;
+	i32 difY = (i32)info.getSize().y() - height;
+
+	SetWindowPos(result.window, NULL, -difX / 2, 0, info.getSize().x() + difX, info.getSize().y() + difY, SWP_NOZORDER);
+
+	//Show window
 
 	result.update(info, WindowAction::SHOW);
 

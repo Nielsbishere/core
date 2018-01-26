@@ -44,5 +44,5 @@ void WindowInfo::moveCursor(Vec2u pos) {
 }
 
 Vec2 WindowInfo::getCursor() {
-	return (Vec2(cursor) / Vec2(size)).clamp(0, 1);
+	return (Vec2(cursor) / Vec2(size - 1)).clamp(0, 1);
 }
