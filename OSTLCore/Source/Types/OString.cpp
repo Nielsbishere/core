@@ -88,6 +88,13 @@ OString &OString::operator+=(const OString &s) {
 	return *this;
 }
 
+bool OString::operator<(const OString &s) const {
+
+	u32 shortest = s.size() < size() ? s.size() : size();
+
+	return memcmp(c_str(), s.c_str(), shortest) < 0;
+}
+
 OString OString::replace(OString s0, OString s1) const {
 	return combine(split(s0), s1);
 }

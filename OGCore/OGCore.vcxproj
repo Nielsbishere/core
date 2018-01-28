@@ -37,6 +37,9 @@
     <ClInclude Include="Headers\OGCore\Properties.h" />
     <ClInclude Include="Headers\OGCore\OGDependencies.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Input.oiIC" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{1073FF2D-E5AF-427C-AEB1-C5057C26CEAB}</ProjectGuid>

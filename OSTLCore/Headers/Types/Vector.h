@@ -5,7 +5,7 @@
 #include "Utils/Log.h"
 #include "Color.h"
 
-#define __VEC_SPECIAL_MAKE(name, type, errorId, errorCode)				\
+#define VEC_SPECIAL_MAKE(name, type, errorId, errorCode)				\
 template<typename T>													\
 static TVec<T, n> name(const TVec<T,n> &other) {						\
 	Log::throwError<TVec<T, n>, errorId>(##errorCode);					\
@@ -13,7 +13,7 @@ static TVec<T, n> name(const TVec<T,n> &other) {						\
 }																		\
 static TVec<type, n> name(const TVec<type, n> &other);
 
-#define __VEC_SPECIAL_DEFINE(name, type)								\
+#define VEC_SPECIAL_DEFINE(name, type)								\
 template<u32 n>															\
 TVec<type, n> TVecSpecial<n>::##name(const TVec<type, n> &v)			\
 
@@ -41,10 +41,10 @@ namespace oi {
 
 		static TVec<u32, n> fromIndex(const TVec<u32, n> &self, const u32 &other);
 
-		__VEC_SPECIAL_MAKE(floor, f32, 0x7, "TVec<T,n>::floor is a function that is only implemented for TVec<f32,n>");
-		__VEC_SPECIAL_MAKE(fract, f32, 0x8, "TVec<T,n>::fract is a function that is only implemented for TVec<f32,n>");
-		__VEC_SPECIAL_MAKE(ceil, f32, 0x9, "TVec<T,n>::ceil is a function that is only implemented for TVec<f32,n>");
-		__VEC_SPECIAL_MAKE(round, f32, 0xA, "TVec<T,n>::round is a function that is only implemented for TVec<f32,n>");
+		VEC_SPECIAL_MAKE(floor, f32, 0x7, "TVec<T,n>::floor is a function that is only implemented for TVec<f32,n>");
+		VEC_SPECIAL_MAKE(fract, f32, 0x8, "TVec<T,n>::fract is a function that is only implemented for TVec<f32,n>");
+		VEC_SPECIAL_MAKE(ceil, f32, 0x9, "TVec<T,n>::ceil is a function that is only implemented for TVec<f32,n>");
+		VEC_SPECIAL_MAKE(round, f32, 0xA, "TVec<T,n>::round is a function that is only implemented for TVec<f32,n>");
 
 		template<typename T>
 		static TVec<T, n> mod(const TVec<T,n> &v, const TVec<T, n> &other) {
@@ -455,28 +455,28 @@ namespace oi {
 		return res;
 	}
 
-	__VEC_SPECIAL_DEFINE(floor, f32) {
+	VEC_SPECIAL_DEFINE(floor, f32) {
 		TVec<f32, n> result = v;
 		for (u32 i = 0; i < n; ++i)
 			result[i] = (f32)std::floor(result[i]);
 		return result;
 	}
 
-	__VEC_SPECIAL_DEFINE(round, f32) {
+	VEC_SPECIAL_DEFINE(round, f32) {
 		TVec<f32, n> result = v;
 		for (u32 i = 0; i < n; ++i)
 			result[i] = (f32)std::round(result[i]);
 		return result;
 	}
 
-	__VEC_SPECIAL_DEFINE(ceil, f32) {
+	VEC_SPECIAL_DEFINE(ceil, f32) {
 		TVec<f32, n> result = v;
 		for (u32 i = 0; i < n; ++i)
 			result[i] = (f32)std::ceil(result[i]);
 		return result;
 	}
 
-	__VEC_SPECIAL_DEFINE(fract, f32) {
+	VEC_SPECIAL_DEFINE(fract, f32) {
 		TVec<f32, n> result = v;
 		for (u32 i = 0; i < n; ++i)
 			result[i] = result[i] - (f32)std::floor(result[i]);

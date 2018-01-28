@@ -8,6 +8,8 @@ namespace oi {
 	namespace wc {
 
 		class Window;
+		class InputHandler;
+		class InputManager;
 
 		class WindowInterface {
 
@@ -25,8 +27,6 @@ namespace oi {
 			virtual void onKeyRelease(Binding b) {}
 
 			virtual void onMouseMove(Vec2 pos) {}
-			virtual void onMouseExit(Vec2 pos) {}
-			virtual void onMouseEnter(Vec2 pos) {}
 
 			virtual void update(f64 delta) {}
 			virtual void render() {}
@@ -34,7 +34,9 @@ namespace oi {
 
 			virtual void setFocus(bool isFocussed) {}
 
-			Window *getParent() { return parent; }
+			Window *getParent();
+			InputHandler &getInputHandler();
+			InputManager &getInput();
 
 		private:
 

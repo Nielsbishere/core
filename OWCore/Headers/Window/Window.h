@@ -3,6 +3,7 @@
 #include "WindowInfo.h"
 #include "Input/Binding.h"
 #include "Input/InputHandler.h"
+#include "Input/InputManager.h"
 #include "WindowInterface.h"
 #include <Utils/Timer.h>
 
@@ -13,6 +14,7 @@ namespace oi {
 
 			friend class WindowInfo;
 			friend struct WindowHandle;
+			friend class InputHandler;
 
 		public:
 
@@ -23,8 +25,6 @@ namespace oi {
 
 			~Window();
 			void destroy();
-			void handleBinding(Key key, bool value);
-			void handleBinding(Click click, bool value);
 			void setInterface(WindowInterface *wi);
 			void swapBuffers();
 
@@ -32,12 +32,16 @@ namespace oi {
 			WindowInfo &getInfo();
 			WindowHandle &getHandle();
 			InputHandler &getInput();
+			InputManager &getInputManager();
 			WindowInterface *getInterface();
 
 			static constexpr u32 maxWindows = 32;
 
 
 		protected:
+
+			void handleBinding(Key key, bool value);
+			void handleBinding(Click click, bool value);
 
 			static void updateAll();	//Update all windows
 			static void initAll();		//Initialize all windows
@@ -56,6 +60,7 @@ namespace oi {
 			WindowInfo info;
 			WindowHandle handle;
 			InputHandler input;
+			InputManager inputManager;
 			WindowInterface *wi;
 
 			bool activated;

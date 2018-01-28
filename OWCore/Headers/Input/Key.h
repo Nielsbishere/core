@@ -58,7 +58,7 @@ namespace oi {
 			",", VK_OEM_COMMA,
 			".", VK_OEM_PERIOD,
 			"/", VK_OEM_2,
-			" ", VK_SPACE,
+			"Space", VK_SPACE,
 			"0n", VK_NUMPAD0,
 			"1n", VK_NUMPAD1,
 			"2n", VK_NUMPAD2,

@@ -21,13 +21,17 @@
   <ItemGroup>
     <ClCompile Include="Source\Input\Binding.cpp" />
     <ClCompile Include="Source\Input\InputHandler.cpp" />
+    <ClCompile Include="Source\Input\InputManager.cpp" />
     <ClCompile Include="Source\Link.cpp" />
     <ClCompile Include="Source\Window\Window.cpp" />
     <ClCompile Include="Source\Window\WindowHandle.cpp" />
     <ClCompile Include="Source\Window\WindowInfo.cpp" />
+    <ClCompile Include="Source\Window\WindowInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Input\Click.h" />
+    <ClInclude Include="Headers\Input\Controller.h" />
+    <ClInclude Include="Headers\Input\InputManager.h" />
     <ClInclude Include="Headers\OWDependencies.h" />
     <ClInclude Include="Headers\Input\InputHandler.h" />
     <ClInclude Include="Headers\Input\Key.h" />

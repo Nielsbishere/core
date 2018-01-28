@@ -112,7 +112,7 @@ namespace oi {
 			return i;																															\
 		}																																		\
 																																				\
-		static const oi::OString __stringify() {																								\
+		static const oi::OString stringify_intern() {																							\
 			oi::OString res = "";																												\
 			u32 len = size();																													\
 			for (u32 i = 0; i < len; ++i)																										\
@@ -147,7 +147,7 @@ namespace oi {
 		}																																		\
 																																				\
 		static const oi::OString &stringify() {																									\
-			static const oi::OString str = __stringify();																						\
+			static const oi::OString str = stringify_intern();																					\
 			return str;																															\
 		}																																		\
 																																				\

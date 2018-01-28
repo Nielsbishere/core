@@ -5,7 +5,7 @@ using namespace oi;
 
 Window Window::windows[maxWindows];
 
-Window::Window() : activated(false), index(0), info(WindowInfo("NULL", { 0, 0 }, { 0, 0 }, false)), wi(nullptr) { }
+Window::Window() : activated(false), index(0), info(WindowInfo("NULL", { 0, 0 }, { 0, 0 }, false)), wi(nullptr), input(InputHandler()), inputManager(input) { }
 
 Window &Window::create(WindowInfo info) {
 
@@ -55,6 +55,7 @@ u32 Window::getIndex() { return index; }
 WindowInfo &Window::getInfo() { return info; }
 WindowHandle &Window::getHandle() { return handle; }
 InputHandler &Window::getInput() { return input; }
+InputManager &Window::getInputManager() { return inputManager; }
 WindowInterface *Window::getInterface() { return wi; }
 
 void Window::notifyUpdate(WindowAction action) {
@@ -85,7 +86,7 @@ void Window::update() {
 	if (wi != nullptr)
 		wi->render();
 
-	input.update();
+	input.update(*this);
 }
 
 void Window::init() {

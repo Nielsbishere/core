@@ -28,6 +28,9 @@ namespace oi {
 		OString operator+(const OString &s) const;
 		OString &operator+=(const OString &s);
 
+		//Sort operator
+		bool operator<(const OString &s) const;
+
 		OString cutBegin(u32 start) const;
 		OString cutEnd(u32 end) const;
 		OString substring(u32 start, u32 end) const;

@@ -117,10 +117,6 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 
 		break;
 
-	case WM_MOUSELEAVE:
-		printf("NO! Don't go pls\n");
-		break;
-
 	case WM_LBUTTONDOWN:
 
 		w->handleBinding(Click::get(1), true);
