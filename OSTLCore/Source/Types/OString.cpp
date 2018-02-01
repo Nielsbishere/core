@@ -1,5 +1,6 @@
 #include "Types/OString.h"
 #include "Types/Buffer.h"
+#include "Utils/JSON.h"
 #include <fstream>
 using namespace oi;
 
@@ -12,6 +13,10 @@ OString::OString(i32 i) { *this = fromNumber<i32>(i); }
 OString::OString(u32 i) { *this = fromNumber<u32>(i); }
 OString::OString(f32 f) { *this = fromNumber<f32>(f); }
 OString::OString(char c): source(1, c) {}
+
+OString::OString(JSON json) { 
+	*this = json.operator oi::OString();
+}
 
 u32 OString::size() const { return (u32)source.size(); }
 char &OString::operator[](u32 i) { return source[i]; }
@@ -245,6 +250,16 @@ OString OString::readFromFile(OString file) {
 	return std::string(std::istreambuf_iterator<char>(str), std::istreambuf_iterator<char>());
 }
 
+bool OString::writeToFile(OString file) {
+
+	std::ofstream str(file.source);
+	if (!str.good())
+		return false;
+
+	str.write(source.c_str(), source.size());
+	return true;
+}
+
 OString OString::getPath() const {
 	std::vector<OString> subs = split("/");
 	if (subs.size() > 1) {
@@ -355,6 +370,10 @@ bool OString::operator!=(OString other) const {
 OString OString::toHex(u32 u) {
 	CopyBuffer cb = CopyBuffer((u8*)&u, 4);
 	return (std::string)cb;
+}
+
+JSON OString::toJSON() {
+	return *this;
 }
 
 //OString OString::toOctal(u32 u) {

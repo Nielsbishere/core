@@ -6,6 +6,8 @@ namespace oi {
 
 	template<typename T, u32 n> class TVec;
 
+	class JSON;
+
 	class OString {
 
 	public:
@@ -15,6 +17,7 @@ namespace oi {
 		OString(const char *source);
 		OString(char *source, u32 len);
 		OString(u32 len, char filler);
+		OString(JSON json);
 
 		OString(i32 i);
 		OString(u32 u);
@@ -81,6 +84,9 @@ namespace oi {
 		bool startsWith(OString other) const;
 
 		static OString readFromFile(OString file);				//Read file as plain text
+		bool writeToFile(OString file);							//Write file to disk
+		JSON toJSON();											//Parse as JSON file
+		operator JSON();										//Parse as JSON file
 		OString getPath() const;								//File path without file name
 		OString getExtension() const;							//Get extension
 		OString getFileName() const;							//Get file name (+ extension)

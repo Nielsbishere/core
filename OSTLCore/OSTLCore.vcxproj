@@ -127,6 +127,42 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\API\rapidjson\allocators.h" />
+    <ClInclude Include="Headers\API\rapidjson\cursorstreamwrapper.h" />
+    <ClInclude Include="Headers\API\rapidjson\document.h" />
+    <ClInclude Include="Headers\API\rapidjson\encodedstream.h" />
+    <ClInclude Include="Headers\API\rapidjson\encodings.h" />
+    <ClInclude Include="Headers\API\rapidjson\error\en.h" />
+    <ClInclude Include="Headers\API\rapidjson\error\error.h" />
+    <ClInclude Include="Headers\API\rapidjson\filereadstream.h" />
+    <ClInclude Include="Headers\API\rapidjson\filewritestream.h" />
+    <ClInclude Include="Headers\API\rapidjson\fwd.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\biginteger.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\diyfp.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\dtoa.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\ieee754.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\itoa.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\meta.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\pow10.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\regex.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\stack.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\strfunc.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\strtod.h" />
+    <ClInclude Include="Headers\API\rapidjson\internal\swap.h" />
+    <ClInclude Include="Headers\API\rapidjson\istreamwrapper.h" />
+    <ClInclude Include="Headers\API\rapidjson\memorybuffer.h" />
+    <ClInclude Include="Headers\API\rapidjson\memorystream.h" />
+    <ClInclude Include="Headers\API\rapidjson\msinttypes\inttypes.h" />
+    <ClInclude Include="Headers\API\rapidjson\msinttypes\stdint.h" />
+    <ClInclude Include="Headers\API\rapidjson\ostreamwrapper.h" />
+    <ClInclude Include="Headers\API\rapidjson\pointer.h" />
+    <ClInclude Include="Headers\API\rapidjson\prettywriter.h" />
+    <ClInclude Include="Headers\API\rapidjson\rapidjson.h" />
+    <ClInclude Include="Headers\API\rapidjson\reader.h" />
+    <ClInclude Include="Headers\API\rapidjson\schema.h" />
+    <ClInclude Include="Headers\API\rapidjson\stream.h" />
+    <ClInclude Include="Headers\API\rapidjson\stringbuffer.h" />
+    <ClInclude Include="Headers\API\rapidjson\writer.h" />
     <ClInclude Include="Headers\API\stbi\stbi_load.h" />
     <ClInclude Include="Headers\API\stbi\stbi_write.h" />
     <ClInclude Include="Headers\Math\SimplexNoise.h" />
@@ -142,6 +178,7 @@
     <ClInclude Include="Headers\Template\Common.h" />
     <ClInclude Include="Headers\Template\TemplateFuncs.h" />
     <ClInclude Include="Headers\Utils\DLLLoader.h" />
+    <ClInclude Include="Headers\Utils\JSON.h" />
     <ClInclude Include="Headers\Utils\Log.h" />
     <ClInclude Include="Headers\Types\OString.h" />
     <ClInclude Include="Headers\Template\PlatformDefines.h" />
@@ -155,6 +192,7 @@
     <ClCompile Include="Source\Math\SimplexNoise.cpp" />
     <ClCompile Include="Source\Utils\BinaryHelper.cpp" />
     <ClCompile Include="Source\Types\Buffer.cpp" />
+    <ClCompile Include="Source\Utils\JSON.cpp" />
     <ClCompile Include="Source\Utils\Log.cpp" />
     <ClCompile Include="Source\Types\OString.cpp" />
     <ClCompile Include="Source\Utils\Random.cpp" />

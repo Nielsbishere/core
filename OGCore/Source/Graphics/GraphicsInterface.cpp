@@ -9,26 +9,7 @@ void GraphicInterface::init() {
 	gl->init(getParent());
 	initScene();
 
-	getInput().bind("Shoot", OString("Cross button #0"));
-	getInput().bind("Shoot", OString("R1 button #0"));
-	getInput().bind("Shoot", OString("L1 button #0"));
-	getInput().bind("Shoot", OString("A key"));
-	getInput().bind("Woof", OString("Backspace key"));
-	getInput().bind("Shoot", OString("Left mouse"));
-
-	getInput().bindAxis("Move", wc::InputAxis(OString("D key"), wc::InputAxis1D::X, 1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("A key"), wc::InputAxis1D::X, -1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("E key"), wc::InputAxis1D::Y, 1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("Q key"), wc::InputAxis1D::Y, -1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("W key"), wc::InputAxis1D::Z, 1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("S key"), wc::InputAxis1D::Z, -1));
-
-	getInput().bindAxis("Move", wc::InputAxis(OString("Lx axis #0"), wc::InputAxis1D::X, 1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("L2 axis #0"), wc::InputAxis1D::Y, 1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("R2 axis #0"), wc::InputAxis1D::Y,- 1));
-	getInput().bindAxis("Move", wc::InputAxis(OString("Ly axis #0"), wc::InputAxis1D::Z, 1));
-
-	Log::println(getInput().write());
+	getInput().load("Resources/Settings/Input.json");
 }
 
 void GraphicInterface::render() {
@@ -36,8 +17,7 @@ void GraphicInterface::render() {
 	renderScene();
 	getParent()->swapBuffers();
 
-	/*Vec3 mov = getInput().getAxis("Move");
-	printf("%f %f %f\n", mov.x(), mov.y(), mov.z());*/
+	//Vec3 mov = getInput().getAxis("Move");
 }
 
 void GraphicInterface::initScene() {

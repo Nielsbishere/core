@@ -1,4 +1,5 @@
 #include "Input/InputManager.h"
+#include <Utils/JSON.h>
 
 using namespace oi::wc;
 using namespace oi;
@@ -164,64 +165,92 @@ f32 InputManager::getAxis1D(OString handle, InputAxis1D ia) {
 	}
 }
 
-bool InputManager::load(OString json) {
-	//TODO:
-	return false;
+bool InputManager::load(OString path) {
+
+	JSON json = OString::readFromFile(path);
+
+	if (json.exists("bindings")) {
+
+		for (OString handle : json.getMemberIds("bindings")) {
+
+			for (OString id : json.getMemberIds(OString("bindings/") + handle)) {
+
+				Binding b(json.getString(OString("bindings/") + handle + "/" + id));
+
+				if (b.getType() != BindingType::UNDEFINED && b.getCode() != 0) {
+					bind(handle, b);
+					Log::println(OString("Binding event ") + b.toString());
+				}
+				else
+					Log::error("Couldn't read binding; invalid identifier");
+
+			}
+
+		}
+
+	}
+
+	if (json.exists("axes")) {
+		for (OString handle : json.getMemberIds("axes")) {
+			for (OString id : json.getMemberIds(OString("axes/") + handle)) {
+
+				OString base = OString("axes/") + handle + "/" + id;
+
+				OString bstr = json.getString(base + "/binding");
+				Binding b(bstr);
+
+				if (b.getType() == BindingType::UNDEFINED || b.getCode() == 0) {
+					Log::error("Couldn't read axis; invalid identifier");
+					continue;
+				}
+
+				OString effect = json.getString(base + "/effect");
+				InputAxis1D axis;
+
+				if (effect.equalsIgnoreCase("x")) axis = InputAxis1D::X;
+				else if (effect.equalsIgnoreCase("y")) axis = InputAxis1D::Y;
+				else if (effect.equalsIgnoreCase("z")) axis = InputAxis1D::Z;
+				else {
+					Log::error("Couldn't read axis; invalid axis effect");
+					continue;
+				}
+
+				f32 axisScale = json.getFloat(base + "/axisScale", 1.f);
+
+				bindAxis(handle, InputAxis(b, axis, axisScale));
+				Log::println(OString("Binding axis ") + b.toString() + " with axis " + effect + " and scale " + axisScale);
+			}
+		}
+	}
+
+	return true;
 }
 
-OString InputManager::write() {
+bool InputManager::write(OString path) {
 
-	OString start = "{ \"bindings\": { ";
+	JSON json;
 
-	auto cbindings = bindings;
-	auto caxes = axes;
+	for (u32 i = 0; i < (u32)bindings.size(); ++i) {
 
-	std::sort(cbindings.begin(), cbindings.end());
-	std::sort(caxes.begin(), caxes.end());
+		OString base = OString("bindings/") + bindings[i].first;
+		u32 j = json.getMembers(base);
 
-	OString prevBinding = "";
-	u32 bindingCount = 0;
-
-	u32 elemCount = 0;
-
-	for (u32 i = 0; i < (u32)cbindings.size(); ++i) {
-
-		if (prevBinding != cbindings[i].first) {
-			start += (bindingCount == 0 ? OString("") : " ], ") + "\"" + cbindings[i].first + "\": [ ";
-			++bindingCount;
-			elemCount = 0;
-			prevBinding = cbindings[i].first;
-		}
-
-		start += (elemCount == 0 ? OString("") : ", ") + OString("\"") + cbindings[i].second.toString() + "\"";
-		++elemCount;
-
+		json.setString(base + "/" + j, bindings[i].second.toString());
 	}
 
-	start += (elemCount != 0 ? OString(" ] ") : "") + " }, \"axes\": { ";
+	for (u32 i = 0; i < (u32) axes.size(); ++i) {
 
-	prevBinding = "";
-	bindingCount = elemCount = 0;
+		auto &ax = axes[i].second;
 
-	for (u32 i = 0; i < (u32)caxes.size(); ++i) {
+		OString base = OString("axes/") + axes[i].first;
+		u32 j = json.getMembers(base);
 
-		if (prevBinding != caxes[i].first) {
-			start += (bindingCount == 0 ? OString("") : " ], ") + "\"" + caxes[i].first + "\": [ ";
-			++bindingCount;
-			elemCount = 0;
-			prevBinding = caxes[i].first;
-		}
-
-		start += (elemCount == 0 ? OString("") : ", ") + caxes[i].second.toString();
-		++elemCount;
-
+		json.setString(base + "/" + j + "/binding", ax.binding.toString());
+		json.setString(base + "/" + j + "/effect", ax.effect == InputAxis1D::X ? "x" : (ax.effect == InputAxis1D::Y ? "y" : "z"));
+		json.setFloat(base + "/" + j + "/axisScale", ax.axisScale);
 	}
 
-	return start + (elemCount != 0 ? OString(" ] ") : "") + " } }";
+	return json.operator oi::OString().writeToFile(path);
 }
 
 InputAxis::InputAxis(Binding _binding, InputAxis1D _effect, f32 _axisScale) : binding(_binding), effect(_effect), axisScale(_axisScale) {}
-
-OString InputAxis::toString() {
-	return OString("{ \"binding\": \"") + binding.toString() + "\", \"effect\": " + (effect == InputAxis1D::X ? "\"x\"" : (effect == InputAxis1D::Y ? "\"y\"" : "\"z\"")) + ", \"axisScale\": " + axisScale + " }";
-}

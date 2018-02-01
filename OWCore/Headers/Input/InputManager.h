@@ -23,8 +23,6 @@ namespace oi {
 			f32 axisScale;
 
 			InputAxis(Binding _binding, InputAxis1D _effect, f32 _axisScale);
-
-			OString toString();
 		};
 
 		template<typename T>
@@ -64,10 +62,10 @@ namespace oi {
 			f32 getAxis1D(OString handle, InputAxis1D ia = InputAxis1D::X);
 
 			//Loads in the presets from a JSON
-			bool load(OString json);
+			bool load(OString loadPath);
 
 			//Writes the presets to a JSON
-			OString write();
+			bool write(OString writepath);
 
 		private:
 
