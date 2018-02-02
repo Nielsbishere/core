@@ -200,7 +200,7 @@ bool OpenGLShader::genReflectionData() {
 		ShaderInput &r = attributes[i];
 		r.name = OString(name).split("[")[0];
 		r.size = (u32)size;
-		r.type = ShaderInputType::findValue((u32)type);
+		r.type = ShaderInputType_s((u32)type);
 
 		if (ShaderInputHelper::getBase(r.type).getIndex() == 0)
 			return Log::error("Auto generated VAO expected a regular data type (float/double/uint/int/bool/mat)");
@@ -214,7 +214,7 @@ bool OpenGLShader::genReflectionData() {
 		ShaderInput &r = uniforms[i];
 		r.name = OString(name).split("[")[0];
 		r.size = (u32)size;
-		r.type = ShaderInputType::findValue((u32)type);
+		r.type = ShaderInputType_s((u32)type);
 	}
 
 	delete[] name;

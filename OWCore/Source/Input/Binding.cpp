@@ -3,10 +3,10 @@
 using namespace oi::wc;
 using namespace oi;
 
-Binding::Binding(Key k): bindingType((u8)BindingType::KEYBOARD), code((u16)k.getIndex()), controllerId(0) { }
-Binding::Binding(Click c) : bindingType((u8)BindingType::MOUSE), code((u16)c.getIndex()), controllerId(0) { }
-Binding::Binding(ControllerButton cb, u32 _controllerId) : bindingType((u8)BindingType::CONTROLLER_BUTTON), code((u16)cb.getIndex()), controllerId(_controllerId) {}
-Binding::Binding(ControllerAxis cb, u32 _controllerId) : bindingType((u8)BindingType::CONTROLLER_AXIS), code((u16)cb.getIndex()), controllerId(_controllerId) {}
+Binding::Binding(const Key_s k): bindingType((u8)BindingType::KEYBOARD), code((u16)Key(k).getIndex()), controllerId(0) { }
+Binding::Binding(const Click_s c) : bindingType((u8)BindingType::MOUSE), code((u16)Click(c).getIndex()), controllerId(0) { }
+Binding::Binding(const ControllerButton_s cb, u32 _controllerId) : bindingType((u8)BindingType::CONTROLLER_BUTTON), code((u16)ControllerButton(cb).getIndex()), controllerId(_controllerId) {}
+Binding::Binding(const ControllerAxis_s cb, u32 _controllerId) : bindingType((u8)BindingType::CONTROLLER_AXIS), code((u16)ControllerAxis(cb).getIndex()), controllerId(_controllerId) {}
 
 BindingType Binding::getType() {
 	return (BindingType)bindingType;
@@ -50,16 +50,16 @@ Binding::operator u32() {
 OString Binding::toString() {
 
 	if (getType() == BindingType::KEYBOARD)
-		return toKey().getKey() + " key";
+		return toKey().getName() + " key";
 
 	if (getType() == BindingType::MOUSE)
-		return toClick().getKey() + " mouse";
+		return toClick().getName() + " mouse";
 
 	if (getType() == BindingType::CONTROLLER_BUTTON)
-		return toButton().getKey() + " button #" + controllerId;
+		return toButton().getName() + " button #" + controllerId;
 
 	if (getType() == BindingType::CONTROLLER_AXIS)
-		return toAxis().getKey() + " axis #" + controllerId;
+		return toAxis().getName() + " axis #" + controllerId;
 
 	return "Undefined";
 }
@@ -77,12 +77,12 @@ Binding::Binding(OString ostr) {
 		if (end.equalsIgnoreCase("key")) {
 
 			bindingType = (u8)BindingType::KEYBOARD;
-			code = (u8)Key::findKey(split[0]).getIndex();
+			code = (u8)Key(split[0]).getIndex();
 
 		} else if (end.equalsIgnoreCase("mouse")) {
 
 			bindingType = (u8)BindingType::MOUSE;
-			code = (u8)Click::findKey(split[0]).getIndex();
+			code = (u8)Click(split[0]).getIndex();
 
 		} else if (split.size() == 3) {
 
@@ -96,12 +96,12 @@ Binding::Binding(OString ostr) {
 			if (split[1].equalsIgnoreCase("button")) {
 
 				bindingType = (u8)BindingType::CONTROLLER_BUTTON;
-				code = (u8)ControllerButton::findKey(split[0]).getIndex();
+				code = (u8)ControllerButton(split[0]).getIndex();
 
 			} else if(split[1].equalsIgnoreCase("axis")){
 
 				bindingType = (u8)BindingType::CONTROLLER_AXIS;
-				code = (u8)ControllerAxis::findKey(split[0]).getIndex();
+				code = (u8)ControllerAxis(split[0]).getIndex();
 			}
 		}
 

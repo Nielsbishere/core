@@ -17,34 +17,34 @@ void InputHandler::updateController(u32 i, Window &w) {
 
 	if (nw.controllers[i] = XInputGetState(i, &state) == ERROR_SUCCESS) {
 
-		nw.cAxis[off + ControllerAxis::findKey("Lx").getIndex()] = state.Gamepad.sThumbLX / 32767.f;
-		nw.cAxis[off + ControllerAxis::findKey("Ly").getIndex()] = state.Gamepad.sThumbLY / 32767.f;
+		nw.cAxis[off + ControllerAxis("Lx").getIndex()] = state.Gamepad.sThumbLX / 32767.f;
+		nw.cAxis[off + ControllerAxis("Ly").getIndex()] = state.Gamepad.sThumbLY / 32767.f;
 
-		nw.cAxis[off + ControllerAxis::findKey("Rx").getIndex()] = state.Gamepad.sThumbRX / 32767.f;
-		nw.cAxis[off + ControllerAxis::findKey("Ry").getIndex()] = state.Gamepad.sThumbRY / 32767.f;
+		nw.cAxis[off + ControllerAxis("Rx").getIndex()] = state.Gamepad.sThumbRX / 32767.f;
+		nw.cAxis[off + ControllerAxis("Ry").getIndex()] = state.Gamepad.sThumbRY / 32767.f;
 
-		nw.cAxis[off + ControllerAxis::findKey("L2").getIndex()] = state.Gamepad.bLeftTrigger / 255.f;
-		nw.cAxis[off + ControllerAxis::findKey("R2").getIndex()] = state.Gamepad.bRightTrigger / 255.f;
+		nw.cAxis[off + ControllerAxis("L2").getIndex()] = state.Gamepad.bLeftTrigger / 255.f;
+		nw.cAxis[off + ControllerAxis("R2").getIndex()] = state.Gamepad.bRightTrigger / 255.f;
 
 		off = i * ControllerButton::length;
 
-		nw.cButtons[off + ControllerButton::findKey("Cross").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
-		nw.cButtons[off + ControllerButton::findKey("Square").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
-		nw.cButtons[off + ControllerButton::findKey("Triangle").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
-		nw.cButtons[off + ControllerButton::findKey("Circle").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
+		nw.cButtons[off + ControllerButton("Cross").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+		nw.cButtons[off + ControllerButton("Square").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
+		nw.cButtons[off + ControllerButton("Triangle").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
+		nw.cButtons[off + ControllerButton("Circle").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
 
-		nw.cButtons[off + ControllerButton::findKey("Down").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
-		nw.cButtons[off + ControllerButton::findKey("Left").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
-		nw.cButtons[off + ControllerButton::findKey("Up").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
-		nw.cButtons[off + ControllerButton::findKey("Right").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
+		nw.cButtons[off + ControllerButton("Down").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
+		nw.cButtons[off + ControllerButton("Left").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
+		nw.cButtons[off + ControllerButton("Up").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
+		nw.cButtons[off + ControllerButton("Right").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
 
-		nw.cButtons[off + ControllerButton::findKey("L1").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
-		nw.cButtons[off + ControllerButton::findKey("R1").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
-		nw.cButtons[off + ControllerButton::findKey("L3").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
-		nw.cButtons[off + ControllerButton::findKey("R3").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
+		nw.cButtons[off + ControllerButton("L1").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
+		nw.cButtons[off + ControllerButton("R1").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
+		nw.cButtons[off + ControllerButton("L3").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
+		nw.cButtons[off + ControllerButton("R3").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
 
-		nw.cButtons[off + ControllerButton::findKey("Options").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
-		nw.cButtons[off + ControllerButton::findKey("Share").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
+		nw.cButtons[off + ControllerButton("Options").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
+		nw.cButtons[off + ControllerButton("Share").getIndex()] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
 
 	} else {
 		memset(&nw.cAxis[off], 0, 4 * ControllerAxis::length);
@@ -78,12 +78,12 @@ void InputHandler::update(Window &w) {
 }
 
 void InputHandler::handleKey(Key k, bool value) {
-	if(k.getIndex() < Key::size())
+	if(k.getIndex() < Key::length)
 		nw.keys[k.getIndex()] = value;
 }
 
 void InputHandler::handleClick(Click c, bool value) {
-	if (c.getIndex() < Click::size())
+	if (c.getIndex() < Click::length)
 		nw.mouseButtons[c.getIndex()] = value;
 }
 

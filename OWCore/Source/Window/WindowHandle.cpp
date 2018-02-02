@@ -33,7 +33,7 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 	switch (message) {
 	case WM_KEYUP:
 		{
-			Binding b = Binding(Key::findValue((u32)wParam));
+			Binding b = Binding(Key_s((u32)wParam));
 
 			if (b.getCode() != 0){
 				if (wi != nullptr)
@@ -45,7 +45,7 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 		break;
 	case WM_KEYDOWN:
 		{
-			Binding b = Binding(Key::findValue((u32)wParam));
+			Binding b = Binding(Key_s((u32)wParam));
 
 			if (b.getCode() != 0) {
 				if (wi != nullptr && !w->getInput().isDown(b))
@@ -119,80 +119,80 @@ LRESULT CALLBACK WindowHandle::windowEvents(HWND hwnd, UINT message, WPARAM wPar
 
 	case WM_LBUTTONDOWN:
 
-		w->handleBinding(Click::get(1), true);
+		w->handleBinding(Click::Left, true);
 
 		if (wi != nullptr)
-			wi->onKeyPress(Click::get(1));
+			wi->onKeyPress(Click::Left);
 
 		break;
 	case WM_LBUTTONUP:
 
-		w->handleBinding(Click::get(1), false);
+		w->handleBinding(Click::Left, false);
 
 		if (wi != nullptr)
-			wi->onKeyRelease(Click::get(1));
+			wi->onKeyRelease(Click::Left);
 
 		break;
 	case WM_MBUTTONDOWN:
 
-		w->handleBinding(Click::get(2), true);
+		w->handleBinding(Click::Middle, true);
 
 		if (wi != nullptr)
-			wi->onKeyPress(Click::get(2));
+			wi->onKeyPress(Click::Middle);
 
 		break;
 	case WM_MBUTTONUP:
 
-		w->handleBinding(Click::get(2), false);
+		w->handleBinding(Click::Middle, false);
 
 		if (wi != nullptr)
-			wi->onKeyRelease(Click::get(2));
+			wi->onKeyRelease(Click::Middle);
 
 		break;
 	case WM_RBUTTONDOWN:
 
-		w->handleBinding(Click::get(3), true);
+		w->handleBinding(Click::Right, true);
 
 		if (wi != nullptr)
-			wi->onKeyPress(Click::get(3));
+			wi->onKeyPress(Click::Right);
 
 		break;
 	case WM_RBUTTONUP:
 
-		w->handleBinding(Click::get(3), false);
+		w->handleBinding(Click::Right, false);
 
 		if (wi != nullptr)
-			wi->onKeyRelease(Click::get(3));
+			wi->onKeyRelease(Click::Right);
 
 		break;
 	case WM_XBUTTONUP:
 
 		if (xid == XBUTTON1) {
-			w->handleBinding(Click::get(4), false);
+			w->handleBinding(Click::Back, false);
 
 			if (wi != nullptr)
-				wi->onKeyRelease(Click::get(4));
+				wi->onKeyRelease(Click::Back);
 		} else {
-			w->handleBinding(Click::get(5), false);
+			w->handleBinding(Click::Forward, false);
 
 			if (wi != nullptr)
-				wi->onKeyRelease(Click::get(5));
+				wi->onKeyRelease(Click::Forward);
 		}
 
 		break;
 	case WM_XBUTTONDOWN:
 
 		if (xid == XBUTTON1) {
-			w->handleBinding(Click::get(4), true);
+			w->handleBinding(Click::Back, true);
 
 			if (wi != nullptr)
-				wi->onKeyPress(Click::get(4));
+				wi->onKeyPress(Click::Back);
 		}
 		else {
-			w->handleBinding(Click::get(5), true);
+			w->handleBinding(Click::Forward, true);
 
 			if (wi != nullptr)
-				wi->onKeyPress(Click::get(5));
+				wi->onKeyPress(Click::Forward);
 		}
 
 		break;

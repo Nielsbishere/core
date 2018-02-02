@@ -7,181 +7,116 @@
 
 namespace oi {
 
+	#define _(...) __VA_ARGS__
 
-	template<typename T, u32 i>
-	struct Enumeration {
-		OString name;
-		OString keys[i];
-		T values[i];
-		u32 len;
+	#define SEnum(name, structInfo, a0, ...)														\
+	struct name##_s {																				\
+	structInfo																						\
+																									\
+	constexpr name##_s operator=(name##_s other) const { return *this; }							\
+	};																								\
+																									\
+	class name {																					\
+																									\
+	public:																							\
+																									\
+		static constexpr name##_s a0, __VA_ARGS__;													\
+																									\
+		name(u32 _index = 0) : index(_index) {														\
+			if (index >= length) index = 0;															\
+		}																							\
+																									\
+		name(const name##_s val) : index(0) {														\
+			for (u32 i = 0; i < length; ++i)														\
+				if (memcmp(ilist + i, &val, sizeof(val)) == 0) {									\
+					index = i;																		\
+					break;																			\
+				}																					\
+		}																							\
+																									\
+		name(OString name) : index(0) {																\
+																									\
+			for (u32 i = 0; i < length; ++i)														\
+			if (getNames()[i] == name) {															\
+				index = i;																			\
+				break;																				\
+			}																						\
+																									\
+		}																							\
+																									\
+		const name##_s &getValue() { return *(ilist + index); }										\
+		operator const name##_s&() { return getValue(); }											\
+																									\
+		u32 getIndex() { return index; }															\
+																									\
+		const oi::OString getName() { return getNames()[index]; }									\
+		operator const oi::OString() { return getName(); }											\
+																									\
+		static std::vector<name##_s> getValues() {													\
+			auto vec = std::vector<name##_s>(length);												\
+			vec.assign(ilist, ilist + length - 1);													\
+			return vec;																				\
+		}																							\
+																									\
+		static std::vector<oi::OString> getNames() {												\
+			static const std::vector<oi::OString> names = initNames();								\
+			return names;																			\
+		}																							\
+																									\
+		static const oi::OString &getEnumName() {													\
+			static const oi::OString name = #name;													\
+			return name;																			\
+		}																							\
+																									\
+		static name get(u32 i) { return name(i); }													\
+																									\
+	protected:																						\
+																									\
+		static const std::vector<oi::OString> initNames() {											\
+																									\
+			std::vector<oi::OString> res;															\
+			std::vector<oi::OString> arr = getArgs().split("=");									\
+																									\
+			u32 i = 0;																				\
+			for (oi::OString temp : arr) {															\
+																									\
+				if (i == 0){																		\
+					OString almostCorrect = temp;													\
+					std::vector<oi::OString> csplit2 = almostCorrect.split("(");					\
+					res.push_back(csplit2[csplit2.size() - 1]);										\
+				}																					\
+				else if (i < arr.size() - 1) {														\
+					std::vector<oi::OString> csplit = temp.split(",");								\
+					oi::OString almostCorrect = csplit[csplit.size() - 1];							\
+					std::vector<oi::OString> csplit2 = almostCorrect.split("(");					\
+					res.push_back(csplit2[csplit2.size() - 1]);										\
+				}																					\
+																									\
+				++i;																				\
+			}																						\
+																									\
+			return res;																				\
+		}																							\
+																									\
+		static const oi::OString &getArgs() {														\
+			static const oi::OString args = (oi::OString(#a0) + ", " + oi::OString(#__VA_ARGS__)).replace(" ", "").replace("\t", "").replace("\r", "").replace("\n", "");	\
+			return args;																			\
+		}																							\
+																									\
+	private:																						\
+																									\
+		u32 index;																					\
+																									\
+		static constexpr name##_s ilist[] = { a0, __VA_ARGS__ };									\
+																									\
+		template<u32 i>																				\
+		static constexpr u32 getLength(const name##_s(&t)[i]) { return i; }							\
+																									\
+	public:																							\
+																									\
+		static constexpr u32 length = getLength(ilist);												\
+																									\
 	};
 
-	class EnumFactory {
-
-	public:
-
-		template<typename T, typename ...args>
-		struct CountNames {
-			static constexpr u32 get = CountNames<args...>::get + CountNames<T>::get;
-		};
-
-		template<typename T>
-		struct CountNames<T> {
-			static constexpr u32 get = 0;
-		};
-
-		template<>
-		struct CountNames<const char*> {
-			static constexpr u32 get = 1;
-		};
-
-		struct CountNamesArgs {
-
-			template<typename T, typename ...args>
-			static constexpr u32 get(T t, args... arg) {
-				return CountNames<T, args...>::get;
-			}
-
-		};
-
-		template<typename T, bool b = std::is_integral<T>::value>
-		struct AddToInt {
-			void operator()(T &t) { }
-		};
-
-		template<typename T>
-		struct AddToInt<T, true> {
-			void operator()(T &t) { ++t; }
-		};
-
-		template<typename T, bool b = std::is_integral<T>::value>
-		struct SetInt {
-			void operator()(T &t, T res) { }
-		};
-
-		template<typename T>
-		struct SetInt<T, true> {
-			void operator()(T &t, T res) { t = res; }
-		};
-
-		template<u32 k, typename T, u32 l, typename T2>
-		static void set(Enumeration<T, l> &w, T &def, u32 &i, u32 &j, T2 t) {
-			w.values[j] = (T)t;
-			SetInt<T>{}(def, (T)t);
-		}
-
-		template<u32 k, typename T, u32 l>
-		static void set(Enumeration<T, l> &w, T &def, u32 &i, u32 &j, const char *c) {
-			AddToInt<T>{}(def);
-			w.keys[i] = c;
-			w.values[i] = (T)def;
-			j = i;
-			++i;
-		}
-
-		template<u32 k, typename T, u32 l, typename T2, typename ...args>
-		static void set(Enumeration<T, l> &w, T &def, u32 &i, u32 &j, T2 t, args... arg) {
-			set<k>(w, def, i, j, t);
-			set<k + 1>(w, def, i, j, arg...);
-		}
-
-		template<typename T, typename ...args>
-		static Enumeration<T, CountNames<args...>::get> make(OString name, T def, args... arg) {
-			Enumeration<T, CountNames<args...>::get> enums;
-			u32 i = 0, j = 0;
-			set<0>(enums, def, i, j, arg...);
-			enums.name = name;
-			enums.len = CountNames<args...>::get;
-			return enums;
-		}
-
-	};
-
-	#define Enum(ename, etype, edefaultVal, earg0, ...)																							\
-	class ename {																																\
-																																				\
-	private:																																	\
-																																				\
-		static auto &getArr() {																													\
-			return oi::EnumFactory::make(#ename, (etype)edefaultVal, earg0, __VA_ARGS__);														\
-		}																																		\
-																																				\
-		static u32 getValidIndex(u32 i) {																										\
-			if (size() == 0) oi::Log::throwError<ename, 0x0>("Enum had a size of 0. This is not allowed");										\
-			if (i >= getArr().len) return 0;																									\
-			return i;																															\
-		}																																		\
-																																				\
-		static const oi::OString stringify_intern() {																							\
-			oi::OString res = "";																												\
-			u32 len = size();																													\
-			for (u32 i = 0; i < len; ++i)																										\
-				res += get(i).toString() + (i == len - 1 ? "" : ", ");																			\
-																																				\
-			return oi::OString("\"") + getName() + "\": {" + res + "}";																			\
-		}																																		\
-																																				\
-	public:																																		\
-																																				\
-		static const u32 size() {																												\
-			auto &arr = getArr();																												\
-			return getArr().len;																												\
-		}																																		\
-																																				\
-		static ename get(u32 i) {																												\
-			return ename(getValidIndex(i));																										\
-		}																																		\
-																																				\
-		static oi::OString getKey(u32 i) {																										\
-			i = getValidIndex(i);																												\
-			return getArr().keys[i];																											\
-		}																																		\
-																																				\
-		static etype getValue(u32 i) {																											\
-			i = getValidIndex(i);																												\
-			return getArr().values[i];																											\
-		}																																		\
-																																				\
-		static oi::OString getName() {																											\
-			return getArr().name;																												\
-		}																																		\
-																																				\
-		static const oi::OString &stringify() {																									\
-			static const oi::OString str = stringify_intern();																					\
-			return str;																															\
-		}																																		\
-																																				\
-		static ename findKey(oi::OString key) {																									\
-			for (u32 i = 0; i < size(); ++i)																									\
-				if (getKey(i) == key)																											\
-					return ename(i);																											\
-			return ename(0);																													\
-		}																																		\
-																																				\
-		static ename findValue(etype val) {																										\
-			for (u32 i = 0; i < size(); ++i)																									\
-				if (getValue(i) == val)																											\
-					return ename(i);																											\
-			return ename(0);																													\
-		}																																		\
-																																				\
-		oi::OString getKey() const { return getKey(in); }																						\
-		etype getValue() const { return getValue(in); }																							\
-		u32 getIndex() const { return in; }																										\
-																																				\
-		oi::OString toString() const { return OString("\"") + getKey() + "\": " + getValue(); }													\
-																																				\
-		ename(): in(0){}																														\
-																																				\
-		static constexpr u32 length = oi::EnumFactory::CountNamesArgs::get(earg0, __VA_ARGS__);														\
-																																				\
-	protected:																																	\
-																																				\
-		ename(u32 index) : in(index) {}																											\
-																																				\
-		u32 in;																																	\
-	};																																			
-
-	#define IEnum(ename, earg0, ...) Enum(ename, i32, -1, earg0, __VA_ARGS__);
-	#define UEnum(ename, earg0, ...) Enum(ename, u32, u32_MAX, earg0, __VA_ARGS__);
+	#define DEnum(name, type, a0, ...) SEnum(name, type value; constexpr name##_s(type val): value(val) {}; constexpr name##_s(): value((type)0){}; operator type() const { return value; }, a0, __VA_ARGS__)
 }

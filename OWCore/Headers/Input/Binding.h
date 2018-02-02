@@ -22,10 +22,10 @@ namespace oi {
 
 		public:
 
-			Binding(Key k);
-			Binding(Click c);
-			Binding(ControllerButton cb, u32 controllerId = 0);
-			Binding(ControllerAxis ca, u32 controllerId = 0);
+			Binding(const Key_s k);
+			Binding(const Click_s c);
+			Binding(const ControllerButton_s cb, u32 controllerId = 0);
+			Binding(const ControllerAxis_s ca, u32 controllerId = 0);
 
 			Binding(OString name);
 
