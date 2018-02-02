@@ -1,6 +1,34 @@
 # OCore
 Osomi Core - A basic template library for (graphic) engines
 ## OSTLC (Osomi Standard Template Library Core)
+### Underscore 'operator'/macro
+Underscore has a specific use in OSTLC; it is a 'function' that escapes commas so they can be used in other macros. The reason for this is because C++ macros use a comma as a split character, therefore not allowing you to input any commas into a macro. This does however mean that the syntax will look different, but it is worth it, seeing all of the benefits from it:
+```cpp
+#define someType(x, y, z) x y = z;
+```
+This example is impossible to write when you are using C++ STL containers;
+```cpp
+someType(std::unordered_map<OString, u32>, val, { { "Test", 0 }, { "Test2", 1 } });
+```
+You would think it would generate the following;
+```cpp
+std::unordered_map<OString, u32> val = { { "Test", 0 }, { "Test2", 1 } };
+```
+However, because it uses commas to split, it will see the following arguments
+```cpp
+std::unordered_map<OString
+u32>
+val
+{ { "Test"
+0}
+{ "Test2"
+1 } }
+```
+which doesn't make sense if you put it in. This is where the _ operator comes in.
+```cpp
+someType(_(std::unordered_map<OString, u32>), val, _({ { "Test", 0 }, { "Test2", 1 } }));
+```
+The above does generate the correct code. Yes, it doesn't look perfect, but at least you can use commas in a macro now.
 ### Standard data types
 OSTLC includes defines for types and handles vectors and colors as well. The following is how you note objects from the OSTLC:
 ```cpp
@@ -36,11 +64,40 @@ OSTLC includes defines for types and handles vectors and colors as well. The fol
 ```
 ### 'Java' enums
 Not exclusive to Java, but Java has very nice enums. They are compile time values of any class, you can loop through all enums and check their names and values and reference them like regular C++ enums. This is what OSTLC's Enum define is supposed to do; allow you to have a list of all the values of an enum and ways to access them.
+#### Enum restrictions
+Structured enums only allow basic constexpr data types. They also don't allow you to use custom functions or constructors; they should be pure structs. This is because of limitations and because it should be a compile time constant.
+All values have to be declared; so no assuming it will increment the last int, because enums aren't always ints anymore.
 #### Defining an enum
-Defining a regular u32 enum is easy; just use the following (include Template/Enum.h)
+Defining a data enum (integer/float) is easy; just use the following (include Template/Enum.h)
 ```cpp
-  UEnum(name, "Value0", "Value1", "Value2", "Value6", 6, "Value7", "Value10", 10);
+  DEnum(Name, u32, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);
 ```
+If you want to define a linear data enum (you don't care about the values, you just want to represent names); you can use LDEnum;
+```cpp
+ LDEnum(Name, u32, Value0, Value1, Value2, Value3);
+```
+Creating your own (structured) enum can be done using the following;
+```cpp
+  SEnum(Name, _(i32 x, y, z;), Value0 = { }, Value1 = _({ 1, 2, 3 }), _(Value2 = { 4, 5 }));
+```
+Remember that the _ macro (escape macro) has to be used whenever your expression contains a comma, so the following would be valid syntax:
+```cpp
+  SEnum(Name, i32 x; i32 y; i32 z;, Value0 = {}, Value1 = { 1 }, Value2 = { 5 });
+```
+But the following wouldn't be;
+```cpp
+  SEnum(Name, i32 x, i32 y, i32 z, Value0 = { 0, 1, 2 }, Value1 = { 1, 2, 3 }, Value2 = { 5, 5, 6 });
+```
+#### Looping through an enum
+You access an enum like you would with any enum class; so Name::Value0 for example. This can evaluate to two values; either const Name_s&, which is the value of that enum, or Name, which contains the current index, name and value.
+However, the regular method doesn't allow you to loop through those values, but Osomi Enums do. You simply get the length of the enum; Name::length and make a for loop; then you can write Name n = i; and it will auto detect the name and value of the enum.
+```cpp
+	for (u32 i = 0; i < SomeTestEnum::length; ++i) {
+		const SomeTestEnum_s &it = SomeTestEnum(i);
+		printf("%u %u %u %u\n", it.a, it.b, it.c, it.d);
+	}
+```
+The code above gets the enum at i and gets the value, whereafter printing the abcd values for that enum.
 ### JSON
 Osomi Core (STL) wraps around rapidjson to make JSON parsing more intuitive and less of a pain to think about how you're copying stuff and if something already exists. The Utils/JSON.h provides you with a couple of utils, mainly, getting and setting things in the JSON file.  
 It treats the JSON more like a file system; you access it by using /'s as seperators and while it does have lists and objects, you can access anything using paths.
