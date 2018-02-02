@@ -10,8 +10,8 @@ namespace oi {
 
 	template<typename T, u32 i>
 	struct Enumeration {
-		const char *name;
-		const char *keys[i];
+		OString name;
+		OString keys[i];
 		T values[i];
 		u32 len;
 	};
@@ -86,7 +86,7 @@ namespace oi {
 		}
 
 		template<typename T, typename ...args>
-		static Enumeration<T, CountNames<args...>::get> make(const char *name, T def, args... arg) {
+		static Enumeration<T, CountNames<args...>::get> make(OString name, T def, args... arg) {
 			Enumeration<T, CountNames<args...>::get> enums;
 			u32 i = 0, j = 0;
 			set<0>(enums, def, i, j, arg...);

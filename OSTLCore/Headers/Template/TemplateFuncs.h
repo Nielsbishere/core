@@ -30,6 +30,19 @@ namespace oi {
 			arr[i] = t;
 		}
 
+		template<typename T, u32 n, typename T2, typename ...args>
+		static void run_s(T(&arr)[n], u32 i, T2 t, args... param) {
+			if (i >= n) return;
+			arr[i] = (T)t;
+			run_s(arr, ++i, param...);
+		}
+
+		template<typename T, u32 n, typename T2>
+		static void run_s(T(&arr)[n], u32 i, T2 t) {
+			if (i >= n) return;
+			arr[i] = (T)t;
+		}
+
 	};
 
 	struct CopyArray {

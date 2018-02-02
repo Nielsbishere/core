@@ -175,7 +175,8 @@ bool InputManager::load(OString path) {
 
 			for (OString id : json.getMemberIds(OString("bindings/") + handle)) {
 
-				Binding b(json.getString(OString("bindings/") + handle + "/" + id));
+				OString bstr = json.getString(OString("bindings/") + handle + "/" + id);
+				Binding b(bstr);
 
 				if (b.getType() != BindingType::UNDEFINED && b.getCode() != 0) {
 					bind(handle, b);

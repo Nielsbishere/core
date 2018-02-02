@@ -19,6 +19,9 @@ namespace oi {
 		OString(u32 len, char filler);
 		OString(JSON json);
 
+		template<u32 len>
+		static const OString constString(const char(&c)[len]) { return OString(c); }
+
 		OString(i32 i);
 		OString(u32 u);
 		OString(f32 f);

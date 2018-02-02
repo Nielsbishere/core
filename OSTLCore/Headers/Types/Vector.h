@@ -94,12 +94,12 @@ namespace oi {
 
 			u32 start = n2;
 
-			FillArray::run(arr, n2 < n ? n2 : n, arg...);
+			FillArray::run_s(arr, n2 < n ? n2 : n, arg...);
 		}
 
 		template<typename ...args>
 		TVec(T t, args... arg): TVec() {
-			FillArray::run(arr, 0, t, arg...);
+			FillArray::run_s(arr, 0, t, arg...);
 		}
 
 		TVec &operator+=(const TVec &other) {
