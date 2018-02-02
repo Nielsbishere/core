@@ -65,7 +65,7 @@ OSTLC includes defines for types and handles vectors and colors as well. The fol
 ### 'Java' enums
 Not exclusive to Java, but Java has very nice enums. They are compile time values of any class, you can loop through all enums and check their names and values and reference them like regular C++ enums. This is what OSTLC's Enum define is supposed to do; allow you to have a list of all the values of an enum and ways to access them.
 #### Enum restrictions
-Structured enums only allow basic constexpr data types. They also don't allow you to use custom functions or constructors; they should be pure structs. This is because of limitations and because it should be a compile time constant.
+Structured enums only allow basic constexpr data types. They do allow you to add custom functions or constructors; but they should be pure constexpr structs (so no calling non-constexpr constructors and no overriding the = operator). This is because of limitations and because it should be a compile time constant.
 All values have to be declared; so no assuming it will increment the last int, because enums aren't always ints anymore.
 #### Defining an enum
 Defining a data enum (integer/float) is easy; just use the following (include Template/Enum.h)
