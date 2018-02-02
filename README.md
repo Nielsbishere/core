@@ -72,10 +72,6 @@ Defining a data enum (integer/float) is easy; just use the following (include Te
 ```cpp
   DEnum(Name, u32, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);
 ```
-If you want to define a linear data enum (you don't care about the values, you just want to represent names); you can use LDEnum;
-```cpp
- LDEnum(Name, u32, Value0, Value1, Value2, Value3);
-```
 Creating your own (structured) enum can be done using the following;
 ```cpp
   SEnum(Name, _(i32 x, y, z;), Value0 = { }, Value1 = _({ 1, 2, 3 }), _(Value2 = { 4, 5 }));
