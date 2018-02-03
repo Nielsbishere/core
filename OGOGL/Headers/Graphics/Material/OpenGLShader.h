@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Graphics/Material/Shader.h>
-#include "ShaderInput.h"
+#include "OpenGLShaderInput.h"
 
 namespace oi {
 

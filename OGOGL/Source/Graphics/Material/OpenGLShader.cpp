@@ -197,13 +197,15 @@ bool OpenGLShader::genReflectionData() {
 		GLenum type;
 		OpenGL::glGetActiveAttrib(shaderId, i, maxLength, NULL, &size, &type, name);
 
+		auto ttype = OpenGLShaderInputType::find((u32)type);
+
 		ShaderInput &r = attributes[i];
-		r.name = OString(name).split("[")[0];
+		r.name = name;
 		r.size = (u32)size;
-		r.type = ShaderInputType_s((u32)type);
+		r.type = ttype.getName();
 
 		if (ShaderInputHelper::getBase(r.type).getIndex() == 0)
-			return Log::error("Auto generated VAO expected a regular data type (float/double/uint/int/bool/mat)");
+			return Log::error("Expected a regular data type (float/double/uint/int/bool/mat)");
 	}
 
 	for (GLint i = 0; i < uniformCount; i++) {
@@ -211,10 +213,12 @@ bool OpenGLShader::genReflectionData() {
 		GLenum type;
 		OpenGL::glGetActiveUniform(shaderId, i, maxLength, NULL, &size, &type, name);
 
+		auto ttype = OpenGLShaderInputType::find((u32)type);
+
 		ShaderInput &r = uniforms[i];
-		r.name = OString(name).split("[")[0];
+		r.name = name;
 		r.size = (u32)size;
-		r.type = ShaderInputType_s((u32)type);
+		r.type = ttype.getName();
 	}
 
 	delete[] name;

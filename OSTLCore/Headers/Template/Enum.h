@@ -5,10 +5,15 @@
 #include "TemplateFuncs.h"
 #include "Utils/Log.h"
 
+//Note for enums:
+//Please make sure that names are standard C/C++ names (so no spaces/tabs; no starting with numbers, etc.)
+//Please make sure that every enum is unique, there is no error yet; though looking up values will not work as expected
+
 namespace oi {
 
 	#define _(...) __VA_ARGS__
 
+	//Structured enum (constexpr)
 	#define SEnum(name, structInfo, a0, ...)														\
 	struct name##_s {																				\
 	structInfo																						\
@@ -70,6 +75,8 @@ namespace oi {
 																									\
 		static name get(u32 i) { return name(i); }													\
 																									\
+		static name find(name##_s k) { return name(k); }											\
+																									\
 	protected:																						\
 																									\
 		static const std::vector<oi::OString> initNames() {											\
@@ -118,5 +125,8 @@ namespace oi {
 																									\
 	};
 
+	//Data type enum
 	#define DEnum(name, type, a0, ...) SEnum(name, type value; constexpr name##_s(type val): value(val) {}; constexpr name##_s(): value((type)0){}; operator type() const { return value; }, a0, __VA_ARGS__)
+
+
 }

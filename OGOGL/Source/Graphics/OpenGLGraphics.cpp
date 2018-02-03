@@ -2,6 +2,9 @@
 #include <Graphics/Material/ShaderInfo.h>
 #include "Graphics/Material/OpenGLShader.h"
 #include "Graphics/GPU/OpenGLBufferGPU.h"
+#include "Graphics/GPU/OpenGLBufferLayout.h"
+#include "Graphics/OpenGLPrimitive.h"
+#include <Template/PlatformDefines.h>
 #include "API/OpenGL.h"
 
 using namespace oi;
@@ -36,6 +39,14 @@ void OpenGLGraphics::clear(RGBAf color) {
 
 BufferGPU *OpenGLGraphics::createBuffer(BufferType type, Buffer buf) {
 	return new OpenGLBufferGPU(type, buf);
+}
+
+BufferLayout *OpenGLGraphics::createLayout(BufferGPU *defaultBuffer) {
+	return new OpenGLBufferLayout(defaultBuffer);
+}
+
+void OpenGLGraphics::renderElement(Primitive p, u32 length, u32 startIndex) {
+	glDrawElements((GLenum)OpenGLPrimitive(p.getName()).getValue(), length, GL_UNSIGNED_INT, (GLvoid*) startIndex);
 }
 
 extern "C" __declspec(dllexport) Graphics *createGraphics() {

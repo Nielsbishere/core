@@ -27,6 +27,9 @@ namespace oi {
 			//Update buffer on GPU
 			virtual bool update() = 0;
 
+			virtual void bind() = 0;
+			virtual void unbind() = 0;
+
 			//Replace the item at offset with the buffer thrown as second
 			bool replace(u32 offset, Buffer second) {
 

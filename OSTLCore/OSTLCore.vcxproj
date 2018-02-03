@@ -168,6 +168,7 @@
     <ClInclude Include="Headers\Math\SimplexNoise.h" />
     <ClInclude Include="Headers\Template\Enum.h" />
     <ClInclude Include="Headers\Types\Grid.h" />
+    <ClInclude Include="Headers\Types\Matrix.h" />
     <ClInclude Include="Headers\Types\Resource.h" />
     <ClInclude Include="Headers\Types\Thread.h" />
     <ClInclude Include="Headers\Types\Vector.h" />

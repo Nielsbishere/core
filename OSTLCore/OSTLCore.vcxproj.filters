@@ -207,6 +207,9 @@
     <ClInclude Include="Headers\Utils\JSON.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Types\Matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Utils\BinaryHelper.cpp">

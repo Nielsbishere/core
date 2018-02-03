@@ -5,6 +5,7 @@
 #include <Types/OString.h>
 #include <Types/Color.h>
 #include "GPU/BufferType.h"
+#include "Primitive.h"
 
 namespace oi {
 
@@ -17,6 +18,7 @@ namespace oi {
 		class Shader;
 		class ShaderInfo;
 		class BufferGPU;
+		class BufferLayout;
 
 		class Graphics {
 
@@ -30,6 +32,9 @@ namespace oi {
 
 			virtual Shader *compileShader(ShaderInfo sinf) = 0;
 			virtual BufferGPU *createBuffer(BufferType type, Buffer b) = 0;
+			virtual BufferLayout *createLayout(BufferGPU *defaultBuffer) = 0;
+
+			virtual void renderElement(Primitive p, u32 length, u32 startIndex = 0) = 0;
 
 			typedef Graphics *(*f_createGraphics)();
 

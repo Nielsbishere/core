@@ -14,6 +14,9 @@ namespace oi {
 			void clear(RGBAf color) override;
 			Shader *compileShader(ShaderInfo sinf) override;
 			BufferGPU *createBuffer(BufferType type, Buffer buf) override;
+			BufferLayout *createLayout(BufferGPU *defaultBuffer) override;
+
+			void renderElement(Primitive p, u32 length, u32 startIndex = 0) override;
 
 		private:
 

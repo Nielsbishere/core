@@ -17,11 +17,14 @@ namespace oi {
 			bool init() override;
 			bool update() override;
 
+			void bind() override;
+			void unbind() override;
+
 		private:
 
 			Buffer driverHandle;
 			GLuint gpuHandle;
-
+			GLenum arrayType;
 		};
 
 	}
