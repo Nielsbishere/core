@@ -29,6 +29,7 @@ namespace oi {
 
 			virtual void clear() = 0;
 			virtual void clear(RGBAf color) = 0;
+			virtual void viewport(wc::Window *w) = 0;
 
 			virtual Shader *compileShader(ShaderInfo sinf) = 0;
 			virtual BufferGPU *createBuffer(BufferType type, Buffer b) = 0;

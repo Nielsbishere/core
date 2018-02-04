@@ -10,8 +10,11 @@ namespace oi {
 		public:
 
 			bool init(wc::Window *w) override;
+
+			void viewport(wc::Window *w) override;
 			void clear() override;
 			void clear(RGBAf color) override;
+
 			Shader *compileShader(ShaderInfo sinf) override;
 			BufferGPU *createBuffer(BufferType type, Buffer buf) override;
 			BufferLayout *createLayout(BufferGPU *defaultBuffer) override;

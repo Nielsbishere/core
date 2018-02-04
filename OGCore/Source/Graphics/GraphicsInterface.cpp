@@ -15,15 +15,26 @@ void GraphicInterface::init() {
 	getInput().load("Resources/Settings/Input.json");
 }
 
+BufferGPU *vertexBuffer, *indexBuffer;
+BufferLayout *bufferLayout;
+
+void GraphicInterface::update(f64 delta) {
+
+	for (u32 i = 0; i < 4; ++i) {
+
+		Buffer b = vertexBuffer->subbuffer(20 * i, 12);
+
+		b.operator[]<Vec3>(0) *= 0.999f;
+	}
+}
+
 void GraphicInterface::render() {
+	gl->viewport(getParent());
 	gl->clear(RGBAf(1, 1, 0, 1));
 	renderScene();
 	getParent()->swapBuffers();
 	//Vec3 mov = getInput().getAxis("Move");
 }
-
-BufferGPU *vertexBuffer, *indexBuffer;
-BufferLayout *bufferLayout;
 
 void GraphicInterface::initScene() {
 	s = gl->compileShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
@@ -87,6 +98,7 @@ void GraphicInterface::initScene() {
 
 void GraphicInterface::renderScene() {
 	s->bind();
+	//s->set("0", tex);
 	bufferLayout->bind();
 	gl->renderElement(Primitive::TriangleFan, 4);
 	bufferLayout->unbind();

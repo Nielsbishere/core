@@ -2,11 +2,10 @@
 using namespace oi::gc;
 using namespace oi;
 
-OpenGLBufferGPU::OpenGLBufferGPU(BufferType type, Buffer buf) : BufferGPU(type, buf), driverHandle(Buffer()), gpuHandle(0), arrayType(type == BufferType::IBO ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER) {}
-
+OpenGLBufferGPU::OpenGLBufferGPU(BufferType type, Buffer buf) : BufferGPU(type, buf), gpuHandle(0), arrayType(type == BufferType::IBO ? GL_ELEMENT_ARRAY_BUFFER : (type == BufferType::TBO ? GL_TEXTURE_BUFFER : GL_ARRAY_BUFFER)) {}
 OpenGLBufferGPU::~OpenGLBufferGPU() {
+	buf.deconstruct();
 	if (initialized) {
-		driverHandle.deconstruct();
 		OpenGL::glBindBuffer(arrayType, gpuHandle);
 		OpenGL::glUnmapBuffer(arrayType);
 		OpenGL::glDeleteBuffers(1, &gpuHandle);
@@ -30,27 +29,17 @@ bool OpenGLBufferGPU::init() {
 
 	if (dat == nullptr) {
 		OpenGL::glUnmapBuffer(arrayType);
-		OpenGL::glBindBuffer(arrayType, 0);
+		unbind();
 		return Log::throwError<OpenGLBufferGPU, 0x1>("Couldn't generate driver handle!");
 	}
 
 	unbind();
 
-	driverHandle = { dat, size() };
+	u32 len = size();
+	buf.deconstruct();
+	buf = Buffer::construct(dat, len);
 
 	return initialized = true;
-}
-
-bool OpenGLBufferGPU::update() {
-
-	for (Buffer elem : updates) {
-		u32 offset = (u32)(&elem[0] - &buf[0]);
-		memcpy(&driverHandle[offset], &buf[offset], elem.size());
-	}
-
-	updates.clear();
-
-	return true;
 }
 
 void OpenGLBufferGPU::bind() {

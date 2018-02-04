@@ -15,6 +15,7 @@ namespace oi {
 
 			void init() override;
 			void render() override;
+			void update(f64 dt) override;
 
 			virtual void initScene();
 			virtual void renderScene();

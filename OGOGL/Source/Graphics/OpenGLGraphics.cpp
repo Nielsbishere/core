@@ -37,6 +37,10 @@ void OpenGLGraphics::clear(RGBAf color) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
+void OpenGLGraphics::viewport(wc::Window *w) {
+	glViewport(0, 0, w->getInfo().getSize().x(), w->getInfo().getSize().y());
+}
+
 BufferGPU *OpenGLGraphics::createBuffer(BufferType type, Buffer buf) {
 	return new OpenGLBufferGPU(type, buf);
 }
