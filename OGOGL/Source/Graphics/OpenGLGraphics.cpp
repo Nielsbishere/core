@@ -3,6 +3,7 @@
 #include "Graphics/Material/OpenGLShader.h"
 #include "Graphics/GPU/OpenGLBufferGPU.h"
 #include "Graphics/GPU/OpenGLBufferLayout.h"
+#include "Graphics/Material/OpenGLTexture.h"
 #include "Graphics/OpenGLPrimitive.h"
 #include <Template/PlatformDefines.h>
 #include "API/OpenGL.h"
@@ -47,6 +48,23 @@ BufferGPU *OpenGLGraphics::createBuffer(BufferType type, Buffer buf) {
 
 BufferLayout *OpenGLGraphics::createLayout(BufferGPU *defaultBuffer) {
 	return new OpenGLBufferLayout(defaultBuffer);
+}
+
+TextureGPU *OpenGLGraphics::createTexture(Vec2u res, ColorType CT, Buffer b) {
+
+	if (b.size() == 0)
+		b = Buffer(ColorHelper::sizeOf(CT) * res.x() * res.y());
+
+	if (b.size() != ColorHelper::sizeOf(CT) * res.x() * res.y()) {
+		b.deconstruct();
+		return (TextureGPU*) Log::error("Couldn't create texture; Buffer sizes didn't match");
+	}
+
+	BufferGPU *buf = createBuffer(BufferType::TBO, b);
+	if(buf == nullptr)
+		return (TextureGPU*)Log::error("Couldn't create texture buffer");
+
+	return new OpenGLTexture(res, CT, buf);
 }
 
 void OpenGLGraphics::renderElement(Primitive p, u32 length, u32 startIndex) {

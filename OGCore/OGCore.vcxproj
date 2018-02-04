@@ -36,7 +36,7 @@
     <ClInclude Include="Headers\Graphics\Material\ShaderInput.h" />
     <ClInclude Include="Headers\Graphics\Material\ShaderStage.h" />
     <ClInclude Include="Headers\Graphics\Material\ShaderType.h" />
-    <ClInclude Include="Headers\Graphics\Material\Texture.h" />
+    <ClInclude Include="Headers\Graphics\Material\TextureGPU.h" />
     <ClInclude Include="Headers\Graphics\Primitive.h" />
     <ClInclude Include="Headers\OGCore\Properties.h" />
     <ClInclude Include="Headers\OGCore\OGDependencies.h" />

@@ -17,7 +17,9 @@ namespace oi {
 
 			Shader *compileShader(ShaderInfo sinf) override;
 			BufferGPU *createBuffer(BufferType type, Buffer buf) override;
-			BufferLayout *createLayout(BufferGPU *defaultBuffer) override;
+			BufferLayout *createLayout(BufferGPU *defaultBuffer) override; 
+			
+			TextureGPU *createTexture(Vec2u res, ColorType CT, Buffer b = Buffer()) override;
 
 			void renderElement(Primitive p, u32 length, u32 startIndex = 0) override;
 

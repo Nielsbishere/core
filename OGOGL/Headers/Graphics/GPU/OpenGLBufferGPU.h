@@ -9,6 +9,8 @@ namespace oi {
 
 		class OpenGLBufferGPU : public BufferGPU { 
 
+			friend class OpenGLTexture;
+
 		public:
 
 			OpenGLBufferGPU(BufferType type, Buffer buf);

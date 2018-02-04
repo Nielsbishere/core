@@ -63,6 +63,8 @@ namespace oi {
 			static PFNGLDELETESYNCPROC glDeleteSync;
 			static PFNGLFENCESYNCPROC glFenceSync;
 			static PFNGLCLIENTWAITSYNCPROC glClientWaitSync;
+			static PFNGLTEXBUFFERPROC glTexBuffer;
+			static PFNGLGETTEXTUREHANDLEARBPROC glGetTextureHandleARB;
 			//static PFNxPROC x;
 
 			static u32 getUVersion();

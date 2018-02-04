@@ -10,9 +10,6 @@
 
 namespace oi {
 
-	///Texture performance is pretty bad!
-	///Fix that
-
 	template<typename T, u32 d>
 	class TTextureBase;
 

@@ -2,6 +2,7 @@
 #include <Input/InputHandler.h>
 #include "Graphics/GPU/BufferGPU.h"
 #include "Graphics/GPU/BufferLayout.h"
+#include "Graphics/Material/TextureGPU.h"
 #include <Types/Matrix.h>
 using namespace oi::gc;
 using namespace oi;
@@ -17,6 +18,9 @@ void GraphicInterface::init() {
 
 BufferGPU *vertexBuffer, *indexBuffer;
 BufferLayout *bufferLayout;
+TextureGPU *gpuTex;
+
+f64 startTime = 0;
 
 void GraphicInterface::update(f64 delta) {
 
@@ -26,6 +30,9 @@ void GraphicInterface::update(f64 delta) {
 
 		b.operator[]<Vec3>(0) *= 0.999f;
 	}
+
+	gpuTex->operator[]<ColorType::COMPRESSED_RGBA>(0)[0] = (u8)(sin(startTime) * 0.5f * 255 + 0.5f * 255);
+	startTime += delta;
 }
 
 void GraphicInterface::render() {
@@ -37,7 +44,14 @@ void GraphicInterface::render() {
 }
 
 void GraphicInterface::initScene() {
+
 	s = gl->compileShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
+
+	u32 texDat[] = {
+		0xFF0000FF
+	};
+
+	gpuTex = gl->createTexture(Vec2u(1, 1), ColorType::COMPRESSED_RGBA, Buffer((u8*)texDat, sizeof(texDat)));
 
 	struct Vertex {
 		Vec3 pos;
@@ -88,6 +102,7 @@ void GraphicInterface::initScene() {
 	bufferLayout->add(ShaderInputType::Float3);
 	bufferLayout->add(ShaderInputType::Float2);
 
+	gpuTex->init();
 	vertexBuffer->init();
 	indexBuffer->init();
 	bufferLayout->init(indexBuffer);
@@ -98,10 +113,11 @@ void GraphicInterface::initScene() {
 
 void GraphicInterface::renderScene() {
 	s->bind();
-	//s->set("0", tex);
+	gpuTex->bind();
 	bufferLayout->bind();
 	gl->renderElement(Primitive::TriangleFan, 4);
 	bufferLayout->unbind();
+	gpuTex->unbind();
 	s->unbind();
 }
 

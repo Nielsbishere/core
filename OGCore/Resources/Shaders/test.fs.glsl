@@ -1,5 +1,5 @@
 #version 450 core
-//uniform sampler2D t;
+uniform samplerBuffer t;
 
 in vec2 uv;
 
@@ -51,8 +51,8 @@ vec2 dnoise(vec2 p, float length = 0.01, float d = 0.01){
 }
 
 void main(){
-//	vec3 col = texture(t, uv).rgb;
 	vec2 f = dnoise(uv * 1028, 0.1);
 	vec2 uv2 = f + uv;
-	color = vec4(uv2, 0, 1);
+	vec3 col = texelFetch(t, 0).rgb;
+	color = vec4(col, 1);
 }

@@ -60,6 +60,8 @@ PFNGLMAPBUFFERRANGEPROC OpenGL::glMapBufferRange = nullptr;
 PFNGLDELETESYNCPROC OpenGL::glDeleteSync = nullptr;
 PFNGLFENCESYNCPROC OpenGL::glFenceSync = nullptr;
 PFNGLCLIENTWAITSYNCPROC OpenGL::glClientWaitSync = nullptr;
+PFNGLTEXBUFFERPROC OpenGL::glTexBuffer = nullptr;
+PFNGLGETTEXTUREHANDLEARBPROC OpenGL::glGetTextureHandleARB = nullptr;
 //PFNxPROC OpenGL::x = nullptr;
 
 OString OpenGL::getVersion() {
@@ -201,6 +203,8 @@ bool OpenGL::init() {
 	glDeleteSync = (PFNGLDELETESYNCPROC)wglGetProcAddress("glDeleteSync");
 	glFenceSync = (PFNGLFENCESYNCPROC)wglGetProcAddress("glFenceSync");
 	glClientWaitSync = (PFNGLCLIENTWAITSYNCPROC)wglGetProcAddress("glClientWaitSync");
+	glTexBuffer = (PFNGLTEXBUFFERPROC)wglGetProcAddress("glTexBuffer");
+	glGetTextureHandleARB = (PFNGLGETTEXTUREHANDLEARBPROC)wglGetProcAddress("glGetTextureHandleARB");
 
 	return isInitialized = true;
 }

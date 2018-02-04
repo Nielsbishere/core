@@ -6,6 +6,7 @@
 
 namespace oi {
 
+	//All color types; EXTENDED is CPU only and therefore isn't typedeffed
 	enum ColorType {
 		COMPRESSED_R, NORMAL_R, EXTENDED_R,
 		COMPRESSED_RG, NORMAL_RG, EXTENDED_RG,
@@ -118,6 +119,10 @@ namespace oi {
 			return ColorsPerChannel<CT>;
 		}
 
+		static u32 sizeOf(ColorType CT) {
+			return (u32(CT) / 3 + 1) * (u32(CT) % 3 == 0 ? 1 : (u32(CT) % 3 == 1 ? 4 : 8));
+		}
+
 		template<ColorType CT>
 		static ColorChannel<CT> getChannel(const TColor<CT> &color, u32 i) {
 			return color.contents[i];
@@ -131,17 +136,13 @@ namespace oi {
 
 	typedef TColor<COMPRESSED_RGBA> RGBA;
 	typedef TColor<NORMAL_RGBA> RGBAf;
-	typedef TColor<EXTENDED_RGBA> RGBAd;
 
 	typedef TColor<COMPRESSED_RGB> RGB;
 	typedef TColor<NORMAL_RGB> RGBf;
-	typedef TColor<EXTENDED_RGB> RGBd;
 
 	typedef TColor<COMPRESSED_RG> RG;
 	typedef TColor<NORMAL_RG> RGf;
-	typedef TColor<EXTENDED_RG> RGd;
 
 	typedef TColor<COMPRESSED_R> Red;
 	typedef TColor<NORMAL_R> Redf;
-	typedef TColor<EXTENDED_R> Redd; 
 }
