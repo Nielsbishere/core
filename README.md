@@ -1,4 +1,4 @@
-# OCore
+# OCore (Osomi Core
 Osomi Core - A basic template library for (graphic) engines
 ## OSTLC (Osomi Standard Template Library Core)
 ### Underscore 'operator'/macro
@@ -203,4 +203,44 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 	}
 
 	return true;
+```
+## OGC (Osomi Graphics Core)
+Osomi Graphics Core / OGC is the part that renders things; it is using some of the fastest GL functions to ensure that you can do lots of things and you don't have to wait on the GPU a lot. An example of this is the GPU buffer that is used; BufferGPU, the thing handling storage in VRAM, it uses persistent double buffer techniques with the glBufferRange example; this just requires one call and automatically syncs if you write to the buffer (low overhead!). This is called 'AZDO' (Approaching Zero Driver Overhead) and when combined with bindless textures and deferred rendering can squeeze the most out of your GPU (it also allows you to multi thread more on the GPU). 
+### OGC Shaders
+OGC Shaders for now just use GLSL; however, they do require OpenGL 4.5+, because the engine is built on the idea of achieving the highest FPS with the most objects. This requires certain extensions that only modern GPUs have, but it is focused on the future, not the past. For obtaining a cross API structure, so I could handle DX12 (maybe) in the future, I need to handle a certain architecture. This does result into a few changes for how OpenGL works high level.
+#### Limitations
+One of the shader struggles is that OpenGL has the uniform system, but DirectX uses the buffer system. In OpenGL, you update a uniform with its location index and it all works. DirectX however, needs you to put stuff into various buffers and it does make more sense then to use multiple calls for sending data; this is very slow. Due to this, I have decided to completely remove uniforms and uniform buffers. You simply fill a buffer either manually or through the Shader; this buffer then gets automatically synced and you won't have to worry about any GL calls happening while you are sending that data. (Meaning that you can even multi thread your uniform calls!). Instead, you will use the Shader Storage Buffer Object (SSBO), which is quite similar to DirectX's structure, which also makes it more compatible.  
+The shader automatically creates the SSBOs required and can find the reflection data automatically. This means that you don't have to access everything like a buffer if you don't want to. You can get the GPU buffer and put things inside of there by using variable paths. Similar to OpenGL's 'glGetUniformLocation', you pass in the name of the variable, prefixed by the buffer's name and seperated by a period.
+```glsl
+struct Test {
+  vec3 var1;
+  float var2;
+};
+
+struct Test2 {
+  uint count;
+  Test tests[3];
+};
+
+layout(std430, binding = 0) buffer testBuffer {
+	uint variable;
+	Test2 t[];
+};
+```
+Now this looks strange; `Test2 t[]`, it is a dynamically sized array. This can only be done to the last element in an SSBO and is so you can have a buffer of undefined size. OGC will interpret this as a call to allocate 1 MiB worth of data (per shader), so make sure it is really required!  
+You can access the variables like the following:
+```
+testBuffer.variable
+testBuffer.t[i].count
+testBuffer.t[i].tests[j].var1
+testBuffer.t[i].tests[j].var2
+testBuffer
+```
+They yield the following types (on the CPU):
+```
+u32
+u32
+Vec3
+f32
+BufferGPU*
 ```
