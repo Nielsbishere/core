@@ -12,7 +12,7 @@ int main() {
 
 	Graphics::startGraphics();
 
-	w.setInterface(new GraphicInterface());
+	w.setInterface(new GraphicsInterface());
 	w.waitAll();
 
 	Graphics::endGraphics();

@@ -3,7 +3,7 @@
 #include <Types/Generic.h>
 #include "OGCore/Properties.h"
 #include <Types/OString.h>
-#include <Types/Color.h>
+#include <Types/Buffer.h>
 #include <Types/Vector.h>
 #include "GPU/BufferType.h"
 #include "Primitive.h"
@@ -20,7 +20,6 @@ namespace oi {
 		class ShaderInfo;
 		class BufferGPU;
 		class BufferLayout;
-		class TextureGPU;
 
 		class Graphics {
 
@@ -30,13 +29,12 @@ namespace oi {
 			virtual bool init(wc::Window *w) = 0;
 
 			virtual void clear() = 0;
-			virtual void clear(RGBAf color) = 0;
+			virtual void clear(Vec3 color) = 0;
 			virtual void viewport(wc::Window *w) = 0;
 
-			virtual Shader *compileShader(ShaderInfo sinf) = 0;
-			virtual BufferGPU *createBuffer(BufferType type, Buffer b) = 0;
+			virtual Shader *createShader(ShaderInfo sinf) = 0;
+			virtual BufferGPU *createBuffer(BufferType type, Buffer b, u32 binding = 0) = 0;
 			virtual BufferLayout *createLayout(BufferGPU *defaultBuffer) = 0;
-			virtual TextureGPU *createTexture(Vec2u res, ColorType CT, Buffer b = Buffer()) = 0;
 
 			virtual void renderElement(Primitive p, u32 length, u32 startIndex = 0) = 0;
 

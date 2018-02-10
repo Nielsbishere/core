@@ -5,13 +5,8 @@
 
 namespace oi {
 
-	template<typename T>
-	struct TextureHelper;
-
 	template<typename T, u32 d = 2>
 	class TGrid {
-
-		friend struct TextureHelper<T>;
 
 	public:
 
@@ -71,5 +66,15 @@ namespace oi {
 		TVec<u32, d> size;
 		u32 len;
 	};
+
+	typedef TGrid<f32> Grid2D;
+	typedef TGrid<u32> Grid2Du;
+	typedef TGrid<i32> Grid2Di;
+	typedef TGrid<f64> Grid2Dd;
+
+	typedef TGrid<f32, 3> Grid3D;
+	typedef TGrid<u32, 3> Grid3Du;
+	typedef TGrid<i32, 3> Grid3Di;
+	typedef TGrid<f64, 3> Grid3Dd;
 
 }

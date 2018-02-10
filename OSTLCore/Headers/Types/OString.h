@@ -10,6 +10,8 @@ namespace oi {
 
 	class OString {
 
+		friend struct std::hash<OString>;
+
 	public:
 
 		OString();
@@ -18,6 +20,7 @@ namespace oi {
 		OString(char *source, u32 len);
 		OString(u32 len, char filler);
 		OString(JSON json);
+		OString(const OString &str);
 
 		template<u32 len>
 		static const OString constString(const char(&c)[len]) { return OString(c); }
@@ -78,7 +81,8 @@ namespace oi {
 		OString toLowerCase() const;
 		OString toUpperCase() const;
 
-		bool operator==(OString other) const;
+		OString &operator=(const OString &other);
+		bool operator==(const OString &other) const;
 		bool operator!=(OString other) const;
 		bool equalsIgnoreCase(OString other) const;
 		bool endsWithIgnoreCase(OString other) const;
@@ -113,9 +117,19 @@ namespace oi {
 		auto begin() const { return source.begin(); }
 		auto end() const { return source.end(); }
 
-	private:
+	protected:
 
 		std::string source;
 	};
 
+}
+
+//Hashing for OString
+namespace std {
+	template<>
+	struct hash<oi::OString> {
+		inline size_t operator()(const oi::OString& str) const {
+			return hash<std::string>()(str.source);
+		}
+	};
 }

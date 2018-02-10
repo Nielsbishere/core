@@ -13,13 +13,11 @@ namespace oi {
 
 			void viewport(wc::Window *w) override;
 			void clear() override;
-			void clear(RGBAf color) override;
+			void clear(Vec3 color) override;
 
-			Shader *compileShader(ShaderInfo sinf) override;
-			BufferGPU *createBuffer(BufferType type, Buffer buf) override;
-			BufferLayout *createLayout(BufferGPU *defaultBuffer) override; 
-			
-			TextureGPU *createTexture(Vec2u res, ColorType CT, Buffer b = Buffer()) override;
+			Shader *createShader(ShaderInfo sinf) override;
+			BufferGPU *createBuffer(BufferType type, Buffer buf, u32 binding = 0) override;
+			BufferLayout *createLayout(BufferGPU *defaultBuffer) override;
 
 			void renderElement(Primitive p, u32 length, u32 startIndex = 0) override;
 

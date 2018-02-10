@@ -1,12 +1,50 @@
 #version 450 core
-uniform samplerBuffer t;
+#extension GL_ARB_bindless_texture: require
+
+layout(early_fragment_tests) in;
+
+struct Example {
+ uint a0[5], a1[3];
+};
+
+struct Example2 {
+ uint a2, a3;
+};
+
+struct Example3 {
+ uint ex[3];
+};
+
+struct Example5 {
+ Example ex1;
+ float test;
+};
+
+struct Example4 {
+ float test;
+ Example3 ex3;
+ Example5 ex5;
+ Example2 ex2;
+};
+
+layout(std430, binding = 0) buffer textureBuffer {
+	vec3 discardColor;
+	uint textures_c;
+	Example3 ex3;
+	Example2 ex4[4];
+	Example4 ex5;
+	uint test2[4][4];
+	Example textures[30];
+	Example2 ex2;
+	sampler2D test[];
+};
 
 in vec2 uv;
 
 out layout(location=0) vec4 color;
 
 float rand(vec2 c){
-	return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
+	return fract(sin(dot(c.xy, vec2(12.9898,78.233))) * 43758.5453);
 }
 
 float noise(vec2 p, float freq ){
@@ -53,6 +91,5 @@ vec2 dnoise(vec2 p, float length = 0.01, float d = 0.01){
 void main(){
 	vec2 f = dnoise(uv * 1028, 0.1);
 	vec2 uv2 = f + uv;
-	vec3 col = texelFetch(t, 0).rgb;
-	color = vec4(col, 1);
+	color = vec4(uv2, 0, 1);
 }

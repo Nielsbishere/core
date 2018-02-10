@@ -41,6 +41,21 @@ constexpr i32 i32_MIN = (u32)0x80000000;
 constexpr i64 i64_MAX = (u64)0x7FFFFFFFFFFFFFFF;
 constexpr i64 i64_MIN = (u64)0x8000000000000000;
 
+class gbool {
+
+public:
+
+	gbool(u32 _val) : val(_val) {}
+	gbool(bool b = false) : val(b ? 1 : 0) {}
+
+	operator bool() { return val != 0; }
+
+private:
+
+	u32 val;
+
+};
+
 typedef f32 vec4f32[4];
 typedef f64 vec4f64[4];
 typedef f32 vec3f32[3];

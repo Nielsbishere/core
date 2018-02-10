@@ -3,7 +3,6 @@
 #include "Template/TemplateFuncs.h"
 #include "Types/Generic.h"
 #include "Utils/Log.h"
-#include "Color.h"
 
 #define VEC_SPECIAL_MAKE(name, type, errorId, errorCode)				\
 template<typename T>													\
@@ -316,18 +315,6 @@ namespace oi {
 
 			return TVec(f0 * perc + f1 * (TVec<T2, n>(1.0) - perc));
 		}
-		
-		template<typename T2>
-		T2 asColor() const {
-			static_assert(std::is_base_of<TColorBase, T2>::value, "TVec<T, n>::asColor<T2>; T2 should be a color");
-
-			T2 c;
-			u32 channels = ColorHelper::getChannels(c);
-			for (u32 i = 0; i < n && i < channels; ++i)
-				c[i].c = arr[i];
-
-			return c;
-		}
 
 		T &x() {
 			if (n < 1) Log::throwError<TVec<T, n>, 0x3>("TVec<T,n>::x is a variable that only exists for n >= 1");
@@ -530,4 +517,8 @@ namespace oi {
 	typedef TVec2<f64> Vec2d;
 	typedef TVec3<f64> Vec3d;
 	typedef TVec4<f64> Vec4d;
+
+	typedef TVec2<gbool> Vec2b;
+	typedef TVec3<gbool> Vec3b;
+	typedef TVec4<gbool> Vec4b;
 }

@@ -4,24 +4,42 @@
 #include "OGCore/Properties.h"
 #include "ShaderStage.h"
 #include "Graphics/Material/ShaderInfo.h"
+#include "Graphics/Material/ShaderInput.h"
+#include "Graphics/GPU/GraphicsResource.h"
+#include "Graphics/GPU/BufferGPU.h"
+#include <Types/StructuredBuffer.h>
 
 namespace oi {
+
+	class Buffer;
+
 	namespace gc {
+
+		class BufferGPU;
 
 		struct ShaderStageData { 
 			virtual ~ShaderStageData() {}
 		};
 
-		class Shader {
+		struct ShaderStorageBuffer {
+
+			BufferGPU *buffer;
+			StructuredBuffer structured;
+
+			ShaderStorageBuffer() : buffer(nullptr), structured(Buffer::construct(nullptr, 0)) {}
+			ShaderStorageBuffer(BufferGPU *_buffer, StructuredBuffer _structured) : buffer(_buffer), structured(_structured) {}
+		};
+
+		class Shader : public GraphicsResource {
 
 		public:
 
+			Shader(ShaderInfo _info) : info(_info) {}
 			virtual ~Shader() {}
 
-			virtual bool init(ShaderInfo info) = 0;
-			virtual void bind() = 0;
-			virtual void unbind() = 0;
-			virtual bool isValid() = 0;
+			BufferVar operator[](OString path);
+			std::vector<OString> getBufferNames();
+			std::vector<ShaderStorageBuffer> getBuffers();
 
 		protected:
 
@@ -33,6 +51,9 @@ namespace oi {
 			virtual bool link(ShaderStageData **data, u32 count) = 0;
 
 			virtual bool genReflectionData() = 0;
+
+			ShaderInfo info;
+			std::unordered_map<OString, ShaderStorageBuffer> ssbos;
 
 		};
 	}

@@ -57,6 +57,10 @@ namespace oi {
 			}
 
 			static u32 getSize(ShaderInputType type) {
+
+				if (type.getIndex() >= 39 && type.getIndex() <= 104)
+					return 8;
+
 				ShaderInputType_s base = getBase(type);
 				return getCount(type) * (base == ShaderInputType::Double ? 8 : 4);
 			}

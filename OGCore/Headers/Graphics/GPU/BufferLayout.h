@@ -1,4 +1,5 @@
 #pragma once
+#include <Types/Generic.h>
 #include "Graphics/Material/ShaderInput.h"
 #include "Graphics/GPU/BufferGPU.h"
 

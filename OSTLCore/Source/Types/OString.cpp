@@ -13,10 +13,8 @@ OString::OString(i32 i) { *this = fromNumber<i32>(i); }
 OString::OString(u32 i) { *this = fromNumber<u32>(i); }
 OString::OString(f32 f) { *this = fromNumber<f32>(f); }
 OString::OString(char c): source(1, c) {}
-
-OString::OString(JSON json) { 
-	*this = json.operator oi::OString();
-}
+OString::OString(JSON json) {  *this = json.operator oi::OString(); }
+OString::OString(const OString &str): source(str.source) { }
 
 u32 OString::size() const { return (u32)source.size(); }
 char &OString::operator[](u32 i) { return source[i]; }
@@ -136,7 +134,7 @@ OString OString::combine(std::vector<OString> strings, OString seperator) {
 		if (i == 0) count += strings[i].size();
 		else count += strings[i].size() + seperator.size();
 
-	OString res(count + 1, '\0');
+	OString res(count, '\0');
 
 	u32 begin = 0;
 
@@ -358,7 +356,12 @@ OString OString::lineEnd() {
 	return ss.str();
 }
 
-bool OString::operator==(OString other) const {
+OString &OString::operator=(const OString &other) {
+	source = other.source;
+	return *this;
+}
+
+bool OString::operator==(const OString &other) const {
 	if(size() != other.size()) return false;
 	return memcmp(other.source.c_str(), source.c_str(), size()) == 0;
 }
@@ -374,6 +377,10 @@ OString OString::toHex(u32 u) {
 
 JSON OString::toJSON() {
 	return *this;
+}
+
+OString::operator JSON() {
+	return toJSON();
 }
 
 //OString OString::toOctal(u32 u) {

@@ -2,10 +2,22 @@
 using namespace oi::gc;
 using namespace oi;
 
-OpenGLBufferGPU::OpenGLBufferGPU(BufferType type, Buffer buf) : BufferGPU(type, buf), gpuHandle(0), arrayType(type == BufferType::IBO ? GL_ELEMENT_ARRAY_BUFFER : (type == BufferType::TBO ? GL_TEXTURE_BUFFER : GL_ARRAY_BUFFER)) {}
+OpenGLBufferGPU::OpenGLBufferGPU(BufferType type, Buffer buf, u32 binding) : BufferGPU(type, buf, binding), gpuHandle(0), arrayType(type == BufferType::IBO ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER) {}
 OpenGLBufferGPU::~OpenGLBufferGPU() {
 	buf.deconstruct();
-	if (initialized) {
+	if (gpuHandle != 0) {
+		OpenGL::glBindBuffer(arrayType, gpuHandle);
+		OpenGL::glUnmapBuffer(arrayType);
+		OpenGL::glDeleteBuffers(1, &gpuHandle);
+		OpenGL::glBindBuffer(arrayType, 0);
+	}
+}
+
+void OpenGLBufferGPU::destroy() {
+	Buffer copyBuffer = Buffer(&buf[0], buf.size());
+	buf.deconstruct();
+	buf = copyBuffer;
+	if (gpuHandle != 0) {
 		OpenGL::glBindBuffer(arrayType, gpuHandle);
 		OpenGL::glUnmapBuffer(arrayType);
 		OpenGL::glDeleteBuffers(1, &gpuHandle);
@@ -39,11 +51,13 @@ bool OpenGLBufferGPU::init() {
 	buf.deconstruct();
 	buf = Buffer::construct(dat, len);
 
-	return initialized = true;
+	return gpuHandle != 0;
 }
 
 void OpenGLBufferGPU::bind() {
 	OpenGL::glBindBuffer(arrayType, gpuHandle);
+	if (type == BufferType::SSBO)
+		OpenGL::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, gpuHandle);
 }
 
 void OpenGLBufferGPU::unbind() {

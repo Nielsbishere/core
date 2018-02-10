@@ -49,6 +49,10 @@ namespace oi {
 																									\
 		}																							\
 																									\
+		bool operator==(const name &other) const {													\
+			return index == other.index;															\
+		}																							\
+																									\
 		const name##_s &getValue() { return *(ilist + index); }										\
 		operator const name##_s&() { return getValue(); }											\
 																									\

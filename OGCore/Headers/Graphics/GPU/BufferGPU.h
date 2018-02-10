@@ -4,28 +4,22 @@
 #include <vector>
 #include <Utils/Log.h>
 #include "BufferType.h"
+#include "GraphicsResource.h"
 
 namespace oi {
 
 	namespace gc {
 
 		//Used to ensure optimal performance;
-		//Write to first buffer
-		//Update second buffer (persistent buffer / driver)
-		//Updates third buffer (GPU)
-		class BufferGPU {
+		//Write to buffer (driver buffer when initialized)
+		//Sync with GPU buffer (automatic; no GL calls)
+		class BufferGPU : public GraphicsResource {
 
 		public:
 
-			BufferGPU(BufferType _type, Buffer _buf) : buf(_buf), type(_type), initialized(false) {}
+			BufferGPU(BufferType _type, Buffer _buf, u32 _binding = 0) : buf(_buf), type(_type), binding(_binding) {}
 
 			virtual ~BufferGPU() { buf.deconstruct(); }
-
-			//Upload buffer to GPU
-			virtual bool init() = 0;
-
-			virtual void bind() = 0;
-			virtual void unbind() = 0;
 
 			//Get part of the buffer (to read/write)
 			//Length = 0; full buffer
@@ -50,8 +44,8 @@ namespace oi {
 		protected:
 
 			Buffer buf;
-			bool initialized;
 			BufferType type;
+			u32 binding;
 
 		};
 

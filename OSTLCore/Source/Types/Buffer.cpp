@@ -129,3 +129,15 @@ Buffer Buffer::readFile(OString where) {
 
 	return b;
 }
+
+Buffer Buffer::operator+(u32 off) const {
+	return offset(off);
+}
+
+Buffer Buffer::subbuffer(u32 offset, u32 length) const {
+	Buffer b = this->offset(offset);
+	if (b.length == 0) return b;
+
+	b.length = length;
+	return b;
+}
