@@ -481,7 +481,7 @@ namespace oi {
 	}
 
 	template<class T, u32 n>
-	OString OString::fromVector(TVec<T, n> t) {
+	OString::OString(TVec<T, n> t) {
 
 		static_assert(std::is_arithmetic<T>::value, "T is not a number");
 
@@ -490,7 +490,33 @@ namespace oi {
 		for (u32 i = 0; i < n; ++i)
 			ss << t[i] << (i != n - 1 ? ", " : "");
 
-		return ss.str();
+		source = ss.str();
+	}
+
+	template<typename T, u32 n>
+	OString::operator TVec<T, n>() {
+
+		static_assert(std::is_arithmetic<T>::value, "T is not a number");
+
+		TVec<T, n> result;
+
+		if (!isVector()) {
+			Log::throwError<OString, 0>("String couldn't be converted to vector");
+			return result;
+		}
+
+		std::vector<OString> s = split(",");
+
+		u32 i = 0;
+		for (auto &e : s) {
+
+			if(i < n)
+				result[i] = (T) e.trim().toDouble();
+
+			++i;
+		}
+
+		return result;
 	}
 
 	template<typename T>

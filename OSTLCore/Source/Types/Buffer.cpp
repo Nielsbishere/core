@@ -7,7 +7,7 @@ Buffer::Buffer() : data(nullptr), length(0) {}
 
 Buffer Buffer::offset(u32 i) const {
 	if (i >= length) return { nullptr, 0 };
-	return { data + i, length - i };
+	return Buffer::construct(data + i, length - i);
 }
 
 Buffer::Buffer(u32 _length): data(new u8[_length]), length(_length) { }
@@ -134,8 +134,8 @@ Buffer Buffer::operator+(u32 off) const {
 	return offset(off);
 }
 
-Buffer Buffer::subbuffer(u32 offset, u32 length) const {
-	Buffer b = this->offset(offset);
+Buffer Buffer::subbuffer(u32 off, u32 length) const {
+	Buffer b = offset(off);
 	if (b.length == 0) return b;
 
 	b.length = length;

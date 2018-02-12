@@ -49,10 +49,14 @@ bool OpenGLShader::init() {
 
 void OpenGLShader::bind() {
 	OpenGL::glUseProgram(shaderId);
+	for (auto &ssbo : ssbos)
+		ssbo.second.buffer->bind();
 }
 
 void OpenGLShader::unbind() {
 	OpenGL::glUseProgram(0);
+	for (auto &ssbo : ssbos)
+		ssbo.second.buffer->unbind();
 }
 
 OpenGLShader::~OpenGLShader() {
@@ -219,7 +223,7 @@ bool OpenGLShader::genReflectionData() {
 		r.size = (u32)size;
 		r.type = ttype.getName();
 
-		if (ShaderInputHelper::getBase(r.type).getIndex() == 0)
+		if (ShaderInputHelper::isShaderInput(r.type) == 0)
 			return Log::error("Expected a regular data type (float/double/uint/int/bool/mat)");
 	}
 
@@ -257,6 +261,10 @@ bool OpenGLShader::genReflectionData() {
 		OpenGL::glGetProgramResourceiv(shaderId, GL_SHADER_STORAGE_BLOCK, i, sizeof(props0) / sizeof(GLenum), props0, propout[1], proplen0, propout0);
 
 		u32 buflen = propout[2];
+		u32 realLength = buflen;
+
+		auto &ssbo = ssbos[sName];
+		ssbo.structured = StructuredBuffer(Buffer::construct(nullptr, 0));
 
 		///Obtain per variable information
 		//std::unordered_map<OString, ShaderStorageVariable> vars(propout[1]);
@@ -275,17 +283,59 @@ bool OpenGLShader::genReflectionData() {
 			OString sVarName = OString(varName, varNameLength);
 
 			OpenGLShaderInputType varType = OpenGLShaderInputType_s((u32)propout1[0]);
-			Log::println(sVarName + ": " + varType.getName() + " (at offset " + propout1[1] + "; " + propout1[2] + "/" + propout1[3] + ": " + propout1[4] + "/" + propout1[5] + ")");
-
 			ShaderInputType type = varType.getName();
 
-			//init stride & arraySize
+			bool isArray = propout1[2] != 1 || propout1[4] != 1;
 
-			//vars[sVarName] = ShaderStorageVariable(type, propout1[1], ShaderInputHelper::getSize(type), 0, 0);
+			if (isArray && (sVarName.contains(".") || sVarName.count("[0]") > 1)) {
+
+				if (propout1[2] != 1)
+					sVarName = sVarName.replaceLast("[0]", OString("[") + (u32)propout1[2] + "]");
+
+				if (propout1[4] != 1) {
+
+					if (propout1[4] == 0) {
+
+						u32 count = buflen < 1024 * 1024 * 4 ? (1024 * 1024 * 4 - buflen) / propout1[5] : 0;
+
+						if (count < 1)
+							count = 1;
+
+						realLength = buflen + count * propout1[5];
+						propout1[4] = count;
+					}
+
+					sVarName = sVarName.replaceFirst("[0]", OString("[") + (u32)propout1[4] + "]");
+				}
+
+			} else if(isArray) {
+
+				if (propout1[2] == 0) {
+
+					u32 count = buflen < 1024 * 1024 * 4 ? (1024 * 1024 * 4 - buflen) / propout1[3] : 0;
+
+					if (count < 1)
+						count = 1;
+
+					realLength = buflen + count * propout1[3];
+					propout1[2] = count;
+				}
+
+				sVarName = sVarName.replaceFirst("[0]", OString("[") + (u32)propout1[2] + "]");
+			}
+
+			//Log::println(sVarName + ": " + varType.getName() + " (at offset " + propout1[1] + "; " + propout1[2] + "/" + propout1[3] + ": " + propout1[4] + "/" + propout1[5] + ")");
+
+			Log::println(sVarName.replace("][", ", ") + " = " + StructuredBuffer::simplifyPath(sVarName));
+			ssbo.structured.addAll(sVarName, ShaderInputHelper::getType(type), propout1[1]);
 		}
 
-		///Allocate BufferGPU and store type data
-		//ssbos[sName] = ShaderStorageBuffer(new OpenGLBufferGPU(BufferType::SSBO, buflen, propout[0]), vars);
+		Buffer buf = Buffer(realLength);
+
+		memset(&buf[0], 0, realLength);
+		ssbo.buffer = new OpenGLBufferGPU(BufferType::SSBO, buf, propout[0]);
+		ssbo.buffer->init();
+		ssbo.structured.setBuffer(ssbo.buffer->subbuffer());
 
 		delete[] propout0;
 

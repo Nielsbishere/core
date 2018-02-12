@@ -102,6 +102,22 @@ OString OString::replace(OString s0, OString s1) const {
 	return combine(split(s0), s1);
 }
 
+OString OString::replaceFirst(OString s0, OString s1) const {
+	auto arr = split(s0);
+	OString first = arr[0];
+	arr.erase(arr.begin());
+	OString last = combine(arr, s0);
+	return first + s1 + last;
+}
+
+OString OString::replaceLast(OString s0, OString s1) const {
+	auto arr = split(s0);
+	OString last = arr[arr.size() - 1];
+	arr.erase(arr.end() - 1);
+	OString first = combine(arr, s0);
+	return first + s1 + last;
+}
+
 i64 OString::toLong() {
 
 	i64 object;
@@ -340,6 +356,17 @@ bool OString::isFloat() {
 		return false;
 
 	return splits[0].isFloatNoExp() && splits[1].isFloatNoExp();
+}
+
+bool OString::isVector() {
+
+	std::vector<OString> splits = splitIgnoreCase(",");
+
+	for (u32 i = 0; i < splits.size(); ++i)
+		if (!splits[i].trim().isFloat())
+			return false;
+
+	return splits.size() >= 2;
 }
 
 bool OString::contains(OString other) const {

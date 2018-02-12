@@ -22,6 +22,9 @@ namespace oi {
 		OString(JSON json);
 		OString(const OString &str);
 
+		template<typename T, u32 n>
+		OString(TVec<T, n> t);
+
 		template<u32 len>
 		static const OString constString(const char(&c)[len]) { return OString(c); }
 
@@ -51,6 +54,8 @@ namespace oi {
 		std::vector<u32> find(const OString s) const;
 
 		OString replace(OString s0, OString s1) const;
+		OString replaceLast(OString s0, OString s1) const;
+		OString replaceFirst(OString s0, OString s1) const;
 
 		std::vector<OString> split(OString s) const;
 		std::vector<OString> splitIgnoreCase(OString s) const;
@@ -66,11 +71,11 @@ namespace oi {
 			return ss.str();
 		}
 
-		template<typename T, u32 n>
-		static OString fromVector(TVec<T, n> t);
-
 		i64 toLong();
 		f64 toDouble();
+
+		template<typename T, u32 n>
+		operator TVec<T, n>();
 
 		operator std::string() const { return source; }
 
@@ -104,6 +109,7 @@ namespace oi {
 		bool isUint();
 		bool isFloat();
 		bool isFloatNoExp();									//Is float; without e notation (1e5)
+		bool isVector();
 
 		bool contains(OString other) const;
 		bool containsIgnoreCase(OString other) const;

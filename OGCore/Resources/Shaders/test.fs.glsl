@@ -28,12 +28,14 @@ struct Example4 {
 };
 
 layout(std430, binding = 0) buffer textureBuffer {
-	vec3 discardColor;
+	vec3 filterColor;
 	uint textures_c;
 	Example3 ex3;
 	Example2 ex4[4];
 	Example4 ex5;
 	uint test2[4][4];
+	Example2 test5[3];
+	Example4 test69[4][4][4];
 	Example textures[30];
 	Example2 ex2;
 	sampler2D test[];
@@ -91,5 +93,5 @@ vec2 dnoise(vec2 p, float length = 0.01, float d = 0.01){
 void main(){
 	vec2 f = dnoise(uv * 1028, 0.1);
 	vec2 uv2 = f + uv;
-	color = vec4(uv2, 0, 1);
+	color = vec4(vec3(uv2, 1) * filterColor, 1);
 }

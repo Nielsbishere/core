@@ -18,7 +18,15 @@ OString StructuredBufferVar::getName() const { return name; }
 u32 StructuredBufferVar::getId() const { return id; }
 
 u32 StructuredBufferVar::forOffset(u32 i) const {
-	return offset + stride * i;
+	return getLocalOffset() + stride * i;
+}
+
+u32 StructuredBufferVar::getLocalOffset() const {
+
+	if (parent == u32_MAX)
+		return offset;
+
+	return offset - buf->operator[](parent).offset;
 }
 
 bool StructuredBufferVar::operator==(const StructuredBufferVar &var) const {
@@ -30,11 +38,15 @@ Buffer BufferVar::operator[](u32 i) {
 	if (i >= var.getLength())
 		return Buffer::construct(nullptr, 0);
 
-	return var.getBuffer()->getBuffer().subbuffer(offset + var.getStride() * i, var.getLength());
+	return var.getBuffer()->getBuffer().subbuffer(offset + var.getStride() * i, var.getStride());
 }
 
 Buffer BufferVar::operator*() {
 	return this->operator[](0);
+}
+
+Buffer BufferVar::toBuffer() {
+	return var.getBuffer()->getBuffer().subbuffer(offset, var.getStride() * var.getLength());
 }
 
 bool BufferVar::operator==(const BufferVar &ovar) const {
@@ -174,7 +186,7 @@ OString StructuredBuffer::simplifyPath(OString str) {
 
 	auto arr = str.split(".");
 
-	for (u32 i = arr.size(); i-- > 0;)
+	for (u32 i = (u32) arr.size(); i-- > 0;)
 		arr[i] = arr[i].split("[")[0];
 
 	return OString::combine(arr, ".");
@@ -215,3 +227,76 @@ BufferVar StructuredBuffer::operator[](OString s) {
 
 BufferVar::BufferVar() : BufferVar({}, 0) {}
 BufferVar::BufferVar(StructuredBufferVar _var, u32 _offset): var(_var), offset(_offset) {}
+
+bool StructuredBuffer::addAll(OString path, GDataType type, u32 offset, u32 stride, u32 arrayLength) {
+
+	if (contains(simplifyPath(path))) return true;
+	if (type == GDataType::oi_struct || type == GDataType::oi_undefined) return false;
+
+	u32 vec = type.getValue().length;
+	u32 vecStride = type.getValue().stride;
+	if (stride == 0)
+		stride = type.getValue().stride * vec;
+
+	auto arr = path.split(".");
+	OString cpath;
+	u32 i = 0, arrlen = arr.size();
+
+	while(arr.size() != 0) {
+
+		OString fullName = *arr.begin();
+
+		arr.erase(arr.begin());
+		cpath += OString(i == 0 ? "" : ".") + fullName;
+
+		OString simplified = simplifyPath(cpath);
+		auto dots = simplified.find('.');
+		OString prevPath = dots.size() == 0 ? "" : simplified.cutEnd(dots[dots.size() - 1]);
+
+		u32 len = fullName.contains("[") ? (u32)fullName.split("[")[1].split("]")[0].toLong() : 1;
+
+		StructuredBufferVar *parent = i == 0 ? nullptr : &find(prevPath);
+		
+		if (!contains(simplified)) {
+
+			if (i == arrlen - 1) {
+
+				add(simplified, type, offset, stride, arrayLength, parent);
+
+				if (vec >= 2) {
+					add(simplified + ".x", type.getValue().derivedId, offset, vecStride, 1, &find(simplified));
+					add(simplified + ".y", type.getValue().derivedId, offset + vecStride, vecStride, 1, &find(simplified));
+				}
+
+				if (vec >= 3)
+					add(simplified + ".z", type.getValue().derivedId, offset + vecStride * 2, vecStride, 1, &find(simplified));
+
+				if (vec >= 4)
+					add(simplified + ".w", type.getValue().derivedId, offset + vecStride * 3, vecStride, 1, &find(simplified));
+
+				return true;
+			}
+
+			add(simplified, GDataType::oi_struct, offset, stride, len, parent);
+			++i;
+			continue;
+		}
+
+		StructuredBufferVar &var = find(simplified);
+
+		u32 eoff = var.offset + var.stride * var.length;
+
+		if (var.length < len)
+			var.length = len;
+
+		if (var.offset > offset)
+			var.offset = offset;
+
+		if (offset - var.offset + stride > var.stride)
+			var.stride = offset - var.offset + stride;
+
+		++i;
+	}
+
+	return false;
+}

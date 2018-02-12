@@ -207,6 +207,9 @@
     <ClInclude Include="Headers\Types\StructuredBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Types\GDataType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Utils\BinaryHelper.cpp">

@@ -3,7 +3,7 @@
 using namespace oi::gc;
 using namespace oi;
 
-BufferVar Shader::operator[](OString path) {
+BufferVar Shader::get(OString path) {
 
 	std::vector<OString> dirs = path.split(".");
 
