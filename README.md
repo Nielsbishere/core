@@ -227,7 +227,7 @@ layout(std430, binding = 0) buffer testBuffer {
 	Test2 t[];
 };
 ```
-Now this looks strange; `Test2 t[]`, it is a dynamically sized array. This can only be done to the last element in an SSBO and is so you can have a buffer of undefined size. OGC will interpret this as a call to allocate 1 MiB worth of data (per shader), so make sure it is really required!  
+Now this looks strange; `Test2 t[]`, it is a dynamically sized array. This can only be done to the last element in an SSBO and is so you can have a buffer of undefined size. OGC will interpret this as a call to allocate 4 MiB worth of data (per shader), so make sure it is really required!  
 You can access the variables like the following:
 ```
 testBuffer.variable
