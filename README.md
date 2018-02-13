@@ -142,7 +142,7 @@ The following example is from InputManager; it writes the input bindings & axes 
 
 	return json.operator oi::OString().writeToFile(path);
 ```
-### Example (reading)
+#### Example (reading)
 The following is from InputManager; it reads the input bindings & axes from a file:
 ```cpp
   JSON json = OString::readFromFile(path);
@@ -204,6 +204,21 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 
 	return true;
 ```
+### StructuredBuffer
+A structured buffer is something useful for when you want a buffer to represent data of some kind, and you need ways of knowing what offsets belong that what and what type they are. A structured buffer is exactly this; it contains variables with paths and the variable description. This variable description is not that useful by itself, because it requires a fully defined path instead of a simplified one. A simplified path is something like `test.something.someType` while a fully defined type would be something like `test.something[4, 3, 2].someType[3]`. The fully defined type specifies offsets to those variables and needs to be parsed by the `operator[]` of the StructuredBuffer to return a BufferVar, which can either be converted to the raw data (Buffer) or to the data type it represents. Intially, the structured buffer was created for GPU purposes, but you can still use it for other types, though only 4 and 8 byte data types are supported (due to limitations of shader languages). This means that a 'bool' doesn't exist anymore, it uses 'gbool' which is simply a wrapper that uses a u32 instead and can be converted to a real bool or converts a real bool into a gbool.
+#### StructuredBuffer add
+add is a really simple function, it simply adds the type you're describing. It doesn't do anything else, it doesn't see the name as a fully defined path, but rather as a simplified path. You yourself have to define the structs all by themselves; their sizes, their offsets and their strides. If you want to add a multi dimensional array, you need to allocate a 1D array (size of x * y * z * w * ....) and then use the 'setDimensions' function on the variable to your desired amount. This variable can be found using the simplified name with the 'find' function (don't use `operator[]` because that returns a BufferVar; which requires a fully defined path).
+#### StructuredBuffer addAll
+addAll is a helper function that adds all variables in the variable path. This does require your path to be fully defined and use lengths instead of indices when using braces. Since it is a structured buffer, it requires you to use `[x, y, z, w]` instead of `[x][y][z][w]` through addAll and `operator[]`. Something like this is how you should use addAll.
+```cpp
+  sbuffer.addAll("something[4, 4].transform.pos", GDataType::oi_float4, 0);
+  sbuffer.addAll("something.transform.rot", GDataType::oi_float4, 16);
+  sbuffer.addAll("something.transform.scl", GDataType::oi_float4, 32);
+```
+As you can see above; the first time you access a branch, you need to fully define it, but if you are 100% sure that the path is already initialized, you don't have to fully define it. However, it is good practice anyways.  
+addAll is a little weird; because it uses fake structs. These structs offsets and lengths change constantly when you add new elements. This means that you shouldn't try accessing anything from the SB when you are initializing it. In our case; 'something' starts of as an array of 16 (4x4) vec4s (or float4s) with a stride of 16 and offset of 0. Then we suddenly add two more float4s, which changes the stride to 48. The same is true for 'transform' though it is just an array of length 1 (everything; even objects 'are an array').
+#### StructuredBuffer arrays and MDAs
+MDAs (Multi-Dimensional Arrays) are accessed the C# way; `arr[x, y, z, w, ...]` instead of using `arr[x][y][z][...]`, this is due to limitations and because it is more expandable. They are also fake MDAs, as in reality, they are just 1D arrays but accessed as either 1D or nD arrays.
 ## OGC (Osomi Graphics Core)
 Osomi Graphics Core / OGC is the part that renders things; it is using some of the fastest GL functions to ensure that you can do lots of things and you don't have to wait on the GPU a lot. An example of this is the GPU buffer that is used; BufferGPU, the thing handling storage in VRAM, it uses persistent double buffer techniques with the glBufferRange example; this just requires one call and automatically syncs if you write to the buffer (low overhead!). This is called 'AZDO' (Approaching Zero Driver Overhead) and when combined with bindless textures and deferred rendering can squeeze the most out of your GPU (it also allows you to multi thread more on the GPU). 
 ### OGC Shaders
