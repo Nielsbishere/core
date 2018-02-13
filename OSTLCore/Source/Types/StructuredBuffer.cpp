@@ -21,6 +21,12 @@ u32 StructuredBufferVar::forOffset(u32 i) const {
 	return getLocalOffset() + stride * i;
 }
 
+void StructuredBufferVar::setDimensions(std::vector<u32> dims) {
+	lengths = dims;
+}
+
+std::vector<u32> StructuredBufferVar::getDimensions() { return lengths; }
+
 u32 StructuredBufferVar::getLocalOffset() const {
 
 	if (parent == u32_MAX)
@@ -209,9 +215,38 @@ BufferVar StructuredBuffer::operator[](OString s) {
 			return BufferVar();
 		}
 
-		u32 off = !varName.contains("[") ? 0U : (u32)varName.split("[")[1].split("]")[0].toLong();
+		OString arrName = varName.contains("[") ? varName.split("[")[1].split("]")[0] : "";
+		u32 off = 0;
 
 		auto &var = find(name);
+
+		std::vector<u32> dims = var.getDimensions();
+
+		if (dims[0] != 1 || dims.size() != 1) {
+
+			std::vector<OString> split = arrName.split(",");
+
+			if (split.size() != dims.size()) {
+				Log::throwError<StructuredBufferVar, 22>("StructuredBufferVar requires a Multi-Dimensional Array access instead of 1D or not at all");
+				return BufferVar();
+			}
+
+			for (u32 j = 0; j < dims.size(); ++j) {
+
+				if (!split[j].trim().isUint()) {
+					Log::throwError<StructuredBufferVar, 23>("StructuredBufferVar requires a Multi-Dimensional Array access instead of 1D or not at all. This indentifier contained a non-uint");
+					return BufferVar();
+				}
+
+				u32 effect = 1;
+
+				for (u32 k = j + 1; k < dims.size(); ++k)
+					effect *= dims[k];
+
+				off += (u32) split[j].trim().toLong() * effect;
+			}
+		}
+
 		offset += var.forOffset(off);
 
 		if (isFirst) {
@@ -253,15 +288,30 @@ bool StructuredBuffer::addAll(OString path, GDataType type, u32 offset, u32 stri
 		auto dots = simplified.find('.');
 		OString prevPath = dots.size() == 0 ? "" : simplified.cutEnd(dots[dots.size() - 1]);
 
-		u32 len = fullName.contains("[") ? (u32)fullName.split("[")[1].split("]")[0].toLong() : 1;
+		OString arrName = fullName.contains("[") ? fullName.split("[")[1].split("]")[0] : "";
 
 		StructuredBufferVar *parent = i == 0 ? nullptr : &find(prevPath);
 		
 		if (!contains(simplified)) {
 
+			std::vector<u32> dimensions;
+			std::vector<OString> split = arrName.split(",");
+
+			if (arrName != "") {
+				arrayLength = 1;
+				for (u32 i = 0; i < split.size(); ++i) {
+					u32 num = (u32)split[i].trim().toLong();
+					if (num == 0) num = 1;
+					dimensions.push_back(num);
+					arrayLength *= num;
+				}
+			}
+			else dimensions.push_back(arrayLength);
+
 			if (i == arrlen - 1) {
 
 				add(simplified, type, offset, stride, arrayLength, parent);
+				find(simplified).lengths = dimensions;
 
 				if (vec >= 2) {
 					add(simplified + ".x", type.getValue().derivedId, offset, vecStride, 1, &find(simplified));
@@ -277,7 +327,8 @@ bool StructuredBuffer::addAll(OString path, GDataType type, u32 offset, u32 stri
 				return true;
 			}
 
-			add(simplified, GDataType::oi_struct, offset, stride, len, parent);
+			add(simplified, GDataType::oi_struct, offset, stride, arrayLength, parent);
+			find(simplified).lengths = dimensions;
 			++i;
 			continue;
 		}
@@ -285,9 +336,6 @@ bool StructuredBuffer::addAll(OString path, GDataType type, u32 offset, u32 stri
 		StructuredBufferVar &var = find(simplified);
 
 		u32 eoff = var.offset + var.stride * var.length;
-
-		if (var.length < len)
-			var.length = len;
 
 		if (var.offset > offset)
 			var.offset = offset;

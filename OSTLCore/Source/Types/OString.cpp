@@ -369,6 +369,14 @@ bool OString::isVector() {
 	return splits.size() >= 2;
 }
 
+u32 OString::getVectorLength() {
+
+	if (!isVector()) return 0;
+
+	std::vector<OString> splits = splitIgnoreCase(",");
+	return splits.size();
+}
+
 bool OString::contains(OString other) const {
 	return source.find(other.source) != std::string::npos;
 }
@@ -426,4 +434,14 @@ OString::operator JSON() {
 
 OString OString::getHex(u8 u) {
 	return OString(BinaryHelper::hexChar((u & 0xF0) >> 4)) + OString(BinaryHelper::hexChar(u & 0xF));
+}
+
+OString OString::padStart(char c, u32 maxCount) {
+	if (size() >= maxCount) return *this;
+	return OString(maxCount - size(), c) + *this;
+}
+
+OString OString::padEnd(char c, u32 maxCount) {
+	if (size() >= maxCount) return *this;
+	return operator+(OString(maxCount - size(), c));
 }

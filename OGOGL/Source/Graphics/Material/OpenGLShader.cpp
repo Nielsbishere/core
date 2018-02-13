@@ -266,8 +266,13 @@ bool OpenGLShader::genReflectionData() {
 		auto &ssbo = ssbos[sName];
 		ssbo.structured = StructuredBuffer(Buffer::construct(nullptr, 0));
 
-		///Obtain per variable information
-		//std::unordered_map<OString, ShaderStorageVariable> vars(propout[1]);
+		struct _MDArray {
+			u32 offset, arraySize, begin, end;
+			GDataType type;
+			std::vector<OString> keys;
+		};
+
+		std::unordered_map<OString, _MDArray> mdArrays;
 
 		for (u32 j = 0; j < (u32) propout[1]; ++j) {
 
@@ -287,10 +292,19 @@ bool OpenGLShader::genReflectionData() {
 
 			bool isArray = propout1[2] != 1 || propout1[4] != 1;
 
+			u32 begin = 0, end = u32_MAX;
+			u32 arraySize = 1;
+
+			///Fix the bottom and top array indices with the variables given
 			if (isArray && (sVarName.contains(".") || sVarName.count("[0]") > 1)) {
 
-				if (propout1[2] != 1)
+				if (propout1[2] != 1) {
 					sVarName = sVarName.replaceLast("[0]", OString("[") + (u32)propout1[2] + "]");
+					auto braces = sVarName.find("[");
+					end = braces[braces.size() - 1];
+
+					arraySize = propout1[2];
+				}
 
 				if (propout1[4] != 1) {
 
@@ -306,6 +320,7 @@ bool OpenGLShader::genReflectionData() {
 					}
 
 					sVarName = sVarName.replaceFirst("[0]", OString("[") + (u32)propout1[4] + "]");
+					begin = sVarName.find("]")[0] + 1;
 				}
 
 			} else if(isArray) {
@@ -321,14 +336,104 @@ bool OpenGLShader::genReflectionData() {
 					propout1[2] = count;
 				}
 
-				sVarName = sVarName.replaceFirst("[0]", OString("[") + (u32)propout1[2] + "]");
+				sVarName = sVarName.replaceFirst("[0]", OString("[") + (arraySize = (u32)propout1[2]) + "]");
+				begin = sVarName.find("]")[0] + 1;
 			}
 
-			//Log::println(sVarName + ": " + varType.getName() + " (at offset " + propout1[1] + "; " + propout1[2] + "/" + propout1[3] + ": " + propout1[4] + "/" + propout1[5] + ")");
+			bool setEnd = true;
+			if (end == u32_MAX) {
+				end = sVarName.size();
+				setEnd = false;
+			}
 
-			Log::println(sVarName.replace("][", ", ") + " = " + StructuredBuffer::simplifyPath(sVarName));
-			ssbo.structured.addAll(sVarName, ShaderInputHelper::getType(type), propout1[1]);
+			///Insert the correct values into the array; the other ones get filtered to be fixed later (multi dimensional arrays)
+
+			OString substr = sVarName.substring(begin, end);
+
+			if (!substr.contains("["))
+				ssbo.structured.addAll(sVarName.replace("][", ", "), ShaderInputHelper::getType(type), propout1[1], 0, arraySize);
+			else {
+
+				OString simplified = StructuredBuffer::simplifyPath(sVarName);
+
+				///Add padding to ensure that sorting won't mess up with numbers over 9
+				OString padded = "";
+				u32 i = 0;
+				auto sVarSplits = sVarName.split("[");
+
+				for (OString e : sVarSplits) {
+
+					if (i != 0) {
+						OString sub = e.split("]")[0];
+						e = sub.padStart(' ', 10) + "]" + e.cutBegin(sub.size() + 1);
+					}
+
+					padded += e + (i == sVarSplits.size() - 1 ? "" : "[");
+
+					++i;
+				}
+
+				if (begin != 0)
+					begin = padded.find("]")[0] + 1;
+
+				if (setEnd) {
+					auto braces = padded.find("[");
+					end = braces[braces.size() - 1];
+				} else
+					end = padded.size();
+
+				///Insert new element if it doesn't exist yet
+				if (mdArrays.find(simplified) == mdArrays.end()) {
+
+					auto &k = mdArrays[simplified];
+
+					k.offset = propout1[1];
+					k.type = ShaderInputHelper::getType(type);
+					k.arraySize = arraySize;
+					k.begin = begin;
+					k.end = end;
+				}
+
+				///Add to array
+				mdArrays[simplified].keys.push_back(padded);
+			}
 		}
+		
+		///Fix the duplicated entries and find the correct array lengths
+
+		for (auto &e : mdArrays) {
+
+			///Sort by ASCII
+
+			auto &evec = e.second.keys;
+			std::sort(evec.begin(), evec.end());
+
+			OString &biggest = evec[evec.size() - 1];
+
+			///Convert highest index to length by adding 1 to array and fix padding
+
+			OString substr = biggest.substring(e.second.begin, e.second.end);
+			OString fixed = "";
+			u32 i = 0;
+			auto substrSplits = substr.split("[");
+
+			for (OString &e : substrSplits) {
+
+				if (i != 0) {
+					OString sub = e.split("]")[0];
+					e = OString((u32) sub.trim().toLong() + 1) + "]" + e.cutBegin(sub.size() + 1);
+				}
+
+				fixed += e + (i == substrSplits.size() - 1 ? "" : "[");
+
+				++i;
+			}
+
+			OString varName = biggest.cutEnd(e.second.begin).replace(" ", "") + fixed + biggest.cutBegin(e.second.end).replace(" ", "");
+			ssbo.structured.addAll(varName.replace("][", ", "), e.second.type, e.second.offset, 0, e.second.arraySize);
+		}
+
+		///Create the buffer and update the structured buffer
 
 		Buffer buf = Buffer(realLength);
 

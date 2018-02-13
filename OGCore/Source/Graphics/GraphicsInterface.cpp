@@ -104,8 +104,6 @@ void GraphicsInterface::initScene() {
 	vertexBuffer->init();
 	indexBuffer->init();
 	bufferLayout->init(indexBuffer);
-
-	s->get("textureBuffer.filterColor").toFloat3() = { 0.2f, 0.5f, 0.1f };
 }
 
 void GraphicsInterface::renderScene() {

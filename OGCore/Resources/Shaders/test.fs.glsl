@@ -3,43 +3,9 @@
 
 layout(early_fragment_tests) in;
 
-struct Example {
- uint a0[5], a1[3];
-};
-
-struct Example2 {
- uint a2, a3;
-};
-
-struct Example3 {
- uint ex[3];
-};
-
-struct Example5 {
- Example ex1;
- float test;
-};
-
-struct Example4 {
- float test;
- Example3 ex3;
- Example5 ex5;
- Example2 ex2;
-};
-
-layout(std430, binding = 0) buffer textureBuffer {
-	vec3 filterColor;
-	uint textures_c;
-	Example3 ex3;
-	Example2 ex4[4];
-	Example4 ex5;
-	uint test2[4][4];
-	Example2 test5[3];
-	Example4 test69[4][4][4];
-	Example textures[30];
-	Example2 ex2;
-	sampler2D test[];
-};
+//layout(std430, binding = 0) buffer textureBuffer {
+//
+//};
 
 in vec2 uv;
 
@@ -93,5 +59,5 @@ vec2 dnoise(vec2 p, float length = 0.01, float d = 0.01){
 void main(){
 	vec2 f = dnoise(uv * 1028, 0.1);
 	vec2 uv2 = f + uv;
-	color = vec4(vec3(uv2, 1) * filterColor, 1);
+	color = vec4(uv2, 0, 1);
 }

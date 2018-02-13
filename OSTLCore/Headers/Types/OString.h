@@ -50,6 +50,9 @@ namespace oi {
 		u32 count(char c) const;
 		u32 count(OString s) const;
 
+		OString padStart(char c, u32 count);		//Add padding to the start of this string, until it this->size() eaches the specified count
+		OString padEnd(char c, u32 count);			//Add padding to the end of this string, until it this->size() eaches the specified count
+
 		std::vector<u32> find(char c) const;
 		std::vector<u32> find(const OString s) const;
 
@@ -110,6 +113,7 @@ namespace oi {
 		bool isFloat();
 		bool isFloatNoExp();									//Is float; without e notation (1e5)
 		bool isVector();
+		u32 getVectorLength();
 
 		bool contains(OString other) const;
 		bool containsIgnoreCase(OString other) const;

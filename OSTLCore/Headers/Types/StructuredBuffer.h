@@ -23,13 +23,16 @@ namespace oi {
 
 		bool operator==(const StructuredBufferVar &var) const;	//Compare
 
-		StructuredBufferVar *getParent() const;		//nullptr when no parent; aka root variable in buffer
+		StructuredBufferVar *getParent() const;					//nullptr when no parent; aka root variable in buffer
 		StructuredBuffer *getBuffer() const;
 
 		OString getName() const;
 		u32 getId() const;
 
 		u32 forOffset(u32 i = 0) const;
+
+		void setDimensions(std::vector<u32> dims);				//set the multi-dimensional array size
+		std::vector<u32> getDimensions();
 
 		u32 getLocalOffset() const;
 
@@ -39,6 +42,7 @@ namespace oi {
 		u32 id, offset, length, stride, parent;
 		OString name;
 		StructuredBuffer *buf;
+		std::vector<u32> lengths;
 	};
 
 	class BufferVar {
@@ -50,6 +54,28 @@ namespace oi {
 
 		Buffer operator[](u32 i);	//For arrays
 		Buffer operator*();			//For objects
+
+		template<u32 n>
+		Buffer operator[](TVec<u32, n> vec) {
+
+			u32 index = 0;
+			std::vector<u32> dims = var.getDimensions();
+
+			if (n != dims.size())
+				Log::throwError<BufferVar, 0x0>("Couldn't fetch Buffer at location; vector sizes must match");
+
+			for (u32 i = 0; i < dims.size(); ++i) {
+
+				u32 effect = 1;
+
+				for (u32 j = i + 1; j < dims.size(); ++j)
+					effect *= dims[j];
+
+				index += vec[i] * effect;
+			}
+
+			return operator[](index);
+		}
 
 		bool operator==(const BufferVar &var) const;	//Compare
 

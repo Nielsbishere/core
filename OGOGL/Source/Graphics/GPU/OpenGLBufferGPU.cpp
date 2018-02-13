@@ -62,4 +62,7 @@ void OpenGLBufferGPU::bind() {
 
 void OpenGLBufferGPU::unbind() {
 	OpenGL::glBindBuffer(arrayType, 0);
+
+	if (type == BufferType::SSBO)
+		OpenGL::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, 0);
 }
