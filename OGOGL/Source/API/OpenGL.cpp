@@ -62,6 +62,10 @@ PFNGLFENCESYNCPROC OpenGL::glFenceSync = nullptr;
 PFNGLCLIENTWAITSYNCPROC OpenGL::glClientWaitSync = nullptr;
 PFNGLTEXBUFFERPROC OpenGL::glTexBuffer = nullptr;
 PFNGLGETTEXTUREHANDLEARBPROC OpenGL::glGetTextureHandleARB = nullptr;
+PFNGLBINDBUFFERBASEPROC OpenGL::glBindBufferBase = nullptr;
+PFNGLGETPROGRAMINTERFACEIVPROC OpenGL::glGetProgramInterfaceiv = nullptr;
+PFNGLGETPROGRAMRESOURCEIVPROC OpenGL::glGetProgramResourceiv = nullptr;
+PFNGLGETPROGRAMRESOURCENAMEPROC OpenGL::glGetProgramResourceName = nullptr;
 //PFNxPROC OpenGL::x = nullptr;
 
 OString OpenGL::getVersion() {
@@ -186,7 +190,9 @@ bool OpenGL::init() {
 	glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
 	glGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC)wglGetProcAddress("glGetActiveUniform");
 	glGetActiveAttrib = (PFNGLGETACTIVEATTRIBPROC)wglGetProcAddress("glGetActiveAttrib");
-
+	glGetProgramInterfaceiv = (PFNGLGETPROGRAMINTERFACEIVPROC)wglGetProcAddress("glGetProgramInterfaceiv");
+	glGetProgramResourceiv = (PFNGLGETPROGRAMRESOURCEIVPROC)wglGetProcAddress("glGetProgramResourceiv");
+	glGetProgramResourceName = (PFNGLGETPROGRAMRESOURCENAMEPROC)wglGetProcAddress("glGetProgramResourceName");
 
 	//Buffer
 	glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
@@ -205,6 +211,7 @@ bool OpenGL::init() {
 	glClientWaitSync = (PFNGLCLIENTWAITSYNCPROC)wglGetProcAddress("glClientWaitSync");
 	glTexBuffer = (PFNGLTEXBUFFERPROC)wglGetProcAddress("glTexBuffer");
 	glGetTextureHandleARB = (PFNGLGETTEXTUREHANDLEARBPROC)wglGetProcAddress("glGetTextureHandleARB");
+	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC)wglGetProcAddress("glBindBufferBase");
 
 	return isInitialized = true;
 }

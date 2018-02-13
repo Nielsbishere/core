@@ -167,15 +167,16 @@
     <ClInclude Include="Headers\API\stbi\stbi_write.h" />
     <ClInclude Include="Headers\Math\SimplexNoise.h" />
     <ClInclude Include="Headers\Template\Enum.h" />
+    <ClInclude Include="Headers\Types\GDataType.h" />
     <ClInclude Include="Headers\Types\Grid.h" />
     <ClInclude Include="Headers\Types\Matrix.h" />
     <ClInclude Include="Headers\Types\Resource.h" />
+    <ClInclude Include="Headers\Types\StructuredBuffer.h" />
     <ClInclude Include="Headers\Types\Thread.h" />
     <ClInclude Include="Headers\Types\Vector.h" />
     <ClInclude Include="Headers\Utils\BinaryHelper.h" />
     <ClInclude Include="Headers\Types\Buffer.h" />
     <ClInclude Include="Headers\Template\BuildProperties.h" />
-    <ClInclude Include="Headers\Types\Color.h" />
     <ClInclude Include="Headers\Template\Common.h" />
     <ClInclude Include="Headers\Template\TemplateFuncs.h" />
     <ClInclude Include="Headers\Utils\DLLLoader.h" />
@@ -184,13 +185,13 @@
     <ClInclude Include="Headers\Types\OString.h" />
     <ClInclude Include="Headers\Template\PlatformDefines.h" />
     <ClInclude Include="Headers\Types\Generic.h" />
-    <ClInclude Include="Headers\Types\Texture.h" />
     <ClInclude Include="Headers\Utils\Random.h" />
     <ClInclude Include="Headers\Utils\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\API\stbi\stbi.cpp" />
     <ClCompile Include="Source\Math\SimplexNoise.cpp" />
+    <ClCompile Include="Source\Types\StructuredBuffer.cpp" />
     <ClCompile Include="Source\Utils\BinaryHelper.cpp" />
     <ClCompile Include="Source\Types\Buffer.cpp" />
     <ClCompile Include="Source\Utils\JSON.cpp" />

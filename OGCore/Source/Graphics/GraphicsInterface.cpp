@@ -2,14 +2,13 @@
 #include <Input/InputHandler.h>
 #include "Graphics/GPU/BufferGPU.h"
 #include "Graphics/GPU/BufferLayout.h"
-#include "Graphics/Material/TextureGPU.h"
-#include <Types/Matrix.h>
+#include <Types/StructuredBuffer.h>
 using namespace oi::gc;
 using namespace oi;
 
-GraphicInterface::GraphicInterface() : gl(Graphics::get()) { }
+GraphicsInterface::GraphicsInterface() : gl(Graphics::get()) { }
 
-void GraphicInterface::init() {
+void GraphicsInterface::init() {
 	gl->init(getParent());
 	initScene();
 
@@ -18,11 +17,10 @@ void GraphicInterface::init() {
 
 BufferGPU *vertexBuffer, *indexBuffer;
 BufferLayout *bufferLayout;
-TextureGPU *gpuTex;
 
 f64 startTime = 0;
 
-void GraphicInterface::update(f64 delta) {
+void GraphicsInterface::update(f64 delta) {
 
 	for (u32 i = 0; i < 4; ++i) {
 
@@ -31,27 +29,20 @@ void GraphicInterface::update(f64 delta) {
 		b.operator[]<Vec3>(0) *= 0.999f;
 	}
 
-	gpuTex->operator[]<ColorType::COMPRESSED_RGBA>(0)[0] = (u8)(sin(startTime) * 0.5f * 255 + 0.5f * 255);
 	startTime += delta;
 }
 
-void GraphicInterface::render() {
+void GraphicsInterface::render() {
 	gl->viewport(getParent());
-	gl->clear(RGBAf(1, 1, 0, 1));
+	gl->clear(Vec3(1, 0, 1));
 	renderScene();
 	getParent()->swapBuffers();
 	//Vec3 mov = getInput().getAxis("Move");
 }
 
-void GraphicInterface::initScene() {
+void GraphicsInterface::initScene() {
 
-	s = gl->compileShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
-
-	u32 texDat[] = {
-		0xFF0000FF
-	};
-
-	gpuTex = gl->createTexture(Vec2u(1, 1), ColorType::COMPRESSED_RGBA, Buffer((u8*)texDat, sizeof(texDat)));
+	s = gl->createShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
 
 	struct Vertex {
 		Vec3 pos;
@@ -95,6 +86,13 @@ void GraphicInterface::initScene() {
 		23, 22, 21, 20	//Up
 	};
 
+	struct SSBO {
+		Vec3 discardColor;
+		u32 textures_c;
+	};
+	
+	SSBO ssbo = { { 1, 0, 0 }, 0 };
+
 	vertexBuffer = gl->createBuffer(BufferType::VBO, Buffer((u8*)vdata, sizeof(vdata)));
 	indexBuffer = gl->createBuffer(BufferType::IBO, Buffer((u8*)idata, sizeof(idata)));
 	bufferLayout = gl->createLayout(vertexBuffer);
@@ -102,26 +100,21 @@ void GraphicInterface::initScene() {
 	bufferLayout->add(ShaderInputType::Float3);
 	bufferLayout->add(ShaderInputType::Float2);
 
-	gpuTex->init();
+	s->init();
 	vertexBuffer->init();
 	indexBuffer->init();
 	bufferLayout->init(indexBuffer);
-
-	Matrix m = Matrix().makeScale(Vec4(1, 2, 3, 1));
-	int debug = 0;
 }
 
-void GraphicInterface::renderScene() {
+void GraphicsInterface::renderScene() {
 	s->bind();
-	gpuTex->bind();
 	bufferLayout->bind();
 	gl->renderElement(Primitive::TriangleFan, 4);
 	bufferLayout->unbind();
-	gpuTex->unbind();
 	s->unbind();
 }
 
-GraphicInterface::~GraphicInterface() {
+GraphicsInterface::~GraphicsInterface() {
 	delete s;
 	delete gl;
 }

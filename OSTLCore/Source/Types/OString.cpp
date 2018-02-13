@@ -13,10 +13,8 @@ OString::OString(i32 i) { *this = fromNumber<i32>(i); }
 OString::OString(u32 i) { *this = fromNumber<u32>(i); }
 OString::OString(f32 f) { *this = fromNumber<f32>(f); }
 OString::OString(char c): source(1, c) {}
-
-OString::OString(JSON json) { 
-	*this = json.operator oi::OString();
-}
+OString::OString(JSON json) {  *this = json.operator oi::OString(); }
+OString::OString(const OString &str): source(str.source) { }
 
 u32 OString::size() const { return (u32)source.size(); }
 char &OString::operator[](u32 i) { return source[i]; }
@@ -104,6 +102,22 @@ OString OString::replace(OString s0, OString s1) const {
 	return combine(split(s0), s1);
 }
 
+OString OString::replaceFirst(OString s0, OString s1) const {
+	auto arr = split(s0);
+	OString first = arr[0];
+	arr.erase(arr.begin());
+	OString last = combine(arr, s0);
+	return first + s1 + last;
+}
+
+OString OString::replaceLast(OString s0, OString s1) const {
+	auto arr = split(s0);
+	OString last = arr[arr.size() - 1];
+	arr.erase(arr.end() - 1);
+	OString first = combine(arr, s0);
+	return first + s1 + last;
+}
+
 i64 OString::toLong() {
 
 	i64 object;
@@ -136,7 +150,7 @@ OString OString::combine(std::vector<OString> strings, OString seperator) {
 		if (i == 0) count += strings[i].size();
 		else count += strings[i].size() + seperator.size();
 
-	OString res(count + 1, '\0');
+	OString res(count, '\0');
 
 	u32 begin = 0;
 
@@ -344,6 +358,25 @@ bool OString::isFloat() {
 	return splits[0].isFloatNoExp() && splits[1].isFloatNoExp();
 }
 
+bool OString::isVector() {
+
+	std::vector<OString> splits = splitIgnoreCase(",");
+
+	for (u32 i = 0; i < splits.size(); ++i)
+		if (!splits[i].trim().isFloat())
+			return false;
+
+	return splits.size() >= 2;
+}
+
+u32 OString::getVectorLength() {
+
+	if (!isVector()) return 0;
+
+	std::vector<OString> splits = splitIgnoreCase(",");
+	return splits.size();
+}
+
 bool OString::contains(OString other) const {
 	return source.find(other.source) != std::string::npos;
 }
@@ -358,7 +391,12 @@ OString OString::lineEnd() {
 	return ss.str();
 }
 
-bool OString::operator==(OString other) const {
+OString &OString::operator=(const OString &other) {
+	source = other.source;
+	return *this;
+}
+
+bool OString::operator==(const OString &other) const {
 	if(size() != other.size()) return false;
 	return memcmp(other.source.c_str(), source.c_str(), size()) == 0;
 }
@@ -374,6 +412,10 @@ OString OString::toHex(u32 u) {
 
 JSON OString::toJSON() {
 	return *this;
+}
+
+OString::operator JSON() {
+	return toJSON();
 }
 
 //OString OString::toOctal(u32 u) {
@@ -392,4 +434,14 @@ JSON OString::toJSON() {
 
 OString OString::getHex(u8 u) {
 	return OString(BinaryHelper::hexChar((u & 0xF0) >> 4)) + OString(BinaryHelper::hexChar(u & 0xF));
+}
+
+OString OString::padStart(char c, u32 maxCount) {
+	if (size() >= maxCount) return *this;
+	return OString(maxCount - size(), c) + *this;
+}
+
+OString OString::padEnd(char c, u32 maxCount) {
+	if (size() >= maxCount) return *this;
+	return operator+(OString(maxCount - size(), c));
 }

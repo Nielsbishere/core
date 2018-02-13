@@ -10,6 +10,8 @@ namespace oi {
 
 	class OString {
 
+		friend struct std::hash<OString>;
+
 	public:
 
 		OString();
@@ -18,6 +20,10 @@ namespace oi {
 		OString(char *source, u32 len);
 		OString(u32 len, char filler);
 		OString(JSON json);
+		OString(const OString &str);
+
+		template<typename T, u32 n>
+		OString(TVec<T, n> t);
 
 		template<u32 len>
 		static const OString constString(const char(&c)[len]) { return OString(c); }
@@ -44,10 +50,15 @@ namespace oi {
 		u32 count(char c) const;
 		u32 count(OString s) const;
 
+		OString padStart(char c, u32 count);		//Add padding to the start of this string, until it this->size() eaches the specified count
+		OString padEnd(char c, u32 count);			//Add padding to the end of this string, until it this->size() eaches the specified count
+
 		std::vector<u32> find(char c) const;
 		std::vector<u32> find(const OString s) const;
 
 		OString replace(OString s0, OString s1) const;
+		OString replaceLast(OString s0, OString s1) const;
+		OString replaceFirst(OString s0, OString s1) const;
 
 		std::vector<OString> split(OString s) const;
 		std::vector<OString> splitIgnoreCase(OString s) const;
@@ -63,11 +74,11 @@ namespace oi {
 			return ss.str();
 		}
 
-		template<typename T, u32 n>
-		static OString fromVector(TVec<T, n> t);
-
 		i64 toLong();
 		f64 toDouble();
+
+		template<typename T, u32 n>
+		operator TVec<T, n>();
 
 		operator std::string() const { return source; }
 
@@ -78,7 +89,8 @@ namespace oi {
 		OString toLowerCase() const;
 		OString toUpperCase() const;
 
-		bool operator==(OString other) const;
+		OString &operator=(const OString &other);
+		bool operator==(const OString &other) const;
 		bool operator!=(OString other) const;
 		bool equalsIgnoreCase(OString other) const;
 		bool endsWithIgnoreCase(OString other) const;
@@ -100,6 +112,8 @@ namespace oi {
 		bool isUint();
 		bool isFloat();
 		bool isFloatNoExp();									//Is float; without e notation (1e5)
+		bool isVector();
+		u32 getVectorLength();
 
 		bool contains(OString other) const;
 		bool containsIgnoreCase(OString other) const;
@@ -113,9 +127,19 @@ namespace oi {
 		auto begin() const { return source.begin(); }
 		auto end() const { return source.end(); }
 
-	private:
+	protected:
 
 		std::string source;
 	};
 
+}
+
+//Hashing for OString
+namespace std {
+	template<>
+	struct hash<oi::OString> {
+		inline size_t operator()(const oi::OString& str) const {
+			return hash<std::string>()(str.source);
+		}
+	};
 }

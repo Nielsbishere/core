@@ -22,6 +22,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OWCore", "OWCore\OWCore.vcx
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGOGL", "OGOGL\OGOGL.vcxproj", "{90C7314C-3457-4965-BE4B-16F4DF099053}"
+	ProjectSection(ProjectDependencies) = postProject
+		{09A8493C-F3A7-4CB2-A9B7-CDFCFE1826E5} = {09A8493C-F3A7-4CB2-A9B7-CDFCFE1826E5}
+		{1C5EEDA5-ADDA-4020-B3C8-51C3AFFC2350} = {1C5EEDA5-ADDA-4020-B3C8-51C3AFFC2350}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

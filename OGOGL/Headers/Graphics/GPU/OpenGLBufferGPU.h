@@ -13,10 +13,11 @@ namespace oi {
 
 		public:
 
-			OpenGLBufferGPU(BufferType type, Buffer buf);
+			OpenGLBufferGPU(BufferType type, Buffer buf, u32 binding = 0);
 			~OpenGLBufferGPU();
 
 			bool init() override;
+			void destroy() override;
 
 			void bind() override;
 			void unbind() override;

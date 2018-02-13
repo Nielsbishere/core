@@ -7,11 +7,11 @@
 
 namespace oi {
 	namespace gc {
-		class GraphicInterface : public wc::WindowInterface {
+		class GraphicsInterface : public wc::WindowInterface {
 
 		public:
 
-			GraphicInterface();
+			GraphicsInterface();
 
 			void init() override;
 			void render() override;
@@ -20,7 +20,7 @@ namespace oi {
 			virtual void initScene();
 			virtual void renderScene();
 
-			~GraphicInterface();
+			~GraphicsInterface();
 
 		protected:
 

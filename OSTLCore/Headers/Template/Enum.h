@@ -39,7 +39,7 @@ namespace oi {
 				}																					\
 		}																							\
 																									\
-		name(OString name) : index(0) {																\
+		name(oi::OString name) : index(0) {															\
 																									\
 			for (u32 i = 0; i < length; ++i)														\
 			if (getNames()[i] == name) {															\
@@ -47,6 +47,14 @@ namespace oi {
 				break;																				\
 			}																						\
 																									\
+		}																							\
+																									\
+		bool operator==(const name &other) const {													\
+			return index == other.index;															\
+		}																							\
+																									\
+		bool operator==(const name##_s &other) const {												\
+			return index == name(other).index;														\
 		}																							\
 																									\
 		const name##_s &getValue() { return *(ilist + index); }										\
@@ -88,7 +96,7 @@ namespace oi {
 			for (oi::OString temp : arr) {															\
 																									\
 				if (i == 0){																		\
-					OString almostCorrect = temp;													\
+					oi::OString almostCorrect = temp;												\
 					std::vector<oi::OString> csplit2 = almostCorrect.split("(");					\
 					res.push_back(csplit2[csplit2.size() - 1]);										\
 				}																					\

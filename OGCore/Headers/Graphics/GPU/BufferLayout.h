@@ -1,4 +1,5 @@
 #pragma once
+#include <Types/Generic.h>
 #include "Graphics/Material/ShaderInput.h"
 #include "Graphics/GPU/BufferGPU.h"
 
@@ -26,7 +27,9 @@ namespace oi {
 				if (!ShaderInputHelper::isShaderInput(type))
 					return Log::error("Couldn't add ShaderInputType; it is invalid as shader input");
 
-				layouts.push_back({ ShaderInputHelper::getSize(type), type, buf });
+				auto val = ShaderInputHelper::getType(type).getValue();
+
+				layouts.push_back({ val.length * val.stride, type, buf });
 				return true;
 			}
 

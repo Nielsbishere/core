@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Template/Enum.h>
+#include <Types/GDataType.h>
 
 namespace oi {
 
@@ -41,52 +42,26 @@ namespace oi {
 
 		struct ShaderInputHelper {
 
-			//Returns Undefined when it is not of default types
-			static ShaderInputType getBase(ShaderInputType t) {
-				u32 i = t.getIndex();
-				if (i == 0) return ShaderInputType();
-				--i;
-				if (i < 4) return ShaderInputType(1);		//Float[x]
-				if (i < 8) return ShaderInputType(5);		//Double[x]
-				if (i < 12) return ShaderInputType(9);		//Int[x]
-				if (i < 16) return ShaderInputType(13);		//Uint[x]
-				if (i < 20) return ShaderInputType(17);		//Bool[x]
-				if (i < 29) return ShaderInputType(1);		//Float[x][y]
-				if (i < 38) return ShaderInputType(5);		//Double[x][y]
-				return ShaderInputType();
+			static GDataType getType(ShaderInputType type) {
+
+				if (type.getIndex() >= 39 && type.getIndex() <= 104)
+					return GDataType::oi_sampler;
+
+				if (type.getIndex() >= 21)
+					return GDataType::oi_undefined;
+
+				return type.getValue().value;
 			}
 
-			static u32 getSize(ShaderInputType type) {
-				ShaderInputType_s base = getBase(type);
-				return getCount(type) * (base == ShaderInputType::Double ? 8 : 4);
+			static ShaderInputType fromType(GDataType type) {
+				if (type.getIndex() <= GDataType(GDataType::oi_sampler).getIndex()) return type.getIndex();
+				return ShaderInputType::Undefined;
 			}
 
 			//Whether or not the variable is allowed as an input for a shader
 			static bool isShaderInput(ShaderInputType type) {
-				ShaderInputType_s base = getBase(type);
-				return base == ShaderInputType::Uint || base == ShaderInputType::Int || base == ShaderInputType::Float || base == ShaderInputType::Double;
-			}
-
-			//Returns 0 when it is not of default types
-			static u32 getCount(ShaderInputType t) {
-				u32 i = t.getIndex();
-				if (i == 0) return 0;
-				--i;
-				if (i < 4) return i + 1;				//Float[x]
-				if (i < 8) return i - 3;				//Double[x]
-				if (i < 12) return i - 7;				//Int[x]
-				if (i < 16) return i - 11;				//Uint[x]
-				if (i < 20) return i - 15;				//Bool[x]
-				if (i == 20 || i == 29) return 4;		//mat[2][2]
-				if (i == 21 || i == 30) return 9;		//mat[3][3]	  
-				if (i == 22 || i == 31) return 16;		//mat[4][4]
-				if (i == 23 || i == 32) return 6;		//mat[2][3]
-				if (i == 24 || i == 33) return 8;		//mat[2][4]
-				if (i == 25 || i == 34) return 6;		//mat[3][2]
-				if (i == 26 || i == 35) return 12;		//mat[3][4]
-				if (i == 27 || i == 36) return 12;		//mat[4][3]
-				if (i == 28 || i == 37) return 8;		//mat[4][2]
-				return 0;
+				GDataType base = getType(type).getValue().derivedId;
+				return base == GDataType::oi_uint || base == GDataType::oi_int || base == GDataType::oi_float || base == GDataType::oi_double;
 			}
 
 		};

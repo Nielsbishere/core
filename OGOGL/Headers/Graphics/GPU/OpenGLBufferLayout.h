@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Template/PlatformDefines.h>
 #include "API/OpenGL.h"
 #include <Graphics/GPU/BufferLayout.h>
 

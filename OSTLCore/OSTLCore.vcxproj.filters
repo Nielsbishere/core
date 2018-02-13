@@ -33,9 +33,6 @@
     <ClInclude Include="Headers\Types\Buffer.h">
       <Filter>Header Files\Types</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Types\Color.h">
-      <Filter>Header Files\Types</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\Types\Generic.h">
       <Filter>Header Files\Types</Filter>
     </ClInclude>
@@ -53,9 +50,6 @@
     </ClInclude>
     <ClInclude Include="Headers\Template\BuildProperties.h">
       <Filter>Header Files\Template</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\Types\Texture.h">
-      <Filter>Header Files\Types</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Utils\Timer.h">
       <Filter>Header Files\Utils</Filter>
@@ -210,6 +204,12 @@
     <ClInclude Include="Headers\Types\Matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Types\StructuredBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Types\GDataType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Utils\BinaryHelper.cpp">
@@ -237,6 +237,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Utils\JSON.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Types\StructuredBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

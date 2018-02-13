@@ -31,9 +31,8 @@ namespace oi {
 		std::string toOctal() const;
 		std::string toBinary() const;
 
-		Buffer operator+(u32 off) {
-			return offset(off);
-		}
+		Buffer operator+(u32 off) const;
+		Buffer subbuffer(u32 offset, u32 length) const;
 
 		template<typename T = u8>
 		T &operator[](u32 where) {									//Gets data at location

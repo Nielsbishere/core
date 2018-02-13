@@ -7,6 +7,8 @@ namespace oi {
 
 	namespace gc {
 
+		class BufferGPU;
+
 		struct OpenGLShaderStage : public ShaderStageData {
 			GLuint id;
 
@@ -17,12 +19,12 @@ namespace oi {
 
 		public:
 
-			OpenGLShader();
+			OpenGLShader(ShaderInfo info);
 			~OpenGLShader();
-			bool init(ShaderInfo info) override;
+			bool init() override;
+			void destroy() override;
 			void bind() override;
 			void unbind() override;
-			bool isValid() override;
 
 		protected:
 
@@ -41,7 +43,7 @@ namespace oi {
 		private:
 
 			GLuint shaderId;
-			std::vector<ShaderInput> uniforms, attributes;
+			std::vector<ShaderInput> attributes;
 
 		};
 

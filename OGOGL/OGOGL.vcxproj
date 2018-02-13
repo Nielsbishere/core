@@ -24,7 +24,6 @@
     <ClInclude Include="Headers\API\wglext.h" />
     <ClInclude Include="Headers\Graphics\GPU\OpenGLBufferGPU.h" />
     <ClInclude Include="Headers\Graphics\GPU\OpenGLBufferLayout.h" />
-    <ClInclude Include="Headers\Graphics\Material\OpenGLTexture.h" />
     <ClInclude Include="Headers\Graphics\OpenGLGraphics.h" />
     <ClInclude Include="Headers\Graphics\Material\OpenGLShaderInput.h" />
     <ClInclude Include="Headers\Graphics\Material\OpenGLShader.h" />
@@ -35,7 +34,6 @@
     <ClCompile Include="Source\Graphics\GPU\OpenGLBufferGPU.cpp" />
     <ClCompile Include="Source\Graphics\GPU\OpenGLBufferLayout.cpp" />
     <ClCompile Include="Source\Graphics\Material\OpenGLShader.cpp" />
-    <ClCompile Include="Source\Graphics\Material\OpenGLTexture.cpp" />
     <ClCompile Include="Source\Graphics\OpenGLGraphics.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
