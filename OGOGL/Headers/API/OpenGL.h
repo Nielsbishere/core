@@ -64,11 +64,14 @@ namespace oi {
 			static PFNGLFENCESYNCPROC glFenceSync;
 			static PFNGLCLIENTWAITSYNCPROC glClientWaitSync;
 			static PFNGLTEXBUFFERPROC glTexBuffer;
-			static PFNGLGETTEXTUREHANDLEARBPROC glGetTextureHandleARB;
+			static PFNGLGETTEXTURESAMPLERHANDLEARBPROC glGetTextureSamplerHandleARB;
 			static PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 			static PFNGLGETPROGRAMINTERFACEIVPROC glGetProgramInterfaceiv;
 			static PFNGLGETPROGRAMRESOURCEIVPROC glGetProgramResourceiv;
 			static PFNGLGETPROGRAMRESOURCENAMEPROC glGetProgramResourceName;
+			static PFNGLACTIVETEXTUREPROC glActiveTexture;
+			static PFNGLTEXIMAGE3DPROC glTexImage3D;
+			static PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 			//static PFNxPROC x;
 
 			static u32 getUVersion();

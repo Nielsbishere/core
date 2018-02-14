@@ -61,11 +61,14 @@ PFNGLDELETESYNCPROC OpenGL::glDeleteSync = nullptr;
 PFNGLFENCESYNCPROC OpenGL::glFenceSync = nullptr;
 PFNGLCLIENTWAITSYNCPROC OpenGL::glClientWaitSync = nullptr;
 PFNGLTEXBUFFERPROC OpenGL::glTexBuffer = nullptr;
-PFNGLGETTEXTUREHANDLEARBPROC OpenGL::glGetTextureHandleARB = nullptr;
+PFNGLGETTEXTURESAMPLERHANDLEARBPROC OpenGL::glGetTextureSamplerHandleARB = nullptr;
 PFNGLBINDBUFFERBASEPROC OpenGL::glBindBufferBase = nullptr;
 PFNGLGETPROGRAMINTERFACEIVPROC OpenGL::glGetProgramInterfaceiv = nullptr;
 PFNGLGETPROGRAMRESOURCEIVPROC OpenGL::glGetProgramResourceiv = nullptr;
 PFNGLGETPROGRAMRESOURCENAMEPROC OpenGL::glGetProgramResourceName = nullptr;
+PFNGLACTIVETEXTUREPROC OpenGL::glActiveTexture = nullptr;
+PFNGLTEXIMAGE3DPROC OpenGL::glTexImage3D = nullptr;
+PFNGLGENERATEMIPMAPPROC OpenGL::glGenerateMipmap = nullptr;
 //PFNxPROC OpenGL::x = nullptr;
 
 OString OpenGL::getVersion() {
@@ -210,8 +213,11 @@ bool OpenGL::init() {
 	glFenceSync = (PFNGLFENCESYNCPROC)wglGetProcAddress("glFenceSync");
 	glClientWaitSync = (PFNGLCLIENTWAITSYNCPROC)wglGetProcAddress("glClientWaitSync");
 	glTexBuffer = (PFNGLTEXBUFFERPROC)wglGetProcAddress("glTexBuffer");
-	glGetTextureHandleARB = (PFNGLGETTEXTUREHANDLEARBPROC)wglGetProcAddress("glGetTextureHandleARB");
+	glGetTextureSamplerHandleARB = (PFNGLGETTEXTURESAMPLERHANDLEARBPROC) wglGetProcAddress("glGetTextureSamplerHandleARB");
 	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC)wglGetProcAddress("glBindBufferBase");
+	glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+	glTexImage3D = (PFNGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3D");
+	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress("glGenerateMipmap");
 
 	return isInitialized = true;
 }

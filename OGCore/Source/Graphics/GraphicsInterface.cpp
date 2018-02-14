@@ -2,6 +2,7 @@
 #include <Input/InputHandler.h>
 #include "Graphics/GPU/BufferGPU.h"
 #include "Graphics/GPU/BufferLayout.h"
+#include "Graphics/Material/Texture.h"
 #include <Types/StructuredBuffer.h>
 using namespace oi::gc;
 using namespace oi;
@@ -17,6 +18,7 @@ void GraphicsInterface::init() {
 
 BufferGPU *vertexBuffer, *indexBuffer;
 BufferLayout *bufferLayout;
+Texture *texture;
 
 f64 startTime = 0;
 
@@ -43,6 +45,13 @@ void GraphicsInterface::render() {
 void GraphicsInterface::initScene() {
 
 	s = gl->createShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
+
+	u32 texdat[] = {
+		0xFF0000FF, 0xFFFF0000,
+		0xFF00FF00, 0xFF00FFFF
+	};
+
+	texture = gl->createTexture(TextureInfo(2, 2, TextureLayout::RGBA), Buffer((u8*)texdat, sizeof(texdat)));
 
 	struct Vertex {
 		Vec3 pos;
@@ -86,13 +95,6 @@ void GraphicsInterface::initScene() {
 		23, 22, 21, 20	//Up
 	};
 
-	struct SSBO {
-		Vec3 discardColor;
-		u32 textures_c;
-	};
-	
-	SSBO ssbo = { { 1, 0, 0 }, 0 };
-
 	vertexBuffer = gl->createBuffer(BufferType::VBO, Buffer((u8*)vdata, sizeof(vdata)));
 	indexBuffer = gl->createBuffer(BufferType::IBO, Buffer((u8*)idata, sizeof(idata)));
 	bufferLayout = gl->createLayout(vertexBuffer);
@@ -100,6 +102,7 @@ void GraphicsInterface::initScene() {
 	bufferLayout->add(ShaderInputType::Float3);
 	bufferLayout->add(ShaderInputType::Float2);
 
+	texture->init();
 	s->init();
 	vertexBuffer->init();
 	indexBuffer->init();
@@ -109,8 +112,10 @@ void GraphicsInterface::initScene() {
 void GraphicsInterface::renderScene() {
 	s->bind();
 	bufferLayout->bind();
+	texture->bind();
 	gl->renderElement(Primitive::TriangleFan, 4);
 	bufferLayout->unbind();
+	texture->unbind();
 	s->unbind();
 }
 

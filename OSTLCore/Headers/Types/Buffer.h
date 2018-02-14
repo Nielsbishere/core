@@ -51,6 +51,8 @@ namespace oi {
 
 		static Buffer readFile(OString where);
 
+		u8 *addr() { return data; }
+
 	protected:
 
 		u8 *data;

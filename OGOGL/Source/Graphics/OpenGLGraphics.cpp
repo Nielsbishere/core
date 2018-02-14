@@ -4,6 +4,7 @@
 #include "Graphics/GPU/OpenGLBufferGPU.h"
 #include "Graphics/OpenGLPrimitive.h"
 #include "Graphics/GPU/OpenGLBufferLayout.h"
+#include "Graphics/Material/OpenGLTexture.h"
 #include <Template/PlatformDefines.h>
 #include "API/OpenGL.h"
 
@@ -42,6 +43,10 @@ BufferGPU *OpenGLGraphics::createBuffer(BufferType type, Buffer buf, u32 binding
 
 BufferLayout *OpenGLGraphics::createLayout(BufferGPU *defaultBuffer) {
 	return new OpenGLBufferLayout(defaultBuffer);
+}
+
+Texture *OpenGLGraphics::createTexture(TextureInfo info, Buffer buf, u32 binding) {
+	return new OpenGLTexture(info, buf, binding);
 }
 
 void OpenGLGraphics::renderElement(Primitive p, u32 length, u32 startIndex) {

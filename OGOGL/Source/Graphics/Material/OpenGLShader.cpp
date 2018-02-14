@@ -203,8 +203,8 @@ bool OpenGLShader::genReflectionData() {
 	GLint uniformBlockCount;
 	OpenGL::glGetProgramiv(shaderId, GL_ACTIVE_UNIFORM_BLOCKS, &uniformBlockCount);
 
-	if (uniformCount != 0 || uniformBlockCount != 0)
-		return Log::error("Couldn't compile shader. Uniforms and uniform blocks aren't supported by Osomi Core; please use SSBO's instead. This is due to performance reasons; buffers are way faster than uniforms and uniforms are limiting in so many areas. Cross API compatibility is also easier without uniforms (DirectX doesn't support them).");
+	/*if (uniformCount != 0 || uniformBlockCount != 0)
+		return Log::error("Couldn't compile shader. Uniforms and uniform blocks aren't supported by Osomi Core; please use SSBO's instead. This is due to performance reasons; buffers are way faster than uniforms and uniforms are limiting in so many areas. Cross API compatibility is also easier without uniforms (DirectX doesn't support them).");*/
 
 	GLint attribCount;
 	OpenGL::glGetProgramiv(shaderId, GL_ACTIVE_ATTRIBUTES, &attribCount);
