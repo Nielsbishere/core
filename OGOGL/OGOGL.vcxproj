@@ -24,6 +24,8 @@
     <ClInclude Include="Headers\API\wglext.h" />
     <ClInclude Include="Headers\Graphics\GPU\OpenGLBufferGPU.h" />
     <ClInclude Include="Headers\Graphics\GPU\OpenGLBufferLayout.h" />
+    <ClInclude Include="Headers\Graphics\Material\OpenGLSampler.h" />
+    <ClInclude Include="Headers\Graphics\Material\OpenGLSamplerInfo.h" />
     <ClInclude Include="Headers\Graphics\Material\OpenGLTexture.h" />
     <ClInclude Include="Headers\Graphics\Material\OpenGLTextureInfo.h" />
     <ClInclude Include="Headers\Graphics\OpenGLGraphics.h" />
@@ -35,6 +37,7 @@
     <ClCompile Include="Source\API\OpenGL.cpp" />
     <ClCompile Include="Source\Graphics\GPU\OpenGLBufferGPU.cpp" />
     <ClCompile Include="Source\Graphics\GPU\OpenGLBufferLayout.cpp" />
+    <ClCompile Include="Source\Graphics\Material\OpenGLSampler.cpp" />
     <ClCompile Include="Source\Graphics\Material\OpenGLShader.cpp" />
     <ClCompile Include="Source\Graphics\Material\OpenGLTexture.cpp" />
     <ClCompile Include="Source\Graphics\OpenGLGraphics.cpp" />

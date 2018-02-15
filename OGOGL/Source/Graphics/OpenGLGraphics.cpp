@@ -5,6 +5,7 @@
 #include "Graphics/OpenGLPrimitive.h"
 #include "Graphics/GPU/OpenGLBufferLayout.h"
 #include "Graphics/Material/OpenGLTexture.h"
+#include "Graphics/Material/OpenGLSampler.h"
 #include <Template/PlatformDefines.h>
 #include "API/OpenGL.h"
 
@@ -47,6 +48,10 @@ BufferLayout *OpenGLGraphics::createLayout(BufferGPU *defaultBuffer) {
 
 Texture *OpenGLGraphics::createTexture(TextureInfo info, Buffer buf, u32 binding) {
 	return new OpenGLTexture(info, buf, binding);
+}
+
+Sampler *OpenGLGraphics::createSampler(SamplerInfo info, u32 binding) {
+	return new OpenGLSampler(info, binding);
 }
 
 void OpenGLGraphics::renderElement(Primitive p, u32 length, u32 startIndex) {

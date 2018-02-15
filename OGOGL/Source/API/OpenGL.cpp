@@ -69,6 +69,11 @@ PFNGLGETPROGRAMRESOURCENAMEPROC OpenGL::glGetProgramResourceName = nullptr;
 PFNGLACTIVETEXTUREPROC OpenGL::glActiveTexture = nullptr;
 PFNGLTEXIMAGE3DPROC OpenGL::glTexImage3D = nullptr;
 PFNGLGENERATEMIPMAPPROC OpenGL::glGenerateMipmap = nullptr;
+PFNGLBINDSAMPLERPROC OpenGL::glBindSampler = nullptr;
+PFNGLDELETESAMPLERSPROC OpenGL::glDeleteSamplers = nullptr;
+PFNGLGENSAMPLERSPROC OpenGL::glGenSamplers = nullptr;
+PFNGLSAMPLERPARAMETERIPROC OpenGL::glSamplerParameteri = nullptr;
+PFNGLSAMPLERPARAMETERFPROC OpenGL::glSamplerParameterf = nullptr;
 //PFNxPROC OpenGL::x = nullptr;
 
 OString OpenGL::getVersion() {
@@ -184,8 +189,6 @@ bool OpenGL::init() {
 	glVertexAttrib4fv = (PFNGLVERTEXATTRIB4FVPROC)wglGetProcAddress("glVertexAttrib4fv");
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
 	glBindAttribLocation = (PFNGLBINDATTRIBLOCATIONPROC)wglGetProcAddress("glBindAttribLocation");
-
-	// Shader
 	glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
 	glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
 	glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
@@ -215,9 +218,16 @@ bool OpenGL::init() {
 	glTexBuffer = (PFNGLTEXBUFFERPROC)wglGetProcAddress("glTexBuffer");
 	glGetTextureSamplerHandleARB = (PFNGLGETTEXTURESAMPLERHANDLEARBPROC) wglGetProcAddress("glGetTextureSamplerHandleARB");
 	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC)wglGetProcAddress("glBindBufferBase");
+
+	//Texture & sampler
 	glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
 	glTexImage3D = (PFNGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3D");
 	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress("glGenerateMipmap");
+	glGenSamplers = (PFNGLGENSAMPLERSPROC)wglGetProcAddress("glGenSamplers");
+	glBindSampler = (PFNGLBINDSAMPLERPROC)wglGetProcAddress("glBindSampler");
+	glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)wglGetProcAddress("glDeleteSamplers");
+	glSamplerParameteri	= (PFNGLSAMPLERPARAMETERIPROC) wglGetProcAddress("glSamplerParameteri");
+	glSamplerParameterf	= (PFNGLSAMPLERPARAMETERFPROC) wglGetProcAddress("glSamplerParameterf");
 
 	return isInitialized = true;
 }

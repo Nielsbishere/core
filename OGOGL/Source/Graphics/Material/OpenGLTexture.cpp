@@ -14,8 +14,6 @@ GLenum OpenGLTexture::getType() {
 }
 
 GLenum OpenGLTexture::getFormat() {
-	OString name = getInfo().getFormat().getName();
-	Log::println(name);
 	return (GLenum)OpenGLTextureFormat(getInfo().getFormat().getName()).getValue();
 }
 
@@ -46,20 +44,19 @@ bool OpenGLTexture::init() {
 	glGenTextures(1, &gpuHandle);
 
 	bind();
+
+	GLenum type = getType();
 	
-	if(getType() == GL_TEXTURE_2D)
-		glTexImage2D(getType(), 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), 0, getFormat(), getSymbolic(), buf.addr());
+	if(type == GL_TEXTURE_2D)
+		glTexImage2D(type, 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), 0, getFormat(), getSymbolic(), buf.addr());
 
-	else if (getType() == GL_TEXTURE_1D)
-		glTexImage1D(getType(), 0, getLayout(), getInfo().getWidth(), 0, getFormat(), getSymbolic(), buf.addr());
+	else if (type == GL_TEXTURE_1D)
+		glTexImage1D(type, 0, getLayout(), getInfo().getWidth(), 0, getFormat(), getSymbolic(), buf.addr());
 
-	else if (getType() == GL_TEXTURE_3D)
-		OpenGL::glTexImage3D(getType(), 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), getInfo().getLength(), 0, getFormat(), getSymbolic(), buf.addr());
+	else if (type == GL_TEXTURE_3D)
+		OpenGL::glTexImage3D(type, 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), getInfo().getLength(), 0, getFormat(), getSymbolic(), buf.addr());
 
-	OpenGL::glGenerateMipmap(getType());
-
-	glTexParameteri(getType(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(getType(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	OpenGL::glGenerateMipmap(type);
 
 	unbind();
 

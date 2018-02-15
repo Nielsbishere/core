@@ -3,6 +3,7 @@
 #include "Graphics/GPU/BufferGPU.h"
 #include "Graphics/GPU/BufferLayout.h"
 #include "Graphics/Material/Texture.h"
+#include "Graphics/Material/Sampler.h"
 #include <Types/StructuredBuffer.h>
 using namespace oi::gc;
 using namespace oi;
@@ -19,6 +20,7 @@ void GraphicsInterface::init() {
 BufferGPU *vertexBuffer, *indexBuffer;
 BufferLayout *bufferLayout;
 Texture *texture;
+Sampler *sampler;
 
 f64 startTime = 0;
 
@@ -51,6 +53,7 @@ void GraphicsInterface::initScene() {
 		0xFF00FF00, 0xFF00FFFF
 	};
 
+	sampler = gl->createSampler(SamplerInfo(SamplerWrapping::ClampBorder, SamplerMin::Nearest, SamplerMag::Nearest));
 	texture = gl->createTexture(TextureInfo(2, 2, TextureLayout::RGBA), Buffer((u8*)texdat, sizeof(texdat)));
 
 	struct Vertex {
@@ -102,6 +105,7 @@ void GraphicsInterface::initScene() {
 	bufferLayout->add(ShaderInputType::Float3);
 	bufferLayout->add(ShaderInputType::Float2);
 
+	sampler->init();
 	texture->init();
 	s->init();
 	vertexBuffer->init();
@@ -111,11 +115,17 @@ void GraphicsInterface::initScene() {
 
 void GraphicsInterface::renderScene() {
 	s->bind();
-	bufferLayout->bind();
+
 	texture->bind();
+	sampler->bind();
+
+	bufferLayout->bind();
 	gl->renderElement(Primitive::TriangleFan, 4);
 	bufferLayout->unbind();
+
 	texture->unbind();
+	sampler->unbind();
+
 	s->unbind();
 }
 

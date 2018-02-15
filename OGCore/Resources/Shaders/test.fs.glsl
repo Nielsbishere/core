@@ -3,7 +3,7 @@
 
 layout(early_fragment_tests) in;
 
-uniform sampler2D tex;
+sampler2D tex;
 
 //layout(std140, binding = 0) buffer textureBuffer {
 //	sampler2D tex;

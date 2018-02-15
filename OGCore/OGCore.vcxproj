@@ -33,6 +33,8 @@
     <ClInclude Include="Headers\Graphics\GPU\GraphicsResource.h" />
     <ClInclude Include="Headers\Graphics\GraphicsInterface.h" />
     <ClInclude Include="Headers\Graphics\Graphics.h" />
+    <ClInclude Include="Headers\Graphics\Material\Sampler.h" />
+    <ClInclude Include="Headers\Graphics\Material\SamplerInfo.h" />
     <ClInclude Include="Headers\Graphics\Material\Shader.h" />
     <ClInclude Include="Headers\Graphics\Material\ShaderInfo.h" />
     <ClInclude Include="Headers\Graphics\Material\ShaderInput.h" />

@@ -22,6 +22,8 @@ namespace oi {
 		class BufferLayout;
 		class Texture;
 		class TextureInfo;
+		class Sampler;
+		class SamplerInfo;
 
 		class Graphics {
 
@@ -37,6 +39,7 @@ namespace oi {
 			virtual Shader *createShader(ShaderInfo sinf) = 0;
 			virtual BufferGPU *createBuffer(BufferType type, Buffer b, u32 binding = 0) = 0;
 			virtual Texture *createTexture(TextureInfo info, Buffer buf = Buffer::construct(nullptr, 0), u32 binding = 0) = 0;				//Textures are bindless a lot of the time, but the binding is still there
+			virtual Sampler *createSampler(SamplerInfo info, u32 binding = 0) = 0;
 			virtual BufferLayout *createLayout(BufferGPU *defaultBuffer) = 0;
 
 			virtual void renderElement(Primitive p, u32 length, u32 startIndex = 0) = 0;

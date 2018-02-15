@@ -72,6 +72,11 @@ namespace oi {
 			static PFNGLACTIVETEXTUREPROC glActiveTexture;
 			static PFNGLTEXIMAGE3DPROC glTexImage3D;
 			static PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+			static PFNGLBINDSAMPLERPROC glBindSampler;
+			static PFNGLGENSAMPLERSPROC glGenSamplers;
+			static PFNGLDELETESAMPLERSPROC glDeleteSamplers;
+			static PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
+			static PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;
 			//static PFNxPROC x;
 
 			static u32 getUVersion();
