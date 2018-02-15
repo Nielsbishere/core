@@ -19,6 +19,7 @@ namespace oi {
 		class Shader;
 		class ShaderInfo;
 		class BufferGPU;
+		class BufferInfo;
 		class BufferLayout;
 		class Texture;
 		class TextureInfo;
@@ -36,11 +37,11 @@ namespace oi {
 			virtual void clear(Vec3 color) = 0;
 			virtual void viewport(wc::Window *w) = 0;
 
-			virtual Shader *createShader(ShaderInfo sinf) = 0;
-			virtual BufferGPU *createBuffer(BufferType type, Buffer b, u32 binding = 0) = 0;
-			virtual Texture *createTexture(TextureInfo info, Buffer buf = Buffer::construct(nullptr, 0), u32 binding = 0) = 0;				//Textures are bindless a lot of the time, but the binding is still there
-			virtual Sampler *createSampler(SamplerInfo info, u32 binding = 0) = 0;
-			virtual BufferLayout *createLayout(BufferGPU *defaultBuffer) = 0;
+			virtual Shader *create(ShaderInfo info) = 0;
+			virtual BufferGPU *create(BufferInfo info) = 0;
+			virtual Texture *create(TextureInfo info) = 0;
+			virtual Sampler *create(SamplerInfo info) = 0;
+			virtual BufferLayout *create(BufferGPU *defaultBuffer) = 0;
 
 			virtual void renderElement(Primitive p, u32 length, u32 startIndex = 0) = 0;
 

@@ -3,8 +3,8 @@
 #include <Types/Buffer.h>
 #include <vector>
 #include <Utils/Log.h>
-#include "BufferType.h"
 #include "GraphicsResource.h"
+#include "BufferInfo.h"
 
 namespace oi {
 
@@ -17,9 +17,9 @@ namespace oi {
 
 		public:
 
-			BufferGPU(BufferType _type, Buffer _buf, u32 _binding = 0) : buf(_buf), type(_type), binding(_binding) {}
+			BufferGPU(BufferInfo _info) : info(_info) {}
 
-			virtual ~BufferGPU() { buf.deconstruct(); }
+			virtual ~BufferGPU() { getInfo().getBuffer().deconstruct(); }
 
 			//Get part of the buffer (to read/write)
 			//Length = 0; full buffer
@@ -27,25 +27,22 @@ namespace oi {
 			Buffer subbuffer(u32 offset = 0, u32 length = 0) {
 
 				if (length == 0)
-					length = size();
+					length = getInfo().size();
 
-				if (length + offset > buf.size()) {
+				if (length + offset > getInfo().size()) {
 					Log::throwError<BufferGPU, 0x1>("Out of bounds");
 					return Buffer();
 				}
 
-				Buffer bu = Buffer::construct(&buf[offset], length);
+				Buffer bu = Buffer::construct(getInfo().getBuffer().addr() + offset, length);
 				return bu;
 			}
 
-			u32 size() { return buf.size(); }
-			BufferType getType() { return type; }
+			BufferInfo &getInfo() { return info; }
 
 		protected:
 
-			Buffer buf;
-			BufferType type;
-			u32 binding;
+			BufferInfo info;
 
 		};
 

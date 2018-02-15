@@ -5,9 +5,12 @@ layout(early_fragment_tests) in;
 
 sampler2D tex;
 
-//layout(std140, binding = 0) buffer textureBuffer {
-//	sampler2D tex;
-//};
+layout(std140, binding = 0) buffer textureBuffer {
+	vec3 a;
+	float b;
+	vec3 c;
+	float d;
+};
 
 in vec2 uv;
 
@@ -61,5 +64,5 @@ vec2 dnoise(vec2 p, float length = 0.01, float d = 0.01){
 void main(){
 	vec2 f = dnoise(uv * 1028, 0.1);
 	vec2 uv2 = f + uv;
-	color = vec4(texture(tex, uv).rgb, 1);
+	color = vec4(texture(tex, uv).rgb * a * c, 1);
 }

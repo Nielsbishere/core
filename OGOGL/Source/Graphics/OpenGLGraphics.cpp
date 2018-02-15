@@ -25,7 +25,7 @@ void OpenGLGraphics::clear() {
 	clear(Vec3(0, 0, 0));
 }
 
-Shader *OpenGLGraphics::createShader(ShaderInfo sinf) {
+Shader *OpenGLGraphics::create(ShaderInfo sinf) {
 	return new OpenGLShader(sinf);
 }
 
@@ -38,20 +38,20 @@ void OpenGLGraphics::viewport(wc::Window *w) {
 	glViewport(0, 0, w->getInfo().getSize().x(), w->getInfo().getSize().y());
 }
 
-BufferGPU *OpenGLGraphics::createBuffer(BufferType type, Buffer buf, u32 binding) {
-	return new OpenGLBufferGPU(type, buf, binding);
+BufferGPU *OpenGLGraphics::create(BufferInfo info) {
+	return new OpenGLBufferGPU(info);
 }
 
-BufferLayout *OpenGLGraphics::createLayout(BufferGPU *defaultBuffer) {
+BufferLayout *OpenGLGraphics::create(BufferGPU *defaultBuffer) {
 	return new OpenGLBufferLayout(defaultBuffer);
 }
 
-Texture *OpenGLGraphics::createTexture(TextureInfo info, Buffer buf, u32 binding) {
-	return new OpenGLTexture(info, buf, binding);
+Texture *OpenGLGraphics::create(TextureInfo info) {
+	return new OpenGLTexture(info);
 }
 
-Sampler *OpenGLGraphics::createSampler(SamplerInfo info, u32 binding) {
-	return new OpenGLSampler(info, binding);
+Sampler *OpenGLGraphics::create(SamplerInfo info) {
+	return new OpenGLSampler(info);
 }
 
 void OpenGLGraphics::renderElement(Primitive p, u32 length, u32 startIndex) {

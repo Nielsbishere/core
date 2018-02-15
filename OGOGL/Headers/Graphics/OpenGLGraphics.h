@@ -15,11 +15,11 @@ namespace oi {
 			void clear() override;
 			void clear(Vec3 color) override;
 
-			Shader *createShader(ShaderInfo sinf) override;
-			BufferGPU *createBuffer(BufferType type, Buffer buf, u32 binding = 0) override;
-			BufferLayout *createLayout(BufferGPU *defaultBuffer) override;
-			Texture *createTexture(TextureInfo info, Buffer buf = Buffer::construct(nullptr, 0), u32 binding = 0) override;
-			Sampler *createSampler(SamplerInfo info, u32 binding = 0) override;
+			Shader *create(ShaderInfo sinf) override;
+			BufferGPU *create(BufferInfo info) override;
+			BufferLayout *create(BufferGPU *defaultBuffer) override;
+			Texture *create(TextureInfo info) override;
+			Sampler *create(SamplerInfo info) override;
 
 			void renderElement(Primitive p, u32 length, u32 startIndex = 0) override;
 

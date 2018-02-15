@@ -13,18 +13,14 @@ namespace oi {
 
 		public:
 
-			Sampler(SamplerInfo ti, u32 _binding) : info(ti), binding(_binding) {}
+			Sampler(SamplerInfo ti) : info(ti) {}
 			virtual ~Sampler() {}
 
 			SamplerInfo getInfo() { return info; }
 
-			void setBinding(u32 _binding) { binding = _binding; }
-			u32 getBinding() { return binding; }
-
 		protected:
 
 			SamplerInfo info;
-			u32 binding;
 
 		};
 

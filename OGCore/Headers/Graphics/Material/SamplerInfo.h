@@ -13,9 +13,9 @@ namespace oi {
 
 		public:
 
-			SamplerInfo(SamplerWrapping _s, SamplerMin _min, SamplerMag _mag, bool anisotropy = true) : s(_s), r(_s), t(_s), minFilter(_min), magFilter(_mag), aniso(anisotropy) {}
-			SamplerInfo(SamplerWrapping _s, SamplerWrapping _r, SamplerMin _min, SamplerMag _mag, bool anisotropy = true) : s(_s), r(_r), minFilter(_min), magFilter(_mag), aniso(anisotropy) {}
-			SamplerInfo(SamplerWrapping _s, SamplerWrapping _r, SamplerWrapping _t, SamplerMin _min, SamplerMag _mag, bool anisotropy = true) : s(_s), r(_r), t(_t), minFilter(_min), magFilter(_mag), aniso(anisotropy) {}
+			SamplerInfo(SamplerWrapping _s, SamplerMin _min, SamplerMag _mag, u32 _binding = 0, bool anisotropy = true) : s(_s), r(_s), t(_s), minFilter(_min), magFilter(_mag), aniso(anisotropy), binding(_binding) {}
+			SamplerInfo(SamplerWrapping _s, SamplerWrapping _r, SamplerMin _min, SamplerMag _mag, u32 _binding = 0, bool anisotropy = true) : s(_s), r(_r), minFilter(_min), magFilter(_mag), aniso(anisotropy), binding(_binding) {}
+			SamplerInfo(SamplerWrapping _s, SamplerWrapping _r, SamplerWrapping _t, SamplerMin _min, SamplerMag _mag, u32 _binding = 0, bool anisotropy = true) : s(_s), r(_r), t(_t), minFilter(_min), magFilter(_mag), aniso(anisotropy), binding(_binding) {}
 
 			SamplerWrapping getU() { return s; }
 			SamplerWrapping getV() { return r; }
@@ -25,12 +25,16 @@ namespace oi {
 			SamplerMag getMagnification() { return magFilter; }
 			bool hasAnisotropy() { return aniso; }
 
+			u32 getBinding() { return binding; }
+			void setBinding(u32 _binding) { binding = _binding; }
+
 		private:
 
 			SamplerWrapping s, r, t;
 			SamplerMin minFilter;
 			SamplerMag magFilter;
 			bool aniso;
+			u32 binding;
 		};
 	}
 

@@ -438,7 +438,7 @@ bool OpenGLShader::genReflectionData() {
 		Buffer buf = Buffer(realLength);
 
 		memset(&buf[0], 0, realLength);
-		ssbo.buffer = new OpenGLBufferGPU(BufferType::SSBO, buf, propout[0]);
+		ssbo.buffer = new OpenGLBufferGPU(BufferInfo(BufferType::SSBO, buf, propout[0]));
 		ssbo.buffer->init();
 		ssbo.structured.setBuffer(ssbo.buffer->subbuffer());
 

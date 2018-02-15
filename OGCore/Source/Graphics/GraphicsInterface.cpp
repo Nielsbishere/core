@@ -13,7 +13,7 @@ void GraphicsInterface::init() {
 
 void GraphicsInterface::render() {
 	gl->viewport(getParent());
-	gl->clear(Vec3(1, 0, 1));
+	gl->clear();
 	renderScene();
 	getParent()->swapBuffers();
 }

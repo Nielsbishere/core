@@ -27,6 +27,7 @@
   <ItemGroup>
     <ClInclude Include="Headers\Graphics\Format\oiRM.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferGPU.h" />
+    <ClInclude Include="Headers\Graphics\GPU\BufferInfo.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferLayout.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferType.h" />
     <ClInclude Include="Headers\Graphics\GPU\GraphicsResource.h" />

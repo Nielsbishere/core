@@ -1,5 +1,6 @@
 #pragma once
 #include <Template/Enum.h>
+#include <Types/Buffer.h>
 #undef RGB
 
 namespace oi {
@@ -80,13 +81,13 @@ namespace oi {
 		public:
 
 			//1D texture
-			TextureInfo(u32 _width, TextureLayout _layout) : width(_width), height(0), length(0), type(TextureType::Texture1D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)) {}
+			TextureInfo(u32 _width, TextureLayout _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(0), length(0), type(TextureType::Texture1D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
 
 			//2D texture
-			TextureInfo(u32 _width, u32 _height, TextureLayout _layout) : width(_width), height(_height), length(0), type(TextureType::Texture2D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)) {}
+			TextureInfo(u32 _width, u32 _height, TextureLayout _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(_height), length(0), type(TextureType::Texture2D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
 
 			//3D texture
-			TextureInfo(u32 _width, u32 _height, u32 _length, TextureLayout _layout) : width(_width), height(_height), length(_length), type(TextureType::Texture3D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)) {}
+			TextureInfo(u32 _width, u32 _height, u32 _length, TextureLayout _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(_height), length(_length), type(TextureType::Texture3D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
 
 			TextureType getType() { return type; }
 			TextureFormat getFormat() { return format; }
@@ -97,12 +98,20 @@ namespace oi {
 			u32 getHeight() { return height; }
 			u32 getLength() { return length; }
 
+			void setBinding(u32 _binding) { binding = _binding; }
+			u32 getBinding() { return binding; }
+
+			Buffer getBuffer() { return buf; }
+			u32 size() { return buf.size(); }
+
 		private:
 
 			u32 width, height, length;
 			TextureType type;
 			TextureFormat format;
 			TextureLayout layout;
+			u32 binding;
+			Buffer buf;
 		};
 
 	}

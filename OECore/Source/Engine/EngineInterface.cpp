@@ -24,15 +24,15 @@ void EngineInterface::initScene() {
 
 	getInput().load("Resources/Settings/Input.json");
 
-	s = gl->createShader(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
+	s = gl->create(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
 
 	OString name = "Resources/Images/Osomi.png";
 	int w, h, comp;
 
 	u8 *texdat = stbi_load(name.c_str(), &w, &h, &comp, 4);
 
-	sampler = gl->createSampler(SamplerInfo(SamplerWrapping::ClampBorder, SamplerMin::Nearest, SamplerMag::Nearest));
-	texture = gl->createTexture(TextureInfo((u32)w, (u32)h, TextureLayout::RGBA), Buffer::construct(texdat, (u32)(w * h * 4)));
+	sampler = gl->create(SamplerInfo(SamplerWrapping::ClampBorder, SamplerMin::Nearest, SamplerMag::Nearest));
+	texture = gl->create(TextureInfo((u32)w, (u32)h, TextureLayout::RGBA, Buffer::construct(texdat, (u32)(w * h * 4))));
 
 	struct Vertex {
 		Vec3 pos;
@@ -76,9 +76,9 @@ void EngineInterface::initScene() {
 		23, 22, 21, 20	//Up
 	};
 
-	vertexBuffer = gl->createBuffer(BufferType::VBO, Buffer((u8*)vdata, sizeof(vdata)));
-	indexBuffer = gl->createBuffer(BufferType::IBO, Buffer((u8*)idata, sizeof(idata)));
-	bufferLayout = gl->createLayout(vertexBuffer);
+	vertexBuffer = gl->create(BufferInfo(BufferType::VBO, Buffer((u8*)vdata, sizeof(vdata))));
+	indexBuffer = gl->create(BufferInfo(BufferType::IBO, Buffer((u8*)idata, sizeof(idata))));
+	bufferLayout = gl->create(vertexBuffer);
 
 	bufferLayout->add(ShaderInputType::Float3);
 	bufferLayout->add(ShaderInputType::Float2);
@@ -89,6 +89,9 @@ void EngineInterface::initScene() {
 	vertexBuffer->init();
 	indexBuffer->init();
 	bufferLayout->init(indexBuffer);
+
+	s->get("textureBuffer.a").toFloat3() = { 0.8f, 0.5f, 0.8f };
+	s->get("textureBuffer.c").toFloat3() = { 0.5f, 0.5f, 1.0f };
 }
 
 void EngineInterface::renderScene() {

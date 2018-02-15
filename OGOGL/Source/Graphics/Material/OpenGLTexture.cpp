@@ -4,9 +4,6 @@ using namespace oi;
 
 OpenGLTexture::~OpenGLTexture() {
 	destroy();
-
-	if (buf.size() != 0)
-		buf.deconstruct();
 }
 
 GLenum OpenGLTexture::getType() {
@@ -48,13 +45,13 @@ bool OpenGLTexture::init() {
 	GLenum type = getType();
 	
 	if(type == GL_TEXTURE_2D)
-		glTexImage2D(type, 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), 0, getFormat(), getSymbolic(), buf.addr());
+		glTexImage2D(type, 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), 0, getFormat(), getSymbolic(), getInfo().getBuffer().addr());
 
 	else if (type == GL_TEXTURE_1D)
-		glTexImage1D(type, 0, getLayout(), getInfo().getWidth(), 0, getFormat(), getSymbolic(), buf.addr());
+		glTexImage1D(type, 0, getLayout(), getInfo().getWidth(), 0, getFormat(), getSymbolic(), getInfo().getBuffer().addr());
 
 	else if (type == GL_TEXTURE_3D)
-		OpenGL::glTexImage3D(type, 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), getInfo().getLength(), 0, getFormat(), getSymbolic(), buf.addr());
+		OpenGL::glTexImage3D(type, 0, getLayout(), getInfo().getWidth(), getInfo().getHeight(), getInfo().getLength(), 0, getFormat(), getSymbolic(), getInfo().getBuffer().addr());
 
 	OpenGL::glGenerateMipmap(type);
 
@@ -79,12 +76,12 @@ void OpenGLTexture::destroy() {
 }
 
 void OpenGLTexture::bind() {
-	OpenGL::glActiveTexture(GL_TEXTURE0 + binding);
+	OpenGL::glActiveTexture(GL_TEXTURE0 + getInfo().getBinding());
 	glBindTexture(getType(), gpuHandle);
 }
 
 void OpenGLTexture::unbind() {
-	OpenGL::glActiveTexture(GL_TEXTURE0 + binding);
+	OpenGL::glActiveTexture(GL_TEXTURE0 + getInfo().getBinding());
 	glBindTexture(getType(), 0);
 }
 

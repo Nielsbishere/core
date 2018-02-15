@@ -3,7 +3,7 @@
 using namespace oi::gc;
 using namespace oi;
 
-OpenGLSampler::OpenGLSampler(SamplerInfo ti, u32 binding) : Sampler(ti, binding) {}
+OpenGLSampler::OpenGLSampler(SamplerInfo ti) : Sampler(ti) {}
 OpenGLSampler::~OpenGLSampler() { destroy(); }
 
 bool OpenGLSampler::init() {
@@ -37,9 +37,9 @@ void OpenGLSampler::destroy() {
 }
 
 void OpenGLSampler::bind() {
-	OpenGL::glBindSampler(binding, handle);
+	OpenGL::glBindSampler(getInfo().getBinding(), handle);
 }
 
 void OpenGLSampler::unbind() {
-	OpenGL::glBindSampler(binding, 0);
+	OpenGL::glBindSampler(getInfo().getBinding(), 0);
 }
