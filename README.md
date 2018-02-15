@@ -51,16 +51,6 @@ OSTLC includes defines for types and handles vectors and colors as well. The fol
   Vec2i someIntVec2(128);
   TVec<5, f32> someVec5;
   
-  //Colors
-  RGBA lowPrecision(127, 127, 127, 255);          //32 bits; 4 bytes
-  RGBAf mediumPrecision(0.5f, 0.5f, 0.5f, 1.f);   //128 bits; 16 bytes
-  RGBAd highPrecision(0.5, 0.5, 0.5, 1.0);        //256 bits; 32 bytes
-  Redd depth(0.5);
-  RGf redGreen(mediumPrecision);
-  RGB baseColor(255, 0, 255);
-  
-  f32 depthf = depth[0];
-  
 ```
 ### 'Java' enums
 Not exclusive to Java, but Java has very nice enums. They are compile time values of any class, you can loop through all enums and check their names and values and reference them like regular C++ enums. This is what OSTLC's Enum define is supposed to do; allow you to have a list of all the values of an enum and ways to access them.
