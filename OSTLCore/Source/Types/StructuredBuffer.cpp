@@ -206,7 +206,7 @@ BufferVar StructuredBuffer::operator[](OString s) {
 	StructuredBufferVar svar;
 	bool isFirst = true;
 
-	for (u32 i = arr.size(); i-- > 0;) {
+	for (u32 i = (u32) arr.size(); i-- > 0;) {
 
 		OString fullName = OString::combine(arr, "."), name = simplifyPath(fullName), varName = arr[i];
 
@@ -275,7 +275,7 @@ bool StructuredBuffer::addAll(OString path, GDataType type, u32 offset, u32 stri
 
 	auto arr = path.split(".");
 	OString cpath;
-	u32 i = 0, arrlen = arr.size();
+	u32 i = 0, arrlen = (u32) arr.size();
 
 	while(arr.size() != 0) {
 

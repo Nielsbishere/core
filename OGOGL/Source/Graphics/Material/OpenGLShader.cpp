@@ -20,7 +20,7 @@ bool OpenGLShader::init() {
 	for (u32 i = 0; i < (u32)ShaderStage::LENGTH; ++i)
 		stages[i] = nullptr;
 
-	if (info.getType() == ShaderType::NORMAL) {
+	if (info.getType() == ShaderType::Normal) {
 
 		if (info.hasVertexShader())
 			success = (stages[0] = compile(info, ShaderStage::VERTEX)) != 0;
@@ -156,8 +156,9 @@ bool OpenGLShader::link(ShaderStageData **data, u32 count) {
 
 	GLint success;
 
-	OpenGL::glGetShaderiv(shaderId, GL_LINK_STATUS, &success);
+	OpenGL::glGetProgramiv(shaderId, GL_LINK_STATUS, &success);
 	if (!success) {
+		Log::println("Couldn't link shader\n");
 		logError(shaderId);
 		OpenGL::glDeleteProgram((u64)shaderId);
 		return false;

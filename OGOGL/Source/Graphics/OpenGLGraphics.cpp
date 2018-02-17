@@ -55,7 +55,7 @@ Sampler *OpenGLGraphics::create(SamplerInfo info) {
 }
 
 void OpenGLGraphics::renderElement(Primitive p, u32 length, u32 startIndex) {
-	glDrawElements((GLenum)OpenGLPrimitive(p.getName()).getValue(), length, GL_UNSIGNED_INT, (GLvoid*) startIndex);
+	glDrawElements((GLenum)OpenGLPrimitive(p.getName()).getValue(), length, GL_UNSIGNED_INT, (GLvoid*) (u64) startIndex);
 }
 
 extern "C" __declspec(dllexport) Graphics *createGraphics() {

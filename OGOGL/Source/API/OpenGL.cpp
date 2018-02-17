@@ -74,6 +74,7 @@ PFNGLDELETESAMPLERSPROC OpenGL::glDeleteSamplers = nullptr;
 PFNGLGENSAMPLERSPROC OpenGL::glGenSamplers = nullptr;
 PFNGLSAMPLERPARAMETERIPROC OpenGL::glSamplerParameteri = nullptr;
 PFNGLSAMPLERPARAMETERFPROC OpenGL::glSamplerParameterf = nullptr;
+PFNGLUNMAPNAMEDBUFFERPROC OpenGL::glUnmapNamedBuffer = nullptr;
 //PFNxPROC OpenGL::x = nullptr;
 
 OString OpenGL::getVersion() {
@@ -218,6 +219,7 @@ bool OpenGL::init() {
 	glTexBuffer = (PFNGLTEXBUFFERPROC)wglGetProcAddress("glTexBuffer");
 	glGetTextureSamplerHandleARB = (PFNGLGETTEXTURESAMPLERHANDLEARBPROC) wglGetProcAddress("glGetTextureSamplerHandleARB");
 	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC)wglGetProcAddress("glBindBufferBase");
+	glUnmapNamedBuffer = (PFNGLUNMAPNAMEDBUFFERPROC)wglGetProcAddress("glUnmapNamedBuffer");
 
 	//Texture & sampler
 	glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");

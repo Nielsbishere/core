@@ -19,12 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Engine\AssetManager.cpp" />
     <ClCompile Include="Source\Engine\EngineInterface.cpp" />
     <ClCompile Include="Source\Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\Engine\AssetInfo.h" />
+    <ClInclude Include="Headers\Engine\AssetManager.h" />
     <ClInclude Include="Headers\Engine\EngineInterface.h" />
     <ClInclude Include="Headers\OECore\OEDependencies.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Scene.json" />
+    <None Include="Resources\Settings\Input.json" />
+    <None Include="Resources\Shaders\test.fs.glsl" />
+    <None Include="Resources\Shaders\test.vs.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\Osomi.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

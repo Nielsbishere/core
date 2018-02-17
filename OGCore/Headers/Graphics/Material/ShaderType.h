@@ -1,10 +1,12 @@
 #pragma once
+#include <Template/Enum.h>
+
 namespace oi {
+
 	namespace gc {
 
-		enum class ShaderType {
-			NORMAL, COMPUTE
-		};
+		DEnum(ShaderType, u32, Normal = 0, Compute = 1);
 
 	}
+
 }

@@ -13,12 +13,13 @@ OpenGLBufferGPU::~OpenGLBufferGPU() {
 }
 
 void OpenGLBufferGPU::destroy() {
-	Buffer copyBuffer = Buffer(getInfo().getBuffer().addr(), getInfo().size());
-	getInfo().getBuffer().deconstruct();
-	getInfo().getBuffer() = copyBuffer;
 	if (gpuHandle != 0) {
 		OpenGL::glBindBuffer(arrayType, gpuHandle);
+
+		Buffer buf = Buffer(getInfo().getBuffer().addr(), getInfo().getBuffer().size());
 		OpenGL::glUnmapBuffer(arrayType);
+		getInfo().getBuffer() = buf;
+
 		OpenGL::glDeleteBuffers(1, &gpuHandle);
 		OpenGL::glBindBuffer(arrayType, 0);
 	}

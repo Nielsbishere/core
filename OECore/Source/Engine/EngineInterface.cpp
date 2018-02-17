@@ -12,27 +12,18 @@ using namespace oi::ec;
 using namespace oi::gc;
 using namespace oi;
 
-Shader *s;
 BufferGPU *vertexBuffer, *indexBuffer;
 BufferLayout *bufferLayout;
-Texture *texture;
-Sampler *sampler;
 
 f64 startTime = 0;
 
 void EngineInterface::initScene() {
 
-	getInput().load("Resources/Settings/Input.json");
+	assets.init("Resources/Scene.json");
 
-	s = gl->create(ShaderInfo("Resources/Shaders/test", ShaderType::NORMAL));
-
-	OString name = "Resources/Images/Osomi.png";
-	int w, h, comp;
-
-	u8 *texdat = stbi_load(name.c_str(), &w, &h, &comp, 4);
-
-	sampler = gl->create(SamplerInfo(SamplerWrapping::ClampBorder, SamplerMin::Nearest, SamplerMag::Nearest));
-	texture = gl->create(TextureInfo((u32)w, (u32)h, TextureLayout::RGBA, Buffer::construct(texdat, (u32)(w * h * 4))));
+	shader = assets.find("test").getAssetHandle();
+	texture = assets.find("Osomi").getAssetHandle();
+	sampler = assets.find("nearest").getAssetHandle();
 
 	struct Vertex {
 		Vec3 pos;
@@ -83,41 +74,32 @@ void EngineInterface::initScene() {
 	bufferLayout->add(ShaderInputType::Float3);
 	bufferLayout->add(ShaderInputType::Float2);
 
-	sampler->init();
-	texture->init();
-	s->init();
 	vertexBuffer->init();
 	indexBuffer->init();
 	bufferLayout->init(indexBuffer);
-
-	s->get("textureBuffer.a").toFloat3() = { 0.8f, 0.5f, 0.8f };
-	s->get("textureBuffer.c").toFloat3() = { 0.5f, 0.5f, 1.0f };
 }
 
 void EngineInterface::renderScene() {
-	s->bind();
+	assets[shader]->bind();
 
-	texture->bind();
-	sampler->bind();
+	assets[texture]->bind();
+	assets[sampler]->bind();
 
 	bufferLayout->bind();
 	gl->renderElement(Primitive::TriangleFan, 4);
 	bufferLayout->unbind();
 
-	texture->unbind();
-	sampler->unbind();
+	assets[texture]->unbind();
+	assets[sampler]->unbind();
 
-	s->unbind();
+	assets[shader]->unbind();
 }
 
 void EngineInterface::update(f64 delta) {
 
-	for (u32 i = 0; i < 4; ++i) {
-
-		Buffer b = vertexBuffer->subbuffer(20 * i, 12);
-
-		b.operator[]<Vec3>(0) *= 0.999f;
-	}
+	Shader *s = assets.get<Shader>(shader);
+	s->get("textureBuffer.a").toFloat3() = { (f32) sin(startTime) * 0.5f + 0.5f, (f32) sin(startTime * 0.5f)* 0.5f + 0.5f, (f32) sin(startTime * 0.3f) * 0.5f + 0.5f };
+	s->get("textureBuffer.c").toFloat3() = { 0.5f, 0.5f, 1.0f };
 
 	startTime += delta;
 }

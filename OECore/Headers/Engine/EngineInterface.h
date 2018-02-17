@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Graphics/GraphicsInterface.h>
+#include "AssetManager.h"
 
 namespace oi {
 
@@ -13,6 +14,12 @@ namespace oi {
 			void update(f64 dt) override;
 			void initScene() override;
 			void renderScene() override;
+
+		private:
+
+			AssetManager assets;
+
+			u32 texture, shader, sampler;
 
 		};
 

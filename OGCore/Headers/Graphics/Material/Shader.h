@@ -37,6 +37,8 @@ namespace oi {
 			Shader(ShaderInfo _info) : info(_info) {}
 			virtual ~Shader() {}
 
+			bool initData(OString path) override { info.path = path; return true; }
+
 			BufferVar get(OString path);
 			std::vector<OString> getBufferNames();
 			std::vector<ShaderStorageBuffer> getBuffers();

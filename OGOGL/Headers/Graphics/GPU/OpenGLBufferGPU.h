@@ -7,7 +7,9 @@ namespace oi {
 
 	namespace gc {
 
-		class OpenGLBufferGPU : public BufferGPU { 
+		class OpenGLBufferGPU : public BufferGPU {
+
+			friend class OpenGLShader;
 
 		public:
 

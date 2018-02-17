@@ -374,7 +374,7 @@ u32 OString::getVectorLength() {
 	if (!isVector()) return 0;
 
 	std::vector<OString> splits = splitIgnoreCase(",");
-	return splits.size();
+	return (u32) splits.size();
 }
 
 bool OString::contains(OString other) const {

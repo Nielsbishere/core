@@ -77,6 +77,7 @@ namespace oi {
 			static PFNGLDELETESAMPLERSPROC glDeleteSamplers;
 			static PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
 			static PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;
+			static PFNGLUNMAPNAMEDBUFFERPROC glUnmapNamedBuffer;
 			//static PFNxPROC x;
 
 			static u32 getUVersion();

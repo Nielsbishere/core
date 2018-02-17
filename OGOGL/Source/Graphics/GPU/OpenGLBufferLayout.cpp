@@ -52,7 +52,7 @@ bool OpenGLBufferLayout::init(BufferGPU *indBuf) {
 		auto val = ShaderInputHelper::getType(bufLayout.type).getValue();
 
 		OpenGL::glEnableVertexAttribArray(i);
-		OpenGL::glVertexAttribPointer(i, val.length, (GLenum) OpenGLShaderInputType(ShaderInputHelper::fromType(val.derivedId).getIndex()).getValue(), GL_FALSE, (GLsizei) strides[bound], (const void*) offsets[i]);
+		OpenGL::glVertexAttribPointer(i, val.length, (GLenum) OpenGLShaderInputType(ShaderInputHelper::fromType(val.derivedId).getIndex()).getValue(), GL_FALSE, (GLsizei) strides[bound], (const void*) (u64) offsets[i]);
 
 		++i;
 	}

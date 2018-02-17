@@ -80,14 +80,17 @@ namespace oi {
 
 		public:
 
+			//Texture that isn't loaded yet
+			TextureInfo(TextureType _type, TextureLayout_s layout) : TextureInfo(0, layout) { type = _type; }
+
 			//1D texture
-			TextureInfo(u32 _width, TextureLayout _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(0), length(0), type(TextureType::Texture1D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
+			TextureInfo(u32 _width, TextureLayout_s _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(0), length(0), type(TextureType::Texture1D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
 
 			//2D texture
-			TextureInfo(u32 _width, u32 _height, TextureLayout _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(_height), length(0), type(TextureType::Texture2D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
+			TextureInfo(u32 _width, u32 _height, TextureLayout_s _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(_height), length(0), type(TextureType::Texture2D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
 
 			//3D texture
-			TextureInfo(u32 _width, u32 _height, u32 _length, TextureLayout _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(_height), length(_length), type(TextureType::Texture3D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
+			TextureInfo(u32 _width, u32 _height, u32 _length, TextureLayout_s _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(_height), length(_length), type(TextureType::Texture3D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}
 
 			TextureType getType() { return type; }
 			TextureFormat getFormat() { return format; }
@@ -103,6 +106,8 @@ namespace oi {
 
 			Buffer getBuffer() { return buf; }
 			u32 size() { return buf.size(); }
+
+			bool setBuffer(Buffer _buf) { if (buf.size() == 0) { buf = _buf; return true; } return false; }
 
 		private:
 

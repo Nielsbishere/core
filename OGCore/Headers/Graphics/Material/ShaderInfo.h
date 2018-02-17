@@ -9,10 +9,12 @@ namespace oi {
 
 		class ShaderInfo {
 
+			friend class Shader;
+
 		public:
 
 			ShaderInfo(OString _path, ShaderType _type) : path(_path), type(_type), hasVS(false), hasFS(false), hasGS(false) {
-				if (type == ShaderType::NORMAL)
+				if (type == ShaderType::Normal)
 					hasVS = hasFS = true;
 			}
 

@@ -1,0 +1,61 @@
+{
+
+  "Resources": {
+
+    "Shaders": {
+
+      "test": {
+        "path": "test"
+      }
+
+    },
+
+    "Textures": {
+
+      "Osomi": {
+        "path": "Osomi.png"
+      }
+
+    },
+
+    "Samplers": {
+
+      "linear": {
+
+        "Wrapping": [
+          "Repeat"
+        ],
+
+        "Filtering": [
+          "LinearMip",
+          "Linear"
+        ]
+
+      },
+
+      "nearest": {
+
+        "Wrapping": [
+          "ClampBorder"
+        ],
+
+        "Filtering": [
+          "Nearest",
+          "Nearest"
+        ]
+
+      }
+
+    },
+
+    "Settings": {
+
+      "default": {
+        "path": "Input.json"
+      }
+
+    }
+
+  }
+
+}
