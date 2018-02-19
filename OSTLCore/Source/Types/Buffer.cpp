@@ -119,13 +119,12 @@ Buffer Buffer::readFile(OString where) {
 	if (!file.good())
 		return { nullptr, 0 };
 
-	u32 length = 0;
-	file.seekg(file.end);
-	length = (u32)file.tellg();
-	file.seekg(file.beg);
+	u32 length = file.rdbuf()->pubseekoff(0, std::ios_base::end);
 
+	file.seekg(0, std::ios::beg);
 	Buffer b(length);
-	file.read((char*)&b[0], b.length);
+	memset(b.addr(), 0, b.size());
+	file.read((char*)b.addr(), b.size());
 
 	return b;
 }

@@ -19,13 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Graphics\Format\oiRM.cpp" />
     <ClCompile Include="Source\Graphics\Graphics.cpp" />
     <ClCompile Include="Source\Graphics\GraphicsInterface.cpp" />
     <ClCompile Include="Source\Graphics\Material\Shader.cpp" />
+    <ClCompile Include="Source\Graphics\Mesh\oiRM.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\Graphics\Format\oiRM.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferGPU.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferInfo.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferLayout.h" />

@@ -2,6 +2,7 @@
 
 #include <Types/Generic.h>
 #include <Types/Buffer.h>
+#include <Types/Vector.h>
 
 namespace oi {
 
@@ -17,7 +18,7 @@ namespace oi {
 	//@param u16 defaultMaterial; if there is no per triangle material data (or points to invalid register or material list), this will be used
 	//@param u16 miscs; the number of misc data for this model
 	//@param u16 textures; How many textures are used
-	//@optional u16 undefined
+	//@param u16 strings; how many simple strings are stored (max 256 chars; 0-9A-Za-z & _ & SPACE), these are used for texture names and misc names
 	//@optional u8[32] padding
 	struct RMHeader {
 
@@ -28,10 +29,40 @@ namespace oi {
 
 		u16 layouts, registers, materialList, materials;
 
-		u16 defaultMaterial, miscs, textures, undefined;
+		u16 defaultMaterial, miscs, textures, strings;
 
 		u8 padding[32];
 
+	};
+
+	struct RMMaterial {
+
+		Vec3 ambient;
+		f32 opacity;
+
+		Vec3 emissive;
+		f32 roughness;
+
+		Vec3 diffuse;
+		f32 specularScale;
+
+		Vec3 specular;
+		f32 specularPower;
+
+		u16 t_ambient, t_emissive, t_diffuse, t_specular;
+
+		u16 t_specularPower, t_normal, t_bump, t_opacity;
+
+		f32 metallic;
+		u16 t_roughness, t_metallic;
+
+		u8 padding[40];
+	};
+
+	struct RMLayout {
+		u8 inputType;		//GDataType
+		u8 index;
+		u16 name;
 	};
 
 	class RM {
@@ -42,7 +73,9 @@ namespace oi {
 
 	private:
 
-		static std::vector<OString> parseSimpleStringBlock(Buffer buf, u8 *i, u16 ilen);
+		static std::vector<OString> parseSimpleStringBlock(Buffer buf, u8 *i, u16 ilen, u32 &off);
+		static inline char read(Buffer buf, u32 bitOffset);
+		static inline char decode(u8 val);
 	};
 
 }

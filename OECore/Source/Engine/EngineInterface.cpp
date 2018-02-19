@@ -6,7 +6,7 @@
 #include <Graphics/Material/Sampler.h>
 #include <Graphics/Material/Shader.h>
 #include <Graphics/Graphics.h>
-#include <API/stbi/stbi_load.h>
+#include <Graphics/Mesh/oiRM.h>
 
 using namespace oi::ec;
 using namespace oi::gc;
@@ -77,6 +77,10 @@ void EngineInterface::initScene() {
 	vertexBuffer->init();
 	indexBuffer->init();
 	bufferLayout->init(indexBuffer);
+
+	Buffer file = Buffer::readFile("Resources/Test.oiRM");
+	RM::read(file);
+	file.deconstruct();
 }
 
 void EngineInterface::renderScene() {

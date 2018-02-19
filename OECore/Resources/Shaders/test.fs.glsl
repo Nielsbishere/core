@@ -12,7 +12,7 @@ layout(std140, binding = 0) buffer textureBuffer {
 	float d;
 };
 
-in vec2 uv;
+in vec2 luv;
 
 out layout(location=0) vec4 color;
 
@@ -62,7 +62,7 @@ vec2 dnoise(vec2 p, float length = 0.01, float d = 0.01){
 }
 
 void main(){
-	vec2 f = dnoise(uv * 1028, 0.1);
-	vec2 uv2 = f + uv;
-	color = vec4(texture(tex, uv).rgb * a * c, 1);
+	vec2 f = dnoise(luv * 1028, 0.1);
+	vec2 uv2 = f + luv;
+	color = vec4(texture(tex, luv).rgb * a * c, 1);
 }
