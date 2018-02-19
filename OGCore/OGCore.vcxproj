@@ -42,6 +42,7 @@
     <ClInclude Include="Headers\Graphics\Material\ShaderType.h" />
     <ClInclude Include="Headers\Graphics\Material\Texture.h" />
     <ClInclude Include="Headers\Graphics\Material\TextureInfo.h" />
+    <ClInclude Include="Headers\Graphics\Mesh\oiRM.h" />
     <ClInclude Include="Headers\Graphics\Primitive.h" />
     <ClInclude Include="Headers\OGCore\Properties.h" />
     <ClInclude Include="Headers\OGCore\OGDependencies.h" />
