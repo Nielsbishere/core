@@ -17,7 +17,7 @@ namespace oi {
 
 		public:
 
-			BufferGPU(BufferInfo _info) : info(_info) {}
+			BufferGPU(Graphics *&_gl, BufferInfo _info) : GraphicsResource(_gl), info(_info) {}
 
 			virtual ~BufferGPU() { getInfo().getBuffer().deconstruct(); }
 

@@ -1,6 +1,6 @@
 #include "OECore/OEDependencies.h"
 #include <Window/Window.h>
-#include <Graphics/Graphics.h>
+#include <Graphics/GraphicsManager.h>
 #include "Engine/EngineInterface.h"
 
 using namespace oi::wc;
@@ -12,12 +12,10 @@ int main() {
 
 	Window &w = Window::create(WindowInfo("Engine test"));
 
-	Graphics::startGraphics();
+	GraphicsManager gm;
 
-	w.setInterface(new EngineInterface());
+	w.setInterface(new EngineInterface(gm));
 	w.waitAll();
-
-	Graphics::endGraphics();
 
 	return 0;
 }

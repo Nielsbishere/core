@@ -6,10 +6,13 @@ namespace oi {
 
 	namespace gc {
 
+		class Graphics;
+
 		class GraphicsResource {
 
 		public:
 
+			GraphicsResource(Graphics *&_gl) : gl(_gl) {}
 			virtual ~GraphicsResource() {}
 
 			virtual bool initData(OString path) { return true; }		//For converting the InfoObject and loading it onto CPU
@@ -20,6 +23,10 @@ namespace oi {
 
 			virtual void bind() = 0;
 			virtual void unbind() = 0;
+
+		protected:
+
+			Graphics *&gl;
 		};
 
 	}

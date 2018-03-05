@@ -80,8 +80,8 @@ namespace oi {
 
 		public:
 
-			//Texture that isn't loaded yet
-			TextureInfo(TextureType _type, TextureLayout_s layout) : TextureInfo(0, layout) { type = _type; }
+			//Texture on disk
+			TextureInfo(TextureType_s _type, TextureLayout_s _layout) : width(0), height(0), length(0), type(_type), format(TextureLayoutHelper::getFormat(_layout)), layout(_layout), binding(0), buf(Buffer::construct(nullptr, 0)) {}
 
 			//1D texture
 			TextureInfo(u32 _width, TextureLayout_s _layout, Buffer _buf = Buffer::construct(nullptr, 0), u32 _binding = 0) : width(_width), height(0), length(0), type(TextureType::Texture1D), layout(_layout), format(TextureLayoutHelper::getFormat(_layout)), buf(_buf), binding(_binding) {}

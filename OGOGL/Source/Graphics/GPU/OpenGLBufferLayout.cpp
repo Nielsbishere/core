@@ -1,60 +1,65 @@
 #include "Graphics/GPU/OpenGLBufferLayout.h"
 #include "Graphics/Material/OpenGLShaderInput.h"
+#include "Graphics/Graphics.h"
 using namespace oi::gc;
 using namespace oi;
 
-OpenGLBufferLayout::OpenGLBufferLayout(BufferGPU *defBuf): BufferLayout(defBuf), gpuHandle(0) { }
+OpenGLBufferLayout::OpenGLBufferLayout(Graphics *&gl, BufferLayoutInfo _info) : BufferLayout(gl, _info), gpuHandle(0) { }
 OpenGLBufferLayout::~OpenGLBufferLayout() {
+	destroy();
+}
+
+void OpenGLBufferLayout::destroy() {
 	if (gpuHandle != 0)
 		OpenGL::glDeleteVertexArrays(1, &gpuHandle);
 }
 
-bool OpenGLBufferLayout::init(BufferGPU *indBuf) {
+bool OpenGLBufferLayout::init() {
 
-	BufferGPU *bound = def;
+	ResourceManager &rm = gl->getResources();
 
-	if (bound == nullptr) return Log::error("Default bound buffer can't be nullptr");
+	BufferGPU *bound = nullptr;
 
-	std::unordered_map<BufferGPU*, u32> strides(layouts.size());
-	std::vector<u32> offsets(layouts.size());
+	std::unordered_map<BufferGPU*, u32> strides(info.size());
+	std::vector<u32> offsets(info.size());
 
-	u32 i = 0;
-	for (auto bufLayout : layouts) {
+	for (u32 i = 0; i < info.size(); ++i) {
 
-		if (bufLayout.buf != bound)
-			bound = bufLayout.buf;
+		auto bufLayout = info[i];
+		BufferGPU *buf = rm.get<BufferGPU>(OString("buf:") + bufLayout.buffer.toLowerCase());
+
+		if (buf != bound)
+			bound = buf;
 		
 		u32 &j = strides[bound];
 
 		offsets[i] = j;
-		j += bufLayout.size;
-		++i;
+		j += bufLayout.type.getValue().length * bufLayout.type.getValue().stride;
 	}
 
-	i = 0;
-	bound = def;
+	bound = nullptr;
 
 	OpenGL::glGenVertexArrays(1, &gpuHandle);
 	bind();
 
-	if ((index = indBuf) != nullptr)
+	BufferGPU *index;
+	if ((index = rm.get<BufferGPU>(OString("buf:") + info.getIndexBuffer().toLowerCase())) != nullptr)
 		index->bind();
 
-	bound->bind();
+	for (u32 i = 0; i < info.size(); ++i) {
 
-	for (auto bufLayout : layouts) {
+		auto bufLayout = info[i];
+		BufferGPU *buf = rm.get<BufferGPU>(OString("buf:") + bufLayout.buffer.toLowerCase());
 
-		if (bufLayout.buf != bound) {
-			bound = bufLayout.buf;
+		if (buf != bound) {
+			bound = buf;
 			bound->bind();
 		}
 
-		auto val = ShaderInputHelper::getType(bufLayout.type).getValue();
+		GDataType_s val = bufLayout.type.getValue();
 
 		OpenGL::glEnableVertexAttribArray(i);
 		OpenGL::glVertexAttribPointer(i, val.length, (GLenum) OpenGLShaderInputType(ShaderInputHelper::fromType(val.derivedId).getIndex()).getValue(), GL_FALSE, (GLsizei) strides[bound], (const void*) (u64) offsets[i]);
-
-		++i;
 	}
 
 	unbind();

@@ -34,10 +34,10 @@ namespace oi {
 
 		public:
 
-			Shader(ShaderInfo _info) : info(_info) {}
+			Shader(Graphics *&_gl, ShaderInfo _info) : GraphicsResource(_gl), info(_info) {}
 			virtual ~Shader() {}
 
-			bool initData(OString path) override { info.path = path; return true; }
+			bool initData(OString _path) override { path = _path; return true; }
 
 			BufferVar get(OString path);
 			std::vector<OString> getBufferNames();
@@ -55,6 +55,8 @@ namespace oi {
 			virtual bool genReflectionData() = 0;
 
 			ShaderInfo info;
+
+			OString path;
 			std::unordered_map<OString, ShaderStorageBuffer> ssbos;
 
 		};

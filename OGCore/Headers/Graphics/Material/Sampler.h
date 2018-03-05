@@ -13,7 +13,7 @@ namespace oi {
 
 		public:
 
-			Sampler(SamplerInfo ti) : info(ti) {}
+			Sampler(Graphics *&_gl, SamplerInfo ti) : GraphicsResource(_gl), info(ti) {}
 			virtual ~Sampler() {}
 
 			SamplerInfo getInfo() { return info; }

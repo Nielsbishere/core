@@ -23,6 +23,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OWCore", "OWCore\OWCore.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGOGL", "OGOGL\OGOGL.vcxproj", "{90C7314C-3457-4965-BE4B-16F4DF099053}"
 	ProjectSection(ProjectDependencies) = postProject
+		{1073FF2D-E5AF-427C-AEB1-C5057C26CEAB} = {1073FF2D-E5AF-427C-AEB1-C5057C26CEAB}
 		{09A8493C-F3A7-4CB2-A9B7-CDFCFE1826E5} = {09A8493C-F3A7-4CB2-A9B7-CDFCFE1826E5}
 		{1C5EEDA5-ADDA-4020-B3C8-51C3AFFC2350} = {1C5EEDA5-ADDA-4020-B3C8-51C3AFFC2350}
 	EndProjectSection
@@ -31,13 +32,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OECore", "OECore\OECore.vcx
 	ProjectSection(ProjectDependencies) = postProject
 		{1073FF2D-E5AF-427C-AEB1-C5057C26CEAB} = {1073FF2D-E5AF-427C-AEB1-C5057C26CEAB}
 		{09A8493C-F3A7-4CB2-A9B7-CDFCFE1826E5} = {09A8493C-F3A7-4CB2-A9B7-CDFCFE1826E5}
+		{90C7314C-3457-4965-BE4B-16F4DF099053} = {90C7314C-3457-4965-BE4B-16F4DF099053}
 		{1C5EEDA5-ADDA-4020-B3C8-51C3AFFC2350} = {1C5EEDA5-ADDA-4020-B3C8-51C3AFFC2350}
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -99,5 +98,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5CB7F4F1-C398-4634-976D-369A4B7854A6}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

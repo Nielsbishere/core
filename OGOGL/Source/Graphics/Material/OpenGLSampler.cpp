@@ -3,7 +3,7 @@
 using namespace oi::gc;
 using namespace oi;
 
-OpenGLSampler::OpenGLSampler(SamplerInfo ti) : Sampler(ti) {}
+OpenGLSampler::OpenGLSampler(Graphics *&gl, SamplerInfo ti) : Sampler(gl, ti) {}
 OpenGLSampler::~OpenGLSampler() { destroy(); }
 
 bool OpenGLSampler::init() {

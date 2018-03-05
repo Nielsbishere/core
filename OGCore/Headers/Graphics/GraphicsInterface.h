@@ -7,12 +7,13 @@ namespace oi {
 	namespace gc {
 
 		class Graphics;
+		class GraphicsManager;
 
 		class GraphicsInterface : public wc::WindowInterface {
 
 		public:
 
-			GraphicsInterface();
+			GraphicsInterface(GraphicsManager &gm);
 			virtual ~GraphicsInterface() {}
 
 			void init() override;

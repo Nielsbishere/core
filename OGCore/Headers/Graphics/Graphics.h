@@ -7,6 +7,7 @@
 #include <Types/Vector.h>
 #include "GPU/BufferType.h"
 #include "Primitive.h"
+#include "ResourceManager.h"
 
 namespace oi {
 
@@ -15,12 +16,14 @@ namespace oi {
 	}
 
 	namespace gc {
-
+		
+		class GraphicsManager;
 		class Shader;
 		class ShaderInfo;
 		class BufferGPU;
 		class BufferInfo;
 		class BufferLayout;
+		class BufferLayoutInfo;
 		class Texture;
 		class TextureInfo;
 		class Sampler;
@@ -30,6 +33,7 @@ namespace oi {
 
 		public:
 
+			Graphics(GraphicsManager *_parent) : parent(_parent) {}
 			virtual ~Graphics() {}
 			virtual bool init(wc::Window *w) = 0;
 
@@ -37,39 +41,20 @@ namespace oi {
 			virtual void clear(Vec3 color) = 0;
 			virtual void viewport(wc::Window *w) = 0;
 
-			virtual Shader *create(ShaderInfo info) = 0;
-			virtual BufferGPU *create(BufferInfo info) = 0;
-			virtual Texture *create(TextureInfo info) = 0;
-			virtual Sampler *create(SamplerInfo info) = 0;
-			virtual BufferLayout *create(BufferGPU *defaultBuffer) = 0;
+			virtual Shader *create(OString name, ShaderInfo info) = 0;
+			virtual BufferGPU *create(OString name, BufferInfo info) = 0;
+			virtual Texture *create(OString name, TextureInfo info) = 0;
+			virtual Sampler *create(OString name, SamplerInfo info) = 0;
+			virtual BufferLayout *create(OString name, BufferLayoutInfo info) = 0;
 
 			virtual void renderElement(Primitive p, u32 length, u32 startIndex = 0) = 0;
 
-			typedef Graphics *(*f_createGraphics)();
-
-			//Use this when you want to switch the graphics to a different type
-			static void switchGraphics(OString path = "");
-
-			//Use this when you want to switch the graphics to a different type
-			static void switchGraphics(GraphicLibrary gl);
-
-			//Use this when the graphic context should be removed (end of program)
-			static void endGraphics();
-
-			//Use this when the graphics context should be added
-			static void startGraphics(OString path = "");
-			
-			static Graphics *&get();
+			ResourceManager &getResources() { return manager; }
 
 		protected:
 
-			static Graphics *instance;
-
-		private:
-
-			//Loads the DLLs if it can find them
-			//@optional OString path; loads graphics from DLL
-			static Graphics *load(OString path);
+			ResourceManager manager;
+			GraphicsManager *parent;
 
 		};
 

@@ -19,19 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Graphics\Graphics.cpp" />
+    <ClCompile Include="Source\Graphics\GraphicsManager.cpp" />
     <ClCompile Include="Source\Graphics\GraphicsInterface.cpp" />
     <ClCompile Include="Source\Graphics\Material\Shader.cpp" />
     <ClCompile Include="Source\Graphics\Mesh\oiRM.cpp" />
+    <ClCompile Include="Source\Graphics\ResourceManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Graphics\GPU\BufferGPU.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferInfo.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferLayout.h" />
+    <ClInclude Include="Headers\Graphics\GPU\BufferLayoutInfo.h" />
     <ClInclude Include="Headers\Graphics\GPU\BufferType.h" />
     <ClInclude Include="Headers\Graphics\GPU\GraphicsResource.h" />
     <ClInclude Include="Headers\Graphics\GraphicsInterface.h" />
     <ClInclude Include="Headers\Graphics\Graphics.h" />
+    <ClInclude Include="Headers\Graphics\GraphicsManager.h" />
     <ClInclude Include="Headers\Graphics\Material\Sampler.h" />
     <ClInclude Include="Headers\Graphics\Material\SamplerInfo.h" />
     <ClInclude Include="Headers\Graphics\Material\Shader.h" />
@@ -43,6 +46,7 @@
     <ClInclude Include="Headers\Graphics\Material\TextureInfo.h" />
     <ClInclude Include="Headers\Graphics\Mesh\oiRM.h" />
     <ClInclude Include="Headers\Graphics\Primitive.h" />
+    <ClInclude Include="Headers\Graphics\ResourceManager.h" />
     <ClInclude Include="Headers\OGCore\Properties.h" />
     <ClInclude Include="Headers\OGCore\OGDependencies.h" />
   </ItemGroup>

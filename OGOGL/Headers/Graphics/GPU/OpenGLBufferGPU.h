@@ -13,7 +13,7 @@ namespace oi {
 
 		public:
 
-			OpenGLBufferGPU(BufferInfo info);
+			OpenGLBufferGPU(Graphics *&gl, BufferInfo info);
 			~OpenGLBufferGPU();
 
 			bool init() override;

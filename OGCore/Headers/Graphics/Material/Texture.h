@@ -14,7 +14,7 @@ namespace oi {
 
 		public:
 
-			Texture(TextureInfo ti) : info(ti) {}
+			Texture(Graphics *&_gl, TextureInfo ti) : GraphicsResource(_gl), info(ti) {}
 			virtual ~Texture() { info.getBuffer().deconstruct(); }
 
 			virtual u64 getTextureHandle() = 0;		//Initialize and/or return handle

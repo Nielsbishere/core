@@ -57,8 +57,8 @@ namespace oi {
 			return index == name(other).index;														\
 		}																							\
 																									\
-		const name##_s &getValue() { return *(ilist + index); }										\
-		operator const name##_s&() { return getValue(); }											\
+		const name##_s &getValue() const { return *(ilist + index); }								\
+		operator const name##_s&() const { return getValue(); }										\
 																									\
 		u32 getIndex() { return index; }															\
 																									\

@@ -19,13 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Engine\AssetManager.cpp" />
     <ClCompile Include="Source\Engine\EngineInterface.cpp" />
     <ClCompile Include="Source\Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Engine\AssetInfo.h" />
-    <ClInclude Include="Headers\Engine\AssetManager.h" />
     <ClInclude Include="Headers\Engine\EngineInterface.h" />
     <ClInclude Include="Headers\OECore\OEDependencies.h" />
   </ItemGroup>

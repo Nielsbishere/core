@@ -10,7 +10,7 @@ namespace oi {
 
 		public:
 
-			OpenGLSampler(SamplerInfo ti);
+			OpenGLSampler(Graphics *&gl, SamplerInfo ti);
 			~OpenGLSampler();
 
 			bool init() override;

@@ -6,11 +6,11 @@
 using namespace oi::gc;
 using namespace oi;
 
-OpenGLShader::OpenGLShader(ShaderInfo info) : Shader(info), shaderId(0) {}
+OpenGLShader::OpenGLShader(Graphics *&gl, ShaderInfo info) : Shader(gl, info), shaderId(0) {}
 
 bool OpenGLShader::init() {
 
-	if (info.getPath().getExtension() != "")
+	if (path.getExtension() != "")
 		return false;
 
 	bool success = true;
@@ -68,7 +68,7 @@ void OpenGLShader::destroy() {
 		OpenGL::glDeleteProgram(shaderId);
 		attributes.clear();
 		for (auto &elem : ssbos) {
-			elem.second.buffer->destroy();
+			gl->getResources().release(OString("buf:") + path + "_ssbo_" + elem.first.toLowerCase());
 			elem.second.structured = StructuredBuffer(Buffer::construct(nullptr, 0));
 		}
 		ssbos.clear();
@@ -121,10 +121,10 @@ ShaderStageData *OpenGLShader::compile(ShaderInfo &si, ShaderStage which) {
 		return 0;
 	}
 
-	OString file = OString::readFromFile(si.getPath() + "." + getExtension(which) + ".glsl");
+	OString file = OString::readFromFile(path + "." + getExtension(which) + ".glsl");
 
 	if (file == "") {
-		Log::error(OString("Couldn't compile shader; invalid path (expected: ") + si.getPath() + "." + getExtension(which) + ".glsl" + ")");
+		Log::error(OString("Couldn't compile shader; invalid path (expected: ") + path + "." + getExtension(which) + ".glsl" + ")");
 		return 0;
 	}
 
@@ -437,10 +437,13 @@ bool OpenGLShader::genReflectionData() {
 		///Create the buffer and update the structured buffer
 
 		Buffer buf = Buffer(realLength);
-
 		memset(&buf[0], 0, realLength);
-		ssbo.buffer = new OpenGLBufferGPU(BufferInfo(BufferType::SSBO, buf, propout[0]));
-		ssbo.buffer->init();
+		
+		OString bufName = path.replace("resources/shaders/", "") + "_ssbo_" + OString(name).toLowerCase();
+
+		ssbo.buffer = gl->create(bufName, BufferInfo(BufferType::SSBO, buf, propout[0]));
+		gl->getResources().initCPU(OString("buf:") + bufName);
+		gl->getResources().initGPU(OString("buf:") + bufName);
 		ssbo.structured.setBuffer(ssbo.buffer->subbuffer());
 
 		delete[] propout0;

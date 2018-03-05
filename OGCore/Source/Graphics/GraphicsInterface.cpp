@@ -1,10 +1,10 @@
 #include "Graphics/GraphicsInterface.h"
-#include "Graphics/Graphics.h"
+#include "Graphics/GraphicsManager.h"
 #include <Window/Window.h>
 using namespace oi::gc;
 using namespace oi;
 
-GraphicsInterface::GraphicsInterface() : gl(Graphics::get()) { }
+GraphicsInterface::GraphicsInterface(GraphicsManager &gm) : gl(gm.gl) { }
 
 void GraphicsInterface::init() {
 	gl->init(getParent());

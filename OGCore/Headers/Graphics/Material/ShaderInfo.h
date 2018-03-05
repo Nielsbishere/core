@@ -13,7 +13,7 @@ namespace oi {
 
 		public:
 
-			ShaderInfo(OString _path, ShaderType _type) : path(_path), type(_type), hasVS(false), hasFS(false), hasGS(false) {
+			ShaderInfo(ShaderType _type): type(_type), hasVS(false), hasFS(false), hasGS(false) {
 				if (type == ShaderType::Normal)
 					hasVS = hasFS = true;
 			}
@@ -34,12 +34,10 @@ namespace oi {
 			bool hasFragmentShader() const { return hasFS; }
 			bool hasGeometryShader() const { return hasGS; }
 
-			OString getPath() const { return path; }
 			ShaderType getType() const { return type; }
 
 		private:
 
-			OString path;
 			ShaderType type;
 			bool hasVS, hasFS, hasGS;
 		};

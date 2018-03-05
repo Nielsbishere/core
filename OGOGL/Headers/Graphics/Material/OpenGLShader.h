@@ -19,7 +19,7 @@ namespace oi {
 
 		public:
 
-			OpenGLShader(ShaderInfo info);
+			OpenGLShader(Graphics *&gl, ShaderInfo info);
 			~OpenGLShader();
 			bool init() override;
 			void destroy() override;

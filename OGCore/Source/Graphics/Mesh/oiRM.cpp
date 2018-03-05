@@ -2,27 +2,58 @@
 #include <Types/GDataType.h>
 using namespace oi;
 
-void RM::read(Buffer buf) {
+RM::RM(gc::Graphics *&_gl): GraphicsResource(_gl) {
+	//TODO:
+}
+
+RM::~RM() {
+	//TODO:
+}
+
+#define err(x) { buf.deconstruct(); return Log::error(x); }
+
+bool RM::initData(OString path) {
+
+	Buffer buf = Buffer::readFile(path);
+	if(buf.size() == 0)
+		return Log::error(OString("Couldn't find file with path \"") + path + "\"");
 
 	///Header
 
 	RMHeader &head = buf.operator[]<RMHeader>(0);
+
+	if (head.head[0] != 'o' || head.head[1] != 'i' || head.head[2] != 'R' || head.head[3] != 'M') err(OString("File at \"") + path + "\" isn't a oiRM file");
+
+	if (head.version == 0 || head.version > 1) err(OString("oiRM file at \"") + path + "\" had a version that the engine doesn't support");
 
 	///Strings
 
 	u32 off = sizeof(head);
 	u8 *sizes = buf.addr() + off;
 
-	std::vector<OString> names = parseSimpleStringBlock(buf.offset(off += head.strings), sizes, head.strings, off);
+	names = parseSimpleStringBlock(buf.offset(off += head.strings), sizes, head.strings, off);
+
+	textures.resize(head.textures);
+	material.resize(head.materials);
+	materialList.resize(head.materialList);
+	registers.resize(head.registers);
+	layouts.resize(head.layouts);
+	miscs.resize(head.miscs);
 
 	///Textures
 
-	u16 *textures = (u16*) ( buf.addr() + off);
+	u16 *textures = (u16*)(buf.addr() + off);
 	off += 2 * head.textures;
+
+	for (u32 i = 0; i < head.textures; ++i)
+		if (textures[i] < head.strings)
+			this->textures[i].name = &names[i];
+		else
+			err(OString("Invalid texture #") + i + " with id " + textures[i]);
 
 	///Materials
 
-	RMMaterial *materials = (RMMaterial*) (buf.addr() + off);
+	RMMaterial *materials = (RMMaterial*)(buf.addr() + off);
 	off += sizeof(RMMaterial) * head.materials;
 
 	///Material lists
@@ -62,21 +93,49 @@ void RM::read(Buffer buf) {
 
 	///Vertices
 
-	Buffer vertex = Buffer(buf.addr() + off, layoutStride * head.vertices);
+	vertex = Buffer(buf.addr() + off, layoutStride * head.vertices);
 	off += layoutStride * head.vertices;
 
 	///Indices
 
-	Buffer index = head.indices == 0 ? Buffer() : Buffer(buf.addr() + off, 4 * head.indices);
+	index = head.indices == 0 ? Buffer() : Buffer(buf.addr() + off, 4 * head.indices);
 	off += 4 * head.indices;
 
 	///Miscs
+	RMMisc *misc = &buf.operator[]<RMMisc>(off);
+	off += head.miscs * sizeof(RMMisc);
 
+	u32 *miscptr = &buf.operator[]<u32>(off);
 
-	///Get rid of buffers for test
+	u32 miscptrs = 0;
+	for (u32 i = 0; i < head.miscs; ++i)
+		miscptrs += misc[i].count;
 
+	off += 4 * miscptrs;
+
+	return true;
+}
+
+bool RM::init(){
+	//TODO:
+	return true;
+}
+
+void RM::destroyData() {
 	vertex.deconstruct();
 	index.deconstruct();
+}
+
+void RM::destroy() {
+	//TODO:
+}
+
+void RM::bind() {
+	//TODO:
+}
+
+void RM::unbind() {
+	//TODO:
 }
 
 char RM::decode(u8 val) {

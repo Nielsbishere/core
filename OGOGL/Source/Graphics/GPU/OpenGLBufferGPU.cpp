@@ -2,7 +2,7 @@
 using namespace oi::gc;
 using namespace oi;
 
-OpenGLBufferGPU::OpenGLBufferGPU(BufferInfo info) : BufferGPU(info), gpuHandle(0), arrayType(getInfo().getType() == BufferType::IBO ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER) {}
+OpenGLBufferGPU::OpenGLBufferGPU(Graphics *&gl, BufferInfo info) : BufferGPU(gl, info), gpuHandle(0), arrayType(getInfo().getType() == BufferType::IBO ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER) {}
 OpenGLBufferGPU::~OpenGLBufferGPU() {
 	if (gpuHandle != 0) {
 		OpenGL::glBindBuffer(arrayType, gpuHandle);
@@ -10,6 +10,8 @@ OpenGLBufferGPU::~OpenGLBufferGPU() {
 		OpenGL::glDeleteBuffers(1, &gpuHandle);
 		OpenGL::glBindBuffer(arrayType, 0);
 	}
+
+	getInfo().getBuffer() = Buffer::construct(nullptr, 0);
 }
 
 void OpenGLBufferGPU::destroy() {

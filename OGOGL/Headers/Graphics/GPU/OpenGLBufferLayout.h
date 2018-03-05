@@ -12,10 +12,11 @@ namespace oi {
 
 		public:
 
-			OpenGLBufferLayout(BufferGPU *defBuf);
+			OpenGLBufferLayout(Graphics *&gl, BufferLayoutInfo _info);
 			~OpenGLBufferLayout();
 
-			bool init(BufferGPU *indBuf) override;
+			bool init() override;
+			void destroy() override;
 			void bind() override;
 			void unbind() override;
 

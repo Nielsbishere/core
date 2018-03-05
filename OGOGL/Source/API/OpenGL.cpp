@@ -3,6 +3,7 @@
 
 #pragma comment(lib, "OSTLCore.lib")
 #pragma comment(lib, "OWCore.lib")
+#pragma comment(lib, "OGCore.lib")
 #pragma comment(lib, "opengl32.lib")
 
 using namespace oi::gc;

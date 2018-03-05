@@ -12,7 +12,7 @@ namespace oi {
 
 		public:
 
-			OpenGLTexture(TextureInfo ti) : Texture(ti) {}
+			OpenGLTexture(Graphics *&gl, TextureInfo ti) : Texture(gl, ti) {}
 			~OpenGLTexture();
 
 			bool init() override;

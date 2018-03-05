@@ -13,7 +13,7 @@ namespace oi {
 	public:
 
 		DLLLoader(OString _path) : path(_path) {
-			inst = LoadLibrary(path.c_str());
+			inst = LoadLibrary((path + ".dll").c_str());
 
 			if (!inst)
 				Log::throwError<DLLLoader, 0x0>(OString("Couldn't load DLL with path \"") + path + "\"");
