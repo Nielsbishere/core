@@ -212,7 +212,7 @@ MDAs (Multi-Dimensional Arrays) are accessed the C# way; `arr[x, y, z, w, ...]` 
 ## OGC (Osomi Graphics Core)
 Osomi Graphics Core / OGC is the part that renders things; it is using some of the fastest GL functions to ensure that you can do lots of things and you don't have to wait on the GPU a lot. An example of this is the GPU buffer that is used; BufferGPU, the thing handling storage in VRAM, it uses persistent double buffer techniques with the glBufferRange example; this just requires one call and automatically syncs if you write to the buffer (low overhead!). This is called 'AZDO' (Approaching Zero Driver Overhead) and when combined with bindless textures and deferred rendering can squeeze the most out of your GPU (it also allows you to multi thread more on the GPU). 
 ### OGC Shaders
-OGC Shaders for now just use GLSL; however, they do require OpenGL 4.5+, because the engine is built on the idea of achieving the highest FPS with the most objects. This requires certain extensions that only modern GPUs have, but it is focused on the future, not the past. For obtaining a cross API structure, so I could handle DX12 (maybe) in the future, I need to handle a certain architecture. This does result into a few changes for how OpenGL works high level.
+OGC Shaders for now just use GLSL; however, they do require OpenGL 4.5+, because the engine is built on the idea of achieving the highest FPS with the most objects and lights in the scene. This requires certain extensions that only modern GPUs have, but it is focused on the future, not the past. For obtaining a cross API structure, so I could handle DX12 (maybe) in the future, I need to handle a certain architecture. This does result into a few changes for how OpenGL works high level.
 #### Limitations
 One of the shader struggles is that OpenGL has the uniform system, but DirectX uses the buffer system. In OpenGL, you update a uniform with its location index and it all works. DirectX however, needs you to put stuff into various buffers and it does make more sense than to use multiple calls for sending data; this is very slow. Due to this, I have decided to completely remove uniforms and uniform buffers. You simply fill a buffer either manually or through the Shader class; this buffer then gets automatically synced and you won't have to worry about any GL calls happening while you are sending that data. (Meaning that you can even multi thread your uniform calls!). Instead, you will use the Shader Storage Buffer Object (SSBO), which is quite similar to DirectX's structure, which also makes it more compatible.  
 The shader automatically creates the SSBOs required and can find the reflection data automatically. This means that you don't have to access everything like a buffer if you don't want to. You can get the GPU buffer and put things inside of there by using variable paths. Similar to OpenGL's 'glGetUniformLocation', you pass in the name of the variable, prefixed by the buffer's name and seperated by a period.
@@ -252,3 +252,39 @@ BufferGPU*
 You can then access those using the structured buffer. A structured buffer is essentially a way of structuring data and laying out what the data represents. It allows you to look through the variables and see what they mean. The way you do it is through the 'get' function, which returns a BufferVar. If you input the variable paths (like shown above), you can use a to<x> function to cast it. toUInt, toInt, toFloat, toFloat4, toBool3, toBuffer, etc. If you are not sure which type it is, you can either surround it by a try and catch or check the result from getType. getType returns a GDataType, which is an Osomi Enum that represents a data type on the GPU, which also has the custom 4-byte gbool (since booleans are 4 bytes on the GPU). This result can then be compared by GDataType::oi_x, when it returns oi_struct, it still contains variables, otherwise it is the base. Vectors are automatically split into both the vector and the children (.x, .y, .z and .w).  
 If for some reason (I wouldn't recommend it), use either dynamic or multi-dimensional arrays, you need to know the following:
 **Multi-dimensional arrays are accessed in the C# way; array[x, y] or array[x, y, z] or array[x, y, z, w]. This is due to limitations and syntax; it looks better and it makes more sense. However, in GLSL and C++ you can still use the regular way of accessing, just not through the structured buffer. 'Dynamic' arrays are a huge problem, since HLSL doesn't support them, but GLSL does. This is when your last element of your array is defined as type name[], without initializing the size. Since OGC creates the structured buffers for you, it needs to know a size. It assumes you want at least 1 object and otherwise it will try to fill 4 MiB (4 * 1024 * 1024) per shader per buffer (that uses this), so ONLY use it when you're sure you need it. In OGC, this is utilized for lights and materials in Tiled-Material Rendering, so only 1 shader uses it; resulting in a total of 8 MiB GPU VRAM and CPU RAM. Allowing for roughly 131k lights and 65k materials.**
+#### Disabling generating buffers automatically
+Sometimes, you don't want the buffers generated automatically. This can be because you want to reuse things like a light, material or object buffer and so you don't want one per shader. This is done by using the '_ext' after your buffer; it stands for 'external' and it means that the generation of the buffer will be handled externally. With '_ext' enabled; it does still create a structured buffer; but it doesn't allocate it, this means that you have to set the buffer manually.
+```glsl
+  struct Material {
+
+	vec3 ambient;
+	float opacity;
+
+	vec3 emissive;
+	uint textures;
+
+	vec3 diffuse;
+	float specularScale;
+
+	vec3 specular;
+	float specularPower;
+
+	float roughness, metallic;
+	uint p0, p1;
+
+	uvec2 t_ambient, t_emissive;
+
+	uvec2 t_diffuse, t_specular;
+
+	uvec2 t_specularPower, t_normal;
+
+	uvec2 t_bump, t_opacity;
+
+	uvec2 t_roughness, t_metallic;
+};
+
+layout(std140 binding = 0) buffer materialBuffer_ext {
+	Material material[];
+};
+```
+The code above is for using a material array that supports bindless textures. Instead of generating a 4 MiB array, it sets the size and specifies the layout of the buffer. Allocating it has to be done by creating a GPU buffer and setting the buffer object in the structured buffer.
