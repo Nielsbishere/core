@@ -10,6 +10,10 @@ public:
 	void init() override {
 		getInputManager().load("resources/settings/input.json");
 	}
+	
+	void onInput(InputDevice *device, Binding b, bool down) override {
+		Log::println(b.toString());
+	}
 
 };
 
