@@ -44,3 +44,10 @@ OGOGL/Debug/
 OGCore/Debug/
 enc_temp_folder/
 Debug/
+*.vcxproj
+*.filters
+*.cmake
+CMakeCache.txt
+*.sln
+CMakeFiles/
+Makefile
