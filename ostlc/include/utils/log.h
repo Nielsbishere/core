@@ -1,5 +1,6 @@
 #pragma once
 
+#include <typeinfo>
 #include "types/string.h"
 
 namespace oi {

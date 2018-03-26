@@ -1,6 +1,6 @@
-#include "Utils/JSON.h"
-#include "API/rapidjson/StringBuffer.h"
-#include "API/rapidjson/Writer.h"
+#include "utils/json.h"
+#include "api/rapidjson/stringbuffer.h"
+#include "api/rapidjson/writer.h"
 using namespace oi;
 
 JSON::JSON(const String fromString) {

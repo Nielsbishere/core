@@ -1,5 +1,15 @@
 # OCore (Osomi Core
 Osomi Core - A basic template library for (graphic) engines
+## Building using CMake
+This project uses CMake and a few tools to help the user setup their environment.
+### Cleaning & Reloading project
+The user can run the 'clean' script to either regenerate or get rid of all generated cmake files. Clean without arguments gets rid of them, and with arguments runs reload. Reload either reloads the project or reinstalls it, depending on if it has been run before.
+### The template project system
+We use a sort of template system; you specify a template you want to use and it copies the template and replaces all occurences of [PROJECT_NAME] by the project name you entered; if those files contain the extension ".child", afterwards those files will get renamed to their original name. If the file name contains [PROJECT_NAME] it will also be replaced.
+```
+addproject myapp android
+```
+The code above can be ran through your terminal and it will use the android template to generate the 'myapp' project.
 ## OSTLC (Osomi Standard Template Library Core)
 ### Underscore 'operator'/macro
 Underscore has a specific use in OSTLC; it is a 'function' that escapes commas so they can be used in other macros. The reason for this is because C++ macros use a comma as a split character, therefore not allowing you to input any commas into a macro. This does however mean that the syntax will look different, but it is worth it, seeing all of the benefits from it:

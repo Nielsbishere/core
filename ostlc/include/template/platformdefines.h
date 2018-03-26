@@ -42,3 +42,5 @@
 #undef ERROR
 
 #endif
+
+#include <cmath>

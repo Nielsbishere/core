@@ -28,3 +28,9 @@ flp Controller::getAxis(Binding b) const {
 
 	return axes[b.getCode() - 1];
 }
+
+void Controller::update(Binding b, bool down) {
+	if (b.getBindingType() != BindingType::CONTROLLER_BUTTON || b.getCode() == 0 || b.getControllerId() != getId()) return;
+
+	next[b.getCode() - 1] = down;
+}

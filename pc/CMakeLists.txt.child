@@ -1,0 +1,18 @@
+﻿include_directories(../ostlc/include)
+include_directories(../owc/include)
+include_directories(include)
+
+file(GLOB_RECURSE PROJECT_NAME_SRC
+	"include/*.h"
+	"src/*.c"
+	"include/*.hpp"
+	"src/*.cpp"
+)
+
+add_executable(
+	PROJECT_NAME
+	${PROJECT_NAME_SRC}
+)
+
+target_link_libraries(PROJECT_NAME ostlc)
+target_link_libraries(PROJECT_NAME owc)

@@ -1,7 +1,7 @@
 #include "types/structuredbuffer.h"
 using namespace oi;
 
-#define CAST_VAR(dtype, dgdt, did) if (var.getType() == DataType(dgdt)) return *(dtype*)&(**this)[0]; Log::throwError<BufferVar, did>("BufferVar couldn't be cast"); return *(dtype*)nullptr;
+#define CAST_VAR(dtype, dgdt, did) if (var.getType() != DataType(dgdt)) Log::throwError<BufferVar, did>("BufferVar couldn't be cast"); return *(dtype*)&(**this)[0];
 
 StructuredBufferVar::StructuredBufferVar() : StructuredBufferVar(nullptr, 0, "", DataType::oi_undefined, 0, 0, 0, u32_MAX) {}
 StructuredBufferVar::StructuredBufferVar(StructuredBuffer *_buf, u32 _id, String _name, DataType _type, u32 _offset, u32 _stride, u32 _length, u32 _parent): buf(_buf), id(_id), name(_name), type(_type), offset(_offset), stride(_stride), length(_length), parent(_parent) { }
@@ -149,17 +149,24 @@ StructuredBuffer::StructuredBuffer(Buffer _buf) : buf(_buf) {}
 
 StructuredBufferVar &StructuredBuffer::operator[](u32 i) {
 
-	if (i >= size()) return *(StructuredBufferVar*)nullptr;
+	if (i >= size())
+		Log::throwError<StructuredBufferVar, 0x0>("Couldn't find buffer var by id");
+	
 	for (auto &val : vars)
 		if (val.second.getId() == i)
 			return val.second;
 
-	return *(StructuredBufferVar*)nullptr;
+	Log::throwError<StructuredBufferVar, 0x1>("Couldn't find buffer var by id");
+	return vars.begin()->second;
 }
 
 StructuredBufferVar &StructuredBuffer::find(String s) {
+	
 	auto it = vars.find(s);
-	if (it == vars.end()) return *(StructuredBufferVar*)nullptr;
+	
+	if (it == vars.end())
+		Log::throwError<StructuredBufferVar, 0x2>("Couldn't find buffer var by name");
+	
 	return it->second;
 }
 

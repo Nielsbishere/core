@@ -414,14 +414,6 @@ String String::toHex(u32 u) {
 	return cb.toHex();
 }
 
-JSON String::toJSON() const {
-	return JSON(*this);
-}
-
-String::operator JSON() const {
-	return JSON(*this);
-}
-
 String String::getHex(u8 u) {
 	return String(BinaryHelper::hexChar((u & 0xF0) >> 4)) + String(BinaryHelper::hexChar(u & 0xF));
 }

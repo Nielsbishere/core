@@ -7,38 +7,40 @@ if "%2"=="" goto :error1
 
 if exist %1 goto :error2
 if not exist %2 goto :error1
-if not exist %2/CMakeLists.child.txt goto :error1
+
+set PROJECT_NAME=%1
 
 mkdir "%1"
-xcopy /y /F "%2/CMakeLists.child.txt" "%1/CMakeListse.txt"*
-powershell -Command "(gc "%1/CMakeListse.txt") -replace '<PROJECT_NAME>', '%1' | Out-File "%1/CMakeListse.txt""
-powershell -Command "Get-Content "%1/CMakeListse.txt" | Set-Content -Encoding utf8 "%1/CMakeLists.txt""
-del /s "%1/../CMakeListse.txt"
-mkdir "%1/include"
-mkdir "%1/src"
-
-echo #pragma once >> "%1/include/main.h"
-
-echo #include "main.h" >> "%1/src/main.cpp"
-echo int main(){ >> "%1/src/main.cpp"
-echo 	return 0; >> "%1/src/main.cpp"
-echo } >> "%1/src/main.cpp"
-
-echo add_subdirectory(%1) >> CMakeLists.txt
-
-reload
-
+xcopy "%2" "%1" /s /e /h
+cd %1
+call :treeProcess
+cd ..
+set PROJECT_NAME=
 goto :eof
+
+:treeProcess
+for %%f in (*.child) do (
+	powershell -Command "(gc %%f) -replace 'PROJECT_NAME', '%PROJECT_NAME%' | Out-File %%f"
+	powershell -Command "Get-Content %%f | Set-Content -Encoding utf8 %%~nf"
+	del "%%f"*
+)
+
+for /D %%d in (*) do (
+    cd %%d
+    call :treeProcess
+    cd ..
+)
+exit /b
 
 :error
 	echo Please add a project name (no spaces and lowercase)
-	echo Usage: addproject SomeTest nfs
+	echo Usage: addproject test {template}
 	pause
 	goto :eof
 	
 :error1
-	echo Please add an existing project to inherrit from (no spaces and lowercase)
-	echo Usage: addproject SomeTest nfs
+	echo Please add an existing template to inherrit from (no spaces and lowercase)
+	echo Usage: addproject test {template}
 	pause
 	goto :eof
 	

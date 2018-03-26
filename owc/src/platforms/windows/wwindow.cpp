@@ -25,7 +25,7 @@ DEnum(WKey, u32, Undefined = 0, Zero = 48, One = 49, Two = 50, Three = 51, Four 
 	F20 = VK_F20, F21 = VK_F21, F22 = VK_F22, F23 = VK_F23, F24 = VK_F24, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, Page_up = VK_NEXT, Page_down = VK_PRIOR,
 	Home = VK_HOME, End = VK_END, Insert = VK_INSERT, Delete = VK_DELETE, Scroll_lock = VK_SCROLL, Num_lock = VK_NUMLOCK, Caps_lock = VK_CAPITAL,
 	Tab = VK_TAB, Enter = VK_RETURN, Backspace = VK_BACK, Esc = VK_ESCAPE,
-	Plus = VK_OEM_PLUS, Shift = VK_SHIFT, Ctrl = VK_CONTROL, Alt = VK_MENU
+	Plus = VK_OEM_PLUS, Left_shift = VK_SHIFT, Right_shift = VK_SHIFT, Left_ctrl = VK_CONTROL, Right_ctrl = VK_CONTROL
 );
 
 namespace oi {
@@ -78,7 +78,7 @@ LRESULT CALLBACK Window_imp::windowEvents(HWND hwnd, UINT message, WPARAM wParam
 	case WM_KEYUP:
 	case WM_KEYDOWN:
 	{
-		Binding b = Binding(Key_s(WKey::find((u32) wParam).getIndex()));
+		Binding b = Binding(Key(WKey::find((u32) wParam).getName()));
 		Keyboard *keyboard = w->getInputHandler().getKeyboard();
 		bool isDown = message == WM_KEYDOWN;
 
@@ -249,7 +249,7 @@ void Window::initPlatform() {
 	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 	if (info.getSize() == 0)
-		info.resize(Vec2u(screenWidth, screenHeight));
+		info.size = Vec2u(screenWidth, screenHeight);
 
 	dat.wnd = CreateWindowEx(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, NULL, NULL, dat.instance, NULL);
 

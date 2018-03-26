@@ -9,6 +9,8 @@ namespace oi {
 	namespace wc {
 
 		class Controller : public InputDevice {
+			
+			friend struct Window_imp;
 
 		public:
 
@@ -21,6 +23,8 @@ namespace oi {
 			void vibrate(Vec2 amount, f32 time);
 
 		protected:
+
+			void update(Binding b, bool down) override;
 
 			std::bitset<ControllerButton::length - 1> prev, next;
 			flp axes[ControllerAxis::length - 1];

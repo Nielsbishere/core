@@ -39,7 +39,7 @@ Mouse *InputHandler::getMouse() { return dynamic_cast<Mouse*>(getDevice(InputDev
 
 Controller *InputHandler::getController(u32 i) {
 
-	if (i >= (u32) InputDeviceBinding::CONTROLLERS)
+	if (i >= getControllers())
 		return nullptr;
 
 	return dynamic_cast<Controller*>(getDevice((InputDeviceBinding)((u32)InputDeviceBinding::CONTROLLER0 + i))); 

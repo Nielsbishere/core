@@ -1,12 +1,6 @@
 #include "utils/log.h"
 using namespace oi;
 
-void stdprint(String what) {
-	printf("%s", what.toCString());
-}
-
-LogCallback Log::errorc = stdprint, Log::warningc = stdprint, Log::printc = stdprint;
-
 void Log::warn(String what) {
 	warningc(what + String::lineEnd());
 }

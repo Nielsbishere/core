@@ -66,6 +66,14 @@ namespace oi {
 			return index == name(other).index;														\
 		}																							\
 																									\
+		bool operator!=(const name &other) const {													\
+			return index != other.index;															\
+		}																							\
+																									\
+		bool operator!=(const name##_s &other) const {												\
+			return index != name(other).index;														\
+		}																							\
+																									\
 		const name##_s &getValue() const { return *(ilist + index); }								\
 		operator const name##_s&() const { return getValue(); }										\
 																									\

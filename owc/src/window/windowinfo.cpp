@@ -2,7 +2,7 @@
 using namespace oi;
 using namespace wc;
 
-WindowInfo::WindowInfo(String title, Vec2u size, Vec2i position, bool inFocus): title(title), size(size), position(position), inFocus(inFocus), pending(WindowAction::NONE) {}
+WindowInfo::WindowInfo(String title, void *handle, Vec2u size, Vec2i position, bool inFocus): title(title), size(size), position(position), inFocus(inFocus), handle(handle), pending(WindowAction::NONE) {}
 
 String WindowInfo::getTitle() const { return title; }
 Vec2i WindowInfo::getPosition() const { return position; }

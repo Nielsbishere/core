@@ -19,7 +19,8 @@ namespace oi {
 			F20 = 83, F21 = 84, F22 = 85, F23 = 86, F24 = 87, Up = 88, Down = 89, Left = 90, Right = 91, Page_up = 92, Page_down = 93,
 			Home = 94, End = 95, Insert = 96, Delete = 97, Scroll_lock = 98, Num_lock = 99, Caps_lock = 100,
 			Tab = 101, Enter = 102, Backspace = 103, Esc = 104,
-			Plus = 105, Shift = 106, Ctrl = 107
+			Plus = 105, Left_shift = 106, Right_shift = 107, Left_ctrl = 108, Right_ctrl = 109, Left_alt = 110, Right_alt = 111,
+			Volume_down = 112, Volume_up = 113, Power = 114
 		);
 
 		DEnum(MouseAxis, u32, Undefined = 0, X = 1, Y = 2, Mouse_wheel = 3);

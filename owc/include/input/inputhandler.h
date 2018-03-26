@@ -13,14 +13,16 @@ namespace oi {
 			KEYBOARD,
 			MOUSE,
 			CONTROLLER0, CONTROLLER1, CONTROLLER2, CONTROLLER3,
-			MISC,
-
-			CONTROLLERS = 4
+			MISC
 		};
 
 		class InputHandler {
 
 		public:
+		
+			struct IDBHash {
+				size_t operator()(const InputDeviceBinding &idb) const { return (size_t) idb; }
+			};
 
 			void init();
 			void update(Window *w, flp dt);
@@ -32,9 +34,11 @@ namespace oi {
 			Mouse *getMouse();
 			Controller *getController(u32 i);
 
-		protected:
+			u32 getControllers();
 
-			std::unordered_map<InputDeviceBinding, InputDevice*> devices;
+		protected:
+		
+			std::unordered_map<InputDeviceBinding, InputDevice*, IDBHash> devices;
 
 		};
 

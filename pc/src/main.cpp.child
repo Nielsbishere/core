@@ -3,12 +3,13 @@
 using namespace oi::wc;
 using namespace oi;
 
-class TestInterface : public WindowInterface {
+class IPROJECT_NAME : public WindowInterface {
 
 public:
 
 	void init() override {
-		getInputManager().load("resources/settings/input.json");
+		Log::println("Testing!");
+		//getInputManager().load("resources/settings/input.json");
 	}
 	
 	void onInput(InputDevice *device, Binding b, bool down) override {
@@ -20,8 +21,8 @@ public:
 int main() {
 
 	WindowManager manager;
-	Window *w = manager.create(WindowInfo("Test window"));
-	w->setInterface(new TestInterface());
+	Window *w = manager.create(WindowInfo("PROJECT_NAME"));
+	w->setInterface(new IPROJECT_NAME());
 	manager.waitAll();
 
 	return 0;

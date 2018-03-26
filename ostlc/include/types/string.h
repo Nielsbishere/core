@@ -96,8 +96,6 @@ namespace oi {
 
 		static String readFromFile(String file);			//Read file as plain text
 		bool writeToFile(String file) const;				//Write file to disk
-		JSON toJSON() const;								//Parse as JSON file
-		operator JSON() const;								//Parse as JSON file
 		String getPath() const;								//File path without file name
 		String getExtension() const;						//Get extension
 		String getFileName() const;							//Get file name (+ extension)

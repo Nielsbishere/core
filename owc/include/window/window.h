@@ -48,7 +48,7 @@ namespace oi {
 
 			flp lastTick = (flp) 0;
 
-			u8 platformData[8192];	//Reserved for per platform implementation
+			u8 platformData[4192];	//Reserved for per platform implementation
 
 		};
 	}
