@@ -51,3 +51,4 @@ CMakeCache.txt
 *.sln
 CMakeFiles/
 Makefile
+bin/

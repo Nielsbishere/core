@@ -41,7 +41,7 @@ endif()
 
 set(CMAKE_VERBOSE_MAKEFILE 0)
 
-add_subdirectory(test_android)
+add_subdirectory(app_android)
 
 else()
 
@@ -49,12 +49,12 @@ message(ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and AND
 
 endif()
 
-else()
-add_subdirectory(test_pc)
 endif()
 
-# Default stuff
+# Projects
 
 add_subdirectory(ostlc)
 add_subdirectory(owc)
+add_subdirectory(app)
 
+add_subdirectory(app_pc)

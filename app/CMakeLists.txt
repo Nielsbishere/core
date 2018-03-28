@@ -2,17 +2,17 @@
 include_directories(../owc/include)
 include_directories(include)
 
-file(GLOB_RECURSE test_pc_SRC
+file(GLOB_RECURSE app_SRC
 	"include/*.h"
 	"src/*.c"
 	"include/*.hpp"
 	"src/*.cpp"
 )
 
-add_executable(
-	test_pc
-	${test_pc_SRC}
+add_library(
+	app STATIC
+	${app_SRC}
 )
 
-target_link_libraries(test_pc ostlc)
-target_link_libraries(test_pc owc)
+target_link_libraries(app ostlc)
+target_link_libraries(app owc)
