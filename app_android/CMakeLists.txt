@@ -35,9 +35,9 @@ set(ANDROID_APK_SIGNER_ALIAS "myalias")
 
 # Recreate the apk lib directory and copy the libs directory there
 
-add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E remove_directory "${APK_DIR}/lib")
-add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/lib")
-add_custom_command(TARGET ${ANDROID_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${LIBS_DIR}" "${APK_DIR}/lib/")
+add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E remove_directory "${APK_DIR}/libs")
+add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/libs")
+add_custom_command(TARGET ${ANDROID_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${LIBS_DIR}" "${APK_DIR}/libs/")
   
 # Set debuggable
 
@@ -98,5 +98,4 @@ endif()
 # Start the application
 if(ANDROID_APK_RUN)
   add_custom_command(TARGET ${ANDROID_NAME} COMMAND adb shell am start -n ${ANDROID_APK_PACKAGE}/android.app.NativeActivity)
-  add_custom_command(TARGET ${ANDROID_NAME} COMMAND adb logcat *:W)
 endif()
