@@ -25,6 +25,8 @@ namespace oi {
 			InputManager &getInputManager();
 			WindowInterface *getInterface();
 			WindowManager *getParent();
+			
+			void *getPlatformData();
 
 		protected:
 

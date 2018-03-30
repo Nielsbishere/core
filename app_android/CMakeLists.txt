@@ -1,5 +1,6 @@
 ﻿include_directories(../ostlc/include)
 include_directories(../owc/include)
+include_directories(../ogc/include)
 include_directories(../app/include)
 include_directories(include)
 
@@ -18,6 +19,7 @@ add_library(
 
 target_link_libraries(app_android ostlc)
 target_link_libraries(app_android owc)
+target_link_libraries(app_android ogc)
 target_link_libraries(app_android app)
 
 include_directories(${ANDROID_NDK}/sources/android/native_app_glue)

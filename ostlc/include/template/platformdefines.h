@@ -12,8 +12,7 @@
 #define __OSX__
 #define __DESKTOP__
 #endif
-#elif __ANDROID				//Android
-#define __ANDROID__
+#elif __ANDROID__				//Android
 #define __PHONE__
 #elif XBOXONE
 #define __XBONE__

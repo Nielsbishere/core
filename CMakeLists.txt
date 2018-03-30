@@ -41,20 +41,57 @@ endif()
 
 set(CMAKE_VERBOSE_MAKEFILE 0)
 
+
 add_subdirectory(app_android)
+set(Vulkan ON)
 
 else()
 
-message(ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
+message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
 
 endif()
 
+else()
+set(Vulkan ON)
+endif()
+
+if(Vulkan)
+
+	add_definitions(-D__VULKAN__)
+
+	if(WIN32)
+		if(DEFINED ENV{VULKAN_SDK})
+
+			set(VULKAN_LIB vulkan-1)
+			
+			include_directories($ENV{VULKAN_SDK}/Include)
+
+			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+				link_directories($ENV{VULKAN_SDK}/Lib)
+			else()
+				link_directories($ENV{VULKAN_SDK}/Lib32)
+			endif()
+
+		else()
+			message(FATAL_ERROR "-- Vulkan - disabled: Please download the Vulkan SDK so you can compile")
+		endif()
+	else()
+		set(VULKAN_LIB vulkan)
+	endif()
+
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+add_definitions(-D__DEBUG__)
 endif()
 
 # Projects
 
 add_subdirectory(ostlc)
 add_subdirectory(owc)
+add_subdirectory(ogc)
 add_subdirectory(app)
 
+if(NOT Android)
 add_subdirectory(app_pc)
+endif()

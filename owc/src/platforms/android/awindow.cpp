@@ -270,7 +270,7 @@ void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 		//Set saved state
 		//However, we use lifetime.bin as a save file
 		
-		app->savedState = malloc(1);
+		app->savedState = std::malloc(1);
 		app->savedStateSize = 1;
 		
 		if(wi != nullptr)

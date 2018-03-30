@@ -17,7 +17,7 @@ namespace oi {
 
 		public:
 
-			WindowInfo(String title, void *handle = nullptr, Vec2u size = Vec2u(480, 270), Vec2i position = Vec2i(0, 0), bool inFocus = true);
+			WindowInfo(String title, u32 version, void *handle = nullptr, Vec2u size = Vec2u(480, 270), Vec2i position = Vec2i(0, 0), bool inFocus = true);
 
 			String getTitle() const;
 			Vec2i getPosition() const;
@@ -30,6 +30,7 @@ namespace oi {
 			void focus();
 
 			bool isInFocus() const;
+			u32 getVersion() const;
 
 		protected:
 
@@ -43,6 +44,7 @@ namespace oi {
 			WindowAction pending;
 			bool inFocus;
 
+			u32 version;
 			String title;
 			Window *parent;
 			void *handle;

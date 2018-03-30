@@ -1,24 +1,25 @@
 #include "main.h"
+#include <window/windowmanager.h>
 using namespace oi::wc;
 using namespace oi;
 
 //Set up a main window
 void Application::instantiate(void *param){
 	WindowManager manager;
-	Window *w = manager.create(WindowInfo("Test window", param));
+	Window *w = manager.create(WindowInfo("Test window", 1, param));
 	w->setInterface(new MainInterface());
 	manager.waitAll();
 }
 
 //Set up the interface
 
-void MainInterface::initWindow() {
-	//Started window again
-}
-
-void MainInterface::init(){
+void MainInterface::initScene(){
 	Log::println("Started main interface!");
 	//getInputManager().load("resources/settings/input.json");
+}
+
+void MainInterface::renderScene(){
+	
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {

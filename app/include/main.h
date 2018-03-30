@@ -1,17 +1,16 @@
-#include <window/windowmanager.h>
-#include <window/windowinterface.h>
+#include <graphics/graphicsinterface.h>
 
 struct Application {
 	static void instantiate(void *param = nullptr);
 };
 
-class MainInterface : public oi::wc::WindowInterface {
+class MainInterface : public oi::gc::GraphicsInterface {
 
 public:
 
 	~MainInterface();
-	void init() override;
-	void initWindow() override;
+	void initScene() override;
+	void renderScene() override;
 	void onInput(oi::wc::InputDevice *device, oi::wc::Binding b, bool down) override;
 	
 	void load(oi::String str) override;

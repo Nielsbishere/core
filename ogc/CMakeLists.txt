@@ -1,9 +1,8 @@
 ﻿include_directories(../ostlc/include)
 include_directories(../owc/include)
-include_directories(../ogc/include)
 include_directories(include)
 
-file(GLOB_RECURSE app_SRC
+file(GLOB_RECURSE ogc_SRC
 	"include/*.h"
 	"src/*.c"
 	"include/*.hpp"
@@ -11,10 +10,13 @@ file(GLOB_RECURSE app_SRC
 )
 
 add_library(
-	app STATIC
-	${app_SRC}
+	ogc STATIC
+	${ogc_SRC}
 )
 
-target_link_libraries(app ostlc)
-target_link_libraries(app owc)
-target_link_libraries(app ogc)
+target_link_libraries(ogc ostlc)
+target_link_libraries(ogc owc)
+
+if(Vulkan)
+target_link_libraries(ogc ${VULKAN_LIB})
+endif()

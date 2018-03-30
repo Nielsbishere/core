@@ -4,8 +4,6 @@
 
 #include "window/windowmanager.h"
 #include <android_native_app_glue.h>
-#include <GLES/gl.h>
-#include <utils/timer.h>
 using namespace oi::wc;
 
 void WindowManager::waitAll() {
@@ -30,10 +28,6 @@ void WindowManager::waitAll() {
 			
 		}
 		
-		Vec3 c = { 0.25, 0.5, 1 };
-		c *= std::sin(Timer::getGlobalTimer().getDuration()) * 0.5 + 0.5;
-		glClearColor(c.x, c.y, c.z, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
 		updateAll();
 		
 		if(state->destroyRequested != 0){
