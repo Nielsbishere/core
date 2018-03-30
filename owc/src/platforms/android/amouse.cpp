@@ -8,7 +8,7 @@
 using namespace oi::wc;
 
 void Mouse::update(Window *w, flp dt) {
-	Log::warn("AMouse::update isn't available, as Android doesn't support mice");
+	prev = next;
 }
 
 

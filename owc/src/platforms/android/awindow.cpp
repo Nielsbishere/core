@@ -12,6 +12,7 @@
 #include <EGL/egl.h>
 #include <android/input.h>
 #include <android_native_app_glue.h>
+#include <cstdlib>
 
 using namespace oi::wc;
 using namespace oi;
@@ -21,6 +22,7 @@ struct AWindowData {
 	EGLDisplay display;
 	EGLSurface surface;
 	EGLConfig config;
+	EGLContext context;
 };
 
 DEnum(AKey, int32_t, Undefined = AKEYCODE_UNKNOWN, Zero = AKEYCODE_0, One = AKEYCODE_1, Two = AKEYCODE_2, Three = AKEYCODE_3, Four = AKEYCODE_4, Five = AKEYCODE_5, Six = AKEYCODE_6, Seven = AKEYCODE_7, Eight = AKEYCODE_8, Nine = AKEYCODE_9, 
@@ -32,12 +34,13 @@ DEnum(AKey, int32_t, Undefined = AKEYCODE_UNKNOWN, Zero = AKEYCODE_0, One = AKEY
 	F5 = AKEYCODE_F5, F6 = AKEYCODE_F6, F7 = AKEYCODE_F7, F8 = AKEYCODE_F8, F9 = AKEYCODE_F9, F10 = AKEYCODE_F10, F11 = AKEYCODE_F11, F12 = AKEYCODE_F12, Page_up = AKEYCODE_PAGE_UP, Page_down = AKEYCODE_PAGE_DOWN,
 	Home = AKEYCODE_HOME, Insert = AKEYCODE_INSERT, Scroll_lock = AKEYCODE_SCROLL_LOCK, Num_lock = AKEYCODE_NUM_LOCK, Caps_lock = AKEYCODE_CAPS_LOCK, Tab = AKEYCODE_TAB, Enter = AKEYCODE_ENTER, Backspace = AKEYCODE_DEL, Esc = AKEYCODE_ESCAPE,
 	Plus = AKEYCODE_PLUS, Left_shift = AKEYCODE_SHIFT_LEFT, Right_shift = AKEYCODE_SHIFT_RIGHT, Left_alt = AKEYCODE_ALT_LEFT, Right_alt = AKEYCODE_ALT_RIGHT,
-	Volume_down = AKEYCODE_VOLUME_DOWN, Volume_up = AKEYCODE_VOLUME_UP, Power = AKEYCODE_POWER
+	Volume_down = AKEYCODE_VOLUME_DOWN, Volume_up = AKEYCODE_VOLUME_UP, Power = AKEYCODE_POWER, Back = AKEYCODE_BACK, Delete = AKEYCODE_FORWARD_DEL,
+	Up = AKEYCODE_DPAD_UP, Down = AKEYCODE_DPAD_DOWN, Left = AKEYCODE_DPAD_LEFT, Right = AKEYCODE_DPAD_RIGHT
 );
 
-DEnum(AControllerButton, int32_t, Undefined = AKEYCODE_UNKNOWN, Cross = AKEYCODE_BUTTON_A, Square = AKEYCODE_BUTTON_X, Triangle = AKEYCODE_BUTTON_Y, Circle = AKEYCODE_BUTTON_B, 
-	Down = AKEYCODE_DPAD_DOWN, Left = AKEYCODE_DPAD_LEFT, Up = AKEYCODE_DPAD_UP, Right = AKEYCODE_DPAD_RIGHT, L1 = AKEYCODE_BUTTON_L1, R1 = AKEYCODE_BUTTON_R1, 
-	L3 = AKEYCODE_BUTTON_THUMBL, R3 = AKEYCODE_BUTTON_THUMBR, Share = AKEYCODE_BUTTON_SELECT, Options = AKEYCODE_BUTTON_START
+//PS4 implementation
+DEnum(AControllerButton, int32_t, Undefined = AKEYCODE_UNKNOWN, Cross = AKEYCODE_BUTTON_B, Square = AKEYCODE_BUTTON_A, Triangle = AKEYCODE_BUTTON_X, Circle = AKEYCODE_BUTTON_C, 
+	L1 = AKEYCODE_BUTTON_Y, R1 = AKEYCODE_BUTTON_Z, L3 = AKEYCODE_BUTTON_SELECT, R3 = AKEYCODE_BUTTON_START, Share = AKEYCODE_BUTTON_L2, Options = AKEYCODE_BUTTON_R2
 );
 
 namespace oi {
@@ -49,7 +52,9 @@ namespace oi {
 			static Window *getWindow(struct android_app *app);
 			static void handleCmd(struct android_app *app, int32_t cmd);
 			static int32_t handleInput(struct android_app *app, AInputEvent *event);
-
+			static void initDisplay(Window *w);
+			static void terminate(Window *w);
+			
 		};
 
 	}
@@ -74,16 +79,128 @@ Window *Window_imp::getWindow(struct android_app *app){
 
 }
 
+void Window_imp::initDisplay(Window *w){
+	
+	AWindowData &dat = *(AWindowData*) w->platformData;
+	WindowInfo &info = w->getInfo();
+	
+	//Define attributes (8 Bpc = 24Bpp with depth buffer)
+	const EGLint attribs[] = {
+			EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+			EGL_BLUE_SIZE, 8,
+			EGL_GREEN_SIZE, 8,
+			EGL_RED_SIZE, 8,
+			EGL_DEPTH_SIZE, 24,
+			EGL_NONE
+	};
+
+	//Surface info (like size, etc.)
+	EGLint width, height, format, numConfigs;
+	
+	//Get display
+	EGLDisplay &display = dat.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
+	if(display == EGL_NO_DISPLAY)
+		Log::throwError<Window, 0x0>("Couldn't find a display");
+	
+	eglInitialize(display, 0, 0);
+
+	//Get num configs
+	eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
+
+	if(numConfigs == 0)
+		Log::throwError<Window, 0x1>("Couldn't find any config");
+
+	//Get configs
+	EGLConfig *cfg = new EGLConfig[numConfigs];
+
+	eglChooseConfig(display, attribs, cfg, numConfigs, &numConfigs);
+
+	//Get valid config
+	EGLConfig &config = dat.config;
+	bool foundConfig = false;
+
+	EGLint val = -1;
+		
+	for(u32 i = 0; i < numConfigs; ++i){
+
+		EGLConfig &conf = cfg[i];
+		bool hasTags = true;
+		
+		if(!eglGetConfigAttrib(display, conf, *attribs, &val) || (val & *(attribs + 1)) == 0)			//Check if window is supported
+			continue;
+		
+		EGLint *nextAttrib = (EGLint*) (attribs + 2);
+		while(*nextAttrib != EGL_NONE){
+
+			if(!eglGetConfigAttrib(display, conf, *nextAttrib, &val) || val != *(nextAttrib + 1)){		//Check if other flags are the same
+				hasTags = false;
+				break;
+			}
+
+			nextAttrib += 2;
+		}
+
+		if(hasTags){
+			config = conf;
+			foundConfig = true;
+			break;
+		}
+		
+	}
+
+	delete[] cfg;
+
+	if(!foundConfig)
+		Log::throwError<Window, 0x2>("Couldn't find a suitable config");
+
+	//Create surface
+	
+	if(!eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format))
+		Log::throwError<Window, 0x3>("Couldn't get config attribute");
+	
+	EGLSurface &surface = dat.surface = eglCreateWindowSurface(display, config, dat.app->window, NULL);
+	EGLContext &context = dat.context = eglCreateContext(display, config, NULL, NULL);
+
+    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE)
+		Log::throwError<Window, 0x4>("Couldn't execute eglMakeCurrent");
+	
+	eglQuerySurface(display, surface, EGL_WIDTH, &width);
+	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
+
+	info.size = Vec2u((u32) width, (u32) height);
+	
+	//Update
+	w->updatePlatform();
+	
+	Log::println("Successfully created window layer");
+	w->initialized = true;
+	w->finalize();
+}
+
+void Window_imp::terminate(Window *w){
+	
+	AWindowData &dat = *(AWindowData*) w->platformData;
+
+    eglMakeCurrent(dat.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
+    if (dat.surface != EGL_NO_SURFACE)
+        eglDestroySurface(dat.display, dat.surface);
+	
+    if (dat.context != EGL_NO_CONTEXT)
+        eglDestroyContext(dat.display, dat.context);
+
+    eglTerminate(dat.display);
+	
+}
+
 void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 
 	Window *w = getWindow(app);
 	WindowInterface *wi = w->getInterface();
 
+	if(w->initialized || cmd == APP_CMD_INIT_WINDOW)
 	switch(cmd){
-
-	case APP_CMD_TERM_WINDOW:
-		w->getParent()->remove(w);
-		break;
 
 	case APP_CMD_WINDOW_RESIZED:
 
@@ -123,6 +240,7 @@ void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 	case APP_CMD_GAINED_FOCUS:
 
 		w->getInfo().inFocus = true;
+		w->isPaused = false;
 		
 		if (wi != nullptr)
 			wi->setFocus(true);
@@ -132,26 +250,43 @@ void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 	case APP_CMD_LOST_FOCUS:
 
 		w->getInfo().inFocus = true;
+		w->isPaused = true;
 		
 		if (wi != nullptr)
 			wi->setFocus(true);
 		
 		break;
 
-	case APP_CMD_CONFIG_CHANGED:
-		Log::warn("Config changed event not supported");	//TODO:
-		break;
-
 	case APP_CMD_RESUME:
-		Log::warn("Resume event not supported");			//TODO:
+		Log::println("Resume");
 		break;
-
-	case APP_CMD_PAUSE:
-		Log::warn("Pause event not supported");				//TODO:
+	
+	case APP_CMD_TERM_WINDOW:
+		terminate(w);
 		break;
-
+		
 	case APP_CMD_SAVE_STATE:
-		Log::warn("Save state event not supported");		//TODO:
+	
+		//Set saved state
+		//However, we use lifetime.bin as a save file
+		
+		app->savedState = malloc(1);
+		app->savedStateSize = 1;
+		
+		if(wi != nullptr)
+			wi->save("lifetime.bin");
+		
+		break;
+		
+	case APP_CMD_INIT_WINDOW:
+		
+		//Load saved state
+		//However, we use lifetime.bin as a save file
+		
+		if(wi != nullptr && app->savedState != nullptr)
+			wi->load("lifetime.bin");
+		
+		initDisplay(w);
 		break;
 
 	default:
@@ -164,34 +299,99 @@ void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 int32_t Window_imp::handleInput(struct android_app *app, AInputEvent *event){
 
 	Window *w = getWindow(app);
+	WindowInterface *wi = w->getInterface();
+
+	if(!w->initialized) return 0;
+	
 	Keyboard *keyboard = w->getInputHandler().getKeyboard();
 
 	bool isDown = AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN;
-
+	
 	int32_t type = AInputEvent_getType(event);
+	int32_t source = AInputEvent_getSource(event);
+	
 	switch(type){
 
 		case AINPUT_EVENT_TYPE_MOTION:
 			{
+				int32_t action = AMotionEvent_getAction(event);
 				float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
+				
+				if(source & AINPUT_SOURCE_JOYSTICK){		//Update controller (PS4 implementation)
+				
+					float ax = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X, 0);						//Left x
+					float ay = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y, 0);						//Left y
+					float az = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Z, 0);						//Right x
+					float arx = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RX, 0) * 0.5 + 0.5;			//Left trigger
+					float ary = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RY, 0) * 0.5 + 0.5;			//Right trigger
+					float arz = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RZ, 0);						//Right y
+				
+					Controller *c = w->getInputHandler().getController(0);
+					
+					if(c != nullptr){
+						c->axes[ControllerAxis::Lx] = ax;
+						c->axes[ControllerAxis::Ly] = ay;
+						c->axes[ControllerAxis::Rx] = az;
+						c->axes[ControllerAxis::Ry] = arz;
+						c->axes[ControllerAxis::L2] = arx;
+						c->axes[ControllerAxis::R2] = ary;
+					}
+					
+				} else if(source & AINPUT_SOURCE_TOUCHSCREEN || source & AINPUT_SOURCE_MOUSE){ 
+				
+					Vec2 pos = Vec2(x, y) / Vec2(w->getInfo().size);
+					pos.y = 1 - pos.y;
+					
+					Mouse *mouse = w->getInputHandler().getMouse();
+					
+					if(action == AMOTION_EVENT_ACTION_MOVE){
+						
+						float xoff = AMotionEvent_getXOffset(event), yoff = AMotionEvent_getYOffset(event);
+						if(wi != nullptr) wi->onMouseDrag(Vec2(xoff, yoff) / Vec2(w->getInfo().size));
+						
+					} else if(action == AMOTION_EVENT_ACTION_POINTER_UP || AMOTION_EVENT_ACTION_UP){
+						
+						Binding b = MouseButton::Left;
+						mouse->update(b, isDown);
+						
+						if(wi != nullptr && mouse->prev[b.getCode() - 1] != isDown)
+							wi->onInput(mouse, b, isDown);
+					}
+				
+					mouse->axes[0] = x;
+					mouse->axes[1] = y;
+					mouse->axes[2] = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_VSCROLL, 0);
+					
+				} else
+					Log::warn(String("Motion event not supported; ") + source + " " + action + " " + " " + x + " " + y);
 			}
-			Log::warn("Motion event not supported");	//TODO:
 			return 0;
 
 		case AINPUT_EVENT_TYPE_KEY:
 			{
 				int32_t keycode = AKeyEvent_getKeyCode(event);
 				AKey key = AKey::find(keycode);
-
+				Binding b = Key(key.getName()).getValue();
+				
 				if(key.getIndex() == 0){
 
 					AControllerButton button = AControllerButton::find(keycode);
+					b = Binding(ControllerButton(button.getName()).getValue(), 0);
 
-					if(button.getIndex() == 0)
-						w->getInputHandler().getController(0)->update(Binding(ControllerButton(button.getName()), 0), isDown);
+					if(button.getIndex() != 0){
+						
+						Controller *c = w->getInputHandler().getController(0);
+						c->update(b, isDown);
+						
+						if(wi != nullptr && c->prev[b.getCode() - 1] != isDown) wi->onInput(c, b, isDown);
+					}
 
-				} else
-					keyboard->update(Binding(Key(key.getName())), isDown);
+				} else {
+					
+					keyboard->update(b, isDown);
+					
+					if(wi != nullptr && keyboard->prev[b.getCode() - 1] != isDown) wi->onInput(keyboard, b, isDown);
+				}
 			}
 
 			return 1;
@@ -206,101 +406,14 @@ void Window::initPlatform() {
 	//Get data
 	AWindowData &dat = *(AWindowData*) platformData;
 
-	dat.app = * (struct android_app**) getInfo().handle;
+	dat.app = (struct android_app*) getInfo().handle;
 	dat.app->userData = platformData;
 	dat.app->onAppCmd = Window_imp::handleCmd;
 	dat.app->onInputEvent = Window_imp::handleInput;
-
-	//Define attributes (8 Bpc = 24Bpp with depth buffer)
-	const EGLint attribs[] = {
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_BLUE_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_RED_SIZE, 8,
-			EGL_DEPTH_SIZE, 24,
-            EGL_NONE
-    };
-
-	//Surface info (like size, etc.)
-	EGLint width, height, format, numConfigs;
-	
-	//Get display
-	EGLDisplay &display = dat.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	eglInitialize(display, 0, 0);
-
-	if(display == NULL)
-		Log::throwError<Window, 0x0>("Couldn't find a display");
-
-	//Get num configs
-	eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
-
-	if(numConfigs == 0)
-		Log::throwError<Window, 0x1>("Couldn't find any config");
-
-	//Get configs
-	EGLConfig *cfg = new EGLConfig[numConfigs];
-
-	eglChooseConfig(display, attribs, cfg, numConfigs, &numConfigs);
-
-	//Get valid config
-	EGLConfig &config = dat.config;
-	bool foundConfig = false;
-
-	for(u32 i = 0; i < numConfigs; ++i){
-
-		EGLConfig &conf = cfg[i];
-		bool hasTags = true;
-
-		//Check if supported
-		EGLint *nextAttrib = (EGLint*) attribs;
-		while(*nextAttrib != EGL_NONE){
-
-			EGLint val;
-			if(!eglGetConfigAttrib(display, conf, *nextAttrib, &val) || val != *(nextAttrib + 1)){
-				hasTags = false;
-				break;
-			}
-
-			nextAttrib += 2;
-		}
-
-		if(hasTags){
-			config = conf;
-			foundConfig = true;
-			break;
-		}
-		
-	}
-
-	delete[] cfg;
-
-	if(!foundConfig)
-		Log::throwError<Window, 0x2>("Couldn't find a suitable config");
-
-	//Create surface
-	eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-	EGLSurface &surface = dat.surface = eglCreateWindowSurface(display, config, dat.app->window, NULL);
-
-	eglQuerySurface(display, surface, EGL_WIDTH, &width);
-	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-
-	info.size = Vec2u((u32) width, (u32) height);
-	
-	//Update
-	updatePlatform();
 }
 
 void Window::destroyPlatform() {
-
-	AWindowData &dat = *(AWindowData*)platformData;
-
-    eglMakeCurrent(dat.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
-    if (dat.surface != EGL_NO_SURFACE)
-        eglDestroySurface(dat.display, dat.surface);
-
-    eglTerminate(dat.display);
-
+	Window_imp::terminate(this);
 }
 
 void Window::updatePlatform() {

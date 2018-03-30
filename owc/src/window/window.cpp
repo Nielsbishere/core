@@ -29,17 +29,32 @@ void Window::setInterface(WindowInterface *wi) {
 void Window::init() {
 
 	lastTick = Timer::getGlobalTimer().getDuration();
-
-	if(wi != nullptr)
-		wi->init();
-
+	
 	inputHandler.init();
-
 	initPlatform();
+	
+}
+
+void Window::finalize(){
+	if(wi != nullptr){
+		if(finalizeCount == 0){
+			wi->init();
+			wi->initWindow();
+		}
+		else
+			wi->initWindow();
+	}
+	
+	++finalizeCount;
 }
 
 void Window::update() {
 
+	if(!initialized || isPaused){
+		lastTick = Timer::getGlobalTimer().getDuration();
+		return;
+	}
+	
 	flp dt = Timer::getGlobalTimer().getDuration() - lastTick;
 
 	if (wi != nullptr)
@@ -49,8 +64,9 @@ void Window::update() {
 
 	if (wi != nullptr)
 		wi->render();
-
+	
+	swapBuffers();
+	
 	inputManager.update();
 	inputHandler.update(this, dt);
-
 }

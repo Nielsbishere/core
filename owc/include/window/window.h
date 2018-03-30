@@ -32,6 +32,7 @@ namespace oi {
 			void updatePlatform();
 			void init();
 			void initPlatform();
+			void finalize();
 			void destroyPlatform();
 			void swapBuffers();
 
@@ -45,6 +46,8 @@ namespace oi {
 			InputHandler inputHandler;
 			InputManager inputManager;
 			WindowInterface *wi = nullptr;
+			bool initialized = false, isPaused = false;
+			u32 finalizeCount = 0;
 
 			flp lastTick = (flp) 0;
 

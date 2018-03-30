@@ -2,9 +2,7 @@
 using namespace oi::wc;
 using namespace oi;
 
-Controller::Controller(u32 id) : InputDevice(InputType::CONTROLLER, id) {
-	connected = prevConnected = false;
-}
+Controller::Controller(u32 id) : InputDevice(InputType::CONTROLLER, id) {}
 
 InputState Controller::getState(Binding b) const {
 
@@ -30,6 +28,7 @@ flp Controller::getAxis(Binding b) const {
 }
 
 void Controller::update(Binding b, bool down) {
+	
 	if (b.getBindingType() != BindingType::CONTROLLER_BUTTON || b.getCode() == 0 || b.getControllerId() != getId()) return;
 
 	next[b.getCode() - 1] = down;

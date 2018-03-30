@@ -23,14 +23,12 @@ void setVibration(u32 id, Vec2 amount) {
 }
 
 Controller::~Controller() {
-	if(connected)
-		setVibration(getId(), (flp) 0);
+	setVibration(getId(), (flp) 0);
 }
 
 void Controller::update(Window *w, flp dt) {
 
 	prev = next;
-	prevConnected = connected;
 
 	WindowInterface *wi = w->getInterface();
 
@@ -45,6 +43,7 @@ void Controller::update(Window *w, flp dt) {
 		}
 	}
 
+	bool connected = false;
 	if (connected = XInputGetState(getId(), &state) == ERROR_SUCCESS) {
 
 		axes[ControllerAxis::Lx - 1U] = state.Gamepad.sThumbLX / 32767.f;
@@ -94,12 +93,6 @@ void Controller::update(Window *w, flp dt) {
 		memset(&axes, 0, sizeof(axes));
 		next.reset();
 	}
-
-	if (wi != nullptr)
-		if (prevConnected && !connected)
-			wi->onDisconnect(this);
-		else if(!prevConnected && connected)
-			wi->onConnect(this);
 }
 
 void Controller::vibrate(Vec2 amount, f32 time) {

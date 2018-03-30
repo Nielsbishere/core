@@ -29,8 +29,6 @@ namespace oi {
 			InputDevice(InputType type, u32 id = 0);
 			virtual ~InputDevice();
 
-			bool isConnected() const { return connected; }
-
 			bool isDown(Binding b) const;
 			bool isUp(Binding b) const;
 			bool isPressed(Binding b) const;
@@ -46,10 +44,6 @@ namespace oi {
 
 			const InputType getType() const;
 			u32 getId() const;
-
-		protected:
-
-			bool connected = true, prevConnected = false;
 
 		private:
 

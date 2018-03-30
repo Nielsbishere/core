@@ -20,7 +20,7 @@ namespace oi {
 			Home = 94, End = 95, Insert = 96, Delete = 97, Scroll_lock = 98, Num_lock = 99, Caps_lock = 100,
 			Tab = 101, Enter = 102, Backspace = 103, Esc = 104,
 			Plus = 105, Left_shift = 106, Right_shift = 107, Left_ctrl = 108, Right_ctrl = 109, Left_alt = 110, Right_alt = 111,
-			Volume_down = 112, Volume_up = 113, Power = 114
+			Volume_down = 112, Volume_up = 113, Power = 114, Back = 115
 		);
 
 		DEnum(MouseAxis, u32, Undefined = 0, X = 1, Y = 2, Mouse_wheel = 3);

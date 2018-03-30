@@ -16,6 +16,12 @@ String::String(char c): source(1, c) {}
 String::String(JSON json) {  *this = json.toString(); }
 String::String(const String &str): source(str.source) { }
 
+String::String(void *v){
+	std::stringstream ss;
+	ss << v;
+	source = ss.str();
+}
+
 u32 String::size() const { return (u32)source.size(); }
 char &String::operator[](u32 i) { return source[i]; }
 char String::at(u32 i) const { return source[i]; }

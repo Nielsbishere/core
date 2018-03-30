@@ -15,7 +15,7 @@ u32 InputHandler::getControllers(){
 void InputHandler::init() {
 
 	devices[InputDeviceBinding::KEYBOARD] = new Keyboard();
-	devices[InputDeviceBinding::MOUSE] = nullptr;				//No mouse for android
+	devices[InputDeviceBinding::MOUSE] = new Mouse();
 
 	for (u32 i = 0; i < getControllers(); ++i)
 		devices[(InputDeviceBinding)((u32) InputDeviceBinding::CONTROLLER0 + i)] = new Controller(i);

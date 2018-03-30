@@ -47,5 +47,6 @@ Controller *InputHandler::getController(u32 i) {
 
 void InputHandler::update(Window *w, flp dt) {
 	for (auto dev : devices)
-		dev.second->update(w, dt);
+		if(dev.second != nullptr)
+			dev.second->update(w, dt);
 }

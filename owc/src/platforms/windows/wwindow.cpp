@@ -153,11 +153,19 @@ LRESULT CALLBACK Window_imp::windowEvents(HWND hwnd, UINT message, WPARAM wParam
 		{
 			Vec2 c = Vec2((flp)LOWORD(lParam), (flp)HIWORD(lParam)) / Vec2(w->getInfo().getSize());
 			Mouse *mouse = w->getInputHandler().getMouse();
-			mouse->axes[MouseAxis::X - 1] = c.x;
-			mouse->axes[MouseAxis::Y - 1] = c.y;
+			
+			Vec2 &ax = *(Vec2*) mouse->axes;
+			Vec2 d = c - ax;
+			
+			ax = c;
 
-			if (wi != nullptr)
-				wi->onMouseMove(c);
+			if (wi != nullptr){
+				
+				if(mouse->next[0])
+					wi->onMouseDrag(ax);
+				else
+					wi->onMouseMove(c);
+			}
 
 		}
 		break;
@@ -269,6 +277,9 @@ void Window::initPlatform() {
 
 	info.focus();
 	updatePlatform();
+	
+	initialized = true;
+	finalize();
 }
 
 void Window::destroyPlatform() {

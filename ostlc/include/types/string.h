@@ -30,6 +30,7 @@ namespace oi {
 		String(u32 u);
 		String(flp f);
 		String(char c);
+		explicit String(void *v);
 
 		u32 size() const;
 		char &operator[](u32 i);

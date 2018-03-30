@@ -13,6 +13,7 @@ namespace oi {
 
 			friend class Window;
 			friend struct Window_imp;
+			friend class WindowManager;
 
 		public:
 
