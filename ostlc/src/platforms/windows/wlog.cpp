@@ -1,8 +1,7 @@
-#include "template/platformdefines.h"
-
 #ifdef __WINDOWS__
 
 #include "utils/log.h"
+#include <Windows.h>
 using namespace oi;
 
 void printstr(String str){

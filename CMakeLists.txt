@@ -44,6 +44,7 @@ set(CMAKE_VERBOSE_MAKEFILE 0)
 
 add_subdirectory(app_android)
 set(Vulkan ON)
+add_definitions(-D__PHONE__)
 
 else()
 
@@ -51,8 +52,15 @@ message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME a
 
 endif()
 
-else()
+elseif(WIN32)
+
 set(Vulkan ON)
+add_definitions(-D__DESKTOP__)
+add_definitions(-D__WINDOWS__)
+set(Windows ON)
+
+else()
+
 endif()
 
 if(Vulkan)
@@ -79,6 +87,22 @@ if(Vulkan)
 		set(VULKAN_LIB vulkan)
 	endif()
 
+endif()
+
+if(Windows)
+add_definitions(-D__VK_SURFACE_TYPE__=VkWin32SurfaceCreateInfoKHR)
+add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR)
+add_definitions(-D__VK_SURFACE_CREATE__=vkCreateWin32SurfaceKHR)
+add_definitions(-D__VK_SURFACE_HANDLE__=hinstance)
+add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_win32_surface")
+add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
+elseif(Android)
+add_definitions(-D__VK_SURFACE_TYPE__=VkAndroidSurfaceCreateInfoKHR)
+add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR)
+add_definitions(-D__VK_SURFACE_CREATE__=vkCreateAndroidSurfaceKHR)
+add_definitions(-D__VK_SURFACE_HANDLE__=window)
+add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_android_surface")
+add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

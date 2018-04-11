@@ -1,5 +1,8 @@
 #pragma once
 
+#undef ERROR
+#undef min
+#undef max
 #include <typeinfo>
 #include "types/string.h"
 

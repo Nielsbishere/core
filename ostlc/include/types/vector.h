@@ -4,7 +4,7 @@
 #include "types/generic.h"
 #include "utils/log.h"
 #include "template/common.h"
-#include <math.h>
+#include <cmath>
 #include <limits>
 
 namespace oi {

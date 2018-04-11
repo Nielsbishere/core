@@ -54,6 +54,7 @@ endif()
 
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/res")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_DIR}/res" "${APK_DIR}/res/")
+add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${APK_DIR}/res/")
 
 # Copy source files
 

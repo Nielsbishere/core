@@ -27,6 +27,9 @@ namespace oi {
 			WindowManager *getParent();
 			
 			void *getPlatformData();
+			
+			void *getSurfaceData();
+			u32 getSurfaceSize();
 
 		protected:
 
@@ -36,7 +39,6 @@ namespace oi {
 			void initPlatform();
 			void finalize();
 			void destroyPlatform();
-			void swapBuffers();
 
 			Window(WindowManager *parent, WindowInfo info);
 			~Window();

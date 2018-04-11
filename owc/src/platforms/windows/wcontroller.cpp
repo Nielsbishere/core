@@ -1,7 +1,6 @@
-#include <template/platformdefines.h>
-
 #ifdef __WINDOWS__
 
+#include <Windows.h>
 #include "input/controller.h"
 #include "window/windowinterface.h"
 #include "window/window.h"

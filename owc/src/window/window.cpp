@@ -40,10 +40,10 @@ void Window::finalize(){
 	if(wi != nullptr){
 		if(finalizeCount == 0){
 			wi->init();
-			wi->initWindow();
+			wi->initSurface();
 		}
 		else
-			wi->initWindow();
+			wi->initSurface();
 	}
 	
 	++finalizeCount;
@@ -65,8 +65,6 @@ void Window::update() {
 
 	if (wi != nullptr)
 		wi->render();
-	
-	swapBuffers();
 	
 	inputManager.update();
 	inputHandler.update(this, dt);

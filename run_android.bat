@@ -1,16 +1,24 @@
 @echo off
 
-if "%1"=="" goto :error
-if "%2"=="" goto :error
-if "%3"=="" goto :error
+set lvl=24
+set abi=arm64-v8a
+set dev=windows-x86_64
 
-cmake -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK_HOME%\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-%3 -DCMAKE_MAKE_PROGRAM=%ANDROID_NDK_HOME%\prebuilt\%2\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="%1" -DAndroid=ON -DANDROID_APK_RUN=ON .
+if "%1"=="" goto :error
+set dev=%1
+if "%2"=="" goto :error
+set abi=%2
+if "%3"=="" goto :error
+set lvl=%3
+
+:program
+cmake -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK_HOME%\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-%lvl% -DCMAKE_MAKE_PROGRAM=%ANDROID_NDK_HOME%\prebuilt\%dev%\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="%abi%" -DAndroid=ON -DANDROID_APK_RUN=ON .
 mingw32-make -j
 pause
 goto :eof
 
 :error
-echo Invalid usage; Please use build_android target currentPlatform androidVersion
-echo Example: build_android arm64-v8a windows-x86_64 24
-pause
-goto :eof
+echo Insufficient params; Please use build_android currentPlatform target androidVersion
+echo Example: build_android windows-x86_64 arm64-v8a 24
+echo Running with params: %dev% %abi% %lvl%
+goto :program

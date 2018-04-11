@@ -32,7 +32,9 @@ namespace oi {
 			virtual void save(String path) = 0;
 			
 			virtual void init(){}			//Called when the window is intialized once
-			virtual void initWindow() {}	//Called when the window is intialized
+			
+			virtual void initSurface() {}	//Called when the window is intialized
+			virtual void destroySurface(){}
 
 			virtual void onResize(Vec2u size) {}
 			virtual void onMove(Vec2i pos) {}

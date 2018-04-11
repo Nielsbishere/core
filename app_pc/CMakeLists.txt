@@ -20,3 +20,5 @@ target_link_libraries(pc ostlc)
 target_link_libraries(pc owc)
 target_link_libraries(pc ogc)
 target_link_libraries(pc app)
+
+add_custom_command(TARGET pc PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${CMAKE_SOURCE_DIR}/res/")

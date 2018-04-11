@@ -1,7 +1,6 @@
-#include <template/platformdefines.h>
-
 #ifdef __WINDOWS__
 
+#include <Windows.h>
 #include "window/windowmanager.h"
 using namespace oi::wc;
 

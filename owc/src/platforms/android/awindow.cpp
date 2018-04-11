@@ -1,5 +1,3 @@
-#include <template/platformdefines.h>
-
 #ifdef __ANDROID__
 
 #include <template/templatefuncs.h>
@@ -80,118 +78,15 @@ Window *Window_imp::getWindow(struct android_app *app){
 }
 
 void Window_imp::initDisplay(Window *w){
-	
-	AWindowData &dat = *(AWindowData*) w->platformData;
-	WindowInfo &info = w->getInfo();
-	
-	//Define attributes (8 Bpc = 24Bpp with depth buffer)
-	const EGLint attribs[] = {
-			EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-			EGL_BLUE_SIZE, 8,
-			EGL_GREEN_SIZE, 8,
-			EGL_RED_SIZE, 8,
-			EGL_DEPTH_SIZE, 24,
-			EGL_NONE
-	};
-
-	//Surface info (like size, etc.)
-	EGLint width, height, format, numConfigs;
-	
-	//Get display
-	EGLDisplay &display = dat.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-	if(display == EGL_NO_DISPLAY)
-		Log::throwError<Window, 0x0>("Couldn't find a display");
-	
-	eglInitialize(display, 0, 0);
-
-	//Get num configs
-	eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
-
-	if(numConfigs == 0)
-		Log::throwError<Window, 0x1>("Couldn't find any config");
-
-	//Get configs
-	EGLConfig *cfg = new EGLConfig[numConfigs];
-
-	eglChooseConfig(display, attribs, cfg, numConfigs, &numConfigs);
-
-	//Get valid config
-	EGLConfig &config = dat.config;
-	bool foundConfig = false;
-
-	EGLint val = -1;
-		
-	for(u32 i = 0; i < numConfigs; ++i){
-
-		EGLConfig &conf = cfg[i];
-		bool hasTags = true;
-		
-		if(!eglGetConfigAttrib(display, conf, *attribs, &val) || (val & *(attribs + 1)) == 0)			//Check if window is supported
-			continue;
-		
-		EGLint *nextAttrib = (EGLint*) (attribs + 2);
-		while(*nextAttrib != EGL_NONE){
-
-			if(!eglGetConfigAttrib(display, conf, *nextAttrib, &val) || val != *(nextAttrib + 1)){		//Check if other flags are the same
-				hasTags = false;
-				break;
-			}
-
-			nextAttrib += 2;
-		}
-
-		if(hasTags){
-			config = conf;
-			foundConfig = true;
-			break;
-		}
-		
-	}
-
-	delete[] cfg;
-
-	if(!foundConfig)
-		Log::throwError<Window, 0x2>("Couldn't find a suitable config");
-
-	//Create surface
-	
-	if(!eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format))
-		Log::throwError<Window, 0x3>("Couldn't get config attribute");
-	
-	EGLSurface &surface = dat.surface = eglCreateWindowSurface(display, config, dat.app->window, NULL);
-	EGLContext &context = dat.context = eglCreateContext(display, config, NULL, NULL);
-
-    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE)
-		Log::throwError<Window, 0x4>("Couldn't execute eglMakeCurrent");
-	
-	eglQuerySurface(display, surface, EGL_WIDTH, &width);
-	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-
-	info.size = Vec2u((u32) width, (u32) height);
-	
-	//Update
 	w->updatePlatform();
-	
-	Log::println("Successfully created window layer");
 	w->initialized = true;
 	w->finalize();
 }
 
 void Window_imp::terminate(Window *w){
-	
-	AWindowData &dat = *(AWindowData*) w->platformData;
-
-    eglMakeCurrent(dat.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
-    if (dat.surface != EGL_NO_SURFACE)
-        eglDestroySurface(dat.display, dat.surface);
-	
-    if (dat.context != EGL_NO_CONTEXT)
-        eglDestroyContext(dat.display, dat.context);
-
-    eglTerminate(dat.display);
-	
+	WindowInterface *wi = w->getInterface();
+	if(wi != nullptr)
+		wi->destroySurface();
 }
 
 void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
@@ -401,6 +296,14 @@ int32_t Window_imp::handleInput(struct android_app *app, AInputEvent *event){
 	}
 }
 
+
+u32 Window::getSurfaceSize(){ return (u32) sizeof(ANativeWindow*); }
+
+void *Window::getSurfaceData() {
+	AWindowData &dat = *(AWindowData*) platformData;
+	return (void*) &dat.app->window;
+}
+
 void Window::initPlatform() {
 
 	//Get data
@@ -425,11 +328,6 @@ void Window::updatePlatform() {
 
 	if (isSet(info.pending, WindowAction::IN_FOCUS))
 		Log::warn("setFocus action is not supported on Android");
-}
-
-void Window::swapBuffers() {
-	AWindowData &dat = *(AWindowData*)platformData;
-	eglSwapBuffers(dat.display, dat.surface);
 }
 
 #endif

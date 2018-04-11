@@ -1,6 +1,6 @@
-#include <template/platformdefines.h>
-
 #ifdef __WINDOWS__
+
+#include <Windows.h>
 
 #include <template/templatefuncs.h>
 #include "window/windowinterface.h"
@@ -11,8 +11,8 @@ using namespace oi::wc;
 using namespace oi;
 
 struct WWindowData {
-	HWND wnd;
 	HINSTANCE instance;
+	HWND wnd;
 };
 
 DEnum(WKey, u32, Undefined = 0, Zero = 48, One = 49, Two = 50, Three = 51, Four = 52, Five = 53, Six = 54, Seven = 55, Eight = 56, Nine = 57, A = 65, B = 66, C = 67, D = 68, E = 69,
@@ -106,13 +106,14 @@ LRESULT CALLBACK Window_imp::windowEvents(HWND hwnd, UINT message, WPARAM wParam
 	case WM_SIZE:
 	{
 		RECT rect;
-		GetClientRect(hwnd, &rect);
+		GetWindowRect(hwnd, &rect);
 
 		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 
+		Vec2u prevSize = win.size;
 		win.size = size;
 
-		if (wi != nullptr)
+		if (wi != nullptr && prevSize != Vec2u(0, 0))
 			wi->onResize(size);
 	}
 	break;
@@ -256,24 +257,12 @@ void Window::initPlatform() {
 	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	if (info.getSize() == 0)
-		info.size = Vec2u(screenWidth, screenHeight);
+	info.size = Vec2u(screenWidth, screenHeight);
 
 	dat.wnd = CreateWindowEx(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, NULL, NULL, dat.instance, NULL);
 
 	if (dat.wnd == NULL)
 		Log::throwError<Window, 0x1>("Couldn't init Windows window");
-
-	RECT rect;
-	GetClientRect(dat.wnd, &rect);
-
-	i32 width = (i32)(rect.right - rect.left);
-	i32 height = (i32)(rect.bottom - rect.top);
-
-	i32 difX = (i32) info.getSize().x - width;
-	i32 difY = (i32) info.getSize().y - height;
-
-	SetWindowPos(dat.wnd, NULL, -difX / 2, 0, info.getSize().x + difX, info.getSize().y + difY, SWP_NOZORDER);
 
 	info.focus();
 	updatePlatform();
@@ -281,6 +270,9 @@ void Window::initPlatform() {
 	initialized = true;
 	finalize();
 }
+
+u32 Window::getSurfaceSize(){ return (u32) sizeof(WWindowData); }
+void *Window::getSurfaceData() { return platformData; }
 
 void Window::destroyPlatform() {
 
@@ -306,10 +298,6 @@ void Window::updatePlatform() {
 			SetForegroundWindow(dat.wnd);
 			SetFocus(dat.wnd);
 		}
-}
-
-void Window::swapBuffers() {
-	SwapBuffers(GetDC(((WWindowData*) platformData)->wnd));
 }
 
 #endif

@@ -1,5 +1,3 @@
-#include <template/platformdefines.h>
-
 #ifdef __WINDOWS__
 
 #include "input/mouse.h"

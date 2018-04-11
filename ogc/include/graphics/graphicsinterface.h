@@ -12,11 +12,15 @@ namespace oi {
 			void init() override;
 			virtual void initScene(){}
 			
+			void initSurface() override;
+			void destroySurface() override;
+			virtual void onResize(Vec2u res) override;
+			
 			void render() override;
 			virtual void renderScene(){}
 
 			
-		private:
+		protected:
 		
 			Graphics g;
 			

@@ -29,7 +29,6 @@ void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
 void MainInterface::load(String path){ Log::println("Loading"); }
 void MainInterface::save(String path){ Log::println("Saving"); }
 
-u64 tick = 0;
-void MainInterface::update(flp dt){ if(tick % (5 * 60) == 0) Log::println("Approx 5 secs"); ++tick; }
+void MainInterface::update(flp dt){  }
 
 MainInterface::~MainInterface(){ Log::println("Destroyed"); }

@@ -1,5 +1,3 @@
-#include <template/platformdefines.h>
-
 #ifdef __ANDROID__
 
 #include "input/controller.h"

@@ -2,7 +2,7 @@
 using namespace oi;
 using namespace wc;
 
-WindowInfo::WindowInfo(String title, u32 version, void *handle, Vec2u size, Vec2i position, bool inFocus): version(version), title(title), size(size), position(position), inFocus(inFocus), handle(handle), pending(WindowAction::NONE) {}
+WindowInfo::WindowInfo(String title, u32 version, void *handle, bool inFocus): version(version), title(title), inFocus(inFocus), handle(handle), pending(WindowAction::NONE) {}
 
 String WindowInfo::getTitle() const { return title; }
 Vec2i WindowInfo::getPosition() const { return position; }
@@ -11,6 +11,7 @@ Window *WindowInfo::getParent() const { return parent; }
 
 void WindowInfo::move(Vec2i newPos) { position = newPos; notify(WindowAction::MOVE); }
 void WindowInfo::resize(Vec2u newSize) { size = newSize; notify(WindowAction::RESIZE); }
+void WindowInfo::_forceSize(Vec2u newSize) { size = newSize; }
 
 void WindowInfo::focus() { inFocus = true; notify(WindowAction::RESIZE); }
 
