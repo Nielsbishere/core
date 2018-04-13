@@ -6,6 +6,8 @@
 namespace oi {
 
 	namespace gc {
+		
+		class Graphics;
 
 		DEnum(ShaderStageType, const char*, Undefined = "", Vertex_shader = "vert", Fragment_shader = "frag", Geometry_shader = "geom", Compute_shader = "comp");
 

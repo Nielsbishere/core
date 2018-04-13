@@ -17,6 +17,8 @@ add_library(
 	${app_android_SRC}
 )
 
+add_definitions(-D__PROJECT_RES__="assets/")
+
 target_link_libraries(app_android ostlc)
 target_link_libraries(app_android owc)
 target_link_libraries(app_android ogc)
@@ -32,7 +34,7 @@ set(ANDROID_DIR ${HOME_DIR}/${ANDROID_NAME})
 set(APK_DIR ${CMAKE_SOURCE_DIR}/bin/apk)
 set(LIBS_DIR ${CMAKE_SOURCE_DIR}/lib)
 
-set(ANDROID_APK_PACKAGE com.oi.app_android)
+set(ANDROID_APK_PACKAGE com.oi.${APP_PACKAGE})
 set(ANDROID_APK_SIGNER_KEYSTORE	"~/my-release-key.keystore")
 set(ANDROID_APK_SIGNER_ALIAS "myalias")
 
@@ -54,15 +56,16 @@ endif()
 
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/res")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_DIR}/res" "${APK_DIR}/res/")
-add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${APK_DIR}/res/")
+add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${APK_DIR}/assets/")
 
 # Copy source files
 
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/src")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_DIR}/src" "${APK_DIR}/src/")
 
-# Copy manifest
+# Copy manifest & strings.xml
 configure_file("${ANDROID_DIR}/AndroidManifest.xml" "${APK_DIR}/AndroidManifest.xml")
+configure_file("${ANDROID_DIR}/strings.xml" "${APK_DIR}/res/values/strings.xml")
 
 # Refresh command
 add_custom_command(TARGET ${ANDROID_NAME}

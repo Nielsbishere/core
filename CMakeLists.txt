@@ -2,6 +2,11 @@ project(oic)
 
 cmake_minimum_required(VERSION 3.9.0)
 
+set(APP_NAME Osomi\ Core)
+set(APP_PACKAGE Osomi_Core)
+
+add_definitions(-D__PROJECT_NAME__="${APP_NAME}")
+
 set(HOME_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Default options
@@ -27,37 +32,36 @@ message("-- Android - enabling")
 
 if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_NDK_HOME})
 
-message("-- Android - enabled")
+	message("-- Android - enabled")
 
-set(ANDROID_NDK, $ENV{ANDROID_NDK_HOME})
-set(ANDROID_HOME, $ENV{ANDROID_HOME})
-set(JAVA_HOME, $ENV{JAVA_HOME})
+	set(ANDROID_NDK, $ENV{ANDROID_NDK_HOME})
+	set(ANDROID_HOME, $ENV{ANDROID_HOME})
+	set(JAVA_HOME, $ENV{JAVA_HOME})
 
-if(${ANDROID_ABI} STREQUAL "arm64-v8a")
-    include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
+	if(${ANDROID_ABI} STREQUAL "arm64-v8a")
+		include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
+	else()
+		include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
+	endif()
+
+	set(CMAKE_VERBOSE_MAKEFILE 0)
+
+	add_subdirectory(app_android)
+	set(Vulkan ON)
+	add_definitions(-D__PHONE__)
+
 else()
-    include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
-endif()
 
-set(CMAKE_VERBOSE_MAKEFILE 0)
-
-
-add_subdirectory(app_android)
-set(Vulkan ON)
-add_definitions(-D__PHONE__)
-
-else()
-
-message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
+	message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
 
 endif()
 
 elseif(WIN32)
 
-set(Vulkan ON)
-add_definitions(-D__DESKTOP__)
-add_definitions(-D__WINDOWS__)
-set(Windows ON)
+	set(Vulkan ON)
+	add_definitions(-D__DESKTOP__)
+	add_definitions(-D__WINDOWS__)
+	set(Windows ON)
 
 else()
 
@@ -87,26 +91,26 @@ if(Vulkan)
 		set(VULKAN_LIB vulkan)
 	endif()
 
-endif()
-
-if(Windows)
-add_definitions(-D__VK_SURFACE_TYPE__=VkWin32SurfaceCreateInfoKHR)
-add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR)
-add_definitions(-D__VK_SURFACE_CREATE__=vkCreateWin32SurfaceKHR)
-add_definitions(-D__VK_SURFACE_HANDLE__=hinstance)
-add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_win32_surface")
-add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
-elseif(Android)
-add_definitions(-D__VK_SURFACE_TYPE__=VkAndroidSurfaceCreateInfoKHR)
-add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR)
-add_definitions(-D__VK_SURFACE_CREATE__=vkCreateAndroidSurfaceKHR)
-add_definitions(-D__VK_SURFACE_HANDLE__=window)
-add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_android_surface")
-add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
+	if(Windows)
+		add_definitions(-D__VK_SURFACE_TYPE__=VkWin32SurfaceCreateInfoKHR)
+		add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR)
+		add_definitions(-D__VK_SURFACE_CREATE__=vkCreateWin32SurfaceKHR)
+		add_definitions(-D__VK_SURFACE_HANDLE__=hinstance)
+		add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_win32_surface")
+		add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
+	elseif(Android)
+		add_definitions(-D__VK_SURFACE_TYPE__=VkAndroidSurfaceCreateInfoKHR)
+		add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR)
+		add_definitions(-D__VK_SURFACE_CREATE__=vkCreateAndroidSurfaceKHR)
+		add_definitions(-D__VK_SURFACE_HANDLE__=window)
+		add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_android_surface")
+		add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
+	endif()
+	
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-add_definitions(-D__DEBUG__)
+	add_definitions(-D__DEBUG__)
 endif()
 
 # Projects
@@ -117,5 +121,5 @@ add_subdirectory(ogc)
 add_subdirectory(app)
 
 if(NOT Android)
-add_subdirectory(app_pc)
+	add_subdirectory(app_pc)
 endif()

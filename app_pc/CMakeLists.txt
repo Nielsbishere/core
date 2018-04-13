@@ -4,21 +4,25 @@ include_directories(../ogc/include)
 include_directories(../app/include)
 include_directories(include)
 
-file(GLOB_RECURSE pc_SRC
+file(GLOB_RECURSE app_pc_SRC
 	"include/*.h"
 	"src/*.c"
 	"include/*.hpp"
 	"src/*.cpp"
 )
 
+add_definitions(-D__PROJECT_RES__="res/")
+
 add_executable(
-	pc
-	${pc_SRC}
+	app_pc
+	${app_pc_SRC}
 )
 
-target_link_libraries(pc ostlc)
-target_link_libraries(pc owc)
-target_link_libraries(pc ogc)
-target_link_libraries(pc app)
+target_link_libraries(app_pc ostlc)
+target_link_libraries(app_pc owc)
+target_link_libraries(app_pc ogc)
+target_link_libraries(app_pc app)
 
-add_custom_command(TARGET pc PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${CMAKE_SOURCE_DIR}/res/")
+add_custom_command(TARGET app_pc PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${CMAKE_SOURCE_DIR}/res/")
+
+set_target_properties(app_pc PROPERTIES OUTPUT_NAME "${APP_NAME}")

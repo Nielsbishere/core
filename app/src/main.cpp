@@ -6,7 +6,7 @@ using namespace oi;
 //Set up a main window
 void Application::instantiate(void *param){
 	WindowManager manager;
-	Window *w = manager.create(WindowInfo("Test window", 1, param));
+	Window *w = manager.create(WindowInfo(__PROJECT_NAME__, 1, param));
 	w->setInterface(new MainInterface());
 	manager.waitAll();
 }
