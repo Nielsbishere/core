@@ -1,3 +1,7 @@
+#pragma once
+
+#ifdef __VULKAN__
+
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <types/string.h>
@@ -12,27 +16,41 @@ namespace oi {
 		class Graphics;
 
 		struct VkGraphics {
-			VkInstance instance;
-			VkPhysicalDevice pdevice;
-			VkPhysicalDeviceMemoryProperties pmemory;
-			VkDevice device;
-			VkSurfaceKHR surface;
-			VkFormat colorFormat;
-			VkColorSpaceKHR colorSpace;
-			VkSwapchainKHR swapchain;
-			std::vector<Texture*> swapchainTextures;
-			Texture *swapchainDepth;
+			VkInstance instance = nullptr;
+			VkPhysicalDevice pdevice = nullptr;
+			VkPhysicalDeviceMemoryProperties pmemory{};
+			VkDevice device = nullptr;
+			VkSurfaceKHR surface = nullptr;
+			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+			VkQueue queue = nullptr;
+			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+			VkSwapchainKHR swapchain = nullptr;
+			VkFence present = nullptr;
+			u32 current = 0;
+			VkCommandPool pool = nullptr;
+			VkSemaphore semaphore = nullptr;
+			VkDebugReportCallbackEXT debugCallback = nullptr;
+		};
+
+		struct VkRenderTarget {
+			VkRenderPass renderPass = nullptr;
+			std::vector<VkFramebuffer> frameBuffer = std::vector<VkFramebuffer>();
 		};
 
 		struct VkTexture {
-			VkImage image;
-			VkDeviceMemory memory;
-			VkImageView view;
+			VkImage image = nullptr;
+			VkDeviceMemory memory = nullptr;
+			VkImageView view = nullptr;
 		};
 
 		struct VkShaderStage {
-			VkShaderModule shader;
-			VkPipelineShaderStageCreateInfo pipeline;
+			VkShaderModule shader = nullptr;
+			VkPipelineShaderStageCreateInfo pipeline{};
+		};
+
+		struct VkCommandList {
+			VkCommandPool pool = nullptr;
+			VkCommandBuffer cmd = nullptr;
 		};
 
 		template<u32 errorId, typename T = gc::Graphics>
@@ -96,7 +114,7 @@ namespace oi {
 		}
 
 
-		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(graphics.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
+		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
 
 		//TODO: Allocator
 		#define allocator nullptr
@@ -135,3 +153,5 @@ namespace oi {
 
 	}
 }
+
+#endif

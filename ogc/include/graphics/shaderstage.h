@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/gl/generic.h"
 #include <template/enum.h>
 #include <types/buffer.h>
 
@@ -31,7 +32,7 @@ namespace oi {
 			String path;
 			Graphics *g = nullptr;
 
-			u8 platformData[64];
+			ShaderStageExt ext;
 
 		};
 

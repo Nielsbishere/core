@@ -28,8 +28,6 @@ option(Android "Android" OFF)
 
 if(Android)
 
-message("-- Android - enabling")
-
 if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_NDK_HOME})
 
 	message("-- Android - enabled")
@@ -46,7 +44,6 @@ if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_
 
 	set(CMAKE_VERBOSE_MAKEFILE 0)
 
-	add_subdirectory(app_android)
 	set(Vulkan ON)
 	add_definitions(-D__PHONE__)
 
@@ -70,6 +67,7 @@ endif()
 if(Vulkan)
 
 	add_definitions(-D__VULKAN__)
+	message("-- Vulkan - enabled")
 
 	if(WIN32)
 		if(DEFINED ENV{VULKAN_SDK})
@@ -120,6 +118,8 @@ add_subdirectory(owc)
 add_subdirectory(ogc)
 add_subdirectory(app)
 
-if(NOT Android)
+if(Android)
+	add_subdirectory(app_android)
+else()
 	add_subdirectory(app_pc)
 endif()

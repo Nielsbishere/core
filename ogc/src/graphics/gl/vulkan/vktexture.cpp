@@ -9,14 +9,13 @@ using namespace oi;
 bool Texture::init(Graphics *g, bool isOwned) {
 
 	this->g = g;
-	this->isOwned = isOwned;
+	this->owned = isOwned;
 
-	VkTexture &textureData = *(VkTexture*) platformData;
-	VkGraphics &graphics = *(VkGraphics*) g->getPlatformData();
+	VkGraphics &graphics = g->getExtension();
 
 	bool useStencil = false, useDepth = false;
 
-	if (this->format == TextureFormat::Depth) {
+	if (info.format == TextureFormat::Depth) {
 
 		useDepth = true;
 
@@ -24,24 +23,24 @@ bool Texture::init(Graphics *g, bool isOwned) {
 
 		for (VkTextureFormat &f : priorities) {
 			VkFormatProperties fprop;
-			vkGetPhysicalDeviceFormatProperties(graphics.pdevice, (VkFormat)f.getValue().value, &fprop);
+			vkGetPhysicalDeviceFormatProperties(graphics.pdevice, (VkFormat) f.getValue().value, &fprop);
 
 			if (fprop.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-				this->format = f.getName();
+				info.format = f.getName();
 				break;
 			}
 		}
 
-		if (this->format == TextureFormat::Depth)
+		if (info.format == TextureFormat::Depth)
 			return Log::throwError<Texture, 0x0>("Couldn't get depth texture; no optimal format available");
 
-		useStencil = this->format.getIndex() > TextureFormat::D32;
+		useStencil = info.format.getIndex() > TextureFormat::D32;
 	}
 
-	VkTextureFormat format = this->format.getName();
+	VkTextureFormat format = info.format.getName();
 	VkFormat format_inter = (VkFormat) format.getValue().value;
 
-	VkTextureUsage usage = this->usage.getName();
+	VkTextureUsage usage = info.usage.getName();
 	VkImageLayout usage_inter = (VkImageLayout) usage.getValue().value;
 
 	if(isOwned){
@@ -51,12 +50,12 @@ bool Texture::init(Graphics *g, bool isOwned) {
 		VkImageCreateInfo imageInfo;
 		memset(&imageInfo, 0, sizeof(imageInfo));
 
-		bool useDepth = this->format.getValue() >= TextureFormat::D16 && this->format.getValue() <= TextureFormat::D32S8;
+		bool useDepth = info.format.getValue() >= TextureFormat::D16 && info.format.getValue() <= TextureFormat::D32S8;
 
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
 		imageInfo.format = format_inter;
-		imageInfo.extent = { size.x, size.y, 1 };
+		imageInfo.extent = { info.res.x, info.res.y, 1 };
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.mipLevels = 1;
@@ -65,7 +64,7 @@ bool Texture::init(Graphics *g, bool isOwned) {
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, allocator, &textureData.image), "Couldn't create image");
+		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, allocator, &ext.image), "Couldn't create image");
 
 		//Allocate memory
 
@@ -73,7 +72,7 @@ bool Texture::init(Graphics *g, bool isOwned) {
 		memset(&memoryInfo, 0, sizeof(memoryInfo));
 
 		VkMemoryRequirements requirements;
-		vkGetImageMemoryRequirements(graphics.device, textureData.image, &requirements);
+		vkGetImageMemoryRequirements(graphics.device, ext.image, &requirements);
 
 		VkMemoryPropertyFlagBits required = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
@@ -93,8 +92,8 @@ bool Texture::init(Graphics *g, bool isOwned) {
 		memoryInfo.allocationSize = requirements.size;
 		memoryInfo.memoryTypeIndex = memoryIndex;
 
-		vkCheck<0x3, Texture>(vkAllocateMemory(graphics.device, &memoryInfo, allocator, &textureData.memory), "Couldn't allocate image memory");
-		vkCheck<0x4, Texture>(vkBindImageMemory(graphics.device, textureData.image, textureData.memory, 0), "Couldn't bind image memory");
+		vkCheck<0x3, Texture>(vkAllocateMemory(graphics.device, &memoryInfo, allocator, &ext.memory), "Couldn't allocate image memory");
+		vkCheck<0x4, Texture>(vkBindImageMemory(graphics.device, ext.image, ext.memory, 0), "Couldn't bind image memory");
 
 	}
 	
@@ -104,16 +103,16 @@ bool Texture::init(Graphics *g, bool isOwned) {
 	memset(&viewInfo, 0, sizeof(viewInfo));
 
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewInfo.image = textureData.image;
+	viewInfo.image = ext.image;
 	viewInfo.format = format_inter;
 	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	viewInfo.subresourceRange.aspectMask = useDepth ? (useStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0) | VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.layerCount = 1;
 
-	vkCheck<0x4, Texture>(vkCreateImageView(graphics.device, &viewInfo, allocator, &textureData.view), "Couldn't create image view");
+	vkCheck<0x4, Texture>(vkCreateImageView(graphics.device, &viewInfo, allocator, &ext.view), "Couldn't create image view");
 
-	Log::println(String("Successfully created a VkTexture with format ") + this->format.getName() + " and size " + size);
+	Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	return true;
 }
 
@@ -121,14 +120,13 @@ Texture::~Texture() {
 
 	if (g != nullptr) {
 
-		VkTexture &textureData = *(VkTexture*)platformData;
-		VkGraphics &graphics = *(VkGraphics*)g->getPlatformData();
+		VkGraphics &graphics = g->getExtension();
 
-		vkDestroyImageView(graphics.device, textureData.view, allocator);
+		vkDestroyImageView(graphics.device, ext.view, allocator);
 		
-		if(isOwned){
-			vkFreeMemory(graphics.device, textureData.memory, allocator);
-			vkDestroyImage(graphics.device, textureData.image, allocator);
+		if(owned){
+			vkFreeMemory(graphics.device, ext.memory, allocator);
+			vkDestroyImage(graphics.device, ext.image, allocator);
 		}
 
 	}

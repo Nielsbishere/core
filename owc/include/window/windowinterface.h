@@ -3,6 +3,7 @@
 #include <types/vector.h>
 #include "input/binding.h"
 #include "input/inputdevice.h"
+#include <utils/timer.h>
 
 namespace oi {
 
@@ -54,9 +55,13 @@ namespace oi {
 			InputHandler &getInputHandler();
 			InputManager &getInputManager();
 
+			Timer getTimer() { return t; }
+			f64 getDuration() { return t.getDuration(); }
+
 		private:
 
 			Window *parent;
+			Timer t;
 
 		};
 

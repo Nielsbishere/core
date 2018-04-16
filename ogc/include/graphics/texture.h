@@ -1,6 +1,7 @@
 #pragma once
 #include <types/vector.h>
 #include <template/enum.h>
+#include "graphics/gl/generic.h"
 
 namespace oi {
 
@@ -38,6 +39,21 @@ namespace oi {
 
 		);
 
+		enum class TextureFormatStorage {
+			INT,
+			UINT,
+			FLOAT
+		};
+
+		struct TextureInfo {
+
+			Vec2u res;
+			TextureFormat format;
+			TextureUsage usage;
+
+			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : res(res), format(format), usage(usage) {}
+		};
+
 		class Texture {
 
 			friend class Graphics;
@@ -49,22 +65,23 @@ namespace oi {
 			TextureFormat getFormat();
 			TextureUsage getUsage();
 			Vec2u getSize();
+			bool isOwned();
+
+			TextureExt &getExtension();
 
 		protected:
 
-			Texture(Vec2u size, TextureFormat format, TextureUsage usage);
+			Texture(TextureInfo info);
 			bool init(Graphics *g, bool isOwned = true);
 
 		private:
 
-			Vec2u size;
-			TextureFormat format;
-			TextureUsage usage;
+			TextureInfo info;
 			Graphics *g = nullptr;
 			
-			bool isOwned = false;
+			bool owned = false;
 
-			u8 platformData[128];
+			TextureExt ext;
 
 		};
 

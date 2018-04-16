@@ -1,8 +1,9 @@
 #include "utils/log.h"
 using namespace oi;
 
-void Log::warn(String what) {
+bool Log::warn(String what) {
 	warningc(what + String::lineEnd());
+	return false;
 }
 
 bool Log::error(String what) {
@@ -16,6 +17,13 @@ void Log::print(String what) {
 
 void Log::println(String what) {
 	printc(what + String::lineEnd());
+}
+
+void Log::print(String what, LogLevel level) {
+	if (level == LogLevel::ERROR) Log::error(what);
+	else if (level == LogLevel::FATAL) Log::throwError<Log, 0x0>(what);
+	else if (level == LogLevel::WARN) Log::warn(what);
+	else Log::println(what);
 }
 
 void Log::setCallback(LogCallback callback, LogLevel ll) {

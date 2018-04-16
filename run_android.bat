@@ -12,7 +12,6 @@ if "%3"=="" goto :error
 set lvl=%3
 
 :program
-call clean
 cmake -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK_HOME%\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-%lvl% -DCMAKE_MAKE_PROGRAM=%ANDROID_NDK_HOME%\prebuilt\%dev%\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="%abi%" -DAndroid=ON -DANDROID_APK_RUN=ON .
 mingw32-make -j
 pause

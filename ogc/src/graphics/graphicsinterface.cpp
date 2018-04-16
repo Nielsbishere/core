@@ -15,9 +15,9 @@ void GraphicsInterface::destroySurface() {
 }
 
 void GraphicsInterface::render() {
-	g.clear(Vec4f(0.25f, 0.5f, 1.0f, 1.0f));
+	g.begin();
 	renderScene();
-	g.swapBuffers();
+	g.end();
 }
 
 void GraphicsInterface::onResize(Vec2u res){

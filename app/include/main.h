@@ -17,4 +17,8 @@ public:
 	void save(oi::String str) override;
 	void update(flp dt) override;
 
+private:
+
+	oi::gc::CommandList *cmdList;
+
 };

@@ -10,6 +10,9 @@
 //Please make sure that names are standard C/C++ names (so no spaces/tabs; no starting with numbers, etc.)
 //Please make sure that every enum value is unique, there is no error yet; though looking up values will not work as expected
 
+//These types of enums are called 'structured enums' or 'enum struct'
+//Because you can use any struct that is constexpr to define it
+
 namespace oi {
 
 	#define _(...) __VA_ARGS__

@@ -1,4 +1,5 @@
 #include <types/vector.h>
+#include "graphics/gl/generic.h"
 
 namespace oi {
 	
@@ -11,7 +12,15 @@ namespace oi {
 		class Texture;
 		class TextureFormat;
 		class TextureUsage;
-		
+		class RenderTarget;
+		class CommandList;
+
+		struct TextureInfo;
+		struct RenderTargetInfo;
+		struct CommandListInfo;
+
+		enum class TextureFormatStorage;
+
 		class Graphics {
 			
 		public:
@@ -20,25 +29,40 @@ namespace oi {
 			
 			void init(oi::wc::Window *w, u32 buffering = 2);
 			
-			void initSurface(oi::wc::Window *w);
-			void destroySurface();
+			void initSurface(oi::wc::Window *w);							//Inits surface & backbuffer
+			void destroySurface();											//Destroys surface & backBuffer
 			
-			void clear(Vec4f color);
-			void swapBuffers();
+			void begin();
+			void end();
 
-			Texture *create(Vec2u res, TextureFormat format, TextureUsage usage);
+			Texture *create(TextureInfo info);
+			RenderTarget *create(RenderTargetInfo info);
+			CommandList *create(CommandListInfo info);
+
+			bool cleanCommandList(CommandList *cmd);
 
 			const char *getShaderExtension();
-			
-			u8 *getPlatformData();
+			GraphicsExt &getExtension();
+
+			bool isDepthFormat(TextureFormat format);
+			u32 getChannelSize(TextureFormat format);						//Returns size of one channel in bytes
+			u32 getChannels(TextureFormat format);							//Returns number of channels
+			u32 getFormatSize(TextureFormat format);						//Returns size of pixel
+			TextureFormatStorage getFormatStorage(TextureFormat format);
+
+			Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
+
+			RenderTarget *getBackBuffer();
 
 		private:
 			
 			bool initialized = false;
 			u32 buffering;
-			
-			static constexpr u32 platformSize = 4096U;
-			u8 platformData[platformSize];
+
+			RenderTarget *backBuffer = nullptr;
+			GraphicsExt ext;
+
+			std::vector<CommandList*> commandList;
 			
 		};
 		

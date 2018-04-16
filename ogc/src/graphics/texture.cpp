@@ -2,8 +2,11 @@
 using namespace oi::gc;
 using namespace oi;
 
-TextureFormat Texture::getFormat() { return format; }
-TextureUsage Texture::getUsage() { return usage; }
-Vec2u Texture::getSize() { return size; }
+TextureFormat Texture::getFormat() { return info.format; }
+TextureUsage Texture::getUsage() { return info.usage; }
+Vec2u Texture::getSize() { return info.res; }
+bool Texture::isOwned() { return owned; }
 
-Texture::Texture(Vec2u size, TextureFormat format, TextureUsage usage) : size(size), format(format), usage(usage) {}
+Texture::Texture(TextureInfo info) : info(info) {}
+
+TextureExt &Texture::getExtension() { return ext; }

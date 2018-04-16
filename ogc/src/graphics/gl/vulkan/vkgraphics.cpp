@@ -3,6 +3,8 @@
 #include "graphics/gl/vulkan.h"
 #include "graphics/graphics.h"
 #include "graphics/texture.h"
+#include "graphics/rendertarget.h"
+#include "graphics/commandlist.h"
 #include <window/window.h>
 
 #include <cstring>
@@ -14,15 +16,51 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
+VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, void *pUserData) {
+	
+	String prefix;
+	LogLevel level = LogLevel::PRINT;
+	
+	if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+		prefix = "Info: ";
+	else if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+		prefix = "Warning: ";
+		level = LogLevel::WARN;
+	} else if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
+		prefix = "Performance warning: ";
+		level = LogLevel::WARN;
+	} else if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+		prefix = "Error: ";
+		level = LogLevel::ERROR;
+	} else 
+		prefix = "Debug: ";
+
+	Log::print(prefix + pMessage, level);
+
+	return VK_FALSE;
+}
+
 Graphics::~Graphics(){
 	
 	if(initialized){
-		
-		VkGraphics &graphics = *(VkGraphics*) platformData;
+
+		vkQueueWaitIdle(ext.queue);
+
+		vkDestroyCommandPool(ext.device, ext.pool, allocator);
+		vkDestroySemaphore(ext.device, ext.semaphore, allocator);
+		vkDestroyFence(ext.device, ext.present, allocator);
 
 		destroySurface();
-		vkDestroyDevice(graphics.device, allocator);
-		vkDestroyInstance(graphics.instance, allocator);
+		vkDestroyDevice(ext.device, allocator);
+
+		#ifdef __DEBUG__
+
+		vkExtension(vkDestroyDebugReportCallbackEXT);
+
+		vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, allocator);
+		#endif
+
+		vkDestroyInstance(ext.instance, allocator);
 		
 		Log::println("Successfully destroyed Vulkan instance and device");
 	}
@@ -31,13 +69,9 @@ Graphics::~Graphics(){
 
 void Graphics::init(Window *w, u32 buffering){
 	
+	u32 queueFamilyIndex = 0; //TODO: !!!
+
 	this->buffering = buffering;
-	
-	if(sizeof(VkGraphics) > Graphics::platformSize)
-		Log::throwError<Graphics, 0x0>("Graphics struct can't contain VkGraphics");
-	
-	VkGraphics &graphics = *(VkGraphics*) platformData;
-	std::memset(&graphics, 0, sizeof(VkGraphics));
 
 	//Get extensions and layers
 
@@ -102,11 +136,31 @@ void Graphics::init(Window *w, u32 buffering){
 	
 	//Create instance
 	
-	vkCheck<0x1>(vkCreateInstance(&instanceInfo, allocator, &graphics.instance), "Couldn't obtain Vulkan instance");
+	vkCheck<0x1>(vkCreateInstance(&instanceInfo, allocator, &ext.instance), "Couldn't obtain Vulkan instance");
 	initialized = true;
 	
 	Log::println("Successfully initialized Graphics with Vulkan context");
-	
+
+
+	#ifdef __DEBUG__
+
+	//Debug callback
+
+	VkDebugReportCallbackCreateInfoEXT callbackInfo;
+	memset(&callbackInfo, 0, sizeof(callbackInfo));
+
+	callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+	callbackInfo.flags = 0x0000001F;	//All
+	callbackInfo.pfnCallback = onDebugReport;
+
+	vkExtension(vkCreateDebugReportCallbackEXT);
+
+	vkCheck<0x19>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, allocator, &ext.debugCallback), "Couldn't create debug report callback");
+
+	Log::println("Successfully created debug report callback");
+
+	#endif
+
 	//Show all layers and extensions
 	
 	#ifdef __DEBUG__
@@ -130,10 +184,10 @@ void Graphics::init(Window *w, u32 buffering){
 	
 	//Get all devices
 	uint32_t deviceCount;
-	vkEnumeratePhysicalDevices(graphics.instance, &deviceCount, nullptr);
+	vkEnumeratePhysicalDevices(ext.instance, &deviceCount, nullptr);
 	
 	VkPhysicalDevice *devices = new VkPhysicalDevice[deviceCount];
-	vkEnumeratePhysicalDevices(graphics.instance, &deviceCount, devices);
+	vkEnumeratePhysicalDevices(ext.instance, &deviceCount, devices);
 	
 	#ifdef __DEBUG__
 	Log::println(String("Devices: ") + deviceCount);
@@ -171,7 +225,7 @@ void Graphics::init(Window *w, u32 buffering){
 	if(!foundDiscrete)
 		Log::warn("Couldn't find a discrete GPU; so instead picked the first");
 	
-	graphics.pdevice = *gpu;
+	ext.pdevice = *gpu;
 	
 	delete[] properties;
 	
@@ -189,10 +243,10 @@ void Graphics::init(Window *w, u32 buffering){
 	
 
 	uint32_t familyCount;
-	vkGetPhysicalDeviceQueueFamilyProperties(graphics.pdevice, &familyCount, nullptr);
+	vkGetPhysicalDeviceQueueFamilyProperties(ext.pdevice, &familyCount, nullptr);
 
 	VkQueueFamilyProperties *families = new VkQueueFamilyProperties[familyCount];
-	vkGetPhysicalDeviceQueueFamilyProperties(graphics.pdevice, &familyCount, families);
+	vkGetPhysicalDeviceQueueFamilyProperties(ext.pdevice, &familyCount, families);
 
 
 	float queuePriorities[] = { 1.f };
@@ -207,16 +261,47 @@ void Graphics::init(Window *w, u32 buffering){
 	deviceInfo.queueCreateInfoCount = queueCount;
 	deviceInfo.pQueueCreateInfos = queues;
 	
-	vkCheck<0x2>(vkCreateDevice(*gpu, &deviceInfo, allocator, &graphics.device), "Couldn't obtain device");
+	vkCheck<0x2>(vkCreateDevice(*gpu, &deviceInfo, allocator, &ext.device), "Couldn't obtain device");
 	
+	vkGetDeviceQueue(ext.device, queueFamilyIndex, 0, &ext.queue);
+
 	Log::println("Successfully created device");
 	delete[] families;
+
+	//Create present fence
+
+	VkFenceCreateInfo fenceInfo;
+	memset(&fenceInfo, 0, sizeof(fenceInfo));
+
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+	vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, allocator, &ext.present), "Couldn't create the present fence");
+
+	//Create semaphore
+
+	VkSemaphoreCreateInfo semaphoreInfo;
+	memset(&semaphoreInfo, 0, sizeof(semaphoreInfo));
+
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, allocator, &ext.semaphore), "Couldn't create semaphore");
+
+
+	//Create command pool
+
+	VkCommandPoolCreateInfo poolInfo;
+	memset(&poolInfo, 0, sizeof(poolInfo));
+
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.queueFamilyIndex = queueFamilyIndex;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+	vkCheck<0x16>(vkCreateCommandPool(ext.device, &poolInfo, allocator, &ext.pool), "Couldn't create command pool");
+
 }
 
 
 void Graphics::initSurface(Window *w){
-	
-	VkGraphics &graphics = *(VkGraphics*) platformData;
 	
 	//Enable extension
 	
@@ -230,25 +315,25 @@ void Graphics::initSurface(Window *w){
 	void *platformBegin = &surfaceInfo.__VK_SURFACE_HANDLE__;			//This is the start where platform dependent data starts
 	memcpy(platformBegin, w->getSurfaceData(), w->getSurfaceSize());	//Memcpy the bytes from the window's representation of the surface
 	
-	vkCheck<0x3>(__VK_SURFACE_CREATE__(graphics.instance, &surfaceInfo, NULL, &graphics.surface), "Couldn't obtain surface");
+	vkCheck<0x3>(__VK_SURFACE_CREATE__(ext.instance, &surfaceInfo, NULL, &ext.surface), "Couldn't obtain surface");
 	
 	//Check if the surface is supported
 
 	VkBool32 supported = false;
 
-	if(!vkCheck<0x4>(vkGetPhysicalDeviceSurfaceSupportKHR(graphics.pdevice, 0, graphics.surface, &supported), "Surface wasn't supported") || !supported)
+	if(!vkCheck<0x4>(vkGetPhysicalDeviceSurfaceSupportKHR(ext.pdevice, 0, ext.surface, &supported), "Surface wasn't supported") || !supported)
 		Log::throwError<Graphics, 0x5>("Surface wasn't supported");
 
 	//Get the format we should display
 	
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(graphics.pdevice, graphics.surface, &formatCount, NULL);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(ext.pdevice, ext.surface, &formatCount, NULL);
 	
 	if(formatCount == 0)
 		Log::throwError<Graphics, 0x6>("Couldn't get surface format");
 	
 	VkSurfaceFormatKHR *formats = new VkSurfaceFormatKHR[formatCount];
-	vkGetPhysicalDeviceSurfaceFormatsKHR(graphics.pdevice, graphics.surface, &formatCount, formats);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(ext.pdevice, ext.surface, &formatCount, formats);
 	
 	VkFormat colorFormat = formats[0].format;
 	VkColorSpaceKHR colorSpace = formats[0].colorSpace;
@@ -258,13 +343,13 @@ void Graphics::initSurface(Window *w){
 	
 	delete[] formats;
 	
-	graphics.colorFormat = colorFormat;
-	graphics.colorSpace = colorSpace;
+	ext.colorFormat = colorFormat;
+	ext.colorSpace = colorSpace;
 	
 	TextureFormat format = VkTextureFormat::find(colorFormat).getName();
 	
 	VkSurfaceCapabilitiesKHR capabilities;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(graphics.pdevice, graphics.surface, &capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext.pdevice, ext.surface, &capabilities);
 	
 	Vec2u size = { capabilities.currentExtent.width, capabilities.currentExtent.height };
 	
@@ -291,10 +376,10 @@ void Graphics::initSurface(Window *w){
 	if(buffering != 2){
 		
 		uint32_t modeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(graphics.pdevice, graphics.surface, &modeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(ext.pdevice, ext.surface, &modeCount, nullptr);
 		
 		VkPresentModeKHR *modes = new VkPresentModeKHR[modeCount];
-		vkGetPhysicalDeviceSurfacePresentModesKHR(graphics.pdevice, graphics.surface, &modeCount, modes);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(ext.pdevice, ext.surface, &modeCount, modes);
 		
 			for(uint32_t i = 0; i < modeCount; ++i)
 				if(modes[i] == desire){
@@ -313,9 +398,9 @@ void Graphics::initSurface(Window *w){
 	swapchainInfo.clipped = VK_TRUE;
 	swapchainInfo.imageExtent.width = size.x;
 	swapchainInfo.imageExtent.height = size.y;
-	swapchainInfo.imageFormat = graphics.colorFormat;
-	swapchainInfo.imageColorSpace = graphics.colorSpace;
-	swapchainInfo.surface = graphics.surface;
+	swapchainInfo.imageFormat = ext.colorFormat;
+	swapchainInfo.imageColorSpace = ext.colorSpace;
+	swapchainInfo.surface = ext.surface;
 	swapchainInfo.imageArrayLayers = 1;
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -323,23 +408,23 @@ void Graphics::initSurface(Window *w){
 	swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	swapchainInfo.presentMode = mode;
 	
-	vkCheck<0x9>(vkCreateSwapchainKHR(graphics.device, &swapchainInfo, allocator, &graphics.swapchain), "Couldn't create swapchain");
+	vkCheck<0x9>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, allocator, &ext.swapchain), "Couldn't create swapchain");
 	
-	vkGetSwapchainImagesKHR(graphics.device, graphics.swapchain, &buffering, nullptr);
+	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, nullptr);
 
 	Log::println(String("Successfully created swapchain (with buffering option ") + buffering + ")");
 	
 	//Create the swapchain images
 	
 	std::vector<VkImage> swapchainImages = std::vector<VkImage>(buffering);
-	vkGetSwapchainImagesKHR(graphics.device, graphics.swapchain, &buffering, swapchainImages.data());
+	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, swapchainImages.data());
 
-	std::vector<Texture*> &textures = graphics.swapchainTextures = std::vector<Texture*>(buffering);
+	std::vector<Texture*> textures = std::vector<Texture*>(buffering);
 	
 	for (u32 i = 0; i < buffering; ++i) {
 		
-		Texture *tex = textures[i] = new Texture(size, format, TextureUsage::Render_target);
-		VkTexture &vkTex = *(VkTexture*) tex->platformData;
+		Texture *tex = textures[i] = new Texture(TextureInfo(size, format, TextureUsage::Render_target));
+		VkTexture &vkTex = tex->getExtension();
 		vkTex.image = swapchainImages[i];
 		
 		if(!tex->init(this, false))
@@ -348,39 +433,83 @@ void Graphics::initSurface(Window *w){
 
 	//Create depth buffer
 
-	vkGetPhysicalDeviceMemoryProperties(graphics.pdevice, &graphics.pmemory);
-	graphics.swapchainDepth = create(size, TextureFormat::Depth, TextureUsage::Render_depth);
+	vkGetPhysicalDeviceMemoryProperties(ext.pdevice, &ext.pmemory);
+	Texture *depthBuffer = create(TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
 
 	Log::println("Successfully created image views of the swapchain");
 
-	//TODO: Create 'FBO' from this
+	//Turn it into a RenderTarget aka 'Render pass'
+
+	backBuffer = new RenderTarget(RenderTargetInfo(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() }, buffering), depthBuffer, textures);
+
+	if(!backBuffer->init(this))
+		Log::throwError<Graphics, 0xC>("Couldn't initialize backBuffer (render target)");
+
+	Log::println("Successfully created backBuffer");
 }
 
 void Graphics::destroySurface(){
-	
-	VkGraphics &graphics = *(VkGraphics*) platformData;
-	
-	for (u32 i = 0; i < buffering; ++i)
-		delete graphics.swapchainTextures[i];
-	
-	delete graphics.swapchainDepth;
-	vkDestroySurfaceKHR(graphics.instance, graphics.surface, allocator);
-	vkDestroySwapchainKHR(graphics.device, graphics.swapchain, allocator);
+
+	vkQueueWaitIdle(ext.queue);
+
+	vkDestroySwapchainKHR(ext.device, ext.swapchain, allocator);
+	delete backBuffer;
+	vkDestroySurfaceKHR(ext.instance, ext.surface, allocator);
 	
 	Log::println("Successfully destroyed surface");
 }
 
-void Graphics::clear(Vec4f color) {
-	//TODO: Clear screen
+void Graphics::begin() {
+
+	vkCheck<0x10>(vkAcquireNextImageKHR(ext.device, ext.swapchain, u64_MAX, VK_NULL_HANDLE, ext.present, &ext.current), "Couldn't acquire next image");
+	vkCheck<0x11>(vkWaitForFences(ext.device, 1, &ext.present, VK_TRUE, u64_MAX), "Couldn't wait for fences");
+	vkCheck<0x12>(vkResetFences(ext.device, 1, &ext.present), "Couldn't reset fences");
+	vkCheck<0x13>(vkQueueWaitIdle(ext.queue), "Couldn't wait idle");
+
 }
 
-void Graphics::swapBuffers(){
-	//TODO: Swap buffers
+void Graphics::end() {
+
+	//Submit commands
+
+	VkSubmitInfo submitInfo;
+	memset(&submitInfo, 0, sizeof(submitInfo));
+
+	std::vector<VkCommandBuffer> commandBuffer(commandList.size());
+	for (u32 i = 0; i < (u32) commandBuffer.size(); ++i)
+		commandBuffer[i] = commandList[i]->ext.cmd;
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = (u32) commandList.size();
+	submitInfo.pCommandBuffers = commandBuffer.data();
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = &ext.semaphore;
+
+	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, ext.present), "Couldn't submit queue");
+
+	//Present it
+
+	VkResult result = VK_SUCCESS;
+
+	VkPresentInfoKHR presentInfo;
+	memset(&presentInfo, 0, sizeof(presentInfo));
+
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &ext.swapchain;
+	presentInfo.pResults = &result;
+	presentInfo.pImageIndices = &ext.current;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = &ext.semaphore;
+
+	vkCheck<0xF>(vkQueuePresentKHR(ext.queue, &presentInfo), "Couldn't present image");
+	vkCheck<0x14>(result, "Couldn't present image");
+
 }
 
-Texture *Graphics::create(Vec2u res, TextureFormat tf, TextureUsage usage) {
+Texture *Graphics::create(TextureInfo info) {
 
-	Texture *tex = new Texture(res, tf, usage);
+	Texture *tex = new Texture(info);
 
 	if (!tex->init(this))
 		return (Texture*)Log::throwError<Graphics, 0xB>("Couldn't create texture");
@@ -388,6 +517,71 @@ Texture *Graphics::create(Vec2u res, TextureFormat tf, TextureUsage usage) {
 	return tex;
 }
 
+RenderTarget *Graphics::create(RenderTargetInfo info) {
+
+	Texture *depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
+
+	std::vector<Texture*> textures(info.buffering * info.targets);
+
+	for (u32 i = 0; i < (u32) textures.size(); ++i)
+		textures[i] = create(TextureInfo(info.res, info.formats[i / buffering], TextureUsage::Render_target));
+
+	RenderTarget *target = new RenderTarget(RenderTargetInfo(info.res, info.depthFormat, info.formats, info.buffering), depth, textures);
+
+	if (!target->init(this))
+		Log::throwError<Graphics, 0xD>("Couldn't initialize RenderTarget");
+
+	return target;
+}
+
+Vec4d Graphics::convertColor(Vec4d cl, TextureFormat format) {
+
+	Vec4d color = Vec4d(0.0);
+
+	u32 bits = getChannelSize(format);
+	u32 colors = getChannels(format);
+
+	if (colors == 0U) return color;
+
+	memcpy(color.arr, cl.arr, sizeof(f64) * colors);
+
+	if (bits == 8U && colors > 2U) {			//RGBA to BGRA
+		color[0] = cl.z;
+		color[1] = cl.y;
+		color[2] = cl.x;
+	}
+
+	return color;
+
+}
+
+CommandList *Graphics::create(CommandListInfo info) {
+
+	CommandList *cl = new CommandList(info);
+
+	cl->getExtension().pool = ext.pool;
+
+	if (!cl->init(this))
+		Log::throwError<Graphics, 0x15>("Couldn't create command list");
+
+	commandList.push_back(cl);
+
+	return cl;
+}
+
+bool Graphics::cleanCommandList(CommandList *cmd) {
+
+	for (auto it = commandList.begin(); it != commandList.end(); ++it)
+		if (*it == cmd) {
+			commandList.erase(it);
+			return true;
+		}
+
+	return false;
+
+}
+
 const char *Graphics::getShaderExtension() { return "spv"; }
+RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
 
 #endif
