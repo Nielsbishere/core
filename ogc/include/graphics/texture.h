@@ -28,7 +28,13 @@ namespace oi {
 
 			D16 = 49, D32 = 50, D16S8 = 51, D24S8 = 52, D32S8 = 53, Depth = 54,
 
-			sRGBA8 = 55, sRGB8 = 56, sRG8 = 57, sR8 = 58
+			sRGBA8 = 55, sRGB8 = 56, sRG8 = 57, sR8 = 58,
+
+			BGRA8 = 59, BGR8 = 60,
+			BGRA8s = 61, BGR8s = 62,
+			BGRA8u = 63, BGR8u = 64,
+			BGRA8i = 65, BGR8i = 66,
+			sBGRA8 = 67, sBGR8 = 68
 
 		);
 

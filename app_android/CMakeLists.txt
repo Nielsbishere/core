@@ -43,13 +43,16 @@ set(ANDROID_APK_SIGNER_ALIAS "myalias")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E remove_directory "${APK_DIR}/libs/${ANDROID_ABI}")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/libs/${ANDROID_ABI}")
 add_custom_command(TARGET ${ANDROID_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${LIBS_DIR}" "${APK_DIR}/libs/${ANDROID_ABI}")
+add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/third_party/vulkan/src/build-android/jniLibs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
   
 # Set debuggable
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
    set(ANDROID_APK_DEBUGGABLE "false")
+   message("-- Debug - disabled")
 else()
    set(ANDROID_APK_DEBUGGABLE "true")
+   message("-- Debug - enabled")
 endif()
 
 # Copy resources

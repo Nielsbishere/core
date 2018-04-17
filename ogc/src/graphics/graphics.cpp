@@ -30,8 +30,9 @@ u32 Graphics::getChannels(TextureFormat format) {
 	if (val == 0) return 0U;
 	if (val < TextureFormat::D16) return 4U - (val - 1U) % 4U;
 	if (val < TextureFormat::sRGBA8) return 1U;
+	if(val < TextureFormat::BGRA8) return 4U - (val - TextureFormat::sRGBA8);
 
-	return 4U - (val - TextureFormat::sRGBA8);
+	return 4 - (val - TextureFormat::BGRA8) % 2U;
 }
 
 TextureFormatStorage Graphics::getFormatStorage(TextureFormat format) {
@@ -41,6 +42,23 @@ TextureFormatStorage Graphics::getFormatStorage(TextureFormat format) {
 
 	return TextureFormatStorage::FLOAT;
 }
+
+
+Vec4d Graphics::convertColor(Vec4d cl, TextureFormat format) {
+
+	Vec4d color = Vec4d(0.0);
+
+	u32 bits = getChannelSize(format);
+	u32 colors = getChannels(format);
+
+	if (colors == 0U) return color;
+
+	memcpy(color.arr, cl.arr, sizeof(f64) * colors);
+
+	return color;
+
+}
+
 
 u32 Graphics::getFormatSize(TextureFormat format) { return getChannelSize(format) * getChannels(format); }
 GraphicsExt &Graphics::getExtension() { return ext; }

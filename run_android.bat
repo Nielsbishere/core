@@ -19,6 +19,6 @@ goto :eof
 
 :error
 echo Insufficient params; Please use build_android currentPlatform target androidVersion
-echo Example: build_android windows-x86_64 arm64-v8a 24
+echo Example: run_android windows-x86_64 arm64-v8a 24
 echo Running with params: %dev% %abi% %lvl%
 goto :program

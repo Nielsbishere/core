@@ -95,11 +95,12 @@ void Graphics::init(Window *w, u32 buffering){
 
 	#ifdef __DEBUG__
 
-	for (uint32_t i = 0; i < layerCount; ++i)
-		if (String(layers[i].layerName) == "VK_LAYER_LUNARG_standard_validation") {
-			clayers.push_back("VK_LAYER_LUNARG_standard_validation");
-			break;
-		}
+	#ifdef __ANDROID__
+	clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
+				"VK_LAYER_LUNARG_core_validation", "VK_LAYER_LUNARG_swapchain", "VK_LAYER_GOOGLE_unique_objects" };
+	#else 
+	clayers.push_back("VK_LAYER_LUNARG_standard_validation");
+	#endif
 
 	cextensions.push_back("VK_EXT_debug_report");
 	#endif
@@ -129,13 +130,21 @@ void Graphics::init(Window *w, u32 buffering){
 	
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceInfo.pApplicationInfo = &application;
-	instanceInfo.enabledLayerCount = (uint32_t) clayers.size();
+	instanceInfo.enabledLayerCount = (u32) clayers.size();
 	instanceInfo.ppEnabledLayerNames = clayers.data();
-	instanceInfo.enabledExtensionCount = (uint32_t) cextensions.size();
+	instanceInfo.enabledExtensionCount = (u32) cextensions.size();
 	instanceInfo.ppEnabledExtensionNames = cextensions.data();
 	
 	//Create instance
 	
+	Log::println(String("Creating Vulkan instance with ") + (u32) cextensions.size() + " extensions & " + (u32) clayers.size() + " layers:");
+
+	for (auto exten : cextensions)
+		Log::println(String("Extension ") + exten);
+
+	for (auto lay : clayers)
+		Log::println(String("Layer ") + lay);
+
 	vkCheck<0x1>(vkCreateInstance(&instanceInfo, allocator, &ext.instance), "Couldn't obtain Vulkan instance");
 	initialized = true;
 	
@@ -150,7 +159,7 @@ void Graphics::init(Window *w, u32 buffering){
 	memset(&callbackInfo, 0, sizeof(callbackInfo));
 
 	callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-	callbackInfo.flags = 0x0000001F;	//All
+	callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;	//All but info
 	callbackInfo.pfnCallback = onDebugReport;
 
 	vkExtension(vkCreateDebugReportCallbackEXT);
@@ -315,7 +324,7 @@ void Graphics::initSurface(Window *w){
 	void *platformBegin = &surfaceInfo.__VK_SURFACE_HANDLE__;			//This is the start where platform dependent data starts
 	memcpy(platformBegin, w->getSurfaceData(), w->getSurfaceSize());	//Memcpy the bytes from the window's representation of the surface
 	
-	vkCheck<0x3>(__VK_SURFACE_CREATE__(ext.instance, &surfaceInfo, NULL, &ext.surface), "Couldn't obtain surface");
+	vkCheck<0x3>(__VK_SURFACE_CREATE__(ext.instance, &surfaceInfo, allocator, &ext.surface), "Couldn't obtain surface");
 	
 	//Check if the surface is supported
 
@@ -337,9 +346,6 @@ void Graphics::initSurface(Window *w){
 	
 	VkFormat colorFormat = formats[0].format;
 	VkColorSpaceKHR colorSpace = formats[0].colorSpace;
-	
-	if (formatCount == 1 && formats[0].format == VK_FORMAT_UNDEFINED)
-		colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
 	
 	delete[] formats;
 	
@@ -405,9 +411,9 @@ void Graphics::initSurface(Window *w){
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	swapchainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;		//TODO: Rotation?
-	swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	swapchainInfo.compositeAlpha = (VkCompositeAlphaFlagBitsKHR) capabilities.supportedCompositeAlpha;
 	swapchainInfo.presentMode = mode;
-	
+
 	vkCheck<0x9>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, allocator, &ext.swapchain), "Couldn't create swapchain");
 	
 	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, nullptr);
@@ -485,7 +491,7 @@ void Graphics::end() {
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = &ext.semaphore;
 
-	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, ext.present), "Couldn't submit queue");
+	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, nullptr), "Couldn't submit queue");
 
 	//Present it
 
@@ -532,27 +538,6 @@ RenderTarget *Graphics::create(RenderTargetInfo info) {
 		Log::throwError<Graphics, 0xD>("Couldn't initialize RenderTarget");
 
 	return target;
-}
-
-Vec4d Graphics::convertColor(Vec4d cl, TextureFormat format) {
-
-	Vec4d color = Vec4d(0.0);
-
-	u32 bits = getChannelSize(format);
-	u32 colors = getChannels(format);
-
-	if (colors == 0U) return color;
-
-	memcpy(color.arr, cl.arr, sizeof(f64) * colors);
-
-	if (bits == 8U && colors > 2U) {			//RGBA to BGRA
-		color[0] = cl.z;
-		color[1] = cl.y;
-		color[2] = cl.x;
-	}
-
-	return color;
-
 }
 
 CommandList *Graphics::create(CommandListInfo info) {
