@@ -10,7 +10,16 @@ namespace oi {
 		
 		class Graphics;
 
-		DEnum(ShaderStageType, const char*, Undefined = "", Vertex_shader = "vert", Fragment_shader = "frag", Geometry_shader = "geom", Compute_shader = "comp");
+		DEnum(ShaderStageType, u32, Undefined = 0, Vertex_shader = 1, Fragment_shader = 2, Geometry_shader = 3, Compute_shader = 4);
+
+		struct ShaderStageInfo {
+
+			Buffer code;
+			ShaderStageType type;
+
+			ShaderStageInfo(Buffer code, ShaderStageType type) : code(code), type(type) {}
+
+		};
 
 		class ShaderStage {
 
@@ -19,17 +28,16 @@ namespace oi {
 		public:
 
 			~ShaderStage();
+			ShaderStageExt &getExtension();
 
 		protected:
 
-			ShaderStage(String name, ShaderStageType type);		//e.g. simple.frag, simple.vert; so no API dependent extensions (.spv, .glsl, .hlsl, etc.)
-			ShaderStage(String name);							//Detect ShaderStageType from name
+			ShaderStage(ShaderStageInfo info);
 			bool init(Graphics *g);
 
 		private:
 
-			ShaderStageType type;
-			String path;
+			ShaderStageInfo info;
 			Graphics *g = nullptr;
 
 			ShaderStageExt ext;

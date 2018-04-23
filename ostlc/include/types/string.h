@@ -8,6 +8,7 @@ namespace oi {
 	template<typename T, u32 n> class TVec;
 
 	class JSON;
+	class Buffer;
 
 	class String {
 
@@ -119,6 +120,12 @@ namespace oi {
 
 		auto begin() const { return source.begin(); }
 		auto end() const { return source.end(); }
+
+		static String decode(Buffer buf, String charset, u8 perChar);	//Decode the buffer given; perChar is in bits; so you could use decode(buf, { '0', '1' }, 1) to turn it into a binary string (Would not recommend; is slow)
+		static String decode(Buffer buf, String charset, u8 perChar, u32 length);
+		Buffer encode(String charset, u8 perChar) const;				//Encode the String given; allocates a new buffer, make sure to deconstruct it.
+
+		static String getDefaultCharset();
 
 	protected:
 

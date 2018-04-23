@@ -30,6 +30,11 @@ namespace oi {
 		String toOctal() const;
 		String toBinary() const;
 
+		void setBits(u32 bitoff, u32 bits, u32 value);
+		u32 getBits(u32 bitoff, u32 bits);
+		void setBit(u32 bitoff, bool value);
+		bool getBit(u32 bitoff);
+
 		Buffer operator+(u32 off) const;
 		Buffer subbuffer(u32 offset, u32 length) const;
 
@@ -49,6 +54,7 @@ namespace oi {
 		u32 size() const;
 
 		static Buffer readFile(String where);
+		bool writeFile(String where);
 
 		u8 *addr() { return data; }
 

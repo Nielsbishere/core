@@ -6,6 +6,7 @@ void GraphicsInterface::init() {
 	g.init(getParent());
 	initScene();
 }
+
 void GraphicsInterface::initSurface() {
 	g.initSurface(getParent());
 }

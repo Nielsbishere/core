@@ -1,5 +1,11 @@
 #include "graphics/graphics.h"
 #include "graphics/texture.h"
+#include "graphics/rendertarget.h"
+#include "graphics/shader.h"
+#include "graphics/shaderstage.h"
+#include "graphics/format/oish.h"
+#include "graphics/pipeline.h"
+#include "graphics/pipelinestate.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -59,6 +65,88 @@ Vec4d Graphics::convertColor(Vec4d cl, TextureFormat format) {
 
 }
 
-
 u32 Graphics::getFormatSize(TextureFormat format) { return getChannelSize(format) * getChannels(format); }
 GraphicsExt &Graphics::getExtension() { return ext; }
+
+RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
+
+Shader *Graphics::create(ShaderInfo info) {
+
+	if (!oiSH::read(this, info.path, info))
+		return (Shader*)Log::throwError<Graphics, 0x1A>("Couldn't read shader");
+
+	Shader *s = new Shader(info);
+	if (!s->init(this))
+		return (Shader*)Log::throwError<Graphics, 0x1B>("Couldn't initialize shader");
+
+	return s;
+}
+
+ShaderStage *Graphics::create(ShaderStageInfo info) {
+
+	info.code = Buffer(info.code.addr(), info.code.size());
+
+	ShaderStage *ss = new ShaderStage(info);
+	if (!ss->init(this))
+		return (ShaderStage*)Log::throwError<Graphics, 0x1C>("Couldn't initialize shader stage");
+
+	return ss;
+}
+
+bool Graphics::cleanCommandList(CommandList *cmd) {
+
+	for (auto it = commandList.begin(); it != commandList.end(); ++it)
+		if (*it == cmd) {
+			commandList.erase(it);
+			return true;
+		}
+
+	return false;
+
+}
+
+
+Texture *Graphics::create(TextureInfo info) {
+
+	Texture *tex = new Texture(info);
+
+	if (!tex->init(this))
+		return (Texture*)Log::throwError<Graphics, 0xB>("Couldn't create texture");
+
+	return tex;
+}
+
+RenderTarget *Graphics::create(RenderTargetInfo info) {
+
+	Texture *depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
+
+	std::vector<Texture*> textures(info.buffering * info.targets);
+
+	for (u32 i = 0; i < (u32)textures.size(); ++i)
+		textures[i] = create(TextureInfo(info.res, info.formats[i / buffering], TextureUsage::Render_target));
+
+	RenderTarget *target = new RenderTarget(RenderTargetInfo(info.res, info.depthFormat, info.formats, info.buffering), depth, textures);
+
+	if (!target->init(this))
+		Log::throwError<Graphics, 0xD>("Couldn't initialize RenderTarget");
+
+	return target;
+}
+
+Pipeline *Graphics::create(PipelineInfo info) {
+
+	Pipeline *p = new Pipeline(info);
+	if (!p->init(this))
+		return (Pipeline*) Log::throwError<Graphics, 0x1D>("Couldn't initialize pipeline");
+
+	return p;
+}
+
+PipelineState *Graphics::create(PipelineStateInfo info) {
+
+	PipelineState *ps = new PipelineState(info);
+	if (!ps->init(this))
+		return (PipelineState*) Log::throwError<Graphics, 0x1E>("Couldn't initialize pipeline state");
+
+	return ps;
+}

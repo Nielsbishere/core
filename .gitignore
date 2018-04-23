@@ -52,3 +52,4 @@ CMakeCache.txt
 CMakeFiles/
 Makefile
 bin/
+app_pc/res/

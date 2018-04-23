@@ -17,8 +17,6 @@ add_library(
 	${app_android_SRC}
 )
 
-add_definitions(-D__PROJECT_RES__="assets/")
-
 target_link_libraries(app_android ostlc)
 target_link_libraries(app_android owc)
 target_link_libraries(app_android ogc)

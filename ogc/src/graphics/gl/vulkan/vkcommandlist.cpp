@@ -2,6 +2,8 @@
 
 #include "graphics/commandlist.h"
 #include "graphics/rendertarget.h"
+#include "graphics/pipeline.h"
+#include "graphics/shader.h"
 #include "graphics/graphics.h"
 using namespace oi::gc;
 using namespace oi;
@@ -65,6 +67,33 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	beginInfo.pClearValues = clearValue.data();
 
 	vkCmdBeginRenderPass(ext.cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	setViewport(Vec2(target->getSize()));
+
+}
+
+void CommandList::setViewport(Vec2 size, Vec2 offset, f32 startDepth, f32 endDepth) {
+
+	VkViewport viewport;
+	memset(&viewport, 0, sizeof(viewport));
+
+	viewport.x = offset.x;
+	viewport.y = offset.y;
+	viewport.width = size.x;
+	viewport.height = size.y;
+	viewport.minDepth = startDepth;
+	viewport.maxDepth = endDepth;
+
+	vkCmdSetViewport(ext.cmd, 0, 1, &viewport);
+
+	VkRect2D scissor;
+	memset(&scissor, 0, sizeof(scissor));
+
+	scissor.offset = { (i32) offset.x, (i32) offset.y };
+	scissor.extent = { (u32) viewport.width, (u32) viewport.height };
+
+	vkCmdSetScissor(ext.cmd, 0, 1, &scissor);
+
 }
 
 void CommandList::end(RenderTarget *target) {
@@ -93,6 +122,15 @@ bool CommandList::init(Graphics *gl) {
 
 	return true;
 }
+
+void CommandList::bind(Pipeline *pipeline) {
+	if (pipeline != nullptr) {
+		vkCmdBindPipeline(ext.cmd, pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getExtension());
+		vkCmdDraw(ext.cmd, 3, 1, 0, 0);
+	}
+
+}
+
 
 
 #endif

@@ -1,3 +1,4 @@
+#pragma once
 #include <types/vector.h>
 #include "graphics/gl/generic.h"
 
@@ -14,12 +15,33 @@ namespace oi {
 		class TextureUsage;
 		class RenderTarget;
 		class CommandList;
+		class Shader;
+		class ShaderStage;
+		class Pipeline;
+		class PipelineState;
 
 		struct TextureInfo;
 		struct RenderTargetInfo;
 		struct CommandListInfo;
+		struct ShaderInfo;
+		struct ShaderStageInfo;
+		struct PipelineInfo;
+		struct PipelineStateInfo;
 
 		enum class TextureFormatStorage;
+
+		DEnum(TopologyMode, u32,
+
+			Points = 0, Line = 1, Line_strip = 2, Triangle = 3, Triangle_strip = 4, Triangle_fan = 5,
+			Line_adj = 6, Line_strip_adj = 7, Triangle_adj = 8, Triangle_strip_adj = 9
+
+		);
+
+		DEnum(FillMode, u32, Fill = 0, Line = 1, Point = 2);
+		DEnum(CullMode, u32, None = 0, Back = 1, Front = 2);
+		DEnum(WindMode, u32, CCW = 0, CW = 1);
+		DEnum(DepthMode, u32, None = 0, DepthTestOnly = 1, DepthWriteOnly = 2, All = 3);
+		DEnum(BlendMode, u32, Off = 0, Alpha = 1, Add = 2, Subtract = 3);
 
 		class Graphics {
 			
@@ -38,10 +60,13 @@ namespace oi {
 			Texture *create(TextureInfo info);
 			RenderTarget *create(RenderTargetInfo info);
 			CommandList *create(CommandListInfo info);
+			Shader *create(ShaderInfo info);
+			ShaderStage *create(ShaderStageInfo info);
+			Pipeline *create(PipelineInfo info);
+			PipelineState *create(PipelineStateInfo info);
 
 			bool cleanCommandList(CommandList *cmd);
 
-			const char *getShaderExtension();
 			GraphicsExt &getExtension();
 
 			bool isDepthFormat(TextureFormat format);

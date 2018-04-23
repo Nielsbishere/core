@@ -46,7 +46,7 @@ if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_
 
 	set(Vulkan ON)
 	add_definitions(-D__PHONE__)
-
+	
 else()
 
 	message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
@@ -116,10 +116,13 @@ endif()
 add_subdirectory(ostlc)
 add_subdirectory(owc)
 add_subdirectory(ogc)
-add_subdirectory(app)
 
 if(Android)
+	add_definitions(-D__PROJECT_RES__="assets/")
+	add_subdirectory(app)
 	add_subdirectory(app_android)
 else()
+	add_definitions(-D__PROJECT_RES__="res/")
+	add_subdirectory(app)
 	add_subdirectory(app_pc)
 endif()

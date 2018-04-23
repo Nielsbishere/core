@@ -34,7 +34,7 @@ namespace oi {
 
 		struct VkRenderTarget {
 			VkRenderPass renderPass = nullptr;
-			std::vector<VkFramebuffer> frameBuffer = std::vector<VkFramebuffer>();
+			std::vector<VkFramebuffer> frameBuffer;
 		};
 
 		struct VkTexture {
@@ -48,9 +48,34 @@ namespace oi {
 			VkPipelineShaderStageCreateInfo pipeline{};
 		};
 
+		struct VkShader {
+
+			std::vector<VkVertexInputBindingDescription> binding;
+			std::vector<VkVertexInputAttributeDescription> attribute;
+			std::vector<VkDescriptorSetLayout> descriptor;
+			std::vector<VkPushConstantRange> constant;
+			std::vector<VkShaderStage*> stage;
+
+			VkPipelineVertexInputStateCreateInfo vertexInput{};
+			VkDescriptorPool descriptorPool = nullptr;
+			VkPipelineLayout layout = nullptr;
+
+		};
+
 		struct VkCommandList {
 			VkCommandPool pool = nullptr;
 			VkCommandBuffer cmd = nullptr;
+		};
+
+		struct VkPipelineState {
+
+			VkPipelineInputAssemblyStateCreateInfo assembler{};
+			VkPipelineRasterizationStateCreateInfo rasterizer{};
+			VkPipelineColorBlendAttachmentState blendState{};
+			VkPipelineColorBlendStateCreateInfo blending{};
+			VkPipelineDepthStencilStateCreateInfo depthStencil{};
+			VkPipelineMultisampleStateCreateInfo multiSample{};
+
 		};
 
 		template<u32 errorId, typename T = gc::Graphics>
@@ -119,7 +144,7 @@ namespace oi {
 		//TODO: Allocator
 		#define allocator nullptr
 
-		DEnum(VkTextureFormat, u32, Undefined = VK_FORMAT_UNDEFINED,
+		DEnum(VkTextureFormat, VkFormat, Undefined = VK_FORMAT_UNDEFINED,
 
 			RGBA8 = VK_FORMAT_R8G8B8A8_UNORM, RGB8 = VK_FORMAT_R8G8B8_UNORM, RG8 = VK_FORMAT_R8G8_UNORM, R8 = VK_FORMAT_R8_UNORM,
 			RGBA8s = VK_FORMAT_R8G8B8A8_SNORM, RGB8s = VK_FORMAT_R8G8B8_SNORM, RG8s = VK_FORMAT_R8G8_SNORM, R8s = VK_FORMAT_R8_SNORM,
@@ -148,7 +173,7 @@ namespace oi {
 
 		);
 
-		DEnum(VkTextureUsage, u32, Undefined = VK_IMAGE_LAYOUT_UNDEFINED,
+		DEnum(VkTextureUsage, VkImageLayout, Undefined = VK_IMAGE_LAYOUT_UNDEFINED,
 
 			Render_target = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, Render_depth = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 			Shader_input_only = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, General = VK_IMAGE_LAYOUT_GENERAL
@@ -156,6 +181,17 @@ namespace oi {
 		);
 
 		DEnum(VkShaderStageType, VkShaderStageFlagBits, Vertex_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT, Fragment_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT, Geometry_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT, Compute_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT);
+
+		DEnum(VkTopologyMode, VkPrimitiveTopology, 
+			
+			Points = VK_PRIMITIVE_TOPOLOGY_POINT_LIST, Line = VK_PRIMITIVE_TOPOLOGY_LINE_LIST, Line_strip = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, Triangle = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, Triangle_strip = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, Triangle_fan = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
+			Line_adj = VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY, Line_strip_adj = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY, Triangle_adj = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY, Triangle_strip_adj = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY
+
+		);
+
+		DEnum(VkFillMode, VkPolygonMode, Fill = VK_POLYGON_MODE_FILL, Line = VK_POLYGON_MODE_LINE, Point = VK_POLYGON_MODE_POINT);
+		DEnum(VkCullMode, VkCullModeFlags, None = VK_CULL_MODE_NONE, Back = VK_CULL_MODE_BACK_BIT, Front = VK_CULL_MODE_FRONT_BIT);
+		DEnum(VkWindMode, VkFrontFace, CCW = VK_FRONT_FACE_COUNTER_CLOCKWISE, CW = VK_FRONT_FACE_CLOCKWISE);
 
 	}
 }

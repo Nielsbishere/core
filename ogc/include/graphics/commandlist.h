@@ -9,6 +9,7 @@ namespace oi {
 
 		class Graphics;
 		class RenderTarget;
+		class Pipeline;
 
 		struct CommandListInfo { };
 
@@ -36,7 +37,11 @@ namespace oi {
 			void end();
 			void end(RenderTarget *target);
 
+			void bind(Pipeline *pipeline);
+
 			CommandListExt &getExtension();
+
+			void setViewport(Vec2 size, Vec2 offset = {}, f32 startDepth = 0.f, f32 endDepth = 1.f);
 
 		protected:
 

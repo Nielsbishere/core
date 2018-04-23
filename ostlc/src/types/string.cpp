@@ -2,6 +2,8 @@
 #include "types/buffer.h"
 #include "utils/json.h"
 #include <fstream>
+#include <cmath>
+#include <algorithm>
 using namespace oi;
 
 String::String() {}
@@ -433,3 +435,61 @@ String String::padEnd(char c, u32 maxCount) const {
 	if (size() >= maxCount) return *this;
 	return operator+(String(maxCount - size(), c));
 }
+
+String String::decode(Buffer buf, String charset, u8 perChar) {
+	return decode(buf, charset, perChar, buf.size() * 8 / perChar);
+}
+
+String String::decode(Buffer buf, String charset, u8 perChar, u32 length) {
+
+	if (perChar > 32)
+		Log::throwError<String, 0x0>("Couldn't decode the string; perChar can't be bigger than 32 bits");
+
+	if (charset.size() == 0)
+		Log::throwError<String, 0x1>("Couldn't decode the string; keyset requires at least 1 char");
+
+	u32 i = 0;
+
+	String decoded(length, ' ');
+
+	while ((perChar * (i + 1)) / 8 <= buf.size()) {
+
+		u32 value = buf.getBits(perChar * i, perChar);
+
+		decoded[i] = charset[value >= charset.size() ? 0 : value];
+
+		++i;
+
+		if (i == length) break;
+	}
+
+	return decoded;
+
+}
+
+Buffer String::encode(String charset, u8 perChar) const {
+	
+	if (perChar > 32)
+		Log::throwError<String, 0x2>("Couldn't decode the string; perChar can't be bigger than 32 bits");
+
+	if (charset.size() == 0)
+		Log::throwError<String, 0x3>("Couldn't decode the string; keyset requires at least 1 char");
+
+	u32 size = (u32) std::ceil(source.size() * perChar / 8.f);
+
+	Buffer buf(size);
+	
+	for (u32 i = 0; i < source.size(); ++i) {
+
+		auto it = std::find(charset.begin(), charset.end(), source[i]);
+
+		u32 value = it == charset.end() ? 0 : (u32)(it - charset.begin());
+
+		buf.setBits(i * perChar, perChar, value);
+
+	}
+
+	return buf;
+}
+
+String String::getDefaultCharset() { return " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz."; }

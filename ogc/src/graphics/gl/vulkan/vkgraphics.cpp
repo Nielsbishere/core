@@ -352,7 +352,7 @@ void Graphics::initSurface(Window *w){
 	ext.colorFormat = colorFormat;
 	ext.colorSpace = colorSpace;
 	
-	TextureFormat format = VkTextureFormat::find(colorFormat).getName();
+	TextureFormat format = TextureFormatExt::find(colorFormat).getName();
 	
 	VkSurfaceCapabilitiesKHR capabilities;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext.pdevice, ext.surface, &capabilities);
@@ -513,33 +513,6 @@ void Graphics::end() {
 
 }
 
-Texture *Graphics::create(TextureInfo info) {
-
-	Texture *tex = new Texture(info);
-
-	if (!tex->init(this))
-		return (Texture*)Log::throwError<Graphics, 0xB>("Couldn't create texture");
-
-	return tex;
-}
-
-RenderTarget *Graphics::create(RenderTargetInfo info) {
-
-	Texture *depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
-
-	std::vector<Texture*> textures(info.buffering * info.targets);
-
-	for (u32 i = 0; i < (u32) textures.size(); ++i)
-		textures[i] = create(TextureInfo(info.res, info.formats[i / buffering], TextureUsage::Render_target));
-
-	RenderTarget *target = new RenderTarget(RenderTargetInfo(info.res, info.depthFormat, info.formats, info.buffering), depth, textures);
-
-	if (!target->init(this))
-		Log::throwError<Graphics, 0xD>("Couldn't initialize RenderTarget");
-
-	return target;
-}
-
 CommandList *Graphics::create(CommandListInfo info) {
 
 	CommandList *cl = new CommandList(info);
@@ -553,20 +526,5 @@ CommandList *Graphics::create(CommandListInfo info) {
 
 	return cl;
 }
-
-bool Graphics::cleanCommandList(CommandList *cmd) {
-
-	for (auto it = commandList.begin(); it != commandList.end(); ++it)
-		if (*it == cmd) {
-			commandList.erase(it);
-			return true;
-		}
-
-	return false;
-
-}
-
-const char *Graphics::getShaderExtension() { return "spv"; }
-RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
 
 #endif

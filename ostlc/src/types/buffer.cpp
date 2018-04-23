@@ -121,6 +121,7 @@ CopyBuffer::CopyBuffer(CopyBuffer &&cb) {
 }
 
 Buffer Buffer::readFile(String where) {
+
 	std::ifstream file(where.toCString(), std::ios::binary);
 
 	if (!file.good())
@@ -136,6 +137,18 @@ Buffer Buffer::readFile(String where) {
 	return b;
 }
 
+bool Buffer::writeFile(String where) {
+
+	std::ofstream file(where.toCString(), std::ios::binary);
+
+	if (!file.good() || data == nullptr)
+		return false;
+	
+	file.write((const char*) data, length);
+
+	return true;
+}
+
 Buffer Buffer::operator+(u32 off) const {
 	return offset(off);
 }
@@ -146,4 +159,36 @@ Buffer Buffer::subbuffer(u32 off, u32 length) const {
 
 	b.length = length;
 	return b;
+}
+
+void Buffer::setBits(u32 bitoff, u32 bits, u32 value) {
+	for (u32 i = 0; i < bits; ++i)
+		setBit(bitoff + i, value & (1U << i));
+}
+
+u32 Buffer::getBits(u32 bitoff, u32 bits) {
+
+	u32 value = 0U;
+
+	for (u32 i = 0; i < bits; ++i)
+		value |= (u32) getBit(bitoff + i) << i;
+
+	return value;
+}
+
+void Buffer::setBit(u32 bitoff, bool value) {
+
+	u8 &val = data[bitoff / 8];
+
+	u8 mask = 1U << (bitoff % 8U);
+
+	if (value)
+		val |= mask;
+	else
+		val &= ~mask;
+}
+
+bool Buffer::getBit(u32 bitoff) {
+	u8 val = data[bitoff / 8];
+	return val & (1U << (bitoff % 8U));
 }
