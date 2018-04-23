@@ -1,7 +1,6 @@
 #include "types/string.h"
 #include "types/buffer.h"
 #include "utils/json.h"
-#include <fstream>
 #include <cmath>
 #include <algorithm>
 using namespace oi;
@@ -265,24 +264,6 @@ bool String::endsWith(String other) const {
 bool String::startsWith(String other) const {
 	if (other.size() > size()) return false;
 	return cutEnd(other.size()) == other;
-}
-
-String String::readFromFile(String file) {
-	std::ifstream str(file.source);
-	if (!str.good()) 
-		return "";
-
-	return std::string(std::istreambuf_iterator<char>(str), std::istreambuf_iterator<char>());
-}
-
-bool String::writeToFile(String file) const {
-
-	std::ofstream str(file.source);
-	if (!str.good())
-		return false;
-
-	str.write(source.c_str(), source.size());
-	return true;
 }
 
 String String::getPath() const {

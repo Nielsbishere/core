@@ -1,4 +1,5 @@
 #include "input/inputmanager.h"
+#include "file/filemanager.h"
 #include <utils/json.h>
 using namespace oi;
 using namespace wc;
@@ -92,7 +93,11 @@ Vec2 InputManager::getAxis2D(String handle, InputAxes2D ia, bool clamp) const {
 
 bool InputManager::load(String path) {
 
-	JSON json = String::readFromFile(path);
+	String str;
+	if (!FileManager::get()->read(path, str))
+		return Log::error("Couldn't read InputManager file");
+
+	JSON json = str;
 
 	if (json.exists("bindings"))
 		for (String handle : json.getMemberIds("bindings"))
@@ -176,7 +181,8 @@ bool InputManager::write(String path) {
 
 	}
 
-	return json.toString().writeToFile(path);
+	String str = json.toString();
+	return FileManager::get()->write(path, str);
 }
 
 void InputManager::update() {

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <graphics/graphicsinterface.h>
 #include <types/vector.h>
 

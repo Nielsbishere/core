@@ -96,8 +96,6 @@ namespace oi {
 		bool endsWith(String other) const;
 		bool startsWith(String other) const;
 
-		static String readFromFile(String file);			//Read file as plain text
-		bool writeToFile(String file) const;				//Write file to disk
 		String getPath() const;								//File path without file name
 		String getExtension() const;						//Get extension
 		String getFileName() const;							//Get file name (+ extension)

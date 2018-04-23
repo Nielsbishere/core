@@ -1,5 +1,4 @@
 #include "types/buffer.h"
-#include <fstream>
 #include <math.h>
 #include <string.h>
 using namespace oi;
@@ -118,35 +117,6 @@ CopyBuffer::CopyBuffer(CopyBuffer &&cb) {
 	length = cb.length;
 	data = cb.data;
 	cb.data = nullptr;
-}
-
-Buffer Buffer::readFile(String where) {
-
-	std::ifstream file(where.toCString(), std::ios::binary);
-
-	if (!file.good())
-		return { nullptr, 0 };
-
-	u32 length = (u32) file.rdbuf()->pubseekoff(0, std::ios_base::end);
-
-	file.seekg(0, std::ios::beg);
-	Buffer b(length);
-	memset(b.addr(), 0, b.size());
-	file.read((char*)b.addr(), b.size());
-
-	return b;
-}
-
-bool Buffer::writeFile(String where) {
-
-	std::ofstream file(where.toCString(), std::ios::binary);
-
-	if (!file.good() || data == nullptr)
-		return false;
-	
-	file.write((const char*) data, length);
-
-	return true;
 }
 
 Buffer Buffer::operator+(u32 off) const {

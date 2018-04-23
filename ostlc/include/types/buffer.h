@@ -53,9 +53,6 @@ namespace oi {
 
 		u32 size() const;
 
-		static Buffer readFile(String where);
-		bool writeFile(String where);
-
 		u8 *addr() { return data; }
 
 	protected:

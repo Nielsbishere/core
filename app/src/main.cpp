@@ -1,5 +1,6 @@
 #include "main.h"
 #include <window/windowmanager.h>
+#include <file/filemanager.h>
 
 #include <graphics/commandlist.h>
 #include <graphics/shader.h>
@@ -14,10 +15,11 @@ using namespace oi;
 
 //Set up a main window
 void Application::instantiate(void *param){
-	WindowManager manager;
-	Window *w = manager.create(WindowInfo(__PROJECT_NAME__, 1, param));
+	FileManager fmanager(param);
+	WindowManager wmanager;
+	Window *w = wmanager.create(WindowInfo(__PROJECT_NAME__, 1, param));
 	w->setInterface(new MainInterface());
-	manager.waitAll();
+	wmanager.waitAll();
 }
 
 //Set up the interface
@@ -25,11 +27,11 @@ void Application::instantiate(void *param){
 void MainInterface::initScene(){
 
 	Log::println("Started main interface!");
-	//getInputManager().load("resources/settings/input.json");
+	//getInputManager().load("res/settings/input.json");
 
 	cmdList = g.create(CommandListInfo());
 
-	shader = g.create(ShaderInfo(__PROJECT_RES__ "shaders/simple"));
+	shader = g.create(ShaderInfo("res/shaders/simple"));
 
 	pipelineState = g.create(PipelineStateInfo());
 	pipeline = nullptr;

@@ -124,11 +124,8 @@ bool CommandList::init(Graphics *gl) {
 }
 
 void CommandList::bind(Pipeline *pipeline) {
-	if (pipeline != nullptr) {
-		vkCmdBindPipeline(ext.cmd, pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getExtension());
-		vkCmdDraw(ext.cmd, 3, 1, 0, 0);
-	}
-
+	vkCmdBindPipeline(ext.cmd, pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getExtension());
+	vkCmdDraw(ext.cmd, 3, 1, 0, 0);		//TODO: Remove this
 }
 
 

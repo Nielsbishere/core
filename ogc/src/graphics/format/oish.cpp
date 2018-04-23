@@ -3,7 +3,9 @@
 #include "graphics/shaderstage.h"
 #include "graphics/graphics.h"
 #include <format/oisl.h>
+#include <file/filemanager.h>
 using namespace oi::gc;
+using namespace oi::wc;
 using namespace oi;
 
 bool oiSH::read(Graphics *g, String path, ShaderInfo &info) {
@@ -55,9 +57,9 @@ bool oiSH::read(Graphics *g, String path, ShaderInfo &info) {
 
 bool oiSH::read(String path, SHFile &file) {
 
-	Buffer buf = Buffer::readFile(path);
+	Buffer buf;
 
-	if (buf.size() == 0)
+	if(!FileManager::get()->read(path, buf))
 		return Log::error("Couldn't open file");
 
 	if (!read(buf, file))

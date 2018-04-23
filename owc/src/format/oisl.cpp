@@ -1,11 +1,14 @@
 #include "format/oisl.h"
 #include "types/buffer.h"
+#include <file/filemanager.h>
 #include <cmath>
+using namespace oi::wc;
 using namespace oi;
 
 bool oiSL::read(String path, SLFile &file) {
 
-	Buffer buf = Buffer::readFile(path);
+	Buffer buf;
+	FileManager::get()->read(path, buf);
 
 	if (buf.size() == 0)
 		return Log::error("Couldn't open file");
@@ -147,7 +150,7 @@ bool oiSL::write(String path, String keyset, std::vector<String> names) {
 
 	Buffer buf = write(keyset, names);
 
-	if (!buf.writeFile(path)) {
+	if (!FileManager::get()->write(path, buf)) {
 		buf.deconstruct();
 		return Log::error("Couldn't write to file");
 	}
