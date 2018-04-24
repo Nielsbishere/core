@@ -16,9 +16,7 @@ ShaderStage::~ShaderStage() {
 		vkDestroyShaderModule(graphics.device, ext.shader, allocator);
 }
 
-bool ShaderStage::init(Graphics *g) {
-
-	this->g = g;
+bool ShaderStage::init() {
 
 	VkGraphics &graphics = g->getExtension();
 

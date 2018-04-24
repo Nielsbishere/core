@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.h"
+#include "graphics/graphicsobject.h"
 
 namespace oi {
 
@@ -21,26 +22,23 @@ namespace oi {
 
 		};
 
-		class PipelineState {
+		class PipelineState : public GraphicsObject {
 
 			friend class Graphics;
 
 		public:
 
-			~PipelineState();
-
 			PipelineStateExt &getExtension();
 			
 		protected:
 
+			~PipelineState();
 			PipelineState(PipelineStateInfo info);
-			bool init(Graphics *g);
+			bool init();
 
 		private:
 
 			PipelineStateInfo info;
-			Graphics *g = nullptr;
-
 			PipelineStateExt ext;
 
 		};

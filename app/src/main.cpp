@@ -31,10 +31,14 @@ void MainInterface::initScene(){
 	getInputManager().load("res/settings/input.json");
 
 	cmdList = g.create(CommandListInfo());
+	g.use(cmdList);
 
 	shader = g.create(ShaderInfo("res/shaders/simple"));
+	g.use(shader);
 
 	pipelineState = g.create(PipelineStateInfo());
+	g.use(pipelineState);
+
 	pipeline = nullptr;
 
 }
@@ -51,7 +55,7 @@ void MainInterface::initSurface(){
 
 	GraphicsInterface::initSurface();
 
-	if(pipeline != nullptr) delete pipeline;
+	g.destroy(pipeline);
 	pipeline = g.create(PipelineInfo(shader, pipelineState, g.getBackBuffer()));
 }
 	
@@ -64,8 +68,10 @@ void MainInterface::save(String path){ Log::println("Saving"); }
 
 void MainInterface::update(flp dt){  }
 
-MainInterface::~MainInterface(){ 
-	delete cmdList;
-	delete pipeline;
-	delete shader;
+MainInterface::~MainInterface(){
+	g.finish();
+	g.destroy(pipeline);
+	g.destroy(pipelineState);
+	g.destroy(shader);
+	g.destroy(cmdList);
 }

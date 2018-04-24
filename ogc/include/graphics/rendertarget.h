@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/texture.h"
+#include "graphics/graphicsobject.h"
 
 namespace oi {
 
@@ -18,7 +19,7 @@ namespace oi {
 
 		};
 
-		class RenderTarget {
+		class RenderTarget : public GraphicsObject {
 
 			friend class Graphics;
 
@@ -33,20 +34,17 @@ namespace oi {
 			Vec2u getSize();
 			RenderTargetExt &getExtension();
 
-			~RenderTarget();
-
 		protected:
 
+			~RenderTarget();
 			RenderTarget(RenderTargetInfo info, Texture *depth, std::vector<Texture*> textures);
-			bool init(Graphics *g);
+			bool init();
 
 		private:
 
 			RenderTargetInfo info;
 			Texture *depth;
 			std::vector<Texture*> textures;
-
-			Graphics *g = nullptr;
 
 			RenderTargetExt ext;
 

@@ -2,6 +2,7 @@
 
 #include <types/vector.h>
 #include "graphics/gl/generic.h"
+#include "graphics/graphicsobject.h"
 
 namespace oi {
 
@@ -23,13 +24,11 @@ namespace oi {
 
 		};
 
-		class CommandList {
+		class CommandList : public GraphicsObject {
 
 			friend class Graphics;
 
 		public:
-
-			~CommandList();
 
 			void begin();
 			void begin(RenderTarget *target, RenderTargetClear clear = {});
@@ -45,12 +44,11 @@ namespace oi {
 
 		protected:
 
+			~CommandList();
 			CommandList(CommandListInfo info);
-			bool init(Graphics *gl);
+			bool init();
 
 		private:
-
-			Graphics *gl = nullptr;
 
 			CommandListInfo info;
 			CommandListExt ext;

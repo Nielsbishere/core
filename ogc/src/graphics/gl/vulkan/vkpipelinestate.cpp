@@ -7,7 +7,7 @@ using namespace oi;
 
 PipelineState::~PipelineState() {}
 
-bool PipelineState::init(Graphics *g) {
+bool PipelineState::init() {
 
 	if (std::pow(2, (u32) std::log2(info.samples)) != info.samples)
 		return Log::error("PipelineState creation failed; sample count has to be base2");

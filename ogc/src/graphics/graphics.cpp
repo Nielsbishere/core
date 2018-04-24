@@ -1,3 +1,4 @@
+#include "graphics/graphicsobject.h"
 #include "graphics/graphics.h"
 #include "graphics/texture.h"
 #include "graphics/rendertarget.h"
@@ -76,9 +77,15 @@ Shader *Graphics::create(ShaderInfo info) {
 		return (Shader*)Log::throwError<Graphics, 0x1A>("Couldn't read shader");
 
 	Shader *s = new Shader(info);
-	if (!s->init(this))
+	s->g = this;
+
+	if (!s->init())
 		return (Shader*)Log::throwError<Graphics, 0x1B>("Couldn't initialize shader");
 
+	for (ShaderStage *ss : s->getInfo().stage)
+		++ss->refCount;
+
+	s->hash = add(s);
 	return s;
 }
 
@@ -87,32 +94,25 @@ ShaderStage *Graphics::create(ShaderStageInfo info) {
 	info.code = Buffer(info.code.addr(), info.code.size());
 
 	ShaderStage *ss = new ShaderStage(info);
-	if (!ss->init(this))
+	ss->g = this;
+
+	if (!ss->init())
 		return (ShaderStage*)Log::throwError<Graphics, 0x1C>("Couldn't initialize shader stage");
 
+	ss->hash = add(ss);
 	return ss;
-}
-
-bool Graphics::cleanCommandList(CommandList *cmd) {
-
-	for (auto it = commandList.begin(); it != commandList.end(); ++it)
-		if (*it == cmd) {
-			commandList.erase(it);
-			return true;
-		}
-
-	return false;
-
 }
 
 
 Texture *Graphics::create(TextureInfo info) {
 
 	Texture *tex = new Texture(info);
+	tex->g = this;
 
-	if (!tex->init(this))
+	if (!tex->init())
 		return (Texture*)Log::throwError<Graphics, 0xB>("Couldn't create texture");
 
+	tex->hash = add(tex);
 	return tex;
 }
 
@@ -126,27 +126,98 @@ RenderTarget *Graphics::create(RenderTargetInfo info) {
 		textures[i] = create(TextureInfo(info.res, info.formats[i / buffering], TextureUsage::Render_target));
 
 	RenderTarget *target = new RenderTarget(RenderTargetInfo(info.res, info.depthFormat, info.formats, info.buffering), depth, textures);
+	target->g = this;
 
-	if (!target->init(this))
+	if (!target->init())
 		Log::throwError<Graphics, 0xD>("Couldn't initialize RenderTarget");
 
+	for (Texture *t : target->textures)
+		++t->refCount;
+
+	target->hash = add(target);
 	return target;
 }
 
 Pipeline *Graphics::create(PipelineInfo info) {
 
 	Pipeline *p = new Pipeline(info);
-	if (!p->init(this))
+	p->g = this;
+
+	if (!p->init())
 		return (Pipeline*) Log::throwError<Graphics, 0x1D>("Couldn't initialize pipeline");
 
+	++info.pipelineState->refCount;
+	++info.shader->refCount;
+	++info.renderTarget->refCount;
+
+	p->hash = add(p);
 	return p;
 }
 
 PipelineState *Graphics::create(PipelineStateInfo info) {
 
 	PipelineState *ps = new PipelineState(info);
-	if (!ps->init(this))
+	ps->g = this;
+
+	if (!ps->init())
 		return (PipelineState*) Log::throwError<Graphics, 0x1E>("Couldn't initialize pipeline state");
 
+	ps->hash = add(ps);
 	return ps;
+}
+
+bool Graphics::remove(GraphicsObject *go) {
+
+	size_t id = go->getHash();
+
+	auto it = objects.find(id);
+	if (it == objects.end()) return false;
+
+	auto &vec = it->second;
+
+	auto itt = std::find(vec.begin(), vec.end(), go);
+	if (itt == vec.end()) return false;
+
+	vec.erase(itt);
+	return true;
+}
+
+bool Graphics::contains(GraphicsObject *go) const {
+
+	size_t id = go->getHash();
+
+	auto it = objects.find(id);
+	if (it == objects.end()) return false;
+
+	auto &vec = it->second;
+
+	auto itt = std::find(vec.begin(), vec.end(), go);
+	if (itt == vec.end()) return false;
+
+	return true;
+
+}
+
+bool Graphics::destroy(GraphicsObject *go) {
+
+	if (go == nullptr) return false;
+
+	size_t id = go->getHash();
+
+	auto it = objects.find(id);
+	if (it == objects.end()) return false;
+
+	auto &vec = it->second;
+
+	auto itt = std::find(vec.begin(), vec.end(), go);
+	if (itt == vec.end()) return false;
+
+	if(--go->refCount <= 0)
+		delete go;
+	
+	return true;
+}
+
+void Graphics::use(GraphicsObject *go) {
+	if (contains(go)) ++go->refCount;
 }

@@ -2,6 +2,7 @@
 #include <types/vector.h>
 #include <template/enum.h>
 #include "graphics/gl/generic.h"
+#include "graphics/graphicsobject.h"
 
 namespace oi {
 
@@ -60,13 +61,11 @@ namespace oi {
 			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : res(res), format(format), usage(usage) {}
 		};
 
-		class Texture {
+		class Texture : public GraphicsObject {
 
 			friend class Graphics;
 
 		public:
-
-			~Texture();
 
 			TextureFormat getFormat();
 			TextureUsage getUsage();
@@ -77,16 +76,15 @@ namespace oi {
 
 		protected:
 
+			~Texture();
 			Texture(TextureInfo info);
-			bool init(Graphics *g, bool isOwned = true);
+			bool init(bool isOwned = true);
 
 		private:
 
-			TextureInfo info;
-			Graphics *g = nullptr;
-			
 			bool owned = false;
 
+			TextureInfo info;
 			TextureExt ext;
 
 		};

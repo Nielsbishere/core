@@ -9,24 +9,22 @@ using namespace oi;
 
 RenderTarget::~RenderTarget() {
 
-	VkGraphics &g = this->g->getExtension();
+	VkGraphics &gext = g->getExtension();
 
-	vkDestroyRenderPass(g.device, ext.renderPass, allocator);
+	vkDestroyRenderPass(gext.device, ext.renderPass, allocator);
 
 	for (VkFramebuffer fb : ext.frameBuffer)
-		vkDestroyFramebuffer(g.device, fb, allocator);
+		vkDestroyFramebuffer(gext.device, fb, allocator);
 
 	for (Texture *t : textures)
-		delete t;
+		g->destroy(t);
 
-	delete depth;
+	g->destroy(depth);
 }
 
-bool RenderTarget::init(Graphics *gptr) {
+bool RenderTarget::init() {
 
-	this->g = gptr;
-
-	VkGraphics &g = gptr->getExtension();
+	VkGraphics &gext = g->getExtension();
 
 	//Set up attachments
 
@@ -94,7 +92,7 @@ bool RenderTarget::init(Graphics *gptr) {
 	passInfo.pSubpasses = &subpass;
 	passInfo.subpassCount = 1;
 
-	vkCheck<0x0, RenderTarget>(vkCreateRenderPass(g.device, &passInfo, allocator, &ext.renderPass), "Couldn't create render pass for render target");
+	vkCheck<0x0, RenderTarget>(vkCreateRenderPass(gext.device, &passInfo, allocator, &ext.renderPass), "Couldn't create render pass for render target");
 
 	Log::println("Successfully created render pass for render target");
 
@@ -111,7 +109,8 @@ bool RenderTarget::init(Graphics *gptr) {
 
 		std::vector<VkImageView> fbAttachment(info.targets);
 		for (u32 j = 0; j < info.targets; ++j) {
-			VkTexture &tex = getTarget(j, i)->getExtension();
+			Texture *t = getTarget(j, i);
+			VkTexture &tex = t->getExtension();
 			fbAttachment[j] = tex.view;
 		}
 
@@ -123,8 +122,13 @@ bool RenderTarget::init(Graphics *gptr) {
 		fbInfo.attachmentCount = info.targets;
 		fbInfo.pAttachments = fbAttachment.data();
 
-		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(g.device, &fbInfo, allocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
+		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, allocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
 	}
+
+	for(Texture *t : textures)
+		g->use(t);
+
+	g->use(depth);
 
 	Log::println("Successfully created framebuffers for render target");
 

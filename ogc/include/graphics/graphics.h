@@ -1,6 +1,7 @@
 #pragma once
 #include <types/vector.h>
 #include "graphics/gl/generic.h"
+#include <algorithm>
 
 namespace oi {
 	
@@ -19,6 +20,8 @@ namespace oi {
 		class ShaderStage;
 		class Pipeline;
 		class PipelineState;
+
+		class GraphicsObject;
 
 		struct TextureInfo;
 		struct RenderTargetInfo;
@@ -44,6 +47,8 @@ namespace oi {
 		DEnum(BlendMode, u32, Off = 0, Alpha = 1, Add = 2, Subtract = 3);
 
 		class Graphics {
+
+			friend class GraphicsObject;
 			
 		public:
 			
@@ -56,6 +61,7 @@ namespace oi {
 			
 			void begin();
 			void end();
+			void finish();
 
 			Texture *create(TextureInfo info);
 			RenderTarget *create(RenderTargetInfo info);
@@ -64,8 +70,6 @@ namespace oi {
 			ShaderStage *create(ShaderStageInfo info);
 			Pipeline *create(PipelineInfo info);
 			PipelineState *create(PipelineStateInfo info);
-
-			bool cleanCommandList(CommandList *cmd);
 
 			GraphicsExt &getExtension();
 
@@ -79,6 +83,20 @@ namespace oi {
 
 			RenderTarget *getBackBuffer();
 
+			bool contains(GraphicsObject *go) const;
+			bool destroy(GraphicsObject *go);
+			void use(GraphicsObject *go);
+
+			template<typename T>
+			std::vector<GraphicsObject*> get();
+
+		protected:
+
+			template<typename T>
+			size_t add(T *t);
+
+			bool remove(GraphicsObject *go);
+
 		private:
 			
 			bool initialized = false;
@@ -87,11 +105,40 @@ namespace oi {
 			RenderTarget *backBuffer = nullptr;
 			GraphicsExt ext;
 
-			std::vector<CommandList*> commandList;
-			//TODO: std::unordered_map<u32 /* typeId */, GraphicsObject*>
+			std::unordered_map<size_t, std::vector<GraphicsObject*>> objects;
 			
 		};
 		
+
+		template<typename T>
+		size_t Graphics::add(T *t) {
+
+			static_assert(std::is_base_of<GraphicsObject, T>::value, "Graphics::add is only available to GraphicsObjects");
+
+			size_t id = typeid(T).hash_code();
+
+			std::vector<GraphicsObject*> &o = objects[id];
+			auto it = std::find(o.begin(), o.end(), (GraphicsObject*) t);
+
+			if (it != o.end()) Log::warn("Graphics::add called on an already existing object");
+			else o.push_back(t);
+
+			return id;
+		}
+
+		template<typename T>
+		std::vector<GraphicsObject*> Graphics::get() {
+
+			static_assert(std::is_base_of<GraphicsObject, T>::value, "Graphics::get is only available to GraphicsObjects");
+
+			size_t id = typeid(T).hash_code();
+
+			auto it = objects.find(id);
+			if (it == objects.end()) return {};
+
+			return it->second;
+		}
+
 	}
 	
 }

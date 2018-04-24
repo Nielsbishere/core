@@ -2,6 +2,7 @@
 
 #include "gl/generic.h"
 #include "texture.h"
+#include "graphics/graphicsobject.h"
 
 namespace oi {
 
@@ -43,13 +44,11 @@ namespace oi {
 
 		};
 
-		class Shader {
+		class Shader : public GraphicsObject {
 
 			friend class Graphics;
 
 		public:
-
-			~Shader();
 
 			ShaderExt &getExtension();
 			const ShaderInfo &getInfo();
@@ -58,14 +57,13 @@ namespace oi {
 
 		protected:
 
+			~Shader();
 			Shader(ShaderInfo info);
-			bool init(Graphics *g);
+			bool init();
 
 		private:
 
 			ShaderInfo info;
-			Graphics *g = nullptr;
-
 			ShaderExt ext;
 
 		};

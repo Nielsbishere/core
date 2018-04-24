@@ -1,6 +1,5 @@
 #ifdef __VULKAN__
 
-#include "graphics/gl/vulkan.h"
 #include "graphics/graphics.h"
 #include "graphics/texture.h"
 #include "graphics/rendertarget.h"
@@ -11,6 +10,7 @@
 
 #undef min
 #undef max
+#undef ERROR
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -44,7 +44,15 @@ Graphics::~Graphics(){
 	
 	if(initialized){
 
-		vkQueueWaitIdle(ext.queue);
+		destroy(backBuffer);
+
+		for (auto &a : objects)
+			for (u32 i = (u32) a.second.size() - 1; i != u32_MAX; --i) {
+				Log::warn(String("Left over object with hashcode ") + a.first + " #" + i + " and refCount " + a.second[i]->refCount);
+				destroy(a.second[i]);
+			}
+
+		objects.clear();
 
 		vkDestroyCommandPool(ext.device, ext.pool, allocator);
 		vkDestroySemaphore(ext.device, ext.semaphore, allocator);
@@ -446,13 +454,20 @@ void Graphics::initSurface(Window *w){
 		VkTexture &vkTex = tex->getExtension();
 		vkTex.image = swapchainImages[i];
 		
-		if(!tex->init(this, false))
+		tex->g = this;
+
+		if(!tex->init(false))
 			Log::throwError<Graphics, 0xA>("Couldn't initialize swapchain image view");
+
+		tex->hash = typeid(Texture).hash_code();
+
+		add(tex);
 	}
 
 	//Create depth buffer
 
 	vkGetPhysicalDeviceMemoryProperties(ext.pdevice, &ext.pmemory);
+
 	Texture *depthBuffer = create(TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
 
 	Log::println("Successfully created image views of the swapchain");
@@ -460,9 +475,13 @@ void Graphics::initSurface(Window *w){
 	//Turn it into a RenderTarget aka 'Render pass'
 
 	backBuffer = new RenderTarget(RenderTargetInfo(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() }, buffering), depthBuffer, textures);
+	backBuffer->g = this;
 
-	if(!backBuffer->init(this))
+	if(!backBuffer->init())
 		Log::throwError<Graphics, 0xC>("Couldn't initialize backBuffer (render target)");
+
+	backBuffer->hash = typeid(RenderTarget).hash_code();
+	add(backBuffer);
 
 	Log::println("Successfully created backBuffer");
 }
@@ -472,7 +491,6 @@ void Graphics::destroySurface(){
 	vkQueueWaitIdle(ext.queue);
 
 	vkDestroySwapchainKHR(ext.device, ext.swapchain, allocator);
-	delete backBuffer;
 	vkDestroySurfaceKHR(ext.instance, ext.surface, allocator);
 	
 	Log::println("Successfully destroyed surface");
@@ -494,9 +512,11 @@ void Graphics::end() {
 	VkSubmitInfo submitInfo;
 	memset(&submitInfo, 0, sizeof(submitInfo));
 
+	std::vector<GraphicsObject*> commandList = get<CommandList>();
+
 	std::vector<VkCommandBuffer> commandBuffer(commandList.size());
 	for (u32 i = 0; i < (u32) commandBuffer.size(); ++i)
-		commandBuffer[i] = commandList[i]->ext.cmd;
+		commandBuffer[i] = ((CommandList*)commandList[i])->ext.cmd;
 
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = (u32) commandList.size();
@@ -526,17 +546,21 @@ void Graphics::end() {
 
 }
 
+void Graphics::finish() {
+	vkQueueWaitIdle(ext.queue);
+}
+
 CommandList *Graphics::create(CommandListInfo info) {
 
 	CommandList *cl = new CommandList(info);
 
 	cl->getExtension().pool = ext.pool;
+	cl->g = this;
 
-	if (!cl->init(this))
+	if (!cl->init())
 		Log::throwError<Graphics, 0x15>("Couldn't create command list");
 
-	commandList.push_back(cl);
-
+	cl->hash = add(cl);
 	return cl;
 }
 

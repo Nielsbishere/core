@@ -6,9 +6,8 @@
 using namespace oi::gc;
 using namespace oi;
 
-bool Texture::init(Graphics *g, bool isOwned) {
+bool Texture::init(bool isOwned) {
 
-	this->g = g;
 	this->owned = isOwned;
 
 	VkGraphics &graphics = g->getExtension();

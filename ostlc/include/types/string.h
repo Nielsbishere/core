@@ -29,6 +29,7 @@ namespace oi {
 
 		String(i32 i);
 		String(u32 u);
+		String(u64 u);
 		String(flp f);
 		String(char c);
 		explicit String(void *v);

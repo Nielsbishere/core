@@ -3,6 +3,7 @@
 #include "graphics/gl/generic.h"
 #include <template/enum.h>
 #include <types/buffer.h>
+#include "graphics/graphicsobject.h"
 
 namespace oi {
 
@@ -21,25 +22,23 @@ namespace oi {
 
 		};
 
-		class ShaderStage {
+		class ShaderStage : public GraphicsObject {
 
 			friend class Graphics;
 
 		public:
 
-			~ShaderStage();
 			ShaderStageExt &getExtension();
 
 		protected:
 
+			~ShaderStage();
 			ShaderStage(ShaderStageInfo info);
-			bool init(Graphics *g);
+			bool init();
 
 		private:
 
 			ShaderStageInfo info;
-			Graphics *g = nullptr;
-
 			ShaderStageExt ext;
 
 		};

@@ -9,7 +9,7 @@ using namespace oi::gc;
 using namespace oi;
 
 CommandList::~CommandList() { 
-	gl->cleanCommandList(this);
+	vkFreeCommandBuffers(g->getExtension().device, ext.pool, 1, &ext.cmd);
 }
 
 CommandListExt &CommandList::getExtension() { return ext; }
@@ -40,14 +40,14 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 		Texture *targ = target->getTarget(i, 0);
 		TextureFormat format = targ->getFormat();
 		
-		if (gl->isDepthFormat(format)) {
+		if (g->isDepthFormat(format)) {
 			cl.depthStencil.depth = clear.depthClear;
 			cl.depthStencil.stencil = clear.stencilClear;
 		} else {
 
-			Vec4d color = gl->convertColor(clear.colorClear, format);
+			Vec4d color = g->convertColor(clear.colorClear, format);
 
-			TextureFormatStorage storedFormat = gl->getFormatStorage(format);
+			TextureFormatStorage storedFormat = g->getFormatStorage(format);
 
 			if (storedFormat == TextureFormatStorage::INT)
 				*(Vec4i*) cl.color.int32 = Vec4i(color);
@@ -62,7 +62,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	beginInfo.renderArea.extent = { target->getSize().x, target->getSize().y };
 	beginInfo.renderPass = rtext.renderPass;
-	beginInfo.framebuffer = rtext.frameBuffer[gl->getExtension().current];
+	beginInfo.framebuffer = rtext.frameBuffer[g->getExtension().current];
 	beginInfo.clearValueCount = (u32) clearValue.size();
 	beginInfo.pClearValues = clearValue.data();
 
@@ -104,11 +104,9 @@ void CommandList::end() {
 	vkEndCommandBuffer(ext.cmd);
 }
 
-bool CommandList::init(Graphics *gl) {
+bool CommandList::init() {
 
-	this->gl = gl;
-
-	GraphicsExt &glext = gl->getExtension();
+	GraphicsExt &glext = g->getExtension();
 
 	VkCommandBufferAllocateInfo allocInfo;
 	memset(&allocInfo, 0, sizeof(allocInfo));

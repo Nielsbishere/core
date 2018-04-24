@@ -11,16 +11,14 @@ Shader::~Shader() {
 	GraphicsExt &gext = g->getExtension();
 
 	for (ShaderStage *stage : info.stage)
-		delete stage;
+		g->destroy(stage);
 
 	//vkDestroyDescriptorPool(gext.device, ext.descriptorPool, allocator);
 	vkDestroyPipelineLayout(gext.device, ext.layout, allocator);
 
 }
 
-bool Shader::init(Graphics *g) {
-
-	this->g = g;
+bool Shader::init() {
 
 	GraphicsExt &gext = g->getExtension();
 

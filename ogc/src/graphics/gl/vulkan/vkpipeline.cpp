@@ -7,16 +7,20 @@ using namespace oi::gc;
 using namespace oi;
 
 Pipeline::~Pipeline() {
+
+	g->destroy(info.pipelineState);
+	g->destroy(info.shader);
+	g->destroy(info.renderTarget);
+
 	vkDestroyPipeline(g->getExtension().device, ext, allocator);
 }
 
-bool Pipeline::init(Graphics *g) {
+bool Pipeline::init() {
 
 	if (info.shader == nullptr)
 		Log::throwError<Pipeline, 0x2>("Pipeline requires a shader");
 
 	GraphicsExt &gext = g->getExtension();
-	this->g = g;
 
 	ShaderExt &shext = info.shader->getExtension();
 

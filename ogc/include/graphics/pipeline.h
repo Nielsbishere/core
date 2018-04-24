@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gl/generic.h"
+#include "graphics/graphicsobject.h"
 
 namespace oi {
 
@@ -24,27 +25,24 @@ namespace oi {
 
 		};
 
-		class Pipeline {
+		class Pipeline : public GraphicsObject {
 
 			friend class Graphics;
 
 		public:
-
-			~Pipeline();
 
 			PipelineExt &getExtension();
 			const PipelineInfo &getInfo();
 
 		protected:
 
+			~Pipeline();
 			Pipeline(PipelineInfo info);
-			bool init(Graphics *g);
+			bool init();
 
 		private:
 
 			PipelineInfo info;
-			Graphics *g = nullptr;
-
 			PipelineExt ext;
 
 		};
