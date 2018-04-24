@@ -269,7 +269,10 @@ bool String::startsWith(String other) const {
 String String::getPath() const {
 	std::vector<String> subs = split("/");
 	if (subs.size() > 1) {
-		subs.erase(subs.end() - 1);
+
+		if(subs[subs.size() - 1].contains("."))
+			subs.erase(subs.end() - 1);
+
 		return combine(subs, "/");
 	}
 	return "/";

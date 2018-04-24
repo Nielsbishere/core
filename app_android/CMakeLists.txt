@@ -32,7 +32,7 @@ set(ANDROID_DIR ${HOME_DIR}/${ANDROID_NAME})
 set(APK_DIR ${CMAKE_SOURCE_DIR}/bin/apk)
 set(LIBS_DIR ${CMAKE_SOURCE_DIR}/lib)
 
-set(ANDROID_APK_PACKAGE com.oi.${APP_PACKAGE})
+set(ANDROID_APK_PACKAGE net.osomi.${APP_PACKAGE})
 set(ANDROID_APK_SIGNER_KEYSTORE	"~/my-release-key.keystore")
 set(ANDROID_APK_SIGNER_ALIAS "myalias")
 

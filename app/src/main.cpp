@@ -27,7 +27,8 @@ void Application::instantiate(void *param){
 void MainInterface::initScene(){
 
 	Log::println("Started main interface!");
-	//getInputManager().load("res/settings/input.json");
+
+	getInputManager().load("res/settings/input.json");
 
 	cmdList = g.create(CommandListInfo());
 

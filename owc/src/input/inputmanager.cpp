@@ -16,6 +16,11 @@ void InputManager::clear(String handle) {
 	clearAxis(handle);
 }
 
+void InputManager::clear() {
+	states.clear();
+	axes.clear();
+}
+
 bool InputManager::containsState(String handle) const {
 	return states.find(handle) != states.end();
 }
@@ -93,6 +98,8 @@ Vec2 InputManager::getAxis2D(String handle, InputAxes2D ia, bool clamp) const {
 
 bool InputManager::load(String path) {
 
+	Log::println(path);
+
 	String str;
 	if (!FileManager::get()->read(path, str))
 		return Log::error("Couldn't read InputManager file");
@@ -147,7 +154,7 @@ bool InputManager::load(String path) {
 	return true;
 }
 
-bool InputManager::write(String path) {
+String InputManager::write() const {
 
 	JSON json;
 
@@ -181,8 +188,11 @@ bool InputManager::write(String path) {
 
 	}
 
-	String str = json.toString();
-	return FileManager::get()->write(path, str);
+	return json.toString();
+}
+
+bool InputManager::write(String path) const {
+	return FileManager::get()->write(path, write());
 }
 
 void InputManager::update() {

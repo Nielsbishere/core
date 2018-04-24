@@ -47,6 +47,7 @@ namespace oi {
 			void update();
 			bool contains(String handle) const;
 			void clear(String handle);
+			void clear();
 
 			///InputStates
 
@@ -75,7 +76,8 @@ namespace oi {
 			///Loading/writing
 
 			bool load(String loadPath);
-			bool write(String writepath);
+			bool write(String writepath) const;
+			String write() const;
 
 		private:
 			
