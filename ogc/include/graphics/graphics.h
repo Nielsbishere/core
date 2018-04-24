@@ -88,6 +88,7 @@ namespace oi {
 			GraphicsExt ext;
 
 			std::vector<CommandList*> commandList;
+			//TODO: std::unordered_map<u32 /* typeId */, GraphicsObject*>
 			
 		};
 		

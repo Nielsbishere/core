@@ -16,7 +16,7 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, void *pUserData) {
+VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, u64 object, size_t location, i32 messageCode, const char *pLayerPrefix, const char *pMessage, void *pUserData) {
 	
 	String prefix;
 	LogLevel level = LogLevel::PRINT;
@@ -68,14 +68,12 @@ Graphics::~Graphics(){
 }
 
 void Graphics::init(Window *w, u32 buffering){
-	
-	u32 queueFamilyIndex = 0; //TODO: !!!
 
 	this->buffering = buffering;
 
 	//Get extensions and layers
 
-	uint32_t layerCount, extensionCount;
+	u32 layerCount, extensionCount;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
@@ -175,13 +173,13 @@ void Graphics::init(Window *w, u32 buffering){
 	#ifdef __DEBUG__
 	
 	Log::println(String("Layers: ") + layerCount);
-	for(uint32_t i = 0; i < layerCount; ++i){
+	for(u32 i = 0; i < layerCount; ++i){
 		VkLayerProperties &l = layers[i];
 		Log::println(String("Layer #") + i + ": " + l.layerName + " v" + l.specVersion + "-" + l.implementationVersion + ": " + l.description);
 	}
 	
 	Log::println(String("Extensions: ") + extensionCount);
-	for(uint32_t i = 0; i < extensionCount; ++i){
+	for(u32 i = 0; i < extensionCount; ++i){
 		VkExtensionProperties &e = extensions[i];
 		Log::println(String("Extension #") + i + ": " + e.extensionName + " v" + e.specVersion);
 	}
@@ -192,7 +190,7 @@ void Graphics::init(Window *w, u32 buffering){
 	delete[] extensions;
 	
 	//Get all devices
-	uint32_t deviceCount;
+	u32 deviceCount;
 	vkEnumeratePhysicalDevices(ext.instance, &deviceCount, nullptr);
 	
 	VkPhysicalDevice *devices = new VkPhysicalDevice[deviceCount];
@@ -204,7 +202,7 @@ void Graphics::init(Window *w, u32 buffering){
 	
 	VkPhysicalDeviceProperties *properties = new VkPhysicalDeviceProperties[deviceCount];
 	
-	for(uint32_t i = 0; i < deviceCount; ++i){
+	for(u32 i = 0; i < deviceCount; ++i){
 		
 		vkGetPhysicalDeviceProperties(devices[i], properties + i);
 		
@@ -218,7 +216,7 @@ void Graphics::init(Window *w, u32 buffering){
 	
 	bool foundDiscrete = false;
 	
-	for(uint32_t i = 0; i < deviceCount; ++i)
+	for(u32 i = 0; i < deviceCount; ++i)
 		if(properties[i].deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
 			
 			#ifdef __DEBUG__
@@ -244,22 +242,37 @@ void Graphics::init(Window *w, u32 buffering){
 	std::memset(&deviceInfo, 0, sizeof(deviceInfo));
 	
 	deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	deviceInfo.enabledLayerCount = (uint32_t) dlayers.size();
+	deviceInfo.enabledLayerCount = (u32) dlayers.size();
 	deviceInfo.ppEnabledLayerNames = dlayers.data();
-	deviceInfo.enabledExtensionCount = (uint32_t) dextensions.size();
+	deviceInfo.enabledExtensionCount = (u32) dextensions.size();
 	deviceInfo.ppEnabledExtensionNames = dextensions.data();
 	deviceInfo.pEnabledFeatures = nullptr;
 	
 
-	uint32_t familyCount;
+	u32 familyCount;
 	vkGetPhysicalDeviceQueueFamilyProperties(ext.pdevice, &familyCount, nullptr);
 
 	VkQueueFamilyProperties *families = new VkQueueFamilyProperties[familyCount];
 	vkGetPhysicalDeviceQueueFamilyProperties(ext.pdevice, &familyCount, families);
 
+	u32 queueFamilyIndex = u32_MAX;
+
+	for (u32 i = 0; i < familyCount; ++i) {
+
+		VkQueueFamilyProperties &fam = families[i];
+
+		if (fam.queueCount > 0 && fam.queueFlags & VK_QUEUE_GRAPHICS_BIT && fam.queueFlags & VK_QUEUE_COMPUTE_BIT) {
+			queueFamilyIndex = i;
+			break;
+		}
+
+	}
+
+	if (queueFamilyIndex == u32_MAX)
+		Log::throwError<Graphics, 0x1F>("Couldn't intialize family queue");
 
 	float queuePriorities[] = { 1.f };
-	constexpr uint32_t queueCount = (uint32_t)(sizeof(queuePriorities) / sizeof(float));
+	constexpr u32 queueCount = (u32)(sizeof(queuePriorities) / sizeof(float));
 	VkDeviceQueueCreateInfo queues[queueCount];
 	std::memset(queues, 0, sizeof(queues));
 	
@@ -335,7 +348,7 @@ void Graphics::initSurface(Window *w){
 
 	//Get the format we should display
 	
-	uint32_t formatCount;
+	u32 formatCount;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(ext.pdevice, ext.surface, &formatCount, NULL);
 	
 	if(formatCount == 0)
@@ -381,13 +394,13 @@ void Graphics::initSurface(Window *w){
 	
 	if(buffering != 2){
 		
-		uint32_t modeCount;
+		u32 modeCount;
 		vkGetPhysicalDeviceSurfacePresentModesKHR(ext.pdevice, ext.surface, &modeCount, nullptr);
 		
 		VkPresentModeKHR *modes = new VkPresentModeKHR[modeCount];
 		vkGetPhysicalDeviceSurfacePresentModesKHR(ext.pdevice, ext.surface, &modeCount, modes);
 		
-			for(uint32_t i = 0; i < modeCount; ++i)
+			for(u32 i = 0; i < modeCount; ++i)
 				if(modes[i] == desire){
 					mode = modes[i];
 					break;
@@ -410,7 +423,7 @@ void Graphics::initSurface(Window *w){
 	swapchainInfo.imageArrayLayers = 1;
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	swapchainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;		//TODO: Rotation?
+	swapchainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 	swapchainInfo.compositeAlpha = (VkCompositeAlphaFlagBitsKHR) capabilities.supportedCompositeAlpha;
 	swapchainInfo.presentMode = mode;
 
