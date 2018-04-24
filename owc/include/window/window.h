@@ -50,7 +50,7 @@ namespace oi {
 			InputHandler inputHandler;
 			InputManager inputManager;
 			WindowInterface *wi = nullptr;
-			bool initialized = false, isPaused = false;
+			bool initialized = false, isPaused = false, configChanged = false;
 			u32 finalizeCount = 0;
 
 			flp lastTick = (flp) 0;

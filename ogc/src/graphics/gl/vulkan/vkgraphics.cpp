@@ -311,7 +311,7 @@ void Graphics::init(Window *w, u32 buffering){
 
 
 void Graphics::initSurface(Window *w){
-	
+
 	//Enable extension
 	
 	vkExtension(vkGetPhysicalDeviceSurfaceFormatsKHR);

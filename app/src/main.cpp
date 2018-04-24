@@ -64,4 +64,8 @@ void MainInterface::save(String path){ Log::println("Saving"); }
 
 void MainInterface::update(flp dt){  }
 
-MainInterface::~MainInterface(){ Log::println("Destroyed"); }
+MainInterface::~MainInterface(){ 
+	delete cmdList;
+	delete pipeline;
+	delete shader;
+}

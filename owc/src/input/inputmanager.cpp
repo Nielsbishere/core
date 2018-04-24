@@ -98,8 +98,6 @@ Vec2 InputManager::getAxis2D(String handle, InputAxes2D ia, bool clamp) const {
 
 bool InputManager::load(String path) {
 
-	Log::println(path);
-
 	String str;
 	if (!FileManager::get()->read(path, str))
 		return Log::error("Couldn't read InputManager file");

@@ -95,9 +95,9 @@ void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 	WindowInterface *wi = w->getInterface();
 
 	if(w->initialized || cmd == APP_CMD_INIT_WINDOW)
-	switch(cmd){
+		switch (cmd) {
 
-	case APP_CMD_WINDOW_RESIZED:
+		case APP_CMD_WINDOW_RESIZED:
 
 		{
 			int32_t width = ANativeWindow_getWidth(app->window);
@@ -109,55 +109,70 @@ void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 		if (wi != nullptr)
 			wi->onResize(w->getInfo().size);
 
-		
-		break;
-
-	case APP_CMD_CONTENT_RECT_CHANGED:
-	{
-		ARect rect = app->contentRect;
-
-		Vec2i pos = Vec2i((i32)rect.left, (i32)rect.top);
-
-		w->getInfo().position = pos;
-
-		if (wi != nullptr)
-			wi->onMove(pos);
-	}
-	break;
-
-	case APP_CMD_WINDOW_REDRAW_NEEDED:
-
-		if (wi != nullptr)
-			wi->repaint();
 
 		break;
-	
-	case APP_CMD_GAINED_FOCUS:
 
-		w->getInfo().inFocus = true;
-		w->isPaused = false;
-		
-		if (wi != nullptr)
-			wi->setFocus(true);
-		
-		break;
-	
-	case APP_CMD_LOST_FOCUS:
+		case APP_CMD_CONTENT_RECT_CHANGED:
+		{
+			ARect rect = app->contentRect;
 
-		w->getInfo().inFocus = true;
-		w->isPaused = true;
-		
-		if (wi != nullptr)
-			wi->setFocus(true);
-		
+			Vec2i pos = Vec2i((i32)rect.left, (i32)rect.top);
+
+			Log::println("Resize?");
+
+			w->getInfo().position = pos;
+
+			if (wi != nullptr)
+				wi->onMove(pos);
+		}
 		break;
 
-	case APP_CMD_RESUME:
-		Log::println("Resume");
-		break;
-	
-	case APP_CMD_TERM_WINDOW:
-		terminate(w);
+		case APP_CMD_WINDOW_REDRAW_NEEDED:
+
+			if (wi != nullptr)
+				wi->repaint();
+
+			break;
+
+		case APP_CMD_GAINED_FOCUS:
+
+			w->getInfo().inFocus = true;
+			w->isPaused = false;
+
+			if (wi != nullptr)
+				wi->setFocus(true);
+
+			break;
+
+		case APP_CMD_LOST_FOCUS:
+
+			w->getInfo().inFocus = true;
+			w->isPaused = true;
+
+			if (wi != nullptr)
+				wi->setFocus(true);
+
+			break;
+
+		case APP_CMD_RESUME:
+			Log::println("Resume");
+			break;
+
+		case APP_CMD_TERM_WINDOW:
+			if (!w->configChanged)
+				terminate(w);
+			else {
+				int32_t width = ANativeWindow_getWidth(app->window);
+				int32_t height = ANativeWindow_getHeight(app->window);
+
+				Vec2u osize = w->getInfo().size;
+				w->getInfo().size = Vec2u((u32)width, (u32)height);
+
+				w->configChanged = false;
+
+				if (wi != nullptr)
+					wi->onResize(w->getInfo().size);
+			}
 		break;
 		
 	case APP_CMD_SAVE_STATE:
@@ -182,6 +197,10 @@ void Window_imp::handleCmd(struct android_app *app, int32_t cmd){
 			wi->load("lifetime.bin");
 		
 		initDisplay(w);
+		break;
+
+	case APP_CMD_CONFIG_CHANGED:
+		w->configChanged = true;
 		break;
 
 	default:
