@@ -30,6 +30,7 @@ namespace oi {
 			VkCommandPool pool = nullptr;
 			VkSemaphore semaphore = nullptr;
 			VkDebugReportCallbackEXT debugCallback = nullptr;
+			u32 queueFamilyIndex = u32_MAX;
 		};
 
 		struct VkRenderTarget {
@@ -38,9 +39,14 @@ namespace oi {
 		};
 
 		struct VkTexture {
-			VkImage image = nullptr;
+			VkImage resource = nullptr;
 			VkDeviceMemory memory = nullptr;
 			VkImageView view = nullptr;
+		};
+
+		struct VkGBuffer {
+			VkBuffer resource = nullptr;
+			VkDeviceMemory memory = nullptr;
 		};
 
 		struct VkShaderStage {
@@ -138,6 +144,34 @@ namespace oi {
 			return Log::throwError<T, errorId>(msg);
 		}
 
+#define vkAllocate(type, needed) 																											\
+		VkMemoryAllocateInfo memoryInfo;																									\
+		memset(&memoryInfo, 0, sizeof(memoryInfo));																							\
+																																			\
+		VkMemoryRequirements requirements;																									\
+		vkGet##type##MemoryRequirements(graphics.device, ext.resource, &requirements);														\
+																																			\
+		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;																			\
+		memoryInfo.allocationSize = requirements.size;																						\
+																																			\
+		VkMemoryPropertyFlags required = needed;																							\
+																																			\
+		uint32_t memoryIndex = u32_MAX;																										\
+																																			\
+		for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)																		\
+			if ((requirements.memoryTypeBits & (1 << i)) && (graphics.pmemory.memoryTypes[i].propertyFlags & required) == required) {		\
+				memoryIndex = i;																											\
+				break;																														\
+			}																																\
+																																			\
+		if (memoryIndex == u32_MAX)																											\
+			Log::throwError<VkGraphics, 0x3>("Couldn't find a valid memory type for a(n) " #type);											\
+																																			\
+		memoryInfo.memoryTypeIndex = memoryIndex;																							\
+																																			\
+		vkCheck<0x0, VkGraphics>(vkAllocateMemory(graphics.device, &memoryInfo, allocator, &ext.memory), "Couldn't allocate memory");		\
+		vkCheck<0x1, VkGraphics>(vkBind##type##Memory(graphics.device, ext.resource, ext.memory, 0), "Couldn't bind " #type " memory");
+
 
 		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
 
@@ -192,6 +226,8 @@ namespace oi {
 		DEnum(VkFillMode, VkPolygonMode, Fill = VK_POLYGON_MODE_FILL, Line = VK_POLYGON_MODE_LINE, Point = VK_POLYGON_MODE_POINT);
 		DEnum(VkCullMode, VkCullModeFlags, None = VK_CULL_MODE_NONE, Back = VK_CULL_MODE_BACK_BIT, Front = VK_CULL_MODE_FRONT_BIT);
 		DEnum(VkWindMode, VkFrontFace, CCW = VK_FRONT_FACE_COUNTER_CLOCKWISE, CW = VK_FRONT_FACE_CLOCKWISE);
+
+		DEnum(VkGBufferType, VkBufferUsageFlags, UBO = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, SSBO = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, IBO = VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VBO = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, CBO = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
 
 	}
 }

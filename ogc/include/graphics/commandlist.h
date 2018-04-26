@@ -11,6 +11,7 @@ namespace oi {
 		class Graphics;
 		class RenderTarget;
 		class Pipeline;
+		class GBuffer;
 
 		struct CommandListInfo { };
 
@@ -37,6 +38,9 @@ namespace oi {
 			void end(RenderTarget *target);
 
 			void bind(Pipeline *pipeline);
+			bool bind(std::vector<GBuffer*> buffers);
+			void draw(u32 vertices, u32 instances = 1U, u32 startVertex = 0U, u32 startInstance = 0U);
+			void drawIndexed(u32 indices, u32 instances = 1U, u32 startIndex = 0U, u32 startVertex = 0U, u32 startInstance = 0U);
 
 			CommandListExt &getExtension();
 

@@ -20,6 +20,7 @@ namespace oi {
 		class ShaderStage;
 		class Pipeline;
 		class PipelineState;
+		class GBuffer;
 
 		class GraphicsObject;
 
@@ -30,6 +31,7 @@ namespace oi {
 		struct ShaderStageInfo;
 		struct PipelineInfo;
 		struct PipelineStateInfo;
+		struct GBufferInfo;
 
 		enum class TextureFormatStorage;
 
@@ -70,6 +72,7 @@ namespace oi {
 			ShaderStage *create(ShaderStageInfo info);
 			Pipeline *create(PipelineInfo info);
 			PipelineState *create(PipelineStateInfo info);
+			GBuffer *create(GBufferInfo info);
 
 			GraphicsExt &getExtension();
 

@@ -27,5 +27,6 @@ private:
 	oi::gc::Shader *shader;
 	oi::gc::Pipeline *pipeline;
 	oi::gc::PipelineState *pipelineState;
+	oi::gc::GBuffer *quadVbo, *quadIbo;
 
 };

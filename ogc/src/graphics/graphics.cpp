@@ -7,6 +7,7 @@
 #include "graphics/format/oish.h"
 #include "graphics/pipeline.h"
 #include "graphics/pipelinestate.h"
+#include "graphics/gbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -164,6 +165,18 @@ PipelineState *Graphics::create(PipelineStateInfo info) {
 
 	ps->hash = add(ps);
 	return ps;
+}
+
+GBuffer *Graphics::create(GBufferInfo info) {
+
+	GBuffer *b = new GBuffer(info);
+	b->g = this;
+
+	if (!b->init())
+		return (GBuffer*) Log::throwError<Graphics, 0x20>("Couldn't initialize buffer");
+
+	b->hash = add(b);
+	return b;
 }
 
 bool Graphics::remove(GraphicsObject *go) {

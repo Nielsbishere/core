@@ -63,37 +63,10 @@ bool Texture::init(bool isOwned) {
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, allocator, &ext.image), "Couldn't create image");
+		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, allocator, &ext.resource), "Couldn't create image");
 
 		//Allocate memory
-
-		VkMemoryAllocateInfo memoryInfo;
-		memset(&memoryInfo, 0, sizeof(memoryInfo));
-
-		VkMemoryRequirements requirements;
-		vkGetImageMemoryRequirements(graphics.device, ext.image, &requirements);
-
-		VkMemoryPropertyFlagBits required = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-		//Check if it has device space left
-		uint32_t memoryIndex = u32_MAX;
-
-		for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)
-			if (requirements.memoryTypeBits & (1 << i) && graphics.pmemory.memoryTypes[i].propertyFlags & required) {
-				memoryIndex = i;
-				break;
-			}
-
-		if (memoryIndex == u32_MAX)
-			Log::throwError<Texture, 0x2>("Couldn't find a valid memory type for an image");
-
-		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memoryInfo.allocationSize = requirements.size;
-		memoryInfo.memoryTypeIndex = memoryIndex;
-
-		vkCheck<0x3, Texture>(vkAllocateMemory(graphics.device, &memoryInfo, allocator, &ext.memory), "Couldn't allocate image memory");
-		vkCheck<0x4, Texture>(vkBindImageMemory(graphics.device, ext.image, ext.memory, 0), "Couldn't bind image memory");
-
+		vkAllocate(Image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	}
 	
 	//Create image view
@@ -102,14 +75,14 @@ bool Texture::init(bool isOwned) {
 	memset(&viewInfo, 0, sizeof(viewInfo));
 
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewInfo.image = ext.image;
+	viewInfo.image = ext.resource;
 	viewInfo.format = format_inter;
 	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	viewInfo.subresourceRange.aspectMask = useDepth ? (useStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0) | VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.layerCount = 1;
 
-	vkCheck<0x4, Texture>(vkCreateImageView(graphics.device, &viewInfo, allocator, &ext.view), "Couldn't create image view");
+	vkCheck<0x2, Texture>(vkCreateImageView(graphics.device, &viewInfo, allocator, &ext.view), "Couldn't create image view");
 
 	Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	return true;
@@ -125,7 +98,7 @@ Texture::~Texture() {
 		
 		if(owned){
 			vkFreeMemory(graphics.device, ext.memory, allocator);
-			vkDestroyImage(graphics.device, ext.image, allocator);
+			vkDestroyImage(graphics.device, ext.resource, allocator);
 		}
 
 	}

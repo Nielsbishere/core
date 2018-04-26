@@ -5,6 +5,7 @@
 #include "graphics/pipeline.h"
 #include "graphics/shader.h"
 #include "graphics/graphics.h"
+#include "graphics/gbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -123,7 +124,43 @@ bool CommandList::init() {
 
 void CommandList::bind(Pipeline *pipeline) {
 	vkCmdBindPipeline(ext.cmd, pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getExtension());
-	vkCmdDraw(ext.cmd, 3, 1, 0, 0);		//TODO: Remove this
+}
+
+void CommandList::draw(u32 vertices, u32 instances, u32 startVertex, u32 startInstance) {
+	vkCmdDraw(ext.cmd, vertices, instances, startVertex, startInstance);
+}
+
+void CommandList::drawIndexed(u32 indices, u32 instances, u32 startIndex, u32 startVertex, u32 startInstance) {
+	vkCmdDrawIndexed(ext.cmd, indices, instances, startIndex, startVertex, startInstance);
+}
+
+bool CommandList::bind(std::vector<GBuffer*> buffer) {
+
+	if (buffer.size() == 0) return Log::warn("CommandList::bind GBuffer[] requires at least 1 GBuffer");
+
+	GBufferType type = buffer[0]->getType();
+
+	std::vector<VkBuffer> vkBuffer(buffer.size());
+
+	u32 i = 0;
+
+	for (GBuffer *b : buffer)
+		if (type != b->getType())
+			return Log::throwError<CommandList, 0x1>("CommandList::bind requires GBuffers to be of the same type");
+		else
+			vkBuffer[i++] = b->getExtension().resource;
+
+	VkDeviceSize zero = 0;
+
+	if(type == GBufferType::VBO)
+		vkCmdBindVertexBuffers(ext.cmd, 0, (u32) buffer.size(), vkBuffer.data(), &zero);
+	else if (type == GBufferType::IBO) {
+		if (i != 1) return Log::throwError<CommandList, 0x2>("CommandList::bind IBO can only handle 1 buffer");
+		vkCmdBindIndexBuffer(ext.cmd, vkBuffer[0], 0, VkIndexType::VK_INDEX_TYPE_UINT32);
+	} else 
+		return Log::throwError<CommandList, 0x3>("CommandList::bind(GBuffer*) can only be executed on a VBO or IBO");
+
+	return true;
 }
 
 

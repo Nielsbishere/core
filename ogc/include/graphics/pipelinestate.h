@@ -13,7 +13,7 @@ namespace oi {
 			FillMode fillMode;
 			f32 lineWidth = 1.f;
 			CullMode cullMode = CullMode::Back;
-			WindMode windMode = WindMode::CW;
+			WindMode windMode = WindMode::CCW;
 			u32 samples = 1U;
 			BlendMode blendMode = BlendMode::Alpha;
 			DepthMode depthMode;

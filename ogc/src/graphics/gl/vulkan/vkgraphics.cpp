@@ -263,20 +263,18 @@ void Graphics::init(Window *w, u32 buffering){
 	VkQueueFamilyProperties *families = new VkQueueFamilyProperties[familyCount];
 	vkGetPhysicalDeviceQueueFamilyProperties(ext.pdevice, &familyCount, families);
 
-	u32 queueFamilyIndex = u32_MAX;
-
 	for (u32 i = 0; i < familyCount; ++i) {
 
 		VkQueueFamilyProperties &fam = families[i];
 
 		if (fam.queueCount > 0 && fam.queueFlags & VK_QUEUE_GRAPHICS_BIT && fam.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-			queueFamilyIndex = i;
+			ext.queueFamilyIndex = i;
 			break;
 		}
 
 	}
 
-	if (queueFamilyIndex == u32_MAX)
+	if (ext.queueFamilyIndex == u32_MAX)
 		Log::throwError<Graphics, 0x1F>("Couldn't intialize family queue");
 
 	float queuePriorities[] = { 1.f };
@@ -293,7 +291,7 @@ void Graphics::init(Window *w, u32 buffering){
 	
 	vkCheck<0x2>(vkCreateDevice(*gpu, &deviceInfo, allocator, &ext.device), "Couldn't obtain device");
 	
-	vkGetDeviceQueue(ext.device, queueFamilyIndex, 0, &ext.queue);
+	vkGetDeviceQueue(ext.device, ext.queueFamilyIndex, 0, &ext.queue);
 
 	Log::println("Successfully created device");
 	delete[] families;
@@ -323,10 +321,13 @@ void Graphics::init(Window *w, u32 buffering){
 	memset(&poolInfo, 0, sizeof(poolInfo));
 
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.queueFamilyIndex = queueFamilyIndex;
+	poolInfo.queueFamilyIndex = ext.queueFamilyIndex;
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
 	vkCheck<0x16>(vkCreateCommandPool(ext.device, &poolInfo, allocator, &ext.pool), "Couldn't create command pool");
+
+	//Get memory properties
+	vkGetPhysicalDeviceMemoryProperties(ext.pdevice, &ext.pmemory);
 
 }
 
@@ -452,7 +453,7 @@ void Graphics::initSurface(Window *w){
 		
 		Texture *tex = textures[i] = new Texture(TextureInfo(size, format, TextureUsage::Render_target));
 		VkTexture &vkTex = tex->getExtension();
-		vkTex.image = swapchainImages[i];
+		vkTex.resource = swapchainImages[i];
 		
 		tex->g = this;
 
@@ -465,8 +466,6 @@ void Graphics::initSurface(Window *w){
 	}
 
 	//Create depth buffer
-
-	vkGetPhysicalDeviceMemoryProperties(ext.pdevice, &ext.pmemory);
 
 	Texture *depthBuffer = create(TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
 

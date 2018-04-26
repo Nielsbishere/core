@@ -27,6 +27,7 @@ namespace oi {
 		typedef VkShader ShaderExt;
 		typedef VkPipelineState PipelineStateExt;
 		typedef VkPipeline PipelineExt;
+		typedef VkGBuffer GBufferExt;
 		
 		///All enum struct implementations
 
@@ -39,6 +40,7 @@ namespace oi {
 		typedef VkWindMode WindModeExt;
 		typedef VkNull BlendModeExt;
 		typedef VkNull DepthModeExt;
+		typedef VkGBufferType GBufferTypeExt;
 
 	};
 }
