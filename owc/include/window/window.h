@@ -1,6 +1,7 @@
 #pragma once
 #include "windowinfo.h"
 #include "input/inputmanager.h"
+#include "platforms/generic.h"
 
 namespace oi {
 
@@ -14,7 +15,7 @@ namespace oi {
 			friend class WindowInfo;
 			friend class WindowManager;
 			friend class InputHandler;
-			friend struct Window_imp;
+			friend struct WindowExt;
 
 		public:
 
@@ -25,8 +26,8 @@ namespace oi {
 			InputManager &getInputManager();
 			WindowInterface *getInterface();
 			WindowManager *getParent();
-			
-			void *getPlatformData();
+
+			WindowExt &getExtension();
 			
 			void *getSurfaceData();
 			u32 getSurfaceSize();
@@ -55,7 +56,7 @@ namespace oi {
 
 			flp lastTick = (flp) 0;
 
-			u8 platformData[4192];	//Reserved for per platform implementation
+			WindowExt ext;
 
 		};
 	}

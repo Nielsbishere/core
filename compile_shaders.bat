@@ -4,7 +4,7 @@ goto :eof
 
 :treeProcess
 for %%f in (*.vert *.frag *.comp *.geom) do (
-	"%VULKAN_SDK%/Bin/glslangValidator.exe" -V -e main "%%~ff" -o "%%~nf%%~xf.spv"
+	"%VULKAN_SDK%/Bin/glslangValidator.exe" -q -V -e main "%%~ff" -o "%%~nf%%~xf.spv"
 )
 
 for /D %%d in (*) do (

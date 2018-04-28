@@ -2,9 +2,10 @@
 
 #include <graphics/graphicsinterface.h>
 #include <types/vector.h>
+#include <platforms/generic.h>
 
 struct Application {
-	static void instantiate(void *param = nullptr);
+	static void instantiate(oi::wc::WindowHandleExt *param = nullptr);
 };
 
 class MainInterface : public oi::gc::GraphicsInterface {

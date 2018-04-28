@@ -2,6 +2,7 @@
 #include <types/string.h>
 #include <types/vector.h>
 #include "windowaction.h"
+#include "platforms/generic.h"
 
 namespace oi {
 
@@ -12,17 +13,18 @@ namespace oi {
 		class WindowInfo {
 
 			friend class Window;
-			friend struct Window_imp;
+			friend struct WindowExt;
 			friend class WindowManager;
 
 		public:
 
-			WindowInfo(String title, u32 version, void *handle = nullptr, bool inFocus = true);
+			WindowInfo(String title, u32 version, WindowHandleExt *handle = nullptr, bool inFocus = true);
 
 			String getTitle() const;
 			Vec2i getPosition() const;
 			Vec2u getSize() const;
 			Window *getParent() const;
+			WindowHandleExt *getParam() const;
 
 			void move(Vec2i newPos);
 			void resize(Vec2u newSize);
@@ -31,7 +33,7 @@ namespace oi {
 
 			bool isInFocus() const;
 			u32 getVersion() const;
-			
+
 			void _forceSize(Vec2u size);
 
 		protected:
@@ -49,7 +51,7 @@ namespace oi {
 			u32 version;
 			String title;
 			Window *parent;
-			void *handle;
+			WindowHandleExt *handle;
 
 		};
 

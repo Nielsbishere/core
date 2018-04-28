@@ -1,8 +1,6 @@
 #ifdef __WINDOWS__
 
-#include <Windows.h>
-
-#include <template/templatefuncs.h>
+#include "platforms/generic.h"
 #include "window/windowinterface.h"
 #include "window/windowmanager.h"
 #include "input/mouse.h"
@@ -10,57 +8,21 @@
 using namespace oi::wc;
 using namespace oi;
 
-struct WWindowData {
-	HINSTANCE instance;
-	HWND wnd;
-};
-
-DEnum(WKey, u32, Undefined = 0, Zero = 48, One = 49, Two = 50, Three = 51, Four = 52, Five = 53, Six = 54, Seven = 55, Eight = 56, Nine = 57, A = 65, B = 66, C = 67, D = 68, E = 69,
-	F = 70, G = 71, H = 72, I = 73, J = 74, K = 75, L = 76, M = 77, N = 78, O = 79, P = 80, Q = 81, R = 82, S = 83, T = 84, U = 85, V = 86, W = 87, X = 88,
-	Y = 89, Z = 90, Minus = VK_OEM_MINUS, Equals = VK_OEM_NEC_EQUAL, Left_brace = VK_OEM_4, Right_brace = VK_OEM_6, Semicolon = VK_OEM_1, Apostrophe = VK_OEM_7,
-	Tilde = VK_OEM_3, Backslash = VK_OEM_5, Comma = VK_OEM_COMMA, Period = VK_OEM_PERIOD, Slash = VK_OEM_2, Space = VK_SPACE, n0 = VK_NUMPAD0, n1 = VK_NUMPAD1,
-	n2 = VK_NUMPAD2, n3 = VK_NUMPAD3, n4 = VK_NUMPAD4, n5 = VK_NUMPAD5, n6 = VK_NUMPAD6, n7 = VK_NUMPAD7, n8 = VK_NUMPAD8, n9 = VK_NUMPAD9, Subtract = VK_SUBTRACT,
-	Add = VK_ADD, Decimal = VK_DECIMAL, Multiply = VK_MULTIPLY, Divide = VK_DIVIDE, F1 = VK_F1, F2 = VK_F2, F3 = VK_F3, F4 = VK_F4, F5 = VK_F5, F6 = VK_F6, F7 = VK_F7,
-	F8 = VK_F8, F9 = VK_F9, F10 = VK_F10, F11 = VK_F11, F12 = VK_F12, F13 = VK_F13, F14 = VK_F14, F15 = VK_F15, F16 = VK_F16, F17 = VK_F17, F18 = VK_F18, F19 = VK_F19,
-	F20 = VK_F20, F21 = VK_F21, F22 = VK_F22, F23 = VK_F23, F24 = VK_F24, Up = VK_UP, Down = VK_DOWN, Left = VK_LEFT, Right = VK_RIGHT, Page_up = VK_NEXT, Page_down = VK_PRIOR,
-	Home = VK_HOME, End = VK_END, Insert = VK_INSERT, Delete = VK_DELETE, Scroll_lock = VK_SCROLL, Num_lock = VK_NUMLOCK, Caps_lock = VK_CAPITAL,
-	Tab = VK_TAB, Enter = VK_RETURN, Backspace = VK_BACK, Esc = VK_ESCAPE,
-	Plus = VK_OEM_PLUS, Left_shift = VK_SHIFT, Right_shift = VK_SHIFT, Left_ctrl = VK_CONTROL, Right_ctrl = VK_CONTROL
-);
-
-namespace oi {
-
-	namespace wc {
-
-		struct Window_imp {
-
-			static Window *getByHandle(HWND hwnd);
-			static LRESULT CALLBACK windowEvents(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-		};
-
-	}
-
-}
-
-Window *Window_imp::getByHandle(HWND hwnd) {
+Window *WWindow::getByHandle(HWND hwnd) {
 
 	WindowManager *wm = WindowManager::get();
 
 	for (u32 i = 0; i < wm->getWindows(); ++i) {
-
 		Window *w = wm->operator[](i);
-		WWindowData &dat = *(WWindowData*) w->platformData;
 
-		if (dat.wnd == hwnd)
+		if (w->getExtension().window == hwnd)
 			return w;
-
 	}
 
 	return nullptr;
 }
 
-LRESULT CALLBACK Window_imp::windowEvents(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -229,18 +191,16 @@ LRESULT CALLBACK Window_imp::windowEvents(HWND hwnd, UINT message, WPARAM wParam
 
 void Window::initPlatform() {
 
-	WWindowData &dat = *(WWindowData*) platformData;
-
-	dat.instance = GetModuleHandle(NULL);
+	ext.instance = GetModuleHandle(NULL);
 
 	String str = info.getTitle();
 
 	WNDCLASSEX wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = Window_imp::windowEvents;
+	wc.lpfnWndProc = WWindow::windowEvents;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
-	wc.hInstance = dat.instance;
+	wc.hInstance = ext.instance;
 	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 	wc.hIconSm = wc.hIcon;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -259,9 +219,9 @@ void Window::initPlatform() {
 
 	info.size = Vec2u(screenWidth, screenHeight);
 
-	dat.wnd = CreateWindowEx(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, NULL, NULL, dat.instance, NULL);
+	ext.window = CreateWindowEx(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, NULL, NULL, ext.instance, NULL);
 
-	if (dat.wnd == NULL)
+	if (ext.window == NULL)
 		Log::throwError<Window, 0x1>("Couldn't init Windows window");
 
 	info.focus();
@@ -271,32 +231,27 @@ void Window::initPlatform() {
 	finalize();
 }
 
-u32 Window::getSurfaceSize(){ return (u32) sizeof(WWindowData); }
-void *Window::getSurfaceData() { return platformData; }
+u32 Window::getSurfaceSize(){ return (u32) sizeof(WWindow); }
+void *Window::getSurfaceData() { return &ext; }
 
 void Window::destroyPlatform() {
-
-	WWindowData &dat = *(WWindowData*)platformData;
-
-	if (dat.wnd != NULL) {
+	if (ext.window != NULL) {
 		PostQuitMessage(0);
-		DestroyWindow(dat.wnd);
-		dat.wnd = NULL;
+		DestroyWindow(ext.window);
+		ext.window = NULL;
 	}
 }
 
 void Window::updatePlatform() {
 
-	WWindowData &dat = *(WWindowData*)platformData;
-
 	if (isSet(info.pending, WindowAction::MOVE) || isSet(info.pending, WindowAction::RESIZE))
-		MoveWindow(dat.wnd, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, false);
+		MoveWindow(ext.window, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, false);
 
 	if (isSet(info.pending, WindowAction::IN_FOCUS))
 		if (info.isInFocus()) {
-			ShowWindow(dat.wnd, SW_SHOW);
-			SetForegroundWindow(dat.wnd);
-			SetFocus(dat.wnd);
+			ShowWindow(ext.window, SW_SHOW);
+			SetForegroundWindow(ext.window);
+			SetFocus(ext.window);
 		}
 }
 

@@ -1,10 +1,10 @@
 #ifdef __ANDROID__
 
+#include "platforms/generic.h"
 #include "file/filemanager.h"
 #include <types/string.h>
 #include <types/buffer.h>
 #include <utils/log.h>
-#include <android_native_app_glue.h>
 #include <android/asset_manager.h>
 #include <sys/stat.h>
 #include <cstring>

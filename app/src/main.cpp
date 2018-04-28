@@ -15,7 +15,7 @@ using namespace oi::wc;
 using namespace oi;
 
 //Set up a main window
-void Application::instantiate(void *param){
+void Application::instantiate(WindowHandleExt *param){
 	FileManager fmanager(param);
 	WindowManager wmanager;
 	Window *w = wmanager.create(WindowInfo(__PROJECT_NAME__, 1, param));

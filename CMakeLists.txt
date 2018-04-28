@@ -41,6 +41,8 @@ if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_
 	else()
 		include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
 	endif()
+	
+	include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
 	set(CMAKE_VERBOSE_MAKEFILE 0)
 

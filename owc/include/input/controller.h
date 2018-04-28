@@ -1,5 +1,6 @@
 #pragma once
 
+#include "platforms/generic.h"
 #include "inputdevice.h"
 #include <types/vector.h>
 #include <bitset>
@@ -10,7 +11,7 @@ namespace oi {
 
 		class Controller : public InputDevice {
 			
-			friend struct Window_imp;
+			friend struct WindowExt;
 
 		public:
 

@@ -1,7 +1,7 @@
 #ifdef __ANDROID__
 
+#include "platforms/generic.h"
 #include "window/windowmanager.h"
-#include <android_native_app_glue.h>
 using namespace oi::wc;
 
 void WindowManager::waitAll() {
@@ -12,7 +12,7 @@ void WindowManager::waitAll() {
 	initAll();
 	
 	Window *w = operator[](0);
-	struct android_app *state = (struct android_app*) w->info.handle;
+	struct android_app *state = w->info.handle;
 	
 	while(getWindows() != 0){
 		
