@@ -21,6 +21,7 @@ namespace oi {
 		class Pipeline;
 		class PipelineState;
 		class GBuffer;
+		class ShaderBuffer;
 
 		class GraphicsObject;
 
@@ -32,6 +33,7 @@ namespace oi {
 		struct PipelineInfo;
 		struct PipelineStateInfo;
 		struct GBufferInfo;
+		struct ShaderBufferInfo;
 
 		enum class TextureFormatStorage;
 
@@ -73,6 +75,7 @@ namespace oi {
 			Pipeline *create(PipelineInfo info);
 			PipelineState *create(PipelineStateInfo info);
 			GBuffer *create(GBufferInfo info);
+			ShaderBuffer *create(ShaderBufferInfo info);
 
 			GraphicsExt &getExtension();
 
@@ -97,6 +100,9 @@ namespace oi {
 
 			template<typename T>
 			size_t add(T *t);
+
+			template<typename T, typename TInfo>
+			T *init(TInfo info);
 
 			bool remove(GraphicsObject *go);
 
@@ -140,6 +146,18 @@ namespace oi {
 			if (it == objects.end()) return {};
 
 			return it->second;
+		}
+
+		template<typename T, typename TInfo>
+		T *Graphics::init(TInfo info) {
+			T *t = new T(info);
+			t->g = this;
+
+			if (!t->init())
+				return (T*) Log::throwError<Graphics, 0xB>("Couldn't init GraphicsObject");
+
+			t->hash = add(t);
+			return t;
 		}
 
 	}

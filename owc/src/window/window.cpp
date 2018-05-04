@@ -66,6 +66,10 @@ void Window::update() {
 	if (wi != nullptr)
 		wi->render();
 	
+	wasPaused = false;
 	inputManager.update();
 	inputHandler.update(this, dt);
 }
+
+void Window::pause(bool pause) { wasPaused = isPaused; isPaused = pause; }
+bool Window::hasPreviousFrame() { return !wasPaused; }

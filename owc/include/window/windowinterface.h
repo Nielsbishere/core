@@ -47,7 +47,6 @@ namespace oi {
 			
 			virtual void update(flp delta) {}
 			virtual void render() {}
-			virtual void repaint() { render(); }
 
 			virtual void setFocus(bool isFocussed) {}
 

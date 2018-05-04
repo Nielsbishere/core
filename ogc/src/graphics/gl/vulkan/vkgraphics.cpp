@@ -386,6 +386,13 @@ void Graphics::initSurface(Window *w){
 	
 	w->getInfo()._forceSize(size);
 	
+	if (size == Vec2u()) {
+		w->pause();
+		return;
+	}
+
+	w->pause(false);
+
 	Log::println("Successfully created surface");
 	
 	//Create swapchain
@@ -473,7 +480,11 @@ void Graphics::initSurface(Window *w){
 
 	//Turn it into a RenderTarget aka 'Render pass'
 
-	backBuffer = new RenderTarget(RenderTargetInfo(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() }, buffering), depthBuffer, textures);
+	RenderTargetInfo info(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() }, buffering);
+	info.depth = depthBuffer;
+	info.textures = textures;
+
+	backBuffer = new RenderTarget(info);
 	backBuffer->g = this;
 
 	if(!backBuffer->init())
@@ -485,14 +496,20 @@ void Graphics::initSurface(Window *w){
 	Log::println("Successfully created backBuffer");
 }
 
-void Graphics::destroySurface(){
+void Graphics::destroySurface() {
 
-	vkQueueWaitIdle(ext.queue);
+	if (ext.swapchain != nullptr) {
 
-	vkDestroySwapchainKHR(ext.device, ext.swapchain, allocator);
-	vkDestroySurfaceKHR(ext.instance, ext.surface, allocator);
-	
-	Log::println("Successfully destroyed surface");
+		vkQueueWaitIdle(ext.queue);
+
+		vkDestroySwapchainKHR(ext.device, ext.swapchain, allocator);
+		vkDestroySurfaceKHR(ext.instance, ext.surface, allocator);
+
+		ext.swapchain = nullptr;
+
+		Log::println("Successfully destroyed surface");
+	}
+
 }
 
 void Graphics::begin() {

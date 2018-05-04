@@ -2,7 +2,7 @@
 #include <types/vector.h>
 #include <template/enum.h>
 #include "graphics/gl/generic.h"
-#include "graphics/graphicsobject.h"
+#include "graphics/graphicsresource.h"
 
 namespace oi {
 
@@ -61,7 +61,7 @@ namespace oi {
 			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : res(res), format(format), usage(usage) {}
 		};
 
-		class Texture : public GraphicsObject {
+		class Texture : public GraphicsResource {
 
 			friend class Graphics;
 

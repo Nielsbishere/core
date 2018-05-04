@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format/oisl.h>
+#include "oisb.h"
 
 namespace oi {
 
@@ -18,11 +19,6 @@ namespace oi {
 			VERTEX = 1,
 			FRAGMENT = 2,
 			GEOMETRY = 4
-		};
-
-		enum class SHInputBufferType {
-			VERTEX = 0,
-			INSTANCE = 1
 		};
 
 		struct SHHeader {
@@ -58,6 +54,11 @@ namespace oi {
 
 		};
 
+		enum class SHInputBufferType {
+			VERTEX = 0,
+			INSTANCE = 1
+		};
+
 		struct SHInputBuffer {
 
 			u8 padding;
@@ -71,12 +72,45 @@ namespace oi {
 
 		struct SHInputVar {
 
-			u16 padding;
+			u16 nameIndex;
 			u8 buffer;
 			u8 type;			//TextureFormat
 
-			SHInputVar(u8 buffer, u8 type) : type(type), buffer(buffer), padding(0) {}
-			SHInputVar() : SHInputVar(0, 0) {}
+			SHInputVar(u8 buffer, u8 type, u16 nameIndex) : type(type), buffer(buffer), nameIndex(nameIndex) {}
+			SHInputVar() : SHInputVar(0, 0, 0) {}
+		};
+
+		enum class SHRegisterType : u8 {
+			UNDEFINED = 0, UBO = 1, UBO_WRITE = 2, SSBO = 3, SSBO_WRITE = 4, TEXTURE = 5, IMAGE = 6, SAMPLER = 7
+		};
+
+		enum class SHRegisterAccess { 
+			COMPUTE = 1, VERTEX = 2, GEOMETRY = 4, FRAGMENT = 8 
+		};
+
+		struct SHRegister {
+
+			u8 type;			//SHRegisterType
+			u8 access;			//SHRegisterAccess
+			u16 representation; //If type is buffer or sampler; represents which buffer to use, same with sampler.
+
+			u16 nameIndex;
+			u16 padding;
+
+			SHRegister(u8 type, u8 access, u16 representation, u16 nameIndex) : type(type), access(access), representation(representation), nameIndex(nameIndex), padding(0) {}
+			SHRegister() : SHRegister(0, 0, 0, 0) {}
+
+		};
+
+		struct SHOutput {
+
+			u8 type;			//TextureFormat
+			u8 padding;
+			u16 nameIndex;
+
+			SHOutput(u8 type, u16 nameIndex) : type(type), padding(0), nameIndex(nameIndex) {}
+			SHOutput() : SHOutput(0, 0) {}
+
 		};
 
 		//The contents of an SH file
@@ -86,19 +120,29 @@ namespace oi {
 			std::vector<SHStage> stage;
 			std::vector<SHInputBuffer> ibuffer;
 			std::vector<SHInputVar> ivar;
+			std::vector<SHRegister> registers;
+			std::vector<SHOutput> outputs;
 			SLFile stringlist;
+			std::vector<SBFile> buffers;
 			std::vector<u8> bytecode;
 
 			u32 size;
+
+			SHFile(std::vector<SHStage> stage, std::vector<SHInputBuffer> ibuffer, std::vector<SHInputVar> ivar, std::vector<SHRegister> registers, std::vector<SHOutput> outputs, SLFile stringlist, std::vector<SBFile> buffers, std::vector<u8> bytecode) : stage(stage), ibuffer(ibuffer), ivar(ivar), registers(registers), outputs(outputs), stringlist(stringlist), buffers(buffers), bytecode(bytecode) {}
+			SHFile() : SHFile({}, {}, {}, {}, {}, {}, {}, {}) {}
 
 		};
 
 		struct oiSH {
 
-			static bool read(Graphics *g, String path, ShaderInfo &info);
-
 			static bool read(String path, SHFile &file);
 			static bool read(Buffer buf, SHFile &file);
+
+			static SHFile convert(ShaderInfo info);
+			static ShaderInfo convert(Graphics *g, SHFile info);
+
+			static bool write(String path, SHFile &file);
+			static Buffer write(SHFile &file);
 
 		};
 

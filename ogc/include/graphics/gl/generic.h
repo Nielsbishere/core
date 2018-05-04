@@ -41,6 +41,8 @@ namespace oi {
 		typedef VkNull BlendModeExt;
 		typedef VkNull DepthModeExt;
 		typedef VkGBufferType GBufferTypeExt;
+		typedef VkShaderRegisterType ShaderRegisterTypeExt;
+		typedef VkShaderRegisterAccess ShaderRegisterAccessExt;
 
 	};
 }

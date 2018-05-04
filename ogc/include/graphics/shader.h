@@ -1,36 +1,14 @@
 #pragma once
 
 #include "gl/generic.h"
-#include "texture.h"
 #include "graphics/graphicsobject.h"
+#include "graphics/shaderbuffer.h"
 
 namespace oi {
 
 	namespace gc {
 
-		class Graphics;
-
-		class ShaderStage;
-
-		struct ShaderVBSection {
-			
-			u32 stride;
-			bool perInstance;
-
-			ShaderVBSection(u32 stride, bool perInstance = false) : stride(stride), perInstance(perInstance) {}
-			ShaderVBSection() : ShaderVBSection(0) {}
-
-		};
-
-		struct ShaderVBVar {
-
-			u32 buffer, offset;
-			TextureFormat type;
-
-			ShaderVBVar(u32 buffer, u32 offset, TextureFormat type) : buffer(buffer), offset(offset), type(type) {}
-			ShaderVBVar() : ShaderVBVar(0, 0, 0) {}
-
-		};
+		class GraphicsResource;
 
 		struct ShaderInfo {
 
@@ -39,8 +17,13 @@ namespace oi {
 			std::vector<ShaderStage*> stage;
 			std::vector<ShaderVBSection> section;
 			std::vector<ShaderVBVar> var;
+			std::vector<ShaderRegister> registers;
+			std::unordered_map<String, ShaderBufferInfo> buffer;
 
-			ShaderInfo(String path): path(path) {}
+			std::unordered_map<String, GraphicsResource*> shaderRegister;
+
+			ShaderInfo(String path) : path(path) {}
+			ShaderInfo() : ShaderInfo("") {}
 
 		};
 
@@ -55,6 +38,13 @@ namespace oi {
 
 			bool isCompute();
 
+			bool set(String path, GraphicsResource *res);
+
+			template<typename T>
+			T *get(String path);
+
+			void update();
+
 		protected:
 
 			~Shader();
@@ -66,7 +56,24 @@ namespace oi {
 			ShaderInfo info;
 			ShaderExt ext;
 
+			bool changed = false;
+
 		};
+
+		template<typename T>
+		T *Shader::get(String path) {
+
+			static_assert(std::is_base_of<GraphicsResource, T>::value, "Shader::get<T>(path) where T is base of ShaderResource");
+
+			auto it = info.shaderRegister.find(path);
+
+			if (it == info.shaderRegister.end())
+				return (T*) Log::throwError<Shader, 0x1>(String("Shader::get<T>(") + path + ") failed; invalid path");
+			
+			return dynamic_cast<T*>(it->second);
+
+		}
+
 
 	}
 

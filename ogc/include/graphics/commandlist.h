@@ -21,7 +21,7 @@ namespace oi {
 			f32 depthClear;
 			u32 stencilClear;
 
-			RenderTargetClear(Vec4d color = {}, f32 depth = 0.f, u32 stencil = 0U) : colorClear(color), depthClear(depth), stencilClear(stencil) {}
+			RenderTargetClear(Vec4d color = {}, f32 depth = 1.f, u32 stencil = 0U) : colorClear(color), depthClear(depth), stencilClear(stencil) {}
 
 		};
 

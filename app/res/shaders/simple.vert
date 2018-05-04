@@ -13,8 +13,8 @@ layout(binding = 1) uniform PerExecution {
 	mat4 p;
 	mat4 v;
 	
-	float time;
 	vec3 ambient;
+	float time;
 	
 } exc;
 

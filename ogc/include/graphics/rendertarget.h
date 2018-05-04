@@ -12,8 +12,10 @@ namespace oi {
 			Vec2u res;
 			u32 buffering, targets;
 			TextureFormat depthFormat;
-
 			std::vector<TextureFormat> formats;
+
+			Texture *depth;
+			std::vector<Texture*> textures;
 
 			RenderTargetInfo(Vec2u res, TextureFormat depth, std::vector<TextureFormat> formats, u32 buffering) : res(res), depthFormat(depth), formats(formats), buffering(buffering), targets((u32) formats.size() + 1) {}
 
@@ -37,15 +39,12 @@ namespace oi {
 		protected:
 
 			~RenderTarget();
-			RenderTarget(RenderTargetInfo info, Texture *depth, std::vector<Texture*> textures);
+			RenderTarget(RenderTargetInfo info);
 			bool init();
 
 		private:
 
 			RenderTargetInfo info;
-			Texture *depth;
-			std::vector<Texture*> textures;
-
 			RenderTargetExt ext;
 
 		};

@@ -8,6 +8,7 @@
 #include "graphics/pipeline.h"
 #include "graphics/pipelinestate.h"
 #include "graphics/gbuffer.h"
+#include "graphics/shaderbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -74,109 +75,73 @@ RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
 
 Shader *Graphics::create(ShaderInfo info) {
 
-	if (!oiSH::read(this, info.path, info))
+	SHFile file;
+
+	if (!oiSH::read(info.path, file))
 		return (Shader*)Log::throwError<Graphics, 0x1A>("Couldn't read shader");
 
-	Shader *s = new Shader(info);
-	s->g = this;
+	String path = info.path;
 
-	if (!s->init())
-		return (Shader*)Log::throwError<Graphics, 0x1B>("Couldn't initialize shader");
+	info = oiSH::convert(this, file);
+	info.path = path;
+
+	Shader *s = init<Shader>(info);
 
 	for (ShaderStage *ss : s->getInfo().stage)
 		++ss->refCount;
 
-	s->hash = add(s);
 	return s;
 }
 
 ShaderStage *Graphics::create(ShaderStageInfo info) {
-
 	info.code = Buffer(info.code.addr(), info.code.size());
-
-	ShaderStage *ss = new ShaderStage(info);
-	ss->g = this;
-
-	if (!ss->init())
-		return (ShaderStage*)Log::throwError<Graphics, 0x1C>("Couldn't initialize shader stage");
-
-	ss->hash = add(ss);
-	return ss;
+	return init<ShaderStage>(info);
 }
 
 
 Texture *Graphics::create(TextureInfo info) {
-
-	Texture *tex = new Texture(info);
-	tex->g = this;
-
-	if (!tex->init())
-		return (Texture*)Log::throwError<Graphics, 0xB>("Couldn't create texture");
-
-	tex->hash = add(tex);
-	return tex;
+	return init<Texture>(info);
 }
 
 RenderTarget *Graphics::create(RenderTargetInfo info) {
 
-	Texture *depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
+	info.depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
 
-	std::vector<Texture*> textures(info.buffering * info.targets);
+	std::vector<Texture*> &textures = info.textures;
+	textures.resize(info.buffering * info.targets);
 
-	for (u32 i = 0; i < (u32)textures.size(); ++i)
+	for (u32 i = 0; i < (u32) textures.size(); ++i)
 		textures[i] = create(TextureInfo(info.res, info.formats[i / buffering], TextureUsage::Render_target));
 
-	RenderTarget *target = new RenderTarget(RenderTargetInfo(info.res, info.depthFormat, info.formats, info.buffering), depth, textures);
-	target->g = this;
-
-	if (!target->init())
-		Log::throwError<Graphics, 0xD>("Couldn't initialize RenderTarget");
-
-	for (Texture *t : target->textures)
+	for (Texture *t : textures)
 		++t->refCount;
 
-	target->hash = add(target);
-	return target;
+	return init<RenderTarget>(info);
 }
 
 Pipeline *Graphics::create(PipelineInfo info) {
 
-	Pipeline *p = new Pipeline(info);
-	p->g = this;
-
-	if (!p->init())
-		return (Pipeline*) Log::throwError<Graphics, 0x1D>("Couldn't initialize pipeline");
-
-	++info.pipelineState->refCount;
 	++info.shader->refCount;
-	++info.renderTarget->refCount;
 
-	p->hash = add(p);
-	return p;
+	if(info.renderTarget != nullptr)
+		++info.renderTarget->refCount;
+
+	if (info.pipelineState != nullptr)
+		++info.pipelineState->refCount;
+
+	return init<Pipeline>(info);
 }
 
 PipelineState *Graphics::create(PipelineStateInfo info) {
-
-	PipelineState *ps = new PipelineState(info);
-	ps->g = this;
-
-	if (!ps->init())
-		return (PipelineState*) Log::throwError<Graphics, 0x1E>("Couldn't initialize pipeline state");
-
-	ps->hash = add(ps);
-	return ps;
+	return init<PipelineState>(info);
 }
 
 GBuffer *Graphics::create(GBufferInfo info) {
+	return init<GBuffer>(info);
+}
 
-	GBuffer *b = new GBuffer(info);
-	b->g = this;
-
-	if (!b->init())
-		return (GBuffer*) Log::throwError<Graphics, 0x20>("Couldn't initialize buffer");
-
-	b->hash = add(b);
-	return b;
+ShaderBuffer *Graphics::create(ShaderBufferInfo info) {
+	return init<ShaderBuffer>(info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

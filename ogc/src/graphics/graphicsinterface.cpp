@@ -1,4 +1,5 @@
-#include <graphics/graphicsinterface.h>
+#include "graphics/graphicsinterface.h"
+#include <window/window.h>
 using namespace oi::gc;
 using namespace oi;
 

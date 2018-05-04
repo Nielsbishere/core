@@ -1,0 +1,31 @@
+
+
+	//Write string list
+
+	SLFile sl(String::getDefaultCharset(), { "simple", "PerObject", "PerExecution", 
+		"outColor", "inPosition", "inColor", 
+		"m", "mvp", "p", "v", "time", "ambient"});
+
+	oiSL::write("out/shader.oiSL", sl);
+
+	//Write first buffer
+
+	ShaderBufferInfo shader0(ShaderRegisterType::UBO, 128, 2);
+
+	shader0.self = { nullptr, 0, 128, 1, "PerObject", TextureFormat::Undefined };
+	shader0[0] = { &shader0.self, 0, 16, 4, "m", TextureFormat::RGBA32f };
+	shader0[1] = { &shader0.self, 64, 16, 4, "mvp", TextureFormat::RGBA32f };
+
+	oiSB::write("out/shader0.oiSB", oiSB::convert(shader0, &sl));
+
+	//Write second buffer
+
+	ShaderBufferInfo shader1(ShaderRegisterType::UBO, 144, 4);
+
+	shader1.self = { nullptr, 0, 144, 1, "PerExecution", TextureFormat::Undefined };
+	shader1[0] = { &shader1.self, 0, 16, 4, "p", TextureFormat::RGBA32f };
+	shader1[1] = { &shader1.self, 64, 16, 4, "v", TextureFormat::RGBA32f };
+	shader1[2] = { &shader1.self, 128, 12, 1, "ambient", TextureFormat::RGB32f };
+	shader1[3] = { &shader1.self, 140, 4, 1, "time", TextureFormat::R32f };
+
+	oiSB::write("out/shader1.oiSB", oiSB::convert(shader1, &sl));

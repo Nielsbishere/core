@@ -1,9 +1,21 @@
 #include "format/oisl.h"
-#include "types/buffer.h"
+#include <types/buffer.h>
 #include <file/filemanager.h>
 #include <cmath>
 using namespace oi::wc;
 using namespace oi;
+
+SLFile::SLFile(String keyset, std::vector<String> names) : keyset(keyset), names(names) {}
+SLFile::SLFile() : SLFile("", {}) {}
+
+u32 SLFile::lookup(String name) {
+	u32 i = 0U;
+	for (String &n : names)
+		if (n == name) break;
+		else ++i;
+
+	return i;
+}
 
 bool oiSL::read(String path, SLFile &file) {
 
@@ -33,11 +45,6 @@ bool oiSL::read(Buffer buf, SLFile &file) {
 	if (String(header.header, 4) != "oiSL")
 		return Log::error("Invalid oiSL (header) file");
 
-	u32 names = header.names * sizeof(SLString);
-
-	if (buf.size() < header.keys + names)
-		return Log::error("Invalid oiSL file");
-
 	SLHeaderVersion v(header.version);
 
 	switch (v.getValue()) {
@@ -53,6 +60,11 @@ bool oiSL::read(Buffer buf, SLFile &file) {
 v1:
 	{
 
+		u32 names = header.names;
+
+		if (buf.size() < header.keys + names)
+			return Log::error("Invalid oiSL file");
+
 		if (header.flags & (u8) SLHeaderFlags::USE_DEFAULT)
 			file.keyset = String::getDefaultCharset();
 		else {
@@ -65,18 +77,21 @@ v1:
 			buf = buf.offset(header.keys);
 		}
 
-		std::vector<SLString> strings(header.names);
+		std::vector<u8> strings(header.names);
 		std::vector<String> &str = file.names = std::vector<String>(header.names);
 
-		strings.assign((SLString*)buf.addr(), (SLString*)(buf.addr() + names));
+		strings.assign(buf.addr(), buf.addr() + names);
 		buf = buf.offset(names);
 
 		String decoded = String::decode(buf, file.keyset, header.perChar, header.length);
 		buf = buf.offset((u32) std::ceil(header.length * header.perChar / 8.f));
 
+		u32 offset = 0;
+
 		for (u32 i = 0; i < header.names; ++i) {
-			SLString &s = strings[i];
-			str[i] = String((char*)decoded.toCString() + s.start, s.size);
+			u8 &s = strings[i];
+			str[i] = String((char*)decoded.toCString() + offset, s);
+			offset += s;
 		}
 
 		goto end;
@@ -85,18 +100,24 @@ v1:
 
 end:
 
-	file.size = (u32)(buf.addr() - start.addr());
+	if(buf.addr() != nullptr)
+		file.size = (u32)(buf.addr() - start.addr());
+	else
+		file.size = start.size();
 
 	Log::println(String("Successfully loaded oiSL file with version ") + v.getName());
 
 	return true;
 }
 
-Buffer oiSL::write(String keyset, std::vector<String> names) {
+Buffer oiSL::write(SLFile &file) {
+
+	String &keyset = file.keyset;
+	std::vector<String> &names = file.names;
 
 	bool useDefault = keyset == String::getDefaultCharset();
 
-	std::vector<SLString> strings(names.size());
+	std::vector<u8> strings(names.size());
 	
 	String toEncode;
 
@@ -104,7 +125,7 @@ Buffer oiSL::write(String keyset, std::vector<String> names) {
 
 		String &s = names[i];
 
-		strings[i] = { (u8)s.size(), (u16)toEncode.size() };
+		strings[i] = (u8)s.size();
 		toEncode += s;
 	}
 
@@ -113,10 +134,10 @@ Buffer oiSL::write(String keyset, std::vector<String> names) {
 
 	Buffer buf = toEncode.encode(keyset, perChar);
 
-	Buffer toFile((u32) (sizeof(SLHeader) + (!useDefault ? keyset.size() : 0) + names.size() * sizeof(SLString) + buf.size()));
+	Buffer toFile((u32) (sizeof(SLHeader) + (!useDefault ? keyset.size() : 0) + names.size() + buf.size()));
 	Buffer write = toFile;
 
-	write.operator[]<SLHeader>(0) = {
+	file.header = write.operator[]<SLHeader>(0) = {
 		{ 'o', 'i', 'S', 'L' },
 
 		(u8) SLHeaderVersion::v1,
@@ -134,10 +155,13 @@ Buffer oiSL::write(String keyset, std::vector<String> names) {
 		write = write.offset((u32)keyset.size());
 	}
 
-	u32 string = (u32)(strings.size() * sizeof(SLString));
+	u32 string = (u32) strings.size();
 
 	memcpy(write.addr(), strings.data(), string);
 	write = write.offset(string);
+
+	if (write.size() != 0U) file.size = (u32)(write.addr() - buf.addr());
+	else file.size = buf.size();
 
 	write.copy(buf);
 
@@ -146,9 +170,9 @@ Buffer oiSL::write(String keyset, std::vector<String> names) {
 	return toFile;
 }
 
-bool oiSL::write(String path, String keyset, std::vector<String> names) {
+bool oiSL::write(String path, SLFile &file) {
 
-	Buffer buf = write(keyset, names);
+	Buffer buf = write(file);
 
 	if (!FileManager::get()->write(path, buf)) {
 		buf.deconstruct();

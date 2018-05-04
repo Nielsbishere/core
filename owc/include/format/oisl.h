@@ -18,23 +18,12 @@ namespace oi {
 		char header[4];
 
 		u8 version;		//SLHeaderVersion_s
-		u8 perChar;
+		u8 perChar;		//SLHeaderFlags_s
 		u8 keys;
 		u8 flags;
 
 		u16 names;
 		u16 length;
-
-	};
-
-	struct SLString {
-
-		u8 padding;
-		u8 size;
-		u16 start;
-
-		SLString(u8 size, u16 start) : padding(0), size(size), start(start) {}
-		SLString() : SLString(0, 0) {}
 
 	};
 
@@ -46,6 +35,11 @@ namespace oi {
 
 		u32 size;
 
+		SLFile(String keyset, std::vector<String> names);
+		SLFile();
+
+		u32 lookup(String name);
+
 	};
 
 	struct oiSL {
@@ -53,8 +47,8 @@ namespace oi {
 		static bool read(String path, SLFile &file);
 		static bool read(Buffer data, SLFile &file);
 
-		static Buffer write(String keyset, std::vector<String> names);	//Creates new buffer
-		static bool write(String path, String keyset, std::vector<String> names);
+		static Buffer write(SLFile &file);	//Creates new buffer
+		static bool write(String path, SLFile &file);
 	};
 
 }

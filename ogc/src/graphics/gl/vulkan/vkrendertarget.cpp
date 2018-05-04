@@ -16,10 +16,10 @@ RenderTarget::~RenderTarget() {
 	for (VkFramebuffer fb : ext.frameBuffer)
 		vkDestroyFramebuffer(gext.device, fb, allocator);
 
-	for (Texture *t : textures)
+	for (Texture *t : info.textures)
 		g->destroy(t);
 
-	g->destroy(depth);
+	g->destroy(info.depth);
 }
 
 bool RenderTarget::init() {
@@ -125,7 +125,7 @@ bool RenderTarget::init() {
 		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, allocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
 	}
 
-	for(Texture *t : textures)
+	for(Texture *t : info.textures)
 		g->use(t);
 
 	g->use(depth);

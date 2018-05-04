@@ -52,19 +52,31 @@ bool FileManager::mkdir(String path) const {
 		if (current == "") current = s;
 		else current = current + "/" + s;
 
-		if (current != "" && CreateDirectory(current.toCString(), NULL) == 0)
-			return Log::error(String("Couldn't mkdir ") + current);
+		if (current != "" && CreateDirectory(getAbsolutePath(current).toCString(), NULL) == 0) {
+
+			DWORD error = GetLastError();
+			if (error == ERROR_ALREADY_EXISTS) continue;
+
+			return Log::error(String("Couldn't mkdir ") + current + "(" + (u64)error + ")");
+		}
 	}
 
 	return true;
 }
 
-String FileManager::getAbsolutePath(String path) const {
+String getSystemPath() {
 
 	char buffer[MAX_PATH];
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 
-	return String(buffer).getPath() + (path == "" ? "" : String("/") + path);
+	return String(buffer).replace("\\", "/").getPath();
+}
+
+String FileManager::getAbsolutePath(String path) const {
+
+	static const String apath = getSystemPath();
+
+	return apath + (path == "" ? "" : String("/") + path);
 
 }
 

@@ -53,10 +53,6 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 	break;
 
 	case WM_PAINT:
-
-		if (wi != nullptr)
-			wi->repaint();
-
 		hdc = BeginPaint(hwnd, &ps);
 		EndPaint(hwnd, &ps);
 		break;
@@ -75,7 +71,7 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 		Vec2u prevSize = win.size;
 		win.size = size;
 
-		if (wi != nullptr && prevSize != Vec2u(0, 0))
+		if (wi != nullptr)
 			wi->onResize(size);
 	}
 	break;

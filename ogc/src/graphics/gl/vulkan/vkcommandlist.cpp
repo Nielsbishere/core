@@ -123,7 +123,10 @@ bool CommandList::init() {
 }
 
 void CommandList::bind(Pipeline *pipeline) {
-	vkCmdBindPipeline(ext.cmd, pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getExtension());
+	VkPipelineBindPoint pipelinePoint = pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
+	vkCmdBindPipeline(ext.cmd, pipelinePoint, pipeline->getExtension());
+	pipeline->getInfo().shader->update();
+	vkCmdBindDescriptorSets(ext.cmd, pipelinePoint, pipeline->getInfo().shader->getExtension().layout, 0, 1, &pipeline->getInfo().shader->getExtension().descriptorSet, 0, nullptr);
 }
 
 void CommandList::draw(u32 vertices, u32 instances, u32 startVertex, u32 startInstance) {

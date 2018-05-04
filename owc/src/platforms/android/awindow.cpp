@@ -80,13 +80,6 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 		}
 		break;
 
-		case APP_CMD_WINDOW_REDRAW_NEEDED:
-
-			if (wi != nullptr)
-				wi->repaint();
-
-			break;
-
 		case APP_CMD_GAINED_FOCUS:
 
 			w->getInfo().inFocus = true;

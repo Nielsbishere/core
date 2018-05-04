@@ -33,8 +33,15 @@ namespace oi {
 			GBufferType getType();
 			u32 getSize();
 
+			u8 *getAddress();	//Only available if it's initialized and persistent
+
 			GBufferExt &getExtension();
-			bool set(Buffer buf);
+
+			bool set(Buffer buf);	//open(), copy(), close()
+
+			void open();
+			void close();
+			bool copy(Buffer buf);
 
 		protected:
 

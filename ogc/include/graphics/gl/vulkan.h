@@ -56,15 +56,15 @@ namespace oi {
 
 		struct VkShader {
 
-			std::vector<VkVertexInputBindingDescription> binding;
-			std::vector<VkVertexInputAttributeDescription> attribute;
-			std::vector<VkDescriptorSetLayout> descriptor;
-			std::vector<VkPushConstantRange> constant;
 			std::vector<VkShaderStage*> stage;
-
 			VkPipelineVertexInputStateCreateInfo vertexInput{};
-			VkDescriptorPool descriptorPool = nullptr;
+			std::vector<VkVertexInputBindingDescription> inputBuffer;
+			std::vector<VkVertexInputAttributeDescription> inputAttribute;
+
 			VkPipelineLayout layout = nullptr;
+			VkDescriptorSetLayout setLayout = nullptr;
+			VkDescriptorPool descriptorPool = nullptr;
+			VkDescriptorSet descriptorSet = nullptr;
 
 		};
 
@@ -229,7 +229,38 @@ namespace oi {
 
 		DEnum(VkGBufferType, VkBufferUsageFlags, UBO = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, SSBO = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, IBO = VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VBO = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, CBO = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
 
+		DEnum(VkShaderRegisterType, VkDescriptorType,
+			UBO = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, UBO_write = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SSBO = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SSBO_write = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
+			Texture2D = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, Image = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+			Sampler = VK_DESCRIPTOR_TYPE_SAMPLER
+		);
+
+		DEnum(VkShaderRegisterAccess, VkShaderStageFlags,
+
+			Compute = VK_SHADER_STAGE_COMPUTE_BIT,
+			Vertex = VK_SHADER_STAGE_VERTEX_BIT,
+			Geometry = VK_SHADER_STAGE_GEOMETRY_BIT,
+			Fragment = VK_SHADER_STAGE_FRAGMENT_BIT,
+
+			Vertex_fragment = Vertex.value | Fragment.value,
+			Vertex_geometry_fragment = Vertex.value | Geometry.value | Fragment.value,
+			Vertex_geometry = Vertex.value | Geometry.value,
+			Geometry_fragment = Geometry.value | Fragment.value
+
+		);
+
 	}
 }
+
+//Hashing for VkDescriptorType
+namespace std {
+	template<>
+	struct hash<VkDescriptorType> {
+		inline size_t operator()(const VkDescriptorType& type) const {
+			return (size_t) type;
+		}
+	};
+}
+
 
 #endif

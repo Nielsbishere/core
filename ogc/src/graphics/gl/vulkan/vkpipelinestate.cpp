@@ -49,7 +49,7 @@ bool PipelineState::init() {
 	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	depthStencil.depthTestEnable = (info.depthMode.getValue() & 0x1) != 0;
 	depthStencil.depthWriteEnable = (info.depthMode.getValue() & 0x2) != 0;
-	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 	depthStencil.front = {};
 	depthStencil.back = {};
 

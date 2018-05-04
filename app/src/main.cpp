@@ -8,7 +8,9 @@
 #include <graphics/pipelinestate.h>
 #include <graphics/gbuffer.h>
 
-#include <graphics/format/oish.h>
+#include <graphics/format/oisb.h>
+#include <format/oisl.h>
+#include <graphics/shaderbuffer.h>
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -25,7 +27,7 @@ void Application::instantiate(WindowHandleExt *param){
 
 //Set up the interface
 
-void MainInterface::initScene(){
+void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
@@ -34,18 +36,17 @@ void MainInterface::initScene(){
 	cmdList = g.create(CommandListInfo());
 	g.use(cmdList);
 
-	shader = g.create(ShaderInfo("res/shaders/simple"));
+	shader = g.create(ShaderInfo("res/shaders/simple.oiSH"));
 	g.use(shader);
 
 	pipelineState = g.create(PipelineStateInfo());
 	g.use(pipelineState);
 
-
 	f32 vert[] = {
-		-0.5, -0.5f, 1, 1, 1,
-		-0.5f, 0.5f, 0, 1, 0,
-		0.8f, 0.5f, 0, 0, 1,
-		0.5f, -0.5f, 1, 0, 0
+		-1, -1, 1, 1, 1,
+		-1, 1, 0, 1, 0,
+		1, 1, 0, 0, 1,
+		1, -1, 1, 0, 0
 	};
 
 	u32 ind[] = {
@@ -53,14 +54,69 @@ void MainInterface::initScene(){
 		2, 3, 0
 	};
 
-	quadVbo = g.create(GBufferInfo(GBufferType::VBO, (u32) sizeof(vert), (u8*) vert));
+	quadVbo = g.create(GBufferInfo(GBufferType::VBO, (u32) sizeof(vert), (u8*)vert));
 	g.use(quadVbo);
 
-	quadIbo = g.create(GBufferInfo(GBufferType::IBO, (u32) sizeof(ind), (u8*) ind));
+	quadIbo = g.create(GBufferInfo(GBufferType::IBO, (u32) sizeof(ind), (u8*)ind));
 	g.use(quadIbo);
 
 	pipeline = nullptr;
 
+	///Temporary (since matrix math isn't added yet)
+
+	//Object transform:
+	//position: 0,0,0
+	//rotation: 45,30,15
+	//scale: 1.5, 1.25, 1
+	f32 perObject[] = {
+
+		//m
+		1.25477445f, 0.786778331f, -0.237740576f, 0,
+		-0.280179799f, 0.739383101f, 0.968148589f, 0,
+		0.499999911f, -0.612372339f, 0.612372577f, 0,
+		0, 0, 0, 1,
+
+		//mvp
+		1.70397794f, 1.95560229f, -0.139495030f, -0.139216334f,
+		-0.380482882f, 0.551298261f, -1.19899619f, -1.19660056f,
+		0.678997576f, -1.98347938f, -0.274409741f, -0.273861468f,
+		0, 0, 11.0025225f, 11.1803398f
+
+	};
+
+	shader->get<ShaderBuffer>("PerObject")->set(Buffer::construct((u8*)perObject, (u32) sizeof(perObject)));
+
+	//Camera transform:
+	//lookat: 0,0,0
+	//eye: 0,5,10
+	//up: 0,1,0
+	//fov: 45
+	//aspect: 16.f / 9
+	//near: 0.1f
+	//far: 100
+	f32 perExecution[] = {
+
+		//p
+		1.35799539f, 0, 0, 0,
+		0, 2.41421413f, 0, 0,
+		0, 0, -1.00200200f, -1,
+		0, 0, -0.200200200f, 0,
+
+		//v
+		1, 0, 0, 0,
+		0, 0.894427240f, 0.447213590f, 0,
+		0, -0.447213620f, 0.894427180f, 0,
+		0, 0, -11.1803398f, 1,
+
+		//ambient
+		0.25f, 0.5f, 1,
+
+		//time
+		0
+
+	};
+
+	shader->get<ShaderBuffer>("PerExecution")->set(Buffer::construct((u8*)perExecution, (u32) sizeof(perExecution)));
 }
 
 void MainInterface::renderScene(){
@@ -78,8 +134,13 @@ void MainInterface::initSurface(){
 
 	GraphicsInterface::initSurface();
 
-	g.destroy(pipeline);
-	pipeline = g.create(PipelineInfo(shader, pipelineState, g.getBackBuffer()));
+	if (pipeline != nullptr) {
+		g.destroy(pipeline);
+		pipeline = nullptr;
+	}
+
+	if (getParent()->getInfo().getSize() != Vec2u())
+		pipeline = g.create(PipelineInfo(shader, pipelineState, g.getBackBuffer()));
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {

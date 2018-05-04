@@ -15,24 +15,16 @@ GBuffer::~GBuffer() {
 
 }
 
-bool GBuffer::set(Buffer buf) {
+void GBuffer::open() {
+	if(!info.persistent)
+		vkCheck<0x2, GBuffer>(vkMapMemory(g->getExtension().device, ext.memory, 0, info.size, 0, (void**)&info.ptr), "Couldn't map memory");
+}
 
-	if (buf.size() != info.size)
-		return Log::error("GBuffer::set please use a buffer that matches the gbuffer's size");
-
-	GraphicsExt &gext = g->getExtension();
-
-	if (info.persistent)
-		memcpy(info.ptr, buf.addr(), info.size);
-	else {
-		vkCheck<0x2, GBuffer>(vkMapMemory(gext.device, ext.memory, 0, info.size, 0, (void**)&info.ptr), "Couldn't map memory");
-		memcpy(info.ptr, buf.addr(), info.size);
-		vkUnmapMemory(gext.device, ext.memory);
-
+void GBuffer::close() {
+	if (!info.persistent) {
+		vkUnmapMemory(g->getExtension().device, ext.memory);
 		info.ptr = nullptr;
 	}
-
-	return true;
 }
 
 bool GBuffer::init() {
