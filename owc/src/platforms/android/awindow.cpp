@@ -130,7 +130,7 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 		app->savedStateSize = 1;
 		
 		if(wi != nullptr)
-			wi->save("lifetime.bin");
+			wi->save("out/lifetime.bin");
 		
 		break;
 		
@@ -140,7 +140,7 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 		//However, we use lifetime.bin as a save file
 		
 		if(wi != nullptr && app->savedState != nullptr)
-			wi->load("lifetime.bin");
+			wi->load("out/lifetime.bin");
 		
 		initDisplay(w);
 		break;

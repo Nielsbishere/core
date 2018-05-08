@@ -43,15 +43,45 @@ void MainInterface::initScene() {
 	g.use(pipelineState);
 
 	f32 vert[] = {
-		-1, -1, 1, 1, 1,
-		-1, 1, 0, 1, 0,
-		1, 1, 0, 0, 1,
-		1, -1, 1, 0, 0
+
+		-1, -1, -1, 1, 1, 1,
+		1, -1, -1, 0, 1, 0,
+		-1, 1, -1, 0, 0, 1,
+		1, 1, -1, 1, 0, 0,
+
+		-1, -1, 1, 0, 1, 1,
+		1, -1, 1, 1, 1, 0,
+		-1, 1, 1, 1, 0, 1,
+		1, 1, 1, 0.5f, 0, 1
+
 	};
 
 	u32 ind[] = {
-		0, 1, 2,
-		2, 3, 0
+
+		//Back
+		2, 1, 0,
+		2, 3, 1,
+
+		//Front
+		6, 5, 4,
+		6, 7, 5,
+
+		//Left
+		6, 2, 0,
+		4, 6, 0,
+
+		//Right
+		1, 3, 5,
+		3, 7, 5,
+
+		////Bottom
+		0, 1, 4,
+		1, 5, 4,
+
+		////Top
+		2, 3, 6,
+		3, 7, 6
+
 	};
 
 	quadVbo = g.create(GBufferInfo(GBufferType::VBO, (u32) sizeof(vert), (u8*)vert));
@@ -125,7 +155,7 @@ void MainInterface::renderScene(){
 	cmdList->bind(pipeline);
 	cmdList->bind({ quadVbo });
 	cmdList->bind({ quadIbo });
-	cmdList->drawIndexed(6);
+	cmdList->drawIndexed(36);
 	cmdList->end(g.getBackBuffer());
 	cmdList->end();
 }
