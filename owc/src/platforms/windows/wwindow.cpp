@@ -64,15 +64,20 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 	case WM_SIZE:
 	{
 		RECT rect;
-		GetWindowRect(hwnd, &rect);
+		GetClientRect(hwnd, &rect);
 
 		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 
 		Vec2u prevSize = win.size;
 		win.size = size;
 
-		if (wi != nullptr)
-			wi->onResize(size);
+		if (size.x == 0 || size.y == 0)
+			w->pause();
+		else {
+			w->pause(false);
+			if (wi != nullptr)
+				wi->onResize(size);
+		}
 	}
 	break;
 
