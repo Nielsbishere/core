@@ -139,7 +139,7 @@ void MainInterface::initScene() {
 		0, 0, -11.1803398f, 1,
 
 		//ambient
-		0.25f, 0.5f, 1,
+		1, 1, 1,
 
 		//time
 		0
