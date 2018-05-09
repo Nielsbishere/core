@@ -7,7 +7,7 @@ GBuffer::GBuffer(GBufferInfo info) : info(info) {}
 GBufferType GBuffer::getType() { return info.type; }
 u32 GBuffer::getSize() { return info.size; }
 GBufferExt &GBuffer::getExtension() { return ext; }
-u8 *GBuffer::getAddress() { return info.persistent ? info.ptr : nullptr; }
+u8 *GBuffer::getAddress() { return info.ptr; }
 
 bool GBuffer::set(Buffer buf) {
 	open();

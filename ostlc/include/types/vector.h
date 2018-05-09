@@ -393,7 +393,7 @@ namespace oi {
 		//Only implemented for TVec<u32, n>
 		//Uses other vector as dimensions.
 		//Example where n = 3:
-		//Vec3u(1, 2, 3).asIndex(Vec3u(5, 5, 5));
+		//Vec3u(1, 2, 3).getIndex(Vec3u(5, 5, 5));
 		//Will return 1 % 5 + 2 % 5 * 5 + 3 % 5 * 5 * 5 = 1 + 10 + 75 = 86
 		T getIndex(const TVec &other) {
 
@@ -461,6 +461,13 @@ namespace oi {
 		TVec &replace(const TVec<T, n2> &other, args... arg) {
 			CopyArray::run(const_cast<TVec<T, n2>*>(&other)->getArray(), this->arr, 0, arg...);
 			return *this;
+		}
+
+		//Get the aspect between x and y (x / y)
+		//Only works for TVec2
+		T getAspect() const {
+			static_assert(n == 2, "TVec<T, n>::getAspect is only implemented for TVec2");
+			return (T) this->x / this->y;
 		}
 
 		constexpr u32 getLength() const { return n; }

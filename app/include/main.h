@@ -30,4 +30,6 @@ private:
 	oi::gc::PipelineState *pipelineState;
 	oi::gc::GBuffer *quadVbo, *quadIbo;
 
+	oi::Vec3f crot = { 45, 30, 15 }, cpos = {}, cscale = { 1 };
+
 };

@@ -45,7 +45,7 @@ namespace oi {
 			virtual void onMouseWheel(flp delta) {}
 			virtual void onMouseDrag(Vec2 dpos) {}
 			
-			virtual void update(flp delta) {}
+			virtual void update(flp delta) { runtime += delta; }
 			virtual void render() {}
 
 			virtual void setFocus(bool isFocussed) {}
@@ -57,10 +57,13 @@ namespace oi {
 			Timer getTimer() { return t; }
 			f64 getDuration() { return t.getDuration(); }
 
+			f64 getRuntime() { return runtime; }
+
 		private:
 
 			Window *parent;
 			Timer t;
+			float runtime = 0.f;
 
 		};
 

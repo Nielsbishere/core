@@ -3,6 +3,7 @@
 #include "gbuffer.h"
 #include "shaderenums.h"
 #include "graphicsresource.h"
+#include <types/matrix.h>
 
 namespace oi {
 
@@ -54,13 +55,40 @@ namespace oi {
 
 		};
 
+		template<typename T> struct ShaderBufferCast { static bool check(u32 size, TextureFormat format) { return size == (u32) sizeof(T); } };
+		template<> struct ShaderBufferCast<f32> { static bool check(u32 size, TextureFormat format) { return format == TextureFormat::R32f; } };
+		template<> struct ShaderBufferCast<u32> { static bool check(u32 size, TextureFormat format) { return format == TextureFormat::R32u; } };
+		template<> struct ShaderBufferCast<i32> { static bool check(u32 size, TextureFormat format) { return format == TextureFormat::R32i; } };
+
+		template<typename T, u32 n> struct ShaderBufferCast<TVec<T, n>> { static bool check(u32 size, TextureFormat format) { 
+
+			constexpr bool fl = std::is_floating_point<T>::value;
+			constexpr bool uns = std::is_unsigned<T>::value;
+
+			static_assert(fl || std::is_integral<T>::value, "Only supports vector of int/uint and float");
+
+			return format.getValue() >= TextureFormat::RGBA32f && format.getValue() <= TextureFormat::R32i && 4 - (format.getValue() - TextureFormat::RGBA32f) % 4 == n && (fl ? format.getName().endsWith("f") : (uns ? format.getName().endsWith("u") : format.getName().endsWith("i")));
+		} };
+
+		template<typename T, u32 w, u32 h> struct ShaderBufferCast<TMatrix<T, w, h>> {
+			static bool check(u32 size, TextureFormat format) {
+				return ShaderBufferCast<TVec<T, w>>::check(size, format) && size == (u32) sizeof(TMatrix<T, w, h>);
+			}
+		};
+
 		class ShaderBufferVar {
 
 		public:
 
 			ShaderBufferVar(ShaderBufferObject &obj, Buffer buf, bool available);
 
-			//Read and write?
+			template<typename T>
+			T &cast() {
+				if (!ShaderBufferCast<T>::check(buf.size(), obj.format))
+					Log::throwError<ShaderBufferVar, 0x0>(String("Couldn't cast ShaderBufferVar with format ") + obj.format.getName() + " (" + obj.name + ")");
+
+				return *(T*) buf.addr();
+			}
 
 		private:
 
@@ -93,6 +121,12 @@ namespace oi {
 
 			void set(Buffer buf);			//Same as GBuffer::set; open(), copy(), close()
 
+			template<typename T>
+			T &get(String path);
+
+			template<typename T>
+			void set(String path, T t);
+
 		protected:
 
 			ShaderBuffer(ShaderBufferInfo info);
@@ -109,6 +143,18 @@ namespace oi {
 			bool isOpen = false;
 
 		};
+
+
+		template<typename T>
+		T &ShaderBuffer::get(String path) {
+			if (!isOpen) Log::throwError<ShaderBuffer, 0x0>("ShaderBuffer::set; buffer isn't open");
+			return get(path).cast<T>();
+		}
+
+		template<typename T>
+		void ShaderBuffer::set(String path, T t) {
+			get<T>(path) = t;
+		}
 
 	}
 

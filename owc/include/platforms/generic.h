@@ -4,6 +4,12 @@
 
 #include "windows.h"
 
+#undef ERROR
+#undef min
+#undef max
+#undef near
+#undef far
+
 namespace oi {
 
 	namespace wc {

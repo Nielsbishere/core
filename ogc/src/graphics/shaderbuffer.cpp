@@ -70,6 +70,12 @@ void ShaderBufferInfo::copy(const ShaderBufferInfo &info) {
 			elem.parent = elements.data() + (u32)(elem.parent - info.elements.data());
 	}
 
+	for (auto *&ptr : self.childs)
+		if (ptr == &info.self)
+			ptr = &self;
+		else
+			ptr = elements.data() + (u32)(ptr - info.elements.data());
+
 }
 
 ///ShaderBufferVar
@@ -102,8 +108,10 @@ void ShaderBuffer::open() {
 
 	isOpen = true;
 
-	if (buffer != nullptr)
+	if (buffer != nullptr) {
 		buffer->open();
+		this->current = Buffer::construct(buffer->getAddress(), buffer->getSize());
+	}
 	else
 		Log::throwError<ShaderBuffer, 0x1>("Can't update a non-existent buffer");
 
@@ -129,6 +137,7 @@ void ShaderBuffer::set(Buffer buf) {
 void ShaderBuffer::close() {
 
 	isOpen = false;
+	this->current = {};
 
 	if (buffer != nullptr)
 		buffer->close();
@@ -143,17 +152,12 @@ ShaderBuffer::~ShaderBuffer() {
 	if (buffer != nullptr)
 		g->destroy(buffer);
 
-	if (info.allocate) 
-		current.deconstruct();
-
 }
 
 bool ShaderBuffer::init() {
 
-	if (info.allocate) {
+	if (info.allocate)
 		buffer = g->create(GBufferInfo((info.type.getValue() - 1) / 2, info.size));
-		this->current = Buffer(buffer->getSize());
-	}
 
 	return true;
 }
@@ -169,7 +173,7 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 
 		std::vector<String> strarr = str.split("[");
 
-		if (strarr.size() < 1) {
+		if (strarr.size() == 1) {
 
 			if ((sbo = sbo->find(str)) == nullptr)
 				Log::throwError<ShaderBufferVar, 0x3>(String("Couldn't find the path \"") + path + "\"");
@@ -193,5 +197,5 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 
 	}
 
-	return { *sbo, { current.addr() + offset, sbo->length }, isOpen };
+	return { *sbo, Buffer::construct(current.addr() + offset, sbo->length * sbo->arraySize), isOpen };
 }
