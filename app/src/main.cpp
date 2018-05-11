@@ -28,6 +28,13 @@ void Application::instantiate(WindowHandleExt *param){
 	wmanager.waitAll();
 }
 
+///TODO:
+///Abstract Camera
+///Texture and Sampler
+///Abstract Entity
+///Abstract Model
+///Abstract AssetManager
+
 //Set up the interface
 
 void MainInterface::initScene() {

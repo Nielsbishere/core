@@ -31,6 +31,8 @@ namespace oi {
 			ShaderVBVar(u32 buffer, u32 offset, TextureFormat type, String name) : buffer(buffer), offset(offset), type(type), name(name) {}
 			ShaderVBVar() : ShaderVBVar(0, 0, 0, "") {}
 
+			bool operator<(const ShaderVBVar &other) const { return buffer < other.buffer || (buffer == other.buffer && offset < other.offset); }
+
 		};
 
 		DEnum(ShaderRegisterType, u32,

@@ -16,7 +16,8 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, u64 object, size_t location, i32 messageCode, const char *pLayerPrefix, const char *pMessage, void *pUserData) {
+VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, u64 object, 
+	size_t location, i32 messageCode, const char *pLayerPrefix, const char *pMessage, void *pUserData) {
 	
 	String prefix;
 	LogLevel level = LogLevel::PRINT;
@@ -386,7 +387,7 @@ void Graphics::initSurface(Window *w){
 	
 	w->getInfo()._forceSize(size);
 	
-	if (size == Vec2u()) {
+	if (size.x == 0U || size.y == 0U) {
 		w->pause();
 		return;
 	}

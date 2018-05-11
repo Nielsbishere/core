@@ -23,13 +23,14 @@ u32 Graphics::getChannelSize(TextureFormat format) {
 	if (val == TextureFormat::Undefined || val == TextureFormat::Depth)
 		return 0U;
 
-	if (val < TextureFormat::RGBA16 || val == TextureFormat::D16) return 1U;
-	if (val < TextureFormat::RGBA32f) return 2U;
+	if (val < TextureFormat::RGBA16) return 1U;
+	if (val < TextureFormat::RGBA32f || val == TextureFormat::D16) return 2U;
 	if (val == TextureFormat::D16S8) return 3U;
-	if (val < TextureFormat::D16 || val == TextureFormat::D32 || val == TextureFormat::D24S8) return 4U;
+	if (val < TextureFormat::RGBA64f || val == TextureFormat::D32 || val == TextureFormat::D24S8) return 4U;
+	if (val < TextureFormat::D16) return 8U;
 	if (val == TextureFormat::D32S8) return 5U;
 
-	return 4U;
+	return 1U;
 }
 
 u32 Graphics::getChannels(TextureFormat format) {

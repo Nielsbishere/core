@@ -19,7 +19,7 @@ namespace oi {
 			ShaderStageType type;
 
 			ShaderStageInfo(Buffer code, ShaderStageType type) : code(code), type(type) {}
-
+			ShaderStageInfo() : code(), type() {}
 		};
 
 		class ShaderStage : public GraphicsObject {

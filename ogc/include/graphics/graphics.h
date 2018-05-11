@@ -79,13 +79,13 @@ namespace oi {
 
 			GraphicsExt &getExtension();
 
-			bool isDepthFormat(TextureFormat format);
-			u32 getChannelSize(TextureFormat format);						//Returns size of one channel in bytes
-			u32 getChannels(TextureFormat format);							//Returns number of channels
-			u32 getFormatSize(TextureFormat format);						//Returns size of pixel
-			TextureFormatStorage getFormatStorage(TextureFormat format);
+			static bool isDepthFormat(TextureFormat format);
+			static u32 getChannelSize(TextureFormat format);						//Returns size of one channel in bytes
+			static u32 getChannels(TextureFormat format);							//Returns number of channels
+			static u32 getFormatSize(TextureFormat format);							//Returns size of pixel
+			static TextureFormatStorage getFormatStorage(TextureFormat format);
 
-			Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
+			static Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
 
 			RenderTarget *getBackBuffer();
 

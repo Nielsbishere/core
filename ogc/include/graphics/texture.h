@@ -27,15 +27,19 @@ namespace oi {
 			RGBA32u = 41, RGB32u = 42, RG32u = 43, R32u = 44,
 			RGBA32i = 45, RGB32i = 46, RG32i = 47, R32i = 48,
 
-			D16 = 49, D32 = 50, D16S8 = 51, D24S8 = 52, D32S8 = 53, Depth = 54,
+			RGBA64f = 49, RGB64f = 50, RG64f = 51, R64f = 52,
+			RGBA64u = 53, RGB64u = 54, RG64u = 55, R64u = 56,
+			RGBA64i = 57, RGB64i = 58, RG64i = 59, R64i = 60,
 
-			sRGBA8 = 55, sRGB8 = 56, sRG8 = 57, sR8 = 58,
+			D16 = 61, D32 = 62, D16S8 = 63, D24S8 = 64, D32S8 = 65, Depth = 66,
 
-			BGRA8 = 59, BGR8 = 60,
-			BGRA8s = 61, BGR8s = 62,
-			BGRA8u = 63, BGR8u = 64,
-			BGRA8i = 65, BGR8i = 66,
-			sBGRA8 = 67, sBGR8 = 68
+			sRGBA8 = 67, sRGB8 = 68, sRG8 = 69, sR8 = 70,
+
+			BGRA8 = 71, BGR8 = 72,
+			BGRA8s = 73, BGR8s = 74,
+			BGRA8u = 75, BGR8u = 76,
+			BGRA8i = 77, BGR8i = 78,
+			sBGRA8 = 79, sBGR8 = 80
 
 		);
 
