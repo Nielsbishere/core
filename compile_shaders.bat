@@ -26,8 +26,8 @@ for %%f in (*.vert *.frag *.comp *.geom) do (
 	"%VULKAN_SDK%/Bin/glslangValidator.exe" -V -e main "%%~ff" -o "%%~nf%%~xf.spv"
 	
 	rem Optimize shader source code and strip all reflection data from source
-	rem "%VULKAN_SDK%/Bin/spirv-remap.exe" --do-everything -i "%%~nf%%~xf.spv" -o ../shaders/
-	rem "%VULKAN_SDK%/Bin/spirv-opt.exe" -Os -O "%%~nf%%~xf.spv" -o "%%~nf%%~xf.spv"
+	"%VULKAN_SDK%/Bin/spirv-opt.exe" -Os -O "%%~nf%%~xf.spv" -o "%%~nf%%~xf.ospv"
+	"%VULKAN_SDK%/Bin/spirv-remap.exe" --do-everything -i "%%~nf%%~xf.ospv" -o ../shaders/
 	
 	if NOT !name!==%%~nf (
 		if defined !name! (

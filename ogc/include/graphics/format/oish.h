@@ -105,11 +105,11 @@ namespace oi {
 		struct SHOutput {
 
 			u8 type;			//TextureFormat
-			u8 padding;
+			u8 id;
 			u16 nameIndex;
 
-			SHOutput(u8 type, u16 nameIndex) : type(type), padding(0), nameIndex(nameIndex) {}
-			SHOutput() : SHOutput(0, 0) {}
+			SHOutput(u8 type, u8 id, u16 nameIndex) : type(type), id(id), nameIndex(nameIndex) {}
+			SHOutput() : SHOutput(0, 0, 0) {}
 
 		};
 

@@ -135,6 +135,8 @@ Buffer oiSL::write(SLFile &file) {
 	Buffer buf = toEncode.encode(keyset, perChar);
 
 	Buffer toFile((u32) (sizeof(SLHeader) + (!useDefault ? keyset.size() : 0) + names.size() + buf.size()));
+	file.size = toFile.size();
+
 	Buffer write = toFile;
 
 	file.header = write.operator[]<SLHeader>(0) = {
@@ -159,9 +161,6 @@ Buffer oiSL::write(SLFile &file) {
 
 	memcpy(write.addr(), strings.data(), string);
 	write = write.offset(string);
-
-	if (write.size() != 0U) file.size = (u32)(write.addr() - buf.addr());
-	else file.size = buf.size();
 
 	write.copy(buf);
 

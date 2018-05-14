@@ -33,23 +33,28 @@ bool Pipeline::init() {
 		if (info.renderTarget == nullptr || info.pipelineState == nullptr)
 			Log::throwError<Pipeline, 0x3>("Graphics pipeline requires a render target and/or pipeline state");
 
-		//Dynamic viewport & scissor
-
-		VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-
-		VkPipelineDynamicStateCreateInfo dynamicInfo;
-		memset(&dynamicInfo, 0, sizeof(dynamicInfo));
-
-		dynamicInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		dynamicInfo.dynamicStateCount = 2;
-		dynamicInfo.pDynamicStates = dynamicStates;
+		//Init viewport and scissor
 
 		VkPipelineViewportStateCreateInfo viewportInfo;
 		memset(&viewportInfo, 0, sizeof(viewportInfo));
 
+		VkViewport viewport;
+		memset(&viewport, 0, sizeof(viewport));
+
+		viewport.width = (float) info.renderTarget->getSize().x;
+		viewport.height = (float) info.renderTarget->getSize().y;
+		viewport.maxDepth = 1;
+
+		VkRect2D scissor;
+		memset(&scissor, 0, sizeof(scissor));
+
+		scissor.extent = { (u32) viewport.width, (u32) viewport.height };
+
 		viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportInfo.viewportCount = 1;
+		viewportInfo.pViewports = &viewport;
 		viewportInfo.scissorCount = 1;
+		viewportInfo.pScissors = &scissor;
 
 		//Pipeline
 
@@ -57,7 +62,7 @@ bool Pipeline::init() {
 		memset(&pipelineInfo, 0, sizeof(pipelineInfo));
 
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.pDynamicState = &dynamicInfo;
+		pipelineInfo.pDynamicState = nullptr;									//No dynamic states
 		pipelineInfo.pViewportState = &viewportInfo;
 
 		//Shader

@@ -69,31 +69,13 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
 	vkCmdBeginRenderPass(ext.cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	setViewport(Vec2(target->getSize()));
-
 }
 
 void CommandList::setViewport(Vec2 size, Vec2 offset, f32 startDepth, f32 endDepth) {
 
-	VkViewport viewport;
-	memset(&viewport, 0, sizeof(viewport));
+	//Nothing; setViewport isn't needed, as it is already included in the pipeline.
 
-	viewport.x = offset.x;
-	viewport.y = offset.y;
-	viewport.width = size.x;
-	viewport.height = size.y;
-	viewport.minDepth = startDepth;
-	viewport.maxDepth = endDepth;
-
-	vkCmdSetViewport(ext.cmd, 0, 1, &viewport);
-
-	VkRect2D scissor;
-	memset(&scissor, 0, sizeof(scissor));
-
-	scissor.offset = { (i32) offset.x, (i32) offset.y };
-	scissor.extent = { (u32) viewport.width, (u32) viewport.height };
-
-	vkCmdSetScissor(ext.cmd, 0, 1, &scissor);
+	Log::warn("Call to CommandList::setViewport, while it doesn't actually have any effect (it is already included in the pipeline");
 
 }
 

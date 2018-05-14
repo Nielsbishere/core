@@ -3,6 +3,7 @@
 #include "gl/generic.h"
 #include "graphics/graphicsobject.h"
 #include "graphics/shaderbuffer.h"
+#include "graphics/shaderstage.h"
 
 namespace oi {
 
@@ -15,10 +16,14 @@ namespace oi {
 			String path;
 
 			std::vector<ShaderStage*> stage;
+			std::vector<ShaderStageInfo> stages;
+
 			std::vector<ShaderVBSection> section;
 			std::vector<ShaderVBVar> var;
+			std::vector<ShaderOutput> output;
 			std::vector<ShaderRegister> registers;
 			std::unordered_map<String, ShaderBufferInfo> buffer;
+			std::unordered_map<u32, String> bufferIds;
 
 			std::unordered_map<String, GraphicsResource*> shaderRegister;
 

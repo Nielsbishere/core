@@ -200,6 +200,8 @@ Buffer oiSB::write(SBFile file) {
 	Buffer buf((u32)(sizeof(SBHeader) + structsiz + varsiz));
 	Buffer write = buf;
 
+	file.size = buf.size();
+
 	write.operator[]<SBHeader>(0) = file.header;
 	write = write.offset((u32)sizeof(SBHeader));
 

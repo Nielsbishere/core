@@ -35,6 +35,17 @@ namespace oi {
 
 		};
 
+		struct ShaderOutput {
+
+			u32 id;
+			TextureFormat type;
+			String name;
+
+			ShaderOutput(TextureFormat type, String name, u32 id) : type(type), name(name), id(id) {}
+			ShaderOutput() : ShaderOutput(TextureFormat::Undefined, "", 0U) {}
+
+		};
+
 		DEnum(ShaderRegisterType, u32,
 			Undefined = 0,
 			UBO = 1, UBO_write = 2, SSBO = 3, SSBO_write = 4,
