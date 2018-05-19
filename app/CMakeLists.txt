@@ -8,6 +8,10 @@ file(GLOB_RECURSE app_SRC
 	"src/*.c"
 	"include/*.hpp"
 	"src/*.cpp"
+	"res/shaders/*.frag"
+	"res/shaders/*.geom"
+	"res/shaders/*.vert"
+	"res/shaders/*.comp"
 )
 
 add_library(
@@ -18,3 +22,5 @@ add_library(
 target_link_libraries(app ostlc)
 target_link_libraries(app owc)
 target_link_libraries(app ogc)
+
+add_custom_command(TARGET app PRE_BUILD COMMAND "${HOME_DIR}/compile_shaders")

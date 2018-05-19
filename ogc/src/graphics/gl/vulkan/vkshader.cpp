@@ -123,7 +123,7 @@ bool Shader::init() {
 	u32 i = 0;
 	for (auto &reg : info.registers) {
 
-		auto &descInfo = descriptorSet[i];
+		VkDescriptorSetLayoutBinding &descInfo = descriptorSet[i];
 		memset(&descInfo, 0, sizeof(descInfo));
 
 		descInfo.binding = i;
@@ -148,14 +148,14 @@ bool Shader::init() {
 
 	vkCheck<0x1, VkShader>(vkCreateDescriptorSetLayout(gext.device, &descInfo, allocator, &ext.setLayout), "Couldn't create descriptor set layout");
 
+	//Create pipeline layout
+
 	VkPipelineLayoutCreateInfo layoutInfo;
 	memset(&layoutInfo, 0, sizeof(layoutInfo));
 
 	layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	layoutInfo.setLayoutCount = 1U;
 	layoutInfo.pSetLayouts = &ext.setLayout;
-
-	//Create pipeline layout
 
 	vkCheck<0x0, VkShader>(vkCreatePipelineLayout(gext.device, &layoutInfo, allocator, &ext.layout), "Couldn't create shader pipeline layout");
 

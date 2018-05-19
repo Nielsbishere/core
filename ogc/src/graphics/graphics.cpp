@@ -84,7 +84,6 @@ Shader *Graphics::create(ShaderInfo info) {
 	String path = info.path;
 
 	info = oiSH::convert(this, file);
-	info.path = path;
 
 	Shader *s = init<Shader>(info);
 

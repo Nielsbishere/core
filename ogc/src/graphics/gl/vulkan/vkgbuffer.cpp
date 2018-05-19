@@ -47,7 +47,7 @@ bool GBuffer::init() {
 
 	u8 *ptr = info.ptr;
 
-	if (info.persistent || info.ptr != nullptr)
+	if (info.persistent || ptr != nullptr)
 		vkCheck<0x1, GBuffer>(vkMapMemory(graphics.device, ext.memory, 0, info.size, 0, (void**) &info.ptr), "Couldn't map memory");
 
 	if(ptr != nullptr)

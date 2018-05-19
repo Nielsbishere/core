@@ -49,6 +49,8 @@ namespace oi {
 			ShaderBufferInfo &operator=(const ShaderBufferInfo &info);
 			ShaderBufferInfo(const ShaderBufferInfo &info);
 
+			void push(ShaderBufferObject obj, ShaderBufferObject &parent);
+
 		private:
 
 			void copy(const ShaderBufferInfo &info);
@@ -67,7 +69,7 @@ namespace oi {
 
 			static_assert(fl || std::is_integral<T>::value, "Only supports vector of int/uint and float");
 
-			return format.getValue() >= TextureFormat::RGBA32f && format.getValue() <= TextureFormat::R32i && 4 - (format.getValue() - TextureFormat::RGBA32f) % 4 == n && (fl ? format.getName().endsWith("f") : (uns ? format.getName().endsWith("u") : format.getName().endsWith("i")));
+			return format.getValue() >= TextureFormat::RGBA32f && format.getValue() <= TextureFormat::R64i && 4 - (format.getValue() - TextureFormat::RGBA32f) % 4 == n && (fl ? format.getName().endsWith("f") : (uns ? format.getName().endsWith("u") : format.getName().endsWith("i")));
 		} };
 
 		template<typename T, u32 w, u32 h> struct ShaderBufferCast<TMatrix<T, w, h>> {

@@ -93,7 +93,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 		u32 representation = 0U;
 
-		if (reg.type.getValue() < ShaderRegisterType::SSBO_write) {
+		if (reg.type.getValue() <= ShaderRegisterType::SSBO) {
 
 			representation = 1U;
 
@@ -220,6 +220,8 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 	ShaderInfo info;
 
+	info.path = file.stringlist.names[0];
+
 	std::vector<ShaderStage*> &stage = info.stage = std::vector<ShaderStage*>(file.stage.size());
 
 	info.stages.resize((u32)stage.size());
@@ -292,7 +294,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 		SHRegister &r = file.registers[i];
 
-		if (r.type < ShaderRegisterType::SSBO_write && r.type != ShaderRegisterType::Undefined) {
+		if (r.type <= ShaderRegisterType::SSBO && r.type != ShaderRegisterType::Undefined) {
 
 			u32 buf = r.representation;
 

@@ -62,20 +62,73 @@ void ShaderBufferInfo::copy(const ShaderBufferInfo &info) {
 			if (ptr == &info.self)
 				ptr = &self;
 			else
-				ptr = elements.data() + (u32)(ptr - info.elements.data());
+				ptr = elements.data() + (ptr - info.elements.data());
 
 		if (elem.parent == &info.self)
 			elem.parent = &self;
 		else
-			elem.parent = elements.data() + (u32)(elem.parent - info.elements.data());
+			elem.parent = elements.data() + (elem.parent - info.elements.data());
 	}
 
 	for (auto *&ptr : self.childs)
 		if (ptr == &info.self)
 			ptr = &self;
 		else
-			ptr = elements.data() + (u32)(ptr - info.elements.data());
+			ptr = elements.data() + (ptr - info.elements.data());
 
+}
+
+void ShaderBufferInfo::push(ShaderBufferObject obj, ShaderBufferObject &parent) {
+
+	if (elements.size() + 1U >= elements.capacity() && elements.size() != 0U) {
+
+		u32 targetSize = (u32) elements.capacity() + 1U /*32U*/;
+
+		u32 parentId = &parent == &self ? 0U : (u32)(&parent - elements.data()) + 1U;
+
+		ShaderBufferInfo copy;
+		copy.copy(*this);
+
+		elements.reserve(targetSize);
+		elements.assign(copy.elements.begin(), copy.elements.end());
+
+		//TODO: element[0] is invalid! Thanks to copying
+
+		for (u32 i = 0; i < elements.size(); ++i) {
+
+			ShaderBufferObject &sbo = elements[i];
+
+			if (sbo.parent == &copy.self)
+				sbo.parent = &self;
+			else
+				sbo.parent = elements.data() + (sbo.parent - copy.elements.data());
+
+			for (auto *&elem : sbo.childs) {
+				if (elem == &copy.self)
+					elem = &self;
+				else
+					elem = elements.data() + (elem - copy.elements.data());
+			}
+
+		}
+
+		self.childs.assign(copy.self.childs.begin(), copy.self.childs.end());
+
+		for (auto *&ptr : self.childs)
+			if (ptr == &copy.self)
+				ptr = &self;
+			else
+				ptr = elements.data() + (ptr - copy.elements.data());
+
+		obj.parent = parentId == 0 ? &self : elements.data() + (parentId - 1U);
+		elements.push_back(obj);
+		parent.childs.push_back(&elements[elements.size() - 1U]);
+
+	} else {
+		obj.parent = &parent;
+		elements.push_back(obj);
+		parent.childs.push_back(&elements[elements.size() - 1U]);
+	}
 }
 
 ///ShaderBufferVar

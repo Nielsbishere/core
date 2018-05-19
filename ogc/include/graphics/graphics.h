@@ -38,10 +38,8 @@ namespace oi {
 		enum class TextureFormatStorage;
 
 		DEnum(TopologyMode, u32,
-
 			Points = 0, Line = 1, Line_strip = 2, Triangle = 3, Triangle_strip = 4, Triangle_fan = 5,
 			Line_adj = 6, Line_strip_adj = 7, Triangle_adj = 8, Triangle_strip_adj = 9
-
 		);
 
 		DEnum(FillMode, u32, Fill = 0, Line = 1, Point = 2);

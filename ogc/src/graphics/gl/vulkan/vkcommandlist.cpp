@@ -71,14 +71,6 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
 }
 
-void CommandList::setViewport(Vec2 size, Vec2 offset, f32 startDepth, f32 endDepth) {
-
-	//Nothing; setViewport isn't needed, as it is already included in the pipeline.
-
-	Log::warn("Call to CommandList::setViewport, while it doesn't actually have any effect (it is already included in the pipeline");
-
-}
-
 void CommandList::end(RenderTarget *target) {
 	vkCmdEndRenderPass(ext.cmd);
 }

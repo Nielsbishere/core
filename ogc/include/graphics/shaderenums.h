@@ -48,9 +48,9 @@ namespace oi {
 
 		DEnum(ShaderRegisterType, u32,
 			Undefined = 0,
-			UBO = 1, UBO_write = 2, SSBO = 3, SSBO_write = 4,
-			Texture2D = 5, Image = 6,
-			Sampler = 7
+			UBO = 1, SSBO = 2,
+			Texture2D = 3, Image = 4,
+			Sampler = 5
 		);
 
 		DEnum(ShaderRegisterAccess, u32,
