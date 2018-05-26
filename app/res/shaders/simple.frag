@@ -6,10 +6,13 @@ layout(location = 1) in vec2 uv;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 sinf(vec3 f){
-	return sin(f * 3.1415926535) * 0.5 + 0.5;
+layout(binding = 2) uniform sampler samp;
+layout(binding = 3) uniform texture2D tex;
+
+vec4 sample2D(sampler s, texture2D t, vec2 uv){
+	return texture(sampler2D(t, s), uv);
 }
 
 void main() {
-    outColor = vec4(sinf(fragColor) * vec3(uv, 1), 1);
+    outColor = vec4(fragColor * sample2D(samp, tex, uv).rgb, 1);
 }

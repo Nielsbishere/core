@@ -1,11 +1,18 @@
-#include "graphics/graphicsinterface.h"
 #include <window/window.h>
+#include "graphics/graphicsinterface.h"
+#include "graphics/commandlist.h"
 using namespace oi::gc;
 using namespace oi;
 
 void GraphicsInterface::init() {
+
 	g.init(getParent());
+
+	cmdList = g.create(CommandListInfo());
+	g.use(cmdList);
+
 	initScene();
+
 }
 
 void GraphicsInterface::initSurface() {

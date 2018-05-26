@@ -14,11 +14,14 @@ namespace oi {
 		
 		class Texture;
 		class Graphics;
+		class CommandList;
 
 		struct VkGraphics {
+
 			VkInstance instance = nullptr;
 			VkPhysicalDevice pdevice = nullptr;
 			VkPhysicalDeviceMemoryProperties pmemory{};
+			VkPhysicalDeviceFeatures pfeatures{};
 			VkDevice device = nullptr;
 			VkSurfaceKHR surface = nullptr;
 			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
@@ -31,27 +34,38 @@ namespace oi {
 			VkSemaphore semaphore = nullptr;
 			VkDebugReportCallbackEXT debugCallback = nullptr;
 			u32 queueFamilyIndex = u32_MAX;
+
 		};
 
 		struct VkRenderTarget {
+
 			VkRenderPass renderPass = nullptr;
 			std::vector<VkFramebuffer> frameBuffer;
+
 		};
 
 		struct VkTexture {
+
 			VkImage resource = nullptr;
 			VkDeviceMemory memory = nullptr;
 			VkImageView view = nullptr;
+
+			CommandList *cmdList = nullptr;
+
 		};
 
 		struct VkGBuffer {
+
 			VkBuffer resource = nullptr;
 			VkDeviceMemory memory = nullptr;
+
 		};
 
 		struct VkShaderStage {
+
 			VkShaderModule shader = nullptr;
 			VkPipelineShaderStageCreateInfo pipeline{};
+
 		};
 
 		struct VkShader {
@@ -69,8 +83,10 @@ namespace oi {
 		};
 
 		struct VkCommandList {
+
 			VkCommandPool pool = nullptr;
 			VkCommandBuffer cmd = nullptr;
+
 		};
 
 		struct VkPipelineState {
@@ -214,7 +230,7 @@ namespace oi {
 		DEnum(VkTextureUsage, VkImageLayout, Undefined = VK_IMAGE_LAYOUT_UNDEFINED,
 
 			Render_target = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, Render_depth = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-			Shader_input_only = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, General = VK_IMAGE_LAYOUT_GENERAL
+			Image = VK_IMAGE_LAYOUT_UNDEFINED
 
 		);
 
@@ -252,6 +268,23 @@ namespace oi {
 			Geometry_fragment = Geometry.value | Fragment.value
 
 		);
+
+		DEnum(VkSamplerWrapping, VkSamplerAddressMode, 
+			Repeat = VK_SAMPLER_ADDRESS_MODE_REPEAT, MirrorRepeat = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, 
+			ClampEdge = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, ClampBorder = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, 
+			MirrorClampEdge = VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
+		);
+
+		SEnum(VkSamplerMin, VkFilter filter; VkSamplerMipmapMode mip;, 
+			LinearMip = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR }), 
+			NearestMip = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST }),
+			Linear = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR }),
+			Nearest = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR }),
+			LinearMipNearest = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST }),
+			NearestMipLinear = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR })
+		);
+
+		DEnum(VkSamplerMag, VkFilter, Linear = VK_FILTER_LINEAR, Nearest = VK_FILTER_NEAREST);
 
 	}
 }

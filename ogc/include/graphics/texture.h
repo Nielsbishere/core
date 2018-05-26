@@ -4,11 +4,14 @@
 #include "graphics/gl/generic.h"
 #include "graphics/graphicsresource.h"
 
+#undef RGB
+
 namespace oi {
 
 	namespace gc {
 		
 		class Graphics;
+		class CommandList;
 
 		DEnum(TextureFormat, u32, Undefined = 0, 
 
@@ -46,7 +49,7 @@ namespace oi {
 		DEnum(TextureUsage, u32, Undefined = 0,
 
 			Render_target = 1, Render_depth = 2,
-			Shader_input_only = 3, General = 4
+			Image = 3
 
 		);
 
@@ -56,13 +59,25 @@ namespace oi {
 			FLOAT
 		};
 
+		DEnum(TextureLoadFormat, u32, Undefined = 0,
+			R8 = 1,
+			RG8 = 2,
+			RGB8 = 3,
+			RGBA8 = 4
+		);
+
 		struct TextureInfo {
 
 			Vec2u res;
 			TextureFormat format;
 			TextureUsage usage;
 
+			String path;
+			Buffer dat;
+			TextureLoadFormat loadFormat = TextureLoadFormat::Undefined;
+
 			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : res(res), format(format), usage(usage) {}
+			TextureInfo(String path, TextureLoadFormat loadFormat = TextureLoadFormat::RGBA8) : path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()) {}
 		};
 
 		class Texture : public GraphicsResource {
@@ -77,6 +92,7 @@ namespace oi {
 			bool isOwned();
 
 			TextureExt &getExtension();
+			const TextureInfo getInfo();
 
 		protected:
 

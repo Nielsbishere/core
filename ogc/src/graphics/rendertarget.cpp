@@ -19,6 +19,8 @@ Texture *RenderTarget::getTarget(u32 target, u32 version) {
 }
 
 Vec2u RenderTarget::getSize() { return info.res; }
+
 RenderTargetExt &RenderTarget::getExtension() { return ext; }
+const RenderTargetInfo RenderTarget::getInfo() { return info; }
 
 RenderTarget::RenderTarget(RenderTargetInfo info) : info(info){}

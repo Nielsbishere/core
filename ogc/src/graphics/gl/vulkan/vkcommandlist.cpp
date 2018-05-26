@@ -140,6 +140,22 @@ bool CommandList::bind(std::vector<GBuffer*> buffer) {
 	return true;
 }
 
+void CommandList::flush() {
+
+	end();
+
+	VkSubmitInfo submitInfo;
+	memset(&submitInfo, 0, sizeof(submitInfo));
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1U;
+	submitInfo.pCommandBuffers = &ext.cmd;
+
+	vkCheck<0x4, CommandList>(vkQueueSubmit(g->getExtension().queue, 1, &submitInfo, nullptr), "Couldn't submit queue");
+
+	g->finish();
+}
+
 
 
 #endif

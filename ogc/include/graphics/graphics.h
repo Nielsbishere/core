@@ -22,6 +22,7 @@ namespace oi {
 		class PipelineState;
 		class GBuffer;
 		class ShaderBuffer;
+		class Sampler;
 
 		class GraphicsObject;
 
@@ -34,6 +35,7 @@ namespace oi {
 		struct PipelineStateInfo;
 		struct GBufferInfo;
 		struct ShaderBufferInfo;
+		struct SamplerInfo;
 
 		enum class TextureFormatStorage;
 
@@ -56,7 +58,7 @@ namespace oi {
 			
 			~Graphics();
 			
-			void init(oi::wc::Window *w, u32 buffering = 2);
+			void init(oi::wc::Window *w, u32 buffering = 3U);
 			
 			void initSurface(oi::wc::Window *w);							//Inits surface & backbuffer
 			void destroySurface();											//Destroys surface & backBuffer
@@ -74,6 +76,7 @@ namespace oi {
 			PipelineState *create(PipelineStateInfo info);
 			GBuffer *create(GBufferInfo info);
 			ShaderBuffer *create(ShaderBufferInfo info);
+			Sampler *create(SamplerInfo info);
 
 			GraphicsExt &getExtension();
 

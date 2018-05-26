@@ -23,6 +23,7 @@ namespace oi {
 		protected:
 		
 			Graphics g;
+			CommandList *cmdList;
 			
 		};
 

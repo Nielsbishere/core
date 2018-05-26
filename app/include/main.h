@@ -23,12 +23,13 @@ public:
 	void initSurface() override;
 
 private:
-
-	oi::gc::CommandList *cmdList;
+	
 	oi::gc::Shader *shader;
 	oi::gc::Pipeline *pipeline;
 	oi::gc::PipelineState *pipelineState;
 	oi::gc::GBuffer *quadVbo, *quadIbo;
+	oi::gc::Texture *osomi;
+	oi::gc::Sampler *sampler;
 
 	oi::Vec3f crot = { 45, 30, 15 }, cpos = {}, cscale = { 1 };
 

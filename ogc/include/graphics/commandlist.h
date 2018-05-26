@@ -28,6 +28,7 @@ namespace oi {
 		class CommandList : public GraphicsObject {
 
 			friend class Graphics;
+			friend class Texture;
 
 		public:
 
@@ -50,11 +51,12 @@ namespace oi {
 			CommandList(CommandListInfo info);
 			bool init();
 
+			void flush();
+
 		private:
 
 			CommandListInfo info;
 			CommandListExt ext;
-
 
 		};
 

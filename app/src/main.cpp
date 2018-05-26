@@ -14,6 +14,7 @@
 
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
+#include <graphics/sampler.h>
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -30,7 +31,6 @@ void Application::instantiate(WindowHandleExt *param){
 
 ///TODO:
 ///Abstract Camera
-///Texture and Sampler
 ///Abstract Entity
 ///Abstract Model
 ///Abstract AssetManager
@@ -42,9 +42,6 @@ void MainInterface::initScene() {
 	Log::println("Started main interface!");
 
 	getInputManager().load("res/settings/input.json");
-
-	cmdList = g.create(CommandListInfo());
-	g.use(cmdList);
 
 	shader = g.create(ShaderInfo("res/shaders/simple.oiSH"));
 	g.use(shader);
@@ -128,8 +125,16 @@ void MainInterface::initScene() {
 	quadIbo = g.create(GBufferInfo(GBufferType::IBO, (u32) sizeof(ind), (u8*)ind));
 	g.use(quadIbo);
 
-	pipeline = nullptr;
+	osomi = g.create(TextureInfo("res/textures/osomi.png"));
+	g.use(osomi);
 
+	sampler = g.create(SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
+	g.use(sampler);
+
+	shader->set("samp", sampler);
+	shader->set("tex", osomi);
+
+	pipeline = nullptr;
 }
 
 void MainInterface::renderScene(){
@@ -209,6 +214,8 @@ void MainInterface::update(flp dt) {
 
 MainInterface::~MainInterface(){
 	g.finish();
+	g.destroy(sampler);
+	g.destroy(osomi);
 	g.destroy(quadVbo);
 	g.destroy(quadIbo);
 	g.destroy(pipeline);

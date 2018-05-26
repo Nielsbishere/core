@@ -6,8 +6,10 @@ using namespace oi;
 GBuffer::GBuffer(GBufferInfo info) : info(info) {}
 GBufferType GBuffer::getType() { return info.type; }
 u32 GBuffer::getSize() { return info.size; }
-GBufferExt &GBuffer::getExtension() { return ext; }
 u8 *GBuffer::getAddress() { return info.ptr; }
+
+GBufferExt &GBuffer::getExtension() { return ext; }
+const GBufferInfo GBuffer::getInfo() { return info; }
 
 bool GBuffer::set(Buffer buf) {
 	open();

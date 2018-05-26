@@ -9,6 +9,8 @@
 #undef max
 #undef near
 #undef far
+#undef RGB
+#undef RGBA
 
 namespace oi {
 

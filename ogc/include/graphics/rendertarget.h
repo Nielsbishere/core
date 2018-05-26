@@ -34,7 +34,9 @@ namespace oi {
 			Texture *getTarget(u32 target, u32 version);
 
 			Vec2u getSize();
+
 			RenderTargetExt &getExtension();
+			const RenderTargetInfo getInfo();
 
 		protected:
 

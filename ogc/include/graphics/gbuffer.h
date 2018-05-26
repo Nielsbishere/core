@@ -36,6 +36,7 @@ namespace oi {
 			u8 *getAddress();	//Only available if it's initialized and persistent
 
 			GBufferExt &getExtension();
+			const GBufferInfo getInfo();
 
 			bool set(Buffer buf);	//open(), copy(), close()
 

@@ -244,7 +244,9 @@ void Graphics::init(Window *w, u32 buffering){
 	ext.pdevice = *gpu;
 	
 	delete[] properties;
-	
+
+	vkGetPhysicalDeviceFeatures(ext.pdevice, &ext.pfeatures);
+
 	//Setup device
 	
 	VkDeviceCreateInfo deviceInfo;
@@ -255,8 +257,7 @@ void Graphics::init(Window *w, u32 buffering){
 	deviceInfo.ppEnabledLayerNames = dlayers.data();
 	deviceInfo.enabledExtensionCount = (u32) dextensions.size();
 	deviceInfo.ppEnabledExtensionNames = dextensions.data();
-	deviceInfo.pEnabledFeatures = nullptr;
-	
+	deviceInfo.pEnabledFeatures = &ext.pfeatures;
 
 	u32 familyCount;
 	vkGetPhysicalDeviceQueueFamilyProperties(ext.pdevice, &familyCount, nullptr);

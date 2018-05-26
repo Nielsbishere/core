@@ -1,3 +1,4 @@
+#include <file/filemanager.h>
 #include "graphics/graphicsobject.h"
 #include "graphics/graphics.h"
 #include "graphics/texture.h"
@@ -9,6 +10,8 @@
 #include "graphics/pipelinestate.h"
 #include "graphics/gbuffer.h"
 #include "graphics/shaderbuffer.h"
+#include "graphics/sampler.h"
+#include "api/stbi/stbi_load.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -100,6 +103,30 @@ ShaderStage *Graphics::create(ShaderStageInfo info) {
 
 
 Texture *Graphics::create(TextureInfo info) {
+
+	if (info.path != "") {
+
+		//Set up a buffer to load
+
+		if (info.loadFormat == TextureLoadFormat::Undefined)
+			return (Texture*) Log::throwError<Graphics, 0x1C>("Couldn't load texture; Texture load format is invalid");
+
+		if (!wc::FileManager::get()->read(info.path, info.dat))										//Temporarily store the file data into info.dat
+			return (Texture*)Log::throwError<Graphics, 0x1B>("Couldn't load texture from disk");
+
+		int width, height, comp;
+
+		int perChannel = (int) info.loadFormat.getValue();
+
+		//Convert data to image info
+
+		u8 *ptr = (u8*) stbi_load_from_memory((const stbi_uc*) info.dat.addr(), (int) info.dat.size(), &width, &height, &comp, perChannel);
+		stbi_image_free(info.dat.addr());
+		info.dat = Buffer::construct(ptr, (u32) perChannel * width * height);
+
+		info.res = { (u32) width, (u32) height };
+	}
+
 	return init<Texture>(info);
 }
 
@@ -142,6 +169,10 @@ GBuffer *Graphics::create(GBufferInfo info) {
 
 ShaderBuffer *Graphics::create(ShaderBufferInfo info) {
 	return init<ShaderBuffer>(info);
+}
+
+Sampler *Graphics::create(SamplerInfo info) {
+	return init<Sampler>(info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

@@ -5,6 +5,8 @@
 #include "graphics/graphics.h"
 #include "graphics/gbuffer.h"
 #include "graphics/graphics.h"
+#include "graphics/sampler.h"
+#include "graphics/texture.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -37,7 +39,20 @@ void Shader::update() {
 		std::vector<VkDescriptorBufferInfo> buffers(info.buffer.size());
 		memset(buffers.data(), 0, sizeof(VkDescriptorBufferInfo) * buffers.size());
 
-		u32 i = 0, j = 0;
+		u32 samplers = 0, images = 0;
+
+		for (ShaderRegister &reg : info.registers) {
+			if (reg.type == ShaderRegisterType::Sampler) ++samplers;
+			else if (reg.type == ShaderRegisterType::Image || reg.type == ShaderRegisterType::Texture2D) ++images;
+		}
+
+		std::vector<VkDescriptorImageInfo> imageInfo(images);
+		memset(imageInfo.data(), 0, sizeof(VkDescriptorImageInfo) * images);
+
+		std::vector<VkDescriptorImageInfo> samplerInfo(samplers);
+		memset(samplerInfo.data(), 0, sizeof(VkDescriptorImageInfo) * samplers);
+
+		u32 i = 0, j = 0, k = 0, l = 0;
 
 		for (ShaderRegister &reg : info.registers) {
 
@@ -54,6 +69,9 @@ void Shader::update() {
 			
 			if (dynamic_cast<ShaderBuffer*>(res) != nullptr) {
 
+				if (reg.type != ShaderRegisterType::UBO && reg.type != ShaderRegisterType::SSBO)
+					Log::throwError<Shader, 0x1>("A ShaderBuffer has been placed on a register not meant for SBOs");
+
 				VkDescriptorBufferInfo *bufferInfo = buffers.data() + j;
 				descriptor.pBufferInfo = bufferInfo;
 
@@ -69,8 +87,37 @@ void Shader::update() {
 
 				++j;
 
+			} else if(dynamic_cast<Sampler*>(res) != nullptr){
+
+				if (reg.type != ShaderRegisterType::Sampler)
+					Log::throwError<Shader, 0x2>("A Sampler has been placed on a register not meant for samplers");
+
+				Sampler *samp = (Sampler*)res;
+
+				VkDescriptorImageInfo *image = samplerInfo.data() + k;
+				descriptor.pImageInfo = image;
+
+				image->sampler = samp->getExtension();
+
+				++k;
+
+			} else if(dynamic_cast<Texture*>(res) != nullptr) {
+
+				if (reg.type != ShaderRegisterType::Texture2D)
+					Log::throwError<Shader, 0x3>("A Texture has been placed on a register not meant for textures");
+
+				Texture *tex = (Texture*) res;
+
+				VkDescriptorImageInfo *image = imageInfo.data() + l;
+				descriptor.pImageInfo = image;
+
+				image->imageView = tex->getExtension().view;
+				image->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		//TODO: Change for Image
+
+				++l;
+
 			} else
-				Log::throwError<Shader, 0x1>("Shader mentiones an invalid resource");
+				Log::throwError<Shader, 0x4>("Shader mentions an invalid resource");
 
 			++i;
 		}

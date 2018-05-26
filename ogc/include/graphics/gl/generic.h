@@ -28,6 +28,7 @@ namespace oi {
 		typedef VkPipelineState PipelineStateExt;
 		typedef VkPipeline PipelineExt;
 		typedef VkGBuffer GBufferExt;
+		typedef VkSampler SamplerExt;
 		
 		///All enum struct implementations
 
@@ -43,6 +44,9 @@ namespace oi {
 		typedef VkGBufferType GBufferTypeExt;
 		typedef VkShaderRegisterType ShaderRegisterTypeExt;
 		typedef VkShaderRegisterAccess ShaderRegisterAccessExt;
+		typedef VkSamplerWrapping SamplerWrappingExt;
+		typedef VkSamplerMin SamplerMinExt;
+		typedef VkSamplerMag SamplerMagExt;
 
 	};
 }

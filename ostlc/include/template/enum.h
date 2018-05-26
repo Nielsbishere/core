@@ -145,5 +145,7 @@ namespace oi {
 	//Data type enum
 	#define DEnum(name, type, a0, ...) SEnum(name, type value; constexpr name##_s(type val): value(val) {}; constexpr name##_s(): value((type)0){}; operator type() const { return value; }, a0, __VA_ARGS__)
 
+	#define UEnum(name, a0, ...) DEnum(name, u32, a0, __VA_ARGS__)
+	#define IEnum(name, a0, ...) DEnum(name, i32, a0, __VA_ARGS__)
 
 }

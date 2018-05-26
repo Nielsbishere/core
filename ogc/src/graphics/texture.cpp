@@ -10,3 +10,4 @@ bool Texture::isOwned() { return owned; }
 Texture::Texture(TextureInfo info) : info(info) {}
 
 TextureExt &Texture::getExtension() { return ext; }
+const TextureInfo Texture::getInfo() { return info; }

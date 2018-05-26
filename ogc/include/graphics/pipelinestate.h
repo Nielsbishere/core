@@ -29,6 +29,7 @@ namespace oi {
 		public:
 
 			PipelineStateExt &getExtension();
+			const PipelineStateInfo getInfo();
 			
 		protected:
 

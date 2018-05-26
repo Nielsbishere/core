@@ -32,7 +32,7 @@ namespace oi {
 		public:
 
 			PipelineExt &getExtension();
-			const PipelineInfo &getInfo();
+			const PipelineInfo getInfo();
 
 		protected:
 

@@ -3,6 +3,7 @@
 #include "graphics/gl/vulkan.h"
 #include "graphics/texture.h"
 #include "graphics/graphics.h"
+#include "graphics/commandlist.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -59,7 +60,7 @@ bool Texture::init(bool isOwned) {
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
-		imageInfo.usage = useDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		imageInfo.usage = (info.usage == TextureUsage::Image ? VK_IMAGE_USAGE_TRANSFER_DST_BIT : (useDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) | VK_IMAGE_USAGE_SAMPLED_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -83,6 +84,106 @@ bool Texture::init(bool isOwned) {
 	viewInfo.subresourceRange.layerCount = 1;
 
 	vkCheck<0x2, Texture>(vkCreateImageView(graphics.device, &viewInfo, allocator, &ext.view), "Couldn't create image view");
+
+	//Set data in texture
+
+	if (info.dat.size() != 0U) {
+
+		if (info.dat.size() != info.res.x * info.res.y * Graphics::getFormatSize(info.format))
+			return Log::throwError<Texture, 0x4>("The buffer was of incorrect size");
+
+		//Construct staging buffer with data
+
+		GBufferExt ext;
+
+		VkBufferCreateInfo stagingInfo;
+		memset(&stagingInfo, 0, sizeof(stagingInfo));
+
+		stagingInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		stagingInfo.size = info.dat.size();
+		stagingInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		stagingInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		stagingInfo.queueFamilyIndexCount = 1;
+		stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
+
+		vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, allocator, &ext.resource), "Couldn't send texture data to GPU");
+
+		vkAllocate(Buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+		void *stagingData;
+
+		vkCheck<0x5, Texture>(vkMapMemory(graphics.device, ext.memory, 0, info.dat.size(), 0, &stagingData), "Couldn't map texture staging buffer");
+		memcpy(stagingData, info.dat.addr(), info.dat.size());
+		vkUnmapMemory(graphics.device, ext.memory);
+
+		//Push that into the texture
+
+		if ((this->ext.cmdList = g->create(CommandListInfo())) == nullptr)
+			return Log::throwError<Texture, 0x6>("Couldn't send texture data; it requires a cmdList");
+
+		CommandListExt &cmd = this->ext.cmdList->getExtension();
+
+		this->ext.cmdList->begin();
+
+		///Transition to write
+
+		VkImageMemoryBarrier barrier;
+		memset(&barrier, 0, sizeof(barrier));
+
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = this->ext.resource;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		vkCmdPipelineBarrier(cmd.cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+		///Copy it into the texture
+
+		VkBufferImageCopy region;
+		memset(&region, 0, sizeof(region));
+
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.layerCount = 1;
+		region.imageExtent = { info.res.x, info.res.y, 1 };
+
+		vkCmdCopyBufferToImage(cmd.cmd, ext.resource, this->ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+		///Transition it back to shader read only
+
+		memset(&barrier, 0, sizeof(barrier));
+
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = this->ext.resource;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(cmd.cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+		///Submit commands
+
+		this->ext.cmdList->flush();
+		g->destroy(this->ext.cmdList);
+
+		//Now clean it up
+
+		vkFreeMemory(graphics.device, ext.memory, allocator);
+		vkDestroyBuffer(graphics.device, ext.resource, allocator);
+
+		free(info.dat.addr());
+	}
 
 	Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	return true;
