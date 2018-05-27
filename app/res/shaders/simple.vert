@@ -10,13 +10,31 @@ layout(binding = 0) uniform PerObject {
 
 layout(binding = 1) uniform PerExecution {
 
-	mat4 p;
-	mat4 v;
-	
 	vec3 ambient;
 	float time;
 	
 } exc;
+
+layout(binding = 2) uniform Camera {
+
+	mat4 p;
+
+	mat4 v;
+
+	vec3 position;
+	float fov;
+
+	vec3 up;
+	float aspect;
+
+	vec3 forward;
+	float padding;
+	
+	float near;
+	float far;
+	uvec2 resolution;
+
+} cam;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 uv;

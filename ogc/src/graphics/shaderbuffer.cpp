@@ -92,8 +92,6 @@ void ShaderBufferInfo::push(ShaderBufferObject obj, ShaderBufferObject &parent) 
 		elements.reserve(targetSize);
 		elements.assign(copy.elements.begin(), copy.elements.end());
 
-		//TODO: element[0] is invalid! Thanks to copying
-
 		for (u32 i = 0; i < elements.size(); ++i) {
 
 			ShaderBufferObject &sbo = elements[i];
@@ -236,8 +234,6 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 		} else {
 
 			str = strarr[0];
-
-			//TODO: Look it up
 
 			//test[5][5][5][5].a
 			//test[5]

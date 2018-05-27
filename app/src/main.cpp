@@ -15,6 +15,7 @@
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
 #include <graphics/sampler.h>
+#include <graphics/camera.h>
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -30,10 +31,18 @@ void Application::instantiate(WindowHandleExt *param){
 }
 
 ///TODO:
-///Abstract Camera
-///Abstract Entity
-///Abstract Model
+///Support instancing / indirect rendering
+///Support FBO textures; FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
 ///Abstract AssetManager
+///Abstract Model
+///Abstract Entity
+///Allow arrays in registers and buffers
+///Fix Window security
+///Shader class validation (->set(name, var))
+///Pipeline validation
+///Android update project in CMake
+///Android resize
+///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
 
 //Set up the interface
 
@@ -135,12 +144,13 @@ void MainInterface::initScene() {
 	shader->set("tex", osomi);
 
 	pipeline = nullptr;
+
+	camera = g.create(CameraInfo(45.f, Vec3(0, 0, 1.5), Vec4(0, 0, 0, 1), Vec3(0, 1, 0), 0.1f, 100.f));
+	g.use(camera);
+
 }
 
 void MainInterface::renderScene(){
-
-	const f32 fov = 45.f, near = 0.1f, far = 1000.f;
-	const Vec3 eye = { 0, 5, 10 }, center = {}, up = { 0, 1, 0 };
 
 	RenderTarget *rt = g.getBackBuffer();
 
@@ -148,12 +158,7 @@ void MainInterface::renderScene(){
 
 	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
 
-	Matrixf p = Matrixf::makePerspective(fov, Vec2(rt->getSize()).getAspect(), near, far);
-	Matrixf v = Matrixf::makeView(eye, center, up);
-
 	perExecution->open();
-	perExecution->set("p", p);
-	perExecution->set("v", v);
 	perExecution->set("ambient", Vec3f(1));
 	perExecution->set("time", (f32) getRuntime());
 	perExecution->close();
@@ -171,7 +176,7 @@ void MainInterface::renderScene(){
 
 	perObject->open();
 	perObject->set("m", m);
-	perObject->set("mvp", p * v * m);
+	perObject->set("mvp", camera->getBoundProjection() * camera->getBoundView() * m);
 	perObject->close();
 
 	//Execute draw call
@@ -195,7 +200,7 @@ void MainInterface::initSurface(){
 	}
 
 	if (getParent()->getInfo().getSize() != Vec2u())
-		pipeline = g.create(PipelineInfo(shader, pipelineState, g.getBackBuffer()));
+		pipeline = g.create(PipelineInfo(shader, pipelineState, g.getBackBuffer(), camera));
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
@@ -208,13 +213,14 @@ void MainInterface::save(String path){ Log::println("Saving"); }
 void MainInterface::update(flp dt) {
 
 	crot += Vec3(32, 16, 8) * dt;
-	cpos += Vec3(0, -.5, -3) * dt;
+	cpos += Vec3(0, -.05, -0.3) * dt;
 
 	WindowInterface::update(dt); 
 }
 
 MainInterface::~MainInterface(){
 	g.finish();
+	g.destroy(camera);
 	g.destroy(sampler);
 	g.destroy(osomi);
 	g.destroy(quadVbo);

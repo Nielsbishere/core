@@ -23,6 +23,7 @@ namespace oi {
 		class GBuffer;
 		class ShaderBuffer;
 		class Sampler;
+		class Camera;
 
 		class GraphicsObject;
 
@@ -36,6 +37,7 @@ namespace oi {
 		struct GBufferInfo;
 		struct ShaderBufferInfo;
 		struct SamplerInfo;
+		struct CameraInfo;
 
 		enum class TextureFormatStorage;
 
@@ -77,6 +79,7 @@ namespace oi {
 			GBuffer *create(GBufferInfo info);
 			ShaderBuffer *create(ShaderBufferInfo info);
 			Sampler *create(SamplerInfo info);
+			Camera *create(CameraInfo info);
 
 			GraphicsExt &getExtension();
 

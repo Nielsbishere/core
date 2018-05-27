@@ -58,7 +58,7 @@ bool RenderTarget::init() {
 		}
 	}
 
-	//Set up subpasses TODO: Abstract this?
+	//Set up subpasses
 
 	VkSubpassDescription subpass;
 	memset(&subpass, 0, sizeof(subpass));

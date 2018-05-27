@@ -6,6 +6,7 @@
 #include "graphics/shader.h"
 #include "graphics/graphics.h"
 #include "graphics/gbuffer.h"
+#include "graphics/camera.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -97,10 +98,27 @@ bool CommandList::init() {
 }
 
 void CommandList::bind(Pipeline *pipeline) {
+
 	VkPipelineBindPoint pipelinePoint = pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
 	vkCmdBindPipeline(ext.cmd, pipelinePoint, pipeline->getExtension());
+
 	pipeline->getInfo().shader->update();
+
 	vkCmdBindDescriptorSets(ext.cmd, pipelinePoint, pipeline->getInfo().shader->getExtension().layout, 0, 1, &pipeline->getInfo().shader->getExtension().descriptorSet, 0, nullptr);
+
+	if (pipeline->getInfo().camera != nullptr) {
+
+		CameraStruct cs = pipeline->getInfo().camera->getStruct(pipeline);
+
+		ShaderBuffer *sb = pipeline->getInfo().shader->get<ShaderBuffer>("Camera");
+
+		if (sb == nullptr)
+			Log::throwError<CommandList, 0x5>("Pipeline has camera bound, but there is no Camera buffer.");
+
+		sb->set(Buffer::construct((u8*)&cs, (u32) sizeof(cs)));
+
+	}
+
 }
 
 void CommandList::draw(u32 vertices, u32 instances, u32 startVertex, u32 startInstance) {

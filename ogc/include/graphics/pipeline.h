@@ -10,18 +10,20 @@ namespace oi {
 		class Shader;
 		class PipelineState;
 		class RenderTarget;
+		class Camera;
 
 		struct PipelineInfo {
 
 			Shader *shader;
 			PipelineState *pipelineState;
 			RenderTarget *renderTarget;
+			Camera *camera;
 
 			//Graphics pipeline
-			PipelineInfo(Shader *shader, PipelineState *pipelineState, RenderTarget *renderTarget) : shader(shader), pipelineState(pipelineState), renderTarget(renderTarget) {}
+			PipelineInfo(Shader *shader, PipelineState *pipelineState, RenderTarget *renderTarget, Camera *camera) : shader(shader), pipelineState(pipelineState), renderTarget(renderTarget), camera(camera) {}
 
 			//Compute pipeline
-			PipelineInfo(Shader *shader) : PipelineInfo(shader, nullptr, nullptr) {}
+			PipelineInfo(Shader *shader) : PipelineInfo(shader, nullptr, nullptr, nullptr) {}
 
 		};
 

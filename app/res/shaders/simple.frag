@@ -6,8 +6,8 @@ layout(location = 1) in vec2 uv;
 
 layout(location = 0) out vec4 outColor;
 
-layout(binding = 2) uniform sampler samp;
-layout(binding = 3) uniform texture2D tex;
+layout(binding = 3) uniform sampler samp;
+layout(binding = 4) uniform texture2D tex;
 
 vec4 sample2D(sampler s, texture2D t, vec2 uv){
 	return texture(sampler2D(t, s), uv);

@@ -17,8 +17,6 @@ bool Shader::set(String path, GraphicsResource *res) {
 	if (it->second != res)
 		changed = true;
 
-	//TODO: Check if type is correct
-
 	it->second = res;
 	return true;
 }

@@ -30,6 +30,7 @@ private:
 	oi::gc::GBuffer *quadVbo, *quadIbo;
 	oi::gc::Texture *osomi;
 	oi::gc::Sampler *sampler;
+	oi::gc::Camera *camera;
 
 	oi::Vec3f crot = { 45, 30, 15 }, cpos = {}, cscale = { 1 };
 
