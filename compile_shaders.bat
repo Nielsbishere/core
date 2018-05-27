@@ -7,7 +7,7 @@ goto :eof
 rem Call oish_gen.exe on every shader that is found
 rem Will generate an .oiSH file from it
 
-echo Found a shader named %~1 with %~2 stages and id %~3
+rem echo Found a shader named %~1 with %~2 stages and id %~3
 set /a end=%~2-1
 set "args="%~dp0oish_gen.exe" "%~4" "%~1" !stages[0]!"
 for /l %%x in (1, 1, %end%) do set args=!args! !stages[%%x]!

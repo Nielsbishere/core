@@ -139,7 +139,7 @@ void MainInterface::initScene() {
 
 void MainInterface::renderScene(){
 
-	const f32 fov = 45.f, near = 0.1f, far = 100.f;
+	const f32 fov = 45.f, near = 0.1f, far = 1000.f;
 	const Vec3 eye = { 0, 5, 10 }, center = {}, up = { 0, 1, 0 };
 
 	RenderTarget *rt = g.getBackBuffer();
@@ -208,6 +208,7 @@ void MainInterface::save(String path){ Log::println("Saving"); }
 void MainInterface::update(flp dt) {
 
 	crot += Vec3(32, 16, 8) * dt;
+	cpos += Vec3(0, -.5, -3) * dt;
 
 	WindowInterface::update(dt); 
 }

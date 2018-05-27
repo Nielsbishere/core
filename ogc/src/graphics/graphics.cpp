@@ -12,6 +12,10 @@
 #include "graphics/shaderbuffer.h"
 #include "graphics/sampler.h"
 #include "api/stbi/stbi_load.h"
+
+#undef min
+#undef max
+
 using namespace oi::gc;
 using namespace oi;
 
@@ -125,7 +129,10 @@ Texture *Graphics::create(TextureInfo info) {
 		info.dat = Buffer::construct(ptr, (u32) perChannel * width * height);
 
 		info.res = { (u32) width, (u32) height };
-	}
+
+		info.mipLevels = (u32) std::floor(std::log2(std::max(info.res.x, info.res.y))) + 1U;
+	} else 
+		info.mipLevels = 1U;
 
 	return init<Texture>(info);
 }

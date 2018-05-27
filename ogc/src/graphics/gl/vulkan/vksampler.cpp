@@ -28,6 +28,7 @@ bool Sampler::init() {
 	samplerInfo.addressModeV = SamplerWrappingExt(info.s.getName()).getValue();
 	samplerInfo.addressModeW = SamplerWrappingExt(info.t.getName()).getValue();
 	samplerInfo.anisotropyEnable = info.aniso > 1.f;
+	samplerInfo.maxLod = 32.f;
 
 	vkCheck<0x0, Sampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, allocator, &ext), "Couldn't create sampler object");
 

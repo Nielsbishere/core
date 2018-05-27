@@ -76,6 +76,8 @@ namespace oi {
 			Buffer dat;
 			TextureLoadFormat loadFormat = TextureLoadFormat::Undefined;
 
+			u32 mipLevels = 1U;													//Automatic detection. No need to set it
+
 			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : res(res), format(format), usage(usage) {}
 			TextureInfo(String path, TextureLoadFormat loadFormat = TextureLoadFormat::RGBA8) : path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()) {}
 		};
