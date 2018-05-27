@@ -63,7 +63,7 @@ namespace oi {
 
 			const CameraInfo getInfo();
 
-			CameraStruct getStruct(Pipeline *pipeline);
+			void bind(Vec2u res);
 			CameraStruct getBound() const;
 
 			Matrixf getBoundProjection() const;

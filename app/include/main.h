@@ -2,6 +2,7 @@
 
 #include <graphics/graphicsinterface.h>
 #include <types/vector.h>
+#include <types/matrix.h>
 #include <platforms/generic.h>
 
 struct Application {
@@ -25,13 +26,22 @@ public:
 private:
 	
 	oi::gc::Shader *shader;
-	oi::gc::Pipeline *pipeline;
+	oi::gc::Pipeline *pipeline = nullptr;
 	oi::gc::PipelineState *pipelineState;
 	oi::gc::GBuffer *quadVbo, *quadIbo;
 	oi::gc::Texture *osomi;
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
 
-	oi::Vec3f crot = { 45, 30, 15 }, cpos = {}, cscale = { 1 };
+	struct PerObject {
+
+		oi::Matrixf m;
+		oi::Matrixf mvp;
+
+	};
+
+	static constexpr u32 totalObjects = 65536U;
+
+	PerObject objects[totalObjects];
 
 };

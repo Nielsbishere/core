@@ -51,7 +51,7 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 		}
 		else {
 
-			SBVar sbva = file.vars[i];
+			SBVar sbva = file.vars[i - structc];
 
 			ShaderBufferObject *parent = sbva.parent == 0 ? &shaderBuffer.self : &shaderBuffer[sbva.parent - 1U];
 

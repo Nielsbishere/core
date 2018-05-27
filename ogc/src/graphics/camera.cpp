@@ -11,15 +11,7 @@ using namespace oi;
 
 const CameraInfo Camera::getInfo() { return info; }
 
-CameraStruct Camera::getStruct(Pipeline *pipeline) {
-
-	if (pipeline == nullptr)
-		Log::throwError<Camera, 0x0>("Couldn't get camera struct; as a pipeline is required");
-
-	RenderTarget *rt = pipeline->getInfo().renderTarget;
-
-	if (rt == nullptr)
-		Log::throwError<Camera, 0x1>("Couldn't get camera struct; as a render target is required");
+void Camera::bind(Vec2u res) {
 
 	Vec3f center;
 
@@ -35,10 +27,9 @@ CameraStruct Camera::getStruct(Pipeline *pipeline) {
 	else
 		Log::throwError<Camera, 0x2>("Camera requires valid forward");
 
-	Vec2u res = rt->getInfo().res;
 	f32 aspect = Vec2f(res).getAspect();
 
-	return bound = CameraStruct(Matrixf::makePerspective(info.fov, aspect, info.near, info.far), Matrixf::makeView(info.position, center, info.up), info.position, info.fov, info.up, aspect, forward, info.near, info.far, res);
+	bound = CameraStruct(Matrixf::makePerspective(info.fov, aspect, info.near, info.far), Matrixf::makeView(info.position, center, info.up), info.position, info.fov, info.up, aspect, forward, info.near, info.far, res);
 }
 
 CameraStruct Camera::getBound() const { return bound; }

@@ -2,6 +2,7 @@
 
 #include "vector.h"
 #include <algorithm>
+#include <cstring>
 
 namespace oi {
 

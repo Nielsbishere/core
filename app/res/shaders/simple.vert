@@ -1,10 +1,16 @@
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform PerObject {
+struct PerObject {
 
 	mat4 m;
 	mat4 mvp;
+
+};
+
+layout(std430, binding = 0) buffer Objects {
+
+	PerObject arr[65536];
 	
 } obj;
 
@@ -48,7 +54,7 @@ out gl_PerVertex {
 };
 
 void main() {
-    gl_Position = obj.mvp * vec4(inPosition, 1.0);
+    gl_Position = obj.arr[gl_InstanceIndex].mvp * vec4(inPosition, 1.0);
     fragColor = inColor * exc.ambient;
 	uv = inUv;
 }

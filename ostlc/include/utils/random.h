@@ -24,9 +24,23 @@ namespace oi {
 		//Randomize a number of integers
 		static void randomizeInt(u32 *arr, u32 size, u32 beg = u32_MIN, u32 end = u32_MAX);
 
+		template<u32 n>
+		static TVec<f32, n> randomize(f32 beg, f32 end);
+
 	protected:
 
 		static u32 off;
 	};
+
+	template<u32 n>
+	TVec<f32, n> Random::randomize(f32 beg, f32 end) {
+
+		TVec<f32, n> result;
+
+		for (u32 i = 0; i < n; ++i)
+			result[i] = randFloat(beg, end);
+
+		return result;
+	}
 
 }

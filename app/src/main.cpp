@@ -16,6 +16,7 @@
 #include <graphics/rendertarget.h>
 #include <graphics/sampler.h>
 #include <graphics/camera.h>
+#include <utils/random.h>
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -31,7 +32,6 @@ void Application::instantiate(WindowHandleExt *param){
 }
 
 ///TODO:
-///Support instancing / indirect rendering
 ///Support FBO textures; FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
 ///Abstract AssetManager
 ///Abstract Model
@@ -42,7 +42,12 @@ void Application::instantiate(WindowHandleExt *param){
 ///Pipeline validation
 ///Android update project in CMake
 ///Android resize
+///Support indirect rendering
 ///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
+///Support full screen
+///Support file reloading
+///Support runtime shader compilation
+///Quaternions
 
 //Set up the interface
 
@@ -143,10 +148,22 @@ void MainInterface::initScene() {
 	shader->set("samp", sampler);
 	shader->set("tex", osomi);
 
-	pipeline = nullptr;
-
-	camera = g.create(CameraInfo(45.f, Vec3(0, 0, 1.5), Vec4(0, 0, 0, 1), Vec3(0, 1, 0), 0.1f, 100.f));
+	camera = g.create(CameraInfo(45.f, Vec3(15, 15, 55), Vec4(0, 0, 0, 1), Vec3(0, 1, 0), 0.1f, 100.f));
 	g.use(camera);
+
+	for (u32 i = 0; i < totalObjects; ++i)
+		objects[i].m = Matrixf::makeModel(Random::randomize<3>(0.f, 25.f), Vec3f(Random::randomize<2>(0.f, 360.f)), Vec3f(1.f));
+
+	ShaderBuffer *perObject = shader->get<ShaderBuffer>("Objects");
+
+	///Force 1080p aspect; so it doesn't recalculate everything per frame
+
+	camera->bind(Vec2u(1920U, 1080U));
+
+	for (u32 i = 0; i < totalObjects; ++i)
+		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
+
+	perObject->set(Buffer::construct((u8*)objects, (u32) sizeof(objects)));
 
 }
 
@@ -168,21 +185,10 @@ void MainInterface::renderScene(){
 	cmdList->begin(rt, Vec4d(0.25, 0.5, 1, 1) * (sin(getDuration()) * 0.5 + 0.5));
 	cmdList->bind(pipeline);
 
-	//Setup draw call
-	
-	ShaderBuffer *perObject = shader->get<ShaderBuffer>("PerObject");
-
-	Matrixf m = Matrixf::makeModel(cpos, crot, cscale);
-
-	perObject->open();
-	perObject->set("m", m);
-	perObject->set("mvp", camera->getBoundProjection() * camera->getBoundView() * m);
-	perObject->close();
-
 	//Execute draw call
 	cmdList->bind({ quadVbo });
 	cmdList->bind({ quadIbo });
-	cmdList->drawIndexed(36);
+	cmdList->drawIndexed(36, totalObjects);
 
 	//End fbo and cmdList
 	cmdList->end(rt);
@@ -211,10 +217,6 @@ void MainInterface::load(String path){ Log::println("Loading"); }
 void MainInterface::save(String path){ Log::println("Saving"); }
 
 void MainInterface::update(flp dt) {
-
-	crot += Vec3(32, 16, 8) * dt;
-	cpos += Vec3(0, -.05, -0.3) * dt;
-
 	WindowInterface::update(dt); 
 }
 

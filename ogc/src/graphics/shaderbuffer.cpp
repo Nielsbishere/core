@@ -80,53 +80,44 @@ void ShaderBufferInfo::copy(const ShaderBufferInfo &info) {
 
 void ShaderBufferInfo::push(ShaderBufferObject obj, ShaderBufferObject &parent) {
 
-	if (elements.size() + 1U >= elements.capacity() && elements.size() != 0U) {
+	u32 targetSize = (u32) elements.size() + 1U;
 
-		u32 targetSize = (u32) elements.capacity() + 1U /*32U*/;
+	u32 parentId = &parent == &self ? 0U : (u32)(&parent - elements.data()) + 1U;
 
-		u32 parentId = &parent == &self ? 0U : (u32)(&parent - elements.data()) + 1U;
+	ShaderBufferInfo copy;
+	copy.copy(*this);
 
-		ShaderBufferInfo copy;
-		copy.copy(*this);
+	elements.resize(targetSize);
+	elements.assign(copy.elements.begin(), copy.elements.end());
 
-		elements.reserve(targetSize);
-		elements.assign(copy.elements.begin(), copy.elements.end());
+	for (u32 i = 0; i < elements.size(); ++i) {
 
-		for (u32 i = 0; i < elements.size(); ++i) {
+		ShaderBufferObject &sbo = elements[i];
 
-			ShaderBufferObject &sbo = elements[i];
+		if (sbo.parent == &copy.self)
+			sbo.parent = &self;
+		else
+			sbo.parent = elements.data() + (sbo.parent - copy.elements.data());
 
-			if (sbo.parent == &copy.self)
-				sbo.parent = &self;
+		for (auto *&elem : sbo.childs) {
+			if (elem == &copy.self)
+				elem = &self;
 			else
-				sbo.parent = elements.data() + (sbo.parent - copy.elements.data());
-
-			for (auto *&elem : sbo.childs) {
-				if (elem == &copy.self)
-					elem = &self;
-				else
-					elem = elements.data() + (elem - copy.elements.data());
-			}
-
+				elem = elements.data() + (elem - copy.elements.data());
 		}
 
-		self.childs.assign(copy.self.childs.begin(), copy.self.childs.end());
-
-		for (auto *&ptr : self.childs)
-			if (ptr == &copy.self)
-				ptr = &self;
-			else
-				ptr = elements.data() + (ptr - copy.elements.data());
-
-		obj.parent = parentId == 0 ? &self : elements.data() + (parentId - 1U);
-		elements.push_back(obj);
-		parent.childs.push_back(&elements[elements.size() - 1U]);
-
-	} else {
-		obj.parent = &parent;
-		elements.push_back(obj);
-		parent.childs.push_back(&elements[elements.size() - 1U]);
 	}
+
+	self.childs.assign(copy.self.childs.begin(), copy.self.childs.end());
+
+	for (auto *&ptr : self.childs)
+		if (ptr == &copy.self)
+			ptr = &self;
+		else
+			ptr = elements.data() + (ptr - copy.elements.data());
+
+	elements.push_back(obj);
+	(obj.parent = (parentId == 0 ? &self : elements.data() + (parentId - 1U)))->childs.push_back(&elements[elements.size() - 1U]);
 }
 
 ///ShaderBufferVar
@@ -208,7 +199,7 @@ ShaderBuffer::~ShaderBuffer() {
 bool ShaderBuffer::init() {
 
 	if (info.allocate)
-		buffer = g->create(GBufferInfo((info.type.getValue() - 1) / 2, info.size));
+		buffer = g->create(GBufferInfo(info.type.getValue() - 1, info.size));
 
 	return true;
 }
