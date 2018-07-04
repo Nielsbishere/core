@@ -56,7 +56,8 @@ namespace oi {
 		enum class TextureFormatStorage {
 			INT,
 			UINT,
-			FLOAT
+			FLOAT,
+			DOUBLE
 		};
 
 		DEnum(TextureLoadFormat, u32, Undefined = 0,

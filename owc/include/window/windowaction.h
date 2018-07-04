@@ -8,9 +8,8 @@ namespace oi {
 
 		enum class WindowAction : u32 {
 			NONE = 0U,
-			MOVE = 1U << 0U,
-			RESIZE = 1U << 1U,
-			IN_FOCUS = 1U << 2U,
+			IN_FOCUS = 1U << 0U,
+			FULL_SCREEN = 1U << 1U
 		};
 
 	}

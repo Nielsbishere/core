@@ -51,11 +51,14 @@ void Window::finalize(){
 
 void Window::update() {
 
-	if(!initialized || isPaused){
+	if(!initialized || info.size.x == 0 || info.size.y == 0 || !info.inFocus){
 		lastTick = Timer::getGlobalTimer().getDuration();
+		hasPrevFrame = false;
 		return;
 	}
-	
+
+	updatePlatform();
+
 	flp dt = Timer::getGlobalTimer().getDuration() - lastTick;
 
 	if (wi != nullptr)
@@ -65,11 +68,12 @@ void Window::update() {
 
 	if (wi != nullptr)
 		wi->render();
+
+	hasPrevFrame = true;
 	
-	wasPaused = false;
 	inputManager.update();
 	inputHandler.update(this, dt);
 }
 
-void Window::pause(bool pause) { wasPaused = isPaused; isPaused = pause; }
-bool Window::hasPreviousFrame() { return !wasPaused; }
+bool Window::hasPreviousFrame() { return hasPrevFrame; }
+bool Window::isRotated() { return rotated; }

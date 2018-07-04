@@ -10,8 +10,8 @@ GBuffer::~GBuffer() {
 	if(info.ptr != nullptr)
 		vkUnmapMemory(gext.device, ext.memory);
 
-	vkDestroyBuffer(gext.device, ext.resource, allocator);
-	vkFreeMemory(gext.device, ext.memory, allocator);
+	vkDestroyBuffer(gext.device, ext.resource, vkAllocator);
+	vkFreeMemory(gext.device, ext.memory, vkAllocator);
 
 }
 
@@ -41,7 +41,7 @@ bool GBuffer::init() {
 	bufferInfo.queueFamilyIndexCount = 1;
 	bufferInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-	vkCheck<0x0, GBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, allocator, &ext.resource), "Failed to create buffer");
+	vkCheck<0x0, GBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &ext.resource), "Failed to create buffer");
 
 	vkAllocate(Buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 

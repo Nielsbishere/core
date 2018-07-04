@@ -9,12 +9,20 @@ Vec2i WindowInfo::getPosition() const { return position; }
 Vec2u WindowInfo::getSize() const { return size; }
 Window *WindowInfo::getParent() const { return parent; }
 WindowHandleExt *WindowInfo::getParam() const { return handle; }
+bool WindowInfo::isFullScreen() const { return fullScreen; }
 
-void WindowInfo::move(Vec2i newPos) { position = newPos; notify(WindowAction::MOVE); }
-void WindowInfo::resize(Vec2u newSize) { size = newSize; notify(WindowAction::RESIZE); }
 void WindowInfo::_forceSize(Vec2u size) { this->size = size; }
 
-void WindowInfo::focus() { inFocus = true; notify(WindowAction::RESIZE); }
+void WindowInfo::setFullScreen(bool fullScreen) { 
+	this->fullScreen = fullScreen; 
+	notify(WindowAction::FULL_SCREEN); 
+}
+
+void WindowInfo::toggleFullScreen() {
+	setFullScreen(!fullScreen);
+}
+
+void WindowInfo::focus() { inFocus = true; notify(WindowAction::IN_FOCUS); }
 
 bool WindowInfo::isInFocus() const { return inFocus; }
 u32 WindowInfo::getVersion() const { return version; }

@@ -18,6 +18,8 @@
 #include <graphics/camera.h>
 #include <utils/random.h>
 
+#include <input/keyboard.h>
+
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
@@ -32,22 +34,22 @@ void Application::instantiate(WindowHandleExt *param){
 }
 
 ///TODO:
-///Support FBO textures; FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
-///Abstract AssetManager
+///Fix nameless structs (oish_gen)
+///Support FBO textures;	FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
+///							First transition to rt write and then to shader read after it ended
 ///Abstract Model
-///Abstract Entity
-///Allow arrays in registers and buffers
-///Fix Window security
-///Shader class validation (->set(name, var))
-///Pipeline validation
-///Android update project in CMake
-///Android resize
-///Support indirect rendering
 ///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
-///Support full screen
-///Support file reloading
+///Support indirect rendering
+///Multiple descriptor sets
+///Android update project in CMake
+///Abstract AssetManager
+///Allow arrays in registers and buffers
 ///Support runtime shader compilation
 ///Quaternions
+///Support file reloading
+///Model validation with pipeline
+///Abstract Entity
+///Figure out why Android is throwing an error when it's rotated (width and height are flipped the wrong way)
 
 //Set up the interface
 
@@ -63,45 +65,45 @@ void MainInterface::initScene() {
 	pipelineState = g.create(PipelineStateInfo());
 	g.use(pipelineState);
 
-	//Vec3f position, color
+	//Vec3f position
 	//Vec2f uv
 	f32 vert[] = {
 
 		//Bottom
-		-1, -1, 1, 0, 0, 1, 0, 1,
-		1, -1, 1, 1, 0, 1, 1, 1,
-		1, -1, -1, 1, 0, 0, 1, 0,
-		-1, -1, -1, 0, 0, 0, 0, 0,
+		-1, -1, 1, 0, 1,
+		1, -1, 1, 1, 1,
+		1, -1, -1, 1, 0,
+		-1, -1, -1, 0, 0,
 
 		//Top
-		-1, 1, -1, 0, 1, 0, 1, 1,
-		1, 1, -1, 1, 1, 0, 0, 1,
-		1, 1, 1, 1, 1, 1, 0, 0,
-		-1, 1, 1, 0, 1, 1, 1, 0,
+		-1, 1, -1, 1, 1,
+		1, 1, -1, 0, 1,
+		1, 1, 1, 0, 0,
+		-1, 1, 1, 1, 0,
 
 		//Back
-		-1, -1, -1, 0, 0, 0, 1, 0,
-		1, -1, -1, 1, 0, 0, 0, 0,
-		1, 1, -1, 1, 1, 0, 0, 1,
-		-1, 1, -1, 0, 1, 0, 1, 1,
+		-1, -1, -1, 1, 0,
+		1, -1, -1, 0, 0,
+		1, 1, -1, 0, 1,
+		-1, 1, -1, 1, 1,
 
 		//Front
-		-1, 1, 1, 0, 1, 1, 0, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, -1, 1, 1, 0, 1, 1, 0,
-		-1, -1, 1, 0, 0, 1, 0, 0,
+		-1, 1, 1, 0, 1,
+		1, 1, 1, 1, 1,
+		1, -1, 1, 1, 0,
+		-1, -1, 1, 0, 0,
 
 		//Left
-		-1, 1, -1, 0, 1, 0, 0, 1,
-		-1, 1, 1, 0, 1, 1, 1, 1,
-		-1, -1, 1, 0, 0, 1, 1, 0,
-		-1, -1, -1, 0, 0, 0, 0, 0,
+		-1, 1, -1, 0, 1,
+		-1, 1, 1, 1, 1,
+		-1, -1, 1, 1, 0,
+		-1, -1, -1, 0, 0,
 
 		//Right
-		1, -1, -1, 1, 0, 0, 1, 0,
-		1, -1, 1, 1, 0, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 0, 1,
-		1, 1, -1, 1, 1, 0, 0, 0
+		1, -1, -1, 1, 0,
+		1, -1, 1, 1, 1,
+		1, 1, 1, 0, 1,
+		1, 1, -1, 0, 0
 
 	};
 
@@ -154,17 +156,6 @@ void MainInterface::initScene() {
 	for (u32 i = 0; i < totalObjects; ++i)
 		objects[i].m = Matrixf::makeModel(Random::randomize<3>(0.f, 25.f), Vec3f(Random::randomize<2>(0.f, 360.f)), Vec3f(1.f));
 
-	ShaderBuffer *perObject = shader->get<ShaderBuffer>("Objects");
-
-	///Force 1080p aspect; so it doesn't recalculate everything per frame
-
-	camera->bind(Vec2u(1920U, 1080U));
-
-	for (u32 i = 0; i < totalObjects; ++i)
-		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
-
-	perObject->set(Buffer::construct((u8*)objects, (u32) sizeof(objects)));
-
 }
 
 void MainInterface::renderScene(){
@@ -200,6 +191,8 @@ void MainInterface::initSurface(){
 
 	GraphicsInterface::initSurface();
 
+	//Reconstruct pipeline
+
 	if (pipeline != nullptr) {
 		g.destroy(pipeline);
 		pipeline = nullptr;
@@ -207,6 +200,15 @@ void MainInterface::initSurface(){
 
 	if (getParent()->getInfo().getSize() != Vec2u())
 		pipeline = g.create(PipelineInfo(shader, pipelineState, g.getBackBuffer(), camera));
+
+	//Reconstruct all VP affected objects
+
+	camera->bind(g.getBackBuffer()->getSize());
+
+	for (u32 i = 0; i < totalObjects; ++i)
+		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
+
+	shader->get<ShaderBuffer>("Objects")->set(Buffer::construct((u8*)objects, (u32) sizeof(objects)));
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
@@ -218,6 +220,9 @@ void MainInterface::save(String path){ Log::println("Saving"); }
 
 void MainInterface::update(flp dt) {
 	WindowInterface::update(dt); 
+
+	if (getParent()->getInputHandler().getKeyboard()->isPressed(Key::F11))
+		getParent()->getInfo().toggleFullScreen();
 }
 
 MainInterface::~MainInterface(){

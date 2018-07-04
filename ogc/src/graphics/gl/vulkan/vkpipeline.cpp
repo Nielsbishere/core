@@ -12,7 +12,7 @@ Pipeline::~Pipeline() {
 	g->destroy(info.shader);
 	g->destroy(info.renderTarget);
 
-	vkDestroyPipeline(g->getExtension().device, ext, allocator);
+	vkDestroyPipeline(g->getExtension().device, ext, vkAllocator);
 }
 
 bool Pipeline::init() {
@@ -83,14 +83,28 @@ bool Pipeline::init() {
 
 		//RenderTarget
 
-		RenderTargetExt &rtext = info.renderTarget->getExtension();
+		RenderTarget *rt = info.renderTarget;
+		RenderTargetExt &rtext = rt->getExtension();
 
 		pipelineInfo.renderPass = rtext.renderPass;
 		pipelineInfo.subpass = 0;
 
+		//Validate pipeline
+
+		for (const ShaderOutput so : info.shader->getInfo().output) {
+
+			if (so.id >= rt->getTargets() - 1U)
+				Log::throwError<Pipeline, 0x4>("Invalid pipeline; Shader referenced a shader output to an unknown output");
+			
+			if(!Graphics::isCompatible(so.type, rt->getTarget(so.id + 1, 0)->getFormat()))
+				Log::throwError<Pipeline, 0x5>("Invalid pipeline; Shader referenced an incompatible output format");
+
+		}
+
+
 		//Create the pipeline
 
-		vkCheck<0x0, Pipeline>(vkCreateGraphicsPipelines(gext.device, nullptr, 1, &pipelineInfo, allocator, &ext), "Couldn't create graphics pipeline");
+		vkCheck<0x0, Pipeline>(vkCreateGraphicsPipelines(gext.device, nullptr, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
 
 	} else {
 	
@@ -111,7 +125,7 @@ bool Pipeline::init() {
 
 		//Create the pipeline
 
-		vkCheck<0x1, Pipeline>(vkCreateComputePipelines(gext.device, nullptr, 1, &pipelineInfo, allocator, &ext), "Couldn't create compute pipeline");
+		vkCheck<0x1, Pipeline>(vkCreateComputePipelines(gext.device, nullptr, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
 
 	}
 

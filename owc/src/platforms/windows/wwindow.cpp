@@ -69,15 +69,10 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 
 		Vec2u prevSize = win.size;
-		win.size = size;
+		win._forceSize(size);
 
-		if (size.x == 0 || size.y == 0)
-			w->pause();
-		else {
-			w->pause(false);
-			if (wi != nullptr)
-				wi->onResize(size);
-		}
+		if (size.x != 0 && size.y != 0 && wi != nullptr)
+			wi->onResize(size);
 	}
 	break;
 
@@ -218,12 +213,15 @@ void Window::initPlatform() {
 	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	info.size = Vec2u(screenWidth, screenHeight);
-
-	ext.window = CreateWindowEx(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, NULL, NULL, ext.instance, NULL);
+	ext.window = CreateWindowEx(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext.instance, NULL);
 
 	if (ext.window == NULL)
 		Log::throwError<Window, 0x1>("Couldn't init Windows window");
+
+	RECT rect;
+	GetClientRect(ext.window, &rect);
+
+	info._forceSize(Vec2u((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top)));
 
 	info.focus();
 	updatePlatform();
@@ -245,15 +243,31 @@ void Window::destroyPlatform() {
 
 void Window::updatePlatform() {
 
-	if (isSet(info.pending, WindowAction::MOVE) || isSet(info.pending, WindowAction::RESIZE))
-		MoveWindow(ext.window, info.getPosition().x, info.getPosition().y, info.getSize().x, info.getSize().y, false);
-
 	if (isSet(info.pending, WindowAction::IN_FOCUS))
 		if (info.isInFocus()) {
 			ShowWindow(ext.window, SW_SHOW);
 			SetForegroundWindow(ext.window);
 			SetFocus(ext.window);
 		}
+
+
+	if (isSet(info.pending, WindowAction::FULL_SCREEN)) {
+
+		DWORD dwStyle = GetWindowLong(ext.window, GWL_STYLE);
+		MONITORINFO mi = { sizeof(mi) };
+
+		if (info.fullScreen && GetMonitorInfo(MonitorFromWindow(ext.window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
+			SetWindowLong(ext.window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+			SetWindowPos(ext.window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		}
+		else {
+			SetWindowLong(ext.window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+			SetWindowPos(ext.window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		}
+
+	}
+
+	info.pending = WindowAction::NONE;
 }
 
 #endif

@@ -41,22 +41,23 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 		VkClearValue &cl = clearValue[i];
 		Texture *targ = target->getTarget(i, 0);
 		TextureFormat format = targ->getFormat();
-		
+
 		if (g->isDepthFormat(format)) {
 			cl.depthStencil.depth = clear.depthClear;
 			cl.depthStencil.stencil = clear.stencilClear;
-		} else {
+		}
+		else {
 
 			Vec4d color = g->convertColor(clear.colorClear, format);
 
 			TextureFormatStorage storedFormat = g->getFormatStorage(format);
 
 			if (storedFormat == TextureFormatStorage::INT)
-				*(Vec4i*) cl.color.int32 = Vec4i(color);
+				*(Vec4i*)cl.color.int32 = Vec4i(color);
 			else if (storedFormat == TextureFormatStorage::UINT)
 				*(Vec4u*)cl.color.uint32 = Vec4u(color);
 			else
-				*(Vec4f*) cl.color.float32 = Vec4f(color);
+				*(Vec4f*)cl.color.float32 = Vec4f(color);
 
 		}
 	}
@@ -65,7 +66,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	beginInfo.renderArea.extent = { target->getSize().x, target->getSize().y };
 	beginInfo.renderPass = rtext.renderPass;
 	beginInfo.framebuffer = rtext.frameBuffer[g->getExtension().current];
-	beginInfo.clearValueCount = (u32) clearValue.size();
+	beginInfo.clearValueCount = (u32)clearValue.size();
 	beginInfo.pClearValues = clearValue.data();
 
 	vkCmdBeginRenderPass(ext.cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);

@@ -4,7 +4,7 @@ using namespace oi::gc;
 using namespace oi;
 
 Sampler::~Sampler() {
-	vkDestroySampler(g->getExtension().device, ext, allocator);
+	vkDestroySampler(g->getExtension().device, ext, vkAllocator);
 }
 
 bool Sampler::init() {
@@ -30,7 +30,7 @@ bool Sampler::init() {
 	samplerInfo.anisotropyEnable = info.aniso > 1.f;
 	samplerInfo.maxLod = 32.f;
 
-	vkCheck<0x0, Sampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, allocator, &ext), "Couldn't create sampler object");
+	vkCheck<0x0, Sampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, vkAllocator, &ext), "Couldn't create sampler object");
 
 	return true;
 }

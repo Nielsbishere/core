@@ -11,10 +11,10 @@ RenderTarget::~RenderTarget() {
 
 	VkGraphics &gext = g->getExtension();
 
-	vkDestroyRenderPass(gext.device, ext.renderPass, allocator);
+	vkDestroyRenderPass(gext.device, ext.renderPass, vkAllocator);
 
 	for (VkFramebuffer fb : ext.frameBuffer)
-		vkDestroyFramebuffer(gext.device, fb, allocator);
+		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
 
 	for (Texture *t : info.textures)
 		g->destroy(t);
@@ -92,7 +92,7 @@ bool RenderTarget::init() {
 	passInfo.pSubpasses = &subpass;
 	passInfo.subpassCount = 1;
 
-	vkCheck<0x0, RenderTarget>(vkCreateRenderPass(gext.device, &passInfo, allocator, &ext.renderPass), "Couldn't create render pass for render target");
+	vkCheck<0x0, RenderTarget>(vkCreateRenderPass(gext.device, &passInfo, vkAllocator, &ext.renderPass), "Couldn't create render pass for render target");
 
 	Log::println("Successfully created render pass for render target");
 
@@ -122,7 +122,7 @@ bool RenderTarget::init() {
 		fbInfo.attachmentCount = info.targets;
 		fbInfo.pAttachments = fbAttachment.data();
 
-		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, allocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
+		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
 	}
 
 	for(Texture *t : info.textures)

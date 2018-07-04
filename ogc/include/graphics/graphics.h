@@ -49,7 +49,7 @@ namespace oi {
 		DEnum(FillMode, u32, Fill = 0, Line = 1, Point = 2);
 		DEnum(CullMode, u32, None = 0, Back = 1, Front = 2);
 		DEnum(WindMode, u32, CCW = 0, CW = 1);
-		DEnum(DepthMode, u32, None = 0, DepthTestOnly = 1, DepthWriteOnly = 2, All = 3);
+		DEnum(DepthMode, u32, None = 0, Depth_test = 1, Depth_write = 2, All = 3);
 		DEnum(BlendMode, u32, Off = 0, Alpha = 1, Add = 2, Subtract = 3);
 
 		class Graphics {
@@ -87,7 +87,8 @@ namespace oi {
 			static u32 getChannelSize(TextureFormat format);						//Returns size of one channel in bytes
 			static u32 getChannels(TextureFormat format);							//Returns number of channels
 			static u32 getFormatSize(TextureFormat format);							//Returns size of pixel
-			static TextureFormatStorage getFormatStorage(TextureFormat format);
+			static TextureFormatStorage getFormatStorage(TextureFormat format);		//The type of a texture (float, uint, int)
+			static bool isCompatible(TextureFormat a, TextureFormat b);				//Textures are compatible if they match channels and format storage
 
 			static Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
 

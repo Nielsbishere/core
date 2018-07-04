@@ -55,21 +55,21 @@ Graphics::~Graphics(){
 
 		objects.clear();
 
-		vkDestroyCommandPool(ext.device, ext.pool, allocator);
-		vkDestroySemaphore(ext.device, ext.semaphore, allocator);
-		vkDestroyFence(ext.device, ext.present, allocator);
+		vkDestroyCommandPool(ext.device, ext.pool, vkAllocator);
+		vkDestroySemaphore(ext.device, ext.semaphore, vkAllocator);
+		vkDestroyFence(ext.device, ext.present, vkAllocator);
 
 		destroySurface();
-		vkDestroyDevice(ext.device, allocator);
+		vkDestroyDevice(ext.device, vkAllocator);
 
 		#ifdef __DEBUG__
 
 		vkExtension(vkDestroyDebugReportCallbackEXT);
 
-		vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, allocator);
+		vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, vkAllocator);
 		#endif
 
-		vkDestroyInstance(ext.instance, allocator);
+		vkDestroyInstance(ext.instance, vkAllocator);
 		
 		Log::println("Successfully destroyed Vulkan instance and device");
 	}
@@ -152,7 +152,7 @@ void Graphics::init(Window *w, u32 buffering){
 	for (auto lay : clayers)
 		Log::println(String("Layer ") + lay);
 
-	vkCheck<0x1>(vkCreateInstance(&instanceInfo, allocator, &ext.instance), "Couldn't obtain Vulkan instance");
+	vkCheck<0x1>(vkCreateInstance(&instanceInfo, vkAllocator, &ext.instance), "Couldn't obtain Vulkan instance");
 	initialized = true;
 	
 	Log::println("Successfully initialized Graphics with Vulkan context");
@@ -171,7 +171,7 @@ void Graphics::init(Window *w, u32 buffering){
 
 	vkExtension(vkCreateDebugReportCallbackEXT);
 
-	vkCheck<0x19>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, allocator, &ext.debugCallback), "Couldn't create debug report callback");
+	vkCheck<0x19>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
 
 	Log::println("Successfully created debug report callback");
 
@@ -291,7 +291,7 @@ void Graphics::init(Window *w, u32 buffering){
 	deviceInfo.queueCreateInfoCount = queueCount;
 	deviceInfo.pQueueCreateInfos = queues;
 	
-	vkCheck<0x2>(vkCreateDevice(*gpu, &deviceInfo, allocator, &ext.device), "Couldn't obtain device");
+	vkCheck<0x2>(vkCreateDevice(*gpu, &deviceInfo, vkAllocator, &ext.device), "Couldn't obtain device");
 	
 	vkGetDeviceQueue(ext.device, ext.queueFamilyIndex, 0, &ext.queue);
 
@@ -305,7 +305,7 @@ void Graphics::init(Window *w, u32 buffering){
 
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
-	vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, allocator, &ext.present), "Couldn't create the present fence");
+	vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, vkAllocator, &ext.present), "Couldn't create the present fence");
 
 	//Create semaphore
 
@@ -314,7 +314,7 @@ void Graphics::init(Window *w, u32 buffering){
 
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-	vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, allocator, &ext.semaphore), "Couldn't create semaphore");
+	vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, &ext.semaphore), "Couldn't create semaphore");
 
 
 	//Create command pool
@@ -326,7 +326,7 @@ void Graphics::init(Window *w, u32 buffering){
 	poolInfo.queueFamilyIndex = ext.queueFamilyIndex;
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-	vkCheck<0x16>(vkCreateCommandPool(ext.device, &poolInfo, allocator, &ext.pool), "Couldn't create command pool");
+	vkCheck<0x16>(vkCreateCommandPool(ext.device, &poolInfo, vkAllocator, &ext.pool), "Couldn't create command pool");
 
 	//Get memory properties
 	vkGetPhysicalDeviceMemoryProperties(ext.pdevice, &ext.pmemory);
@@ -334,66 +334,62 @@ void Graphics::init(Window *w, u32 buffering){
 }
 
 
-void Graphics::initSurface(Window *w){
+void Graphics::initSurface(Window *w) {
 
 	//Enable extension
-	
+
 	vkExtension(vkGetPhysicalDeviceSurfaceFormatsKHR);
-	
+
 	//Setup device surface (Uses our custom CMake defines to make this 'cross platform')
 	__VK_SURFACE_TYPE__ surfaceInfo;
 	memset(&surfaceInfo, 0, sizeof(surfaceInfo));
 	surfaceInfo.sType = __VK_SURFACE_STYPE__;
-	
+
 	void *platformBegin = &surfaceInfo.__VK_SURFACE_HANDLE__;			//This is the start where platform dependent data starts
 	memcpy(platformBegin, w->getSurfaceData(), w->getSurfaceSize());	//Memcpy the bytes from the window's representation of the surface
-	
-	vkCheck<0x3>(__VK_SURFACE_CREATE__(ext.instance, &surfaceInfo, allocator, &ext.surface), "Couldn't obtain surface");
-	
+
+	vkCheck<0x3>(__VK_SURFACE_CREATE__(ext.instance, &surfaceInfo, vkAllocator, &ext.surface), "Couldn't obtain surface");
+
 	//Check if the surface is supported
 
 	VkBool32 supported = false;
 
-	if(!vkCheck<0x4>(vkGetPhysicalDeviceSurfaceSupportKHR(ext.pdevice, 0, ext.surface, &supported), "Surface wasn't supported") || !supported)
+	if (!vkCheck<0x4>(vkGetPhysicalDeviceSurfaceSupportKHR(ext.pdevice, 0, ext.surface, &supported), "Surface wasn't supported") || !supported)
 		Log::throwError<Graphics, 0x5>("Surface wasn't supported");
 
 	//Get the format we should display
-	
+
 	u32 formatCount;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(ext.pdevice, ext.surface, &formatCount, NULL);
-	
-	if(formatCount == 0)
+
+	if (formatCount == 0)
 		Log::throwError<Graphics, 0x6>("Couldn't get surface format");
-	
+
 	VkSurfaceFormatKHR *formats = new VkSurfaceFormatKHR[formatCount];
 	vkGetPhysicalDeviceSurfaceFormatsKHR(ext.pdevice, ext.surface, &formatCount, formats);
-	
+
 	VkFormat colorFormat = formats[0].format;
 	VkColorSpaceKHR colorSpace = formats[0].colorSpace;
-	
+
 	delete[] formats;
-	
+
 	ext.colorFormat = colorFormat;
 	ext.colorSpace = colorSpace;
-	
+
 	TextureFormat format = TextureFormatExt::find(colorFormat).getName();
-	
+
 	VkSurfaceCapabilitiesKHR capabilities;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext.pdevice, ext.surface, &capabilities);
-	
-	Vec2u size = { capabilities.currentExtent.width, capabilities.currentExtent.height };
-	
-	if(size == Vec2u::max())
-		Log::throwError<Graphics, 0x7>("Size is undefined; this is not supported!");
-	
-	w->getInfo()._forceSize(size);
-	
-	if (size.x == 0U || size.y == 0U) {
-		w->pause();
-		return;
-	}
 
-	w->pause(false);
+	Vec2u size = { capabilities.currentExtent.width, capabilities.currentExtent.height };
+
+	if (size == Vec2u::max())
+		Log::throwError<Graphics, 0x7>("Size is undefined; this is not supported!");
+
+	if (!w->isRotated())
+		w->getInfo()._forceSize(size);
+	else
+		w->getInfo()._forceSize(size = Vec2u(size.y, size.x));
 
 	Log::println("Successfully created surface");
 	
@@ -445,7 +441,7 @@ void Graphics::initSurface(Window *w){
 	swapchainInfo.compositeAlpha = (VkCompositeAlphaFlagBitsKHR) capabilities.supportedCompositeAlpha;
 	swapchainInfo.presentMode = mode;
 
-	vkCheck<0x9>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, allocator, &ext.swapchain), "Couldn't create swapchain");
+	vkCheck<0x9>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, vkAllocator, &ext.swapchain), "Couldn't create swapchain");
 	
 	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, nullptr);
 
@@ -490,12 +486,12 @@ void Graphics::initSurface(Window *w){
 	backBuffer->g = this;
 
 	if(!backBuffer->init())
-		Log::throwError<Graphics, 0xC>("Couldn't initialize backBuffer (render target)");
+		Log::throwError<Graphics, 0xC>("Couldn't initialize back buffer (render target)");
 
 	backBuffer->hash = typeid(RenderTarget).hash_code();
 	add(backBuffer);
 
-	Log::println("Successfully created backBuffer");
+	Log::println("Successfully created back buffer");
 }
 
 void Graphics::destroySurface() {
@@ -504,8 +500,8 @@ void Graphics::destroySurface() {
 
 		vkQueueWaitIdle(ext.queue);
 
-		vkDestroySwapchainKHR(ext.device, ext.swapchain, allocator);
-		vkDestroySurfaceKHR(ext.instance, ext.surface, allocator);
+		vkDestroySwapchainKHR(ext.device, ext.swapchain, vkAllocator);
+		vkDestroySurfaceKHR(ext.instance, ext.surface, vkAllocator);
 
 		ext.swapchain = nullptr;
 

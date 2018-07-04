@@ -64,7 +64,7 @@ bool Texture::init(bool isOwned) {
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, allocator, &ext.resource), "Couldn't create image");
+		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
 
 		//Allocate memory
 		vkAllocate(Image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -83,7 +83,7 @@ bool Texture::init(bool isOwned) {
 	viewInfo.subresourceRange.levelCount = info.mipLevels;
 	viewInfo.subresourceRange.layerCount = 1;
 
-	vkCheck<0x2, Texture>(vkCreateImageView(graphics.device, &viewInfo, allocator, &ext.view), "Couldn't create image view");
+	vkCheck<0x2, Texture>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext.view), "Couldn't create image view");
 
 	//Set data in texture
 
@@ -106,7 +106,7 @@ bool Texture::init(bool isOwned) {
 		stagingInfo.queueFamilyIndexCount = 1;
 		stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-		vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, allocator, &ext.resource), "Couldn't send texture data to GPU");
+		vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, &ext.resource), "Couldn't send texture data to GPU");
 
 		vkAllocate(Buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -217,12 +217,13 @@ bool Texture::init(bool isOwned) {
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.levelCount = info.mipLevels - 1U;
 		barrier.subresourceRange.layerCount = 1;
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 		VkImageMemoryBarrier barrier0 = barrier;
 		barrier0.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		barrier0.subresourceRange.levelCount = 1U;
+		barrier0.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		barrier0.subresourceRange.baseMipLevel = info.mipLevels - 1U;
 
 		VkImageMemoryBarrier barriers[] = { barrier, barrier0 };
@@ -236,8 +237,8 @@ bool Texture::init(bool isOwned) {
 
 		//Now clean it up
 
-		vkFreeMemory(graphics.device, ext.memory, allocator);
-		vkDestroyBuffer(graphics.device, ext.resource, allocator);
+		vkFreeMemory(graphics.device, ext.memory, vkAllocator);
+		vkDestroyBuffer(graphics.device, ext.resource, vkAllocator);
 
 		free(info.dat.addr());
 	}
@@ -252,11 +253,11 @@ Texture::~Texture() {
 
 		VkGraphics &graphics = g->getExtension();
 
-		vkDestroyImageView(graphics.device, ext.view, allocator);
+		vkDestroyImageView(graphics.device, ext.view, vkAllocator);
 		
 		if(owned){
-			vkFreeMemory(graphics.device, ext.memory, allocator);
-			vkDestroyImage(graphics.device, ext.resource, allocator);
+			vkFreeMemory(graphics.device, ext.memory, vkAllocator);
+			vkDestroyImage(graphics.device, ext.resource, vkAllocator);
 		}
 
 	}

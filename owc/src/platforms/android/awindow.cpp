@@ -40,6 +40,9 @@ void AWindow::terminate(Window *w){
 	WindowInterface *wi = w->getInterface();
 	if(wi != nullptr)
 		wi->destroySurface();
+
+	w->initialized = false;
+	w->rotated = false;
 }
 
 void AWindow::handleCmd(struct android_app *app, int32_t cmd){
@@ -83,7 +86,6 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 		case APP_CMD_GAINED_FOCUS:
 
 			w->getInfo().inFocus = true;
-			w->isPaused = false;
 
 			if (wi != nullptr)
 				wi->setFocus(true);
@@ -92,11 +94,10 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 
 		case APP_CMD_LOST_FOCUS:
 
-			w->getInfo().inFocus = true;
-			w->isPaused = true;
+			w->getInfo().inFocus = false;
 
 			if (wi != nullptr)
-				wi->setFocus(true);
+				wi->setFocus(false);
 
 			break;
 
@@ -105,54 +106,51 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 			break;
 
 		case APP_CMD_TERM_WINDOW:
-			if (!w->configChanged)
-				terminate(w);
-			else {
-				int32_t width = ANativeWindow_getWidth(app->window);
-				int32_t height = ANativeWindow_getHeight(app->window);
-
-				Vec2u osize = w->getInfo().size;
-				w->getInfo().size = Vec2u((u32)width, (u32)height);
-
-				w->configChanged = false;
-
-				if (wi != nullptr)
-					wi->onResize(w->getInfo().size);
-			}
-		break;
+			terminate(w);
+			break;
 		
-	case APP_CMD_SAVE_STATE:
+		case APP_CMD_SAVE_STATE:
 	
-		//Set saved state
-		//However, we use lifetime.bin as a save file
+			//Set saved state
+			//However, we use lifetime.bin as a save file
 		
-		app->savedState = std::malloc(1);
-		app->savedStateSize = 1;
+			app->savedState = std::malloc(1);
+			app->savedStateSize = 1;
 		
-		if(wi != nullptr)
-			wi->save("out/lifetime.bin");
+			if(wi != nullptr)
+				wi->save("out/lifetime.bin");
 		
-		break;
+			break;
 		
-	case APP_CMD_INIT_WINDOW:
+		case APP_CMD_INIT_WINDOW:
 		
-		//Load saved state
-		//However, we use lifetime.bin as a save file
+			//Load saved state
+			//However, we use lifetime.bin as a save file
 		
-		if(wi != nullptr && app->savedState != nullptr)
-			wi->load("out/lifetime.bin");
-		
-		initDisplay(w);
-		break;
+			if(wi != nullptr && app->savedState != nullptr)
+				wi->load("out/lifetime.bin");
 
-	case APP_CMD_CONFIG_CHANGED:
-		w->configChanged = true;
-		break;
+			Log::println(String(ANativeWindow_getWidth(app->window)) + " " + ANativeWindow_getHeight(app->window));
 
-	default:
-		break;
+			initDisplay(w);
+			break;
 
-	}
+		case APP_CMD_CONFIG_CHANGED:
+
+			if (!w->initialized)
+				initDisplay(w);
+			else 
+				w->rotated = true;
+
+			if (wi != nullptr)
+				wi->onResize(w->getInfo().getSize());
+
+			break;
+
+		default:
+			break;
+
+		}
 
 }
 
@@ -284,8 +282,8 @@ void Window::destroyPlatform() {
 
 void Window::updatePlatform() {
 
-	if (isSet(info.pending, WindowAction::MOVE) || isSet(info.pending, WindowAction::RESIZE))
-		Log::warn("resize/move action is not supported on Android");
+	if (isSet(info.pending, WindowAction::FULL_SCREEN))
+		Log::warn("fullScreen action is handled by Android, not the application");
 
 	if (isSet(info.pending, WindowAction::IN_FOCUS))
 		Log::warn("setFocus action is not supported on Android");

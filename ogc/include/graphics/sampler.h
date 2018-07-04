@@ -8,8 +8,8 @@ namespace oi {
 
 	namespace gc {
 
-		UEnum(SamplerWrapping, Repeat = 0, MirrorRepeat = 1, ClampEdge = 2, ClampBorder = 3, MirrorClampEdge = 4);
-		UEnum(SamplerMin, LinearMip = 0, NearestMip = 1, Linear = 2, Nearest = 3, LinearMipNearest = 4, NearestMipLinear = 5);
+		UEnum(SamplerWrapping, Repeat = 0, Mirror_repeat = 1, Clamp_edge = 2, Clamp_border = 3, Mirror_clamp_edge = 4);
+		UEnum(SamplerMin, Linear_mip = 0, Nearest_mip = 1, Linear = 2, Nearest = 3, Linear_mip_nearest = 4, Nearest_mip_linear = 5);
 		UEnum(SamplerMag, Linear = 0, Nearest = 1);
 
 		struct SamplerInfo {

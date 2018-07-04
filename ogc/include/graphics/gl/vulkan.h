@@ -185,14 +185,14 @@ namespace oi {
 																																			\
 		memoryInfo.memoryTypeIndex = memoryIndex;																							\
 																																			\
-		vkCheck<0x0, VkGraphics>(vkAllocateMemory(graphics.device, &memoryInfo, allocator, &ext.memory), "Couldn't allocate memory");		\
+		vkCheck<0x0, VkGraphics>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");		\
 		vkCheck<0x1, VkGraphics>(vkBind##type##Memory(graphics.device, ext.resource, ext.memory, 0), "Couldn't bind " #type " memory");
 
 
 		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
 
-		//TODO: Allocator
-		#define allocator nullptr
+		//Reserved for allocation
+		constexpr VkAllocationCallbacks *vkAllocator = nullptr;
 
 		DEnum(VkTextureFormat, VkFormat, Undefined = VK_FORMAT_UNDEFINED,
 
@@ -270,18 +270,18 @@ namespace oi {
 		);
 
 		DEnum(VkSamplerWrapping, VkSamplerAddressMode, 
-			Repeat = VK_SAMPLER_ADDRESS_MODE_REPEAT, MirrorRepeat = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, 
-			ClampEdge = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, ClampBorder = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, 
-			MirrorClampEdge = VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
+			Repeat = VK_SAMPLER_ADDRESS_MODE_REPEAT, Mirror_repeat = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, 
+			Clamp_edge = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, Clamp_border = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, 
+			Mirror_clamp_edge = VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
 		);
 
-		SEnum(VkSamplerMin, VkFilter filter; VkSamplerMipmapMode mip;, 
-			LinearMip = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR }), 
-			NearestMip = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST }),
+		SEnum(VkSamplerMin, VkFilter filter; VkSamplerMipmapMode mip; ,
+			Linear_mip = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR }),
+			Nearest_mip = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST }),
 			Linear = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR }),
 			Nearest = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR }),
-			LinearMipNearest = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST }),
-			NearestMipLinear = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR })
+			Linear_mip_nearest = _({ VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST }),
+			Nearest_mip_linear = _({ VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR })
 		);
 
 		DEnum(VkSamplerMag, VkFilter, Linear = VK_FILTER_LINEAR, Nearest = VK_FILTER_NEAREST);

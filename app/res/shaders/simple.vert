@@ -10,16 +10,9 @@ struct PerObject {
 
 layout(std430, binding = 0) buffer Objects {
 
-	PerObject arr[65536];
+	PerObject arr[4096];
 	
 } obj;
-
-layout(binding = 1) uniform PerExecution {
-
-	vec3 ambient;
-	float time;
-	
-} exc;
 
 layout(binding = 2) uniform Camera {
 
@@ -42,12 +35,10 @@ layout(binding = 2) uniform Camera {
 
 } cam;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 uv;
+layout(location = 0) out vec2 uv;
 
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
-layout(location = 2) in vec2 inUv;
+layout(location = 1) in vec2 inUv;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -55,6 +46,5 @@ out gl_PerVertex {
 
 void main() {
     gl_Position = obj.arr[gl_InstanceIndex].mvp * vec4(inPosition, 1.0);
-    fragColor = inColor * exc.ambient;
 	uv = inUv;
 }

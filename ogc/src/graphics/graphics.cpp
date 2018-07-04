@@ -58,7 +58,11 @@ TextureFormatStorage Graphics::getFormatStorage(TextureFormat format) {
 	if (format.getName().endsWith("u")) return TextureFormatStorage::UINT;
 	if (format.getName().endsWith("i")) return TextureFormatStorage::INT;
 
-	return TextureFormatStorage::FLOAT;
+	return format.getName().endsWith("64f") ? TextureFormatStorage::DOUBLE : TextureFormatStorage::FLOAT;
+}
+
+bool Graphics::isCompatible(TextureFormat a, TextureFormat b) {
+	return getFormatStorage(a) == getFormatStorage(b) && getChannels(a) == getChannels(b);
 }
 
 

@@ -13,7 +13,7 @@ ShaderStage::~ShaderStage() {
 	info.code.deconstruct();
 
 	if (ext.shader != nullptr)
-		vkDestroyShaderModule(graphics.device, ext.shader, allocator);
+		vkDestroyShaderModule(graphics.device, ext.shader, vkAllocator);
 }
 
 bool ShaderStage::init() {
@@ -25,7 +25,7 @@ bool ShaderStage::init() {
 	createInfo.codeSize = info.code.size();
 	createInfo.pCode = (uint32_t*) info.code.addr();
 
-	vkCheck<0x1, ShaderStage>(vkCreateShaderModule(graphics.device, &createInfo, allocator, &ext.shader), "Shader stage creation failed");
+	vkCheck<0x1, ShaderStage>(vkCreateShaderModule(graphics.device, &createInfo, vkAllocator, &ext.shader), "Shader stage creation failed");
 
 	VkPipelineShaderStageCreateInfo &stageInfo = ext.pipeline;
 	memset(&stageInfo, 0, sizeof(stageInfo));
