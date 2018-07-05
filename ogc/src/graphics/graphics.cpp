@@ -13,6 +13,7 @@
 #include "graphics/sampler.h"
 #include "graphics/camera.h"
 #include "graphics/mesh.h"
+#include "graphics/drawlist.h"
 #include "api/stbi/stbi_load.h"
 
 #undef min
@@ -198,6 +199,10 @@ MeshBuffer *Graphics::create(MeshBufferInfo info) {
 
 Mesh *Graphics::create(MeshInfo info) {
 	return init<Mesh>(info);
+}
+
+DrawList *Graphics::create(DrawListInfo info) {
+	return init<DrawList>(info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

@@ -17,6 +17,10 @@ struct MeshFormatEx {
 
 	static MeshFormatEx cubeVertices[];
 	static u32 cubeIndices[];
+
+	static MeshFormatEx pyramidVertices[];
+	static u32 pyramidIndices[];
+
 	static std::vector<std::vector<oi::gc::TextureFormat>> vertexData;
 
 };
@@ -30,8 +34,9 @@ public:
 	void renderScene() override;
 	void onInput(oi::wc::InputDevice *device, oi::wc::Binding b, bool down) override;
 	
-	void load(oi::String str) override;
-	void save(oi::String str) override;
+	void load(oi::String path) override {}
+	void save(oi::String path) override {}
+
 	void update(flp dt) override;
 	void initSurface() override;
 
@@ -44,7 +49,8 @@ private:
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
 	oi::gc::MeshBuffer *meshBuffer;
-	oi::gc::Mesh *mesh;
+	oi::gc::Mesh *mesh, *mesh0;
+	oi::gc::DrawList *drawList;
 
 	struct PerObject {
 
@@ -53,7 +59,7 @@ private:
 
 	};
 
-	static constexpr u32 totalObjects = 4096U;
+	static constexpr u32 totalObjects = 64U;
 
 	PerObject objects[totalObjects];
 

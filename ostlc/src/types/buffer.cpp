@@ -123,6 +123,16 @@ Buffer Buffer::operator+(u32 off) const {
 	return offset(off);
 }
 
+Buffer &Buffer::operator+=(Buffer other) {
+
+	Buffer cpy(length + other.length);
+	cpy.copy(*this, length, 0, 0);
+	cpy.copy(other, other.length, 0, length);
+
+	deconstruct();
+	return *this = cpy;
+}
+
 Buffer Buffer::subbuffer(u32 off, u32 length) const {
 	Buffer b = offset(off);
 	if (b.length == 0) return b;

@@ -20,7 +20,7 @@ bool GBuffer::set(Buffer buf) {
 
 bool GBuffer::copy(Buffer buf) {
 
-	if (buf.size() != info.size)
+	if (buf.size() > info.size)
 		return Log::error("GBuffer::set please use a buffer that matches the gbuffer's size");
 
 	memcpy(info.ptr, buf.addr(), info.size);

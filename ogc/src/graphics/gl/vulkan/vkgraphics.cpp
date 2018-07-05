@@ -112,8 +112,9 @@ void Graphics::init(Window *w, u32 buffering){
 	cextensions.push_back("VK_EXT_debug_report");
 	#endif
 	
-	std::vector<const char*> dlayers, dextensions(1);								///Device layers and extensions
+	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions
 	dextensions[0] = "VK_KHR_swapchain";
+	dextensions[1] = "VK_KHR_shader_draw_parameters";
 	
 	//Set up the application
 	

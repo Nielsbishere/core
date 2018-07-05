@@ -26,6 +26,7 @@ namespace oi {
 		class Camera;
 		class MeshBuffer;
 		class Mesh;
+		class DrawList;
 
 		class GraphicsObject;
 
@@ -42,6 +43,7 @@ namespace oi {
 		struct CameraInfo;
 		struct MeshBufferInfo;
 		struct MeshInfo;
+		struct DrawListInfo;
 
 		enum class TextureFormatStorage;
 
@@ -86,6 +88,7 @@ namespace oi {
 			Camera *create(CameraInfo info);
 			MeshBuffer *create(MeshBufferInfo info);
 			Mesh *create(MeshInfo info);
+			DrawList *create(DrawListInfo info);
 
 			GraphicsExt &getExtension();
 

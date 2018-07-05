@@ -1,5 +1,6 @@
-#version 450 core
+#version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shader_draw_parameters : require
 
 struct PerObject {
 
@@ -10,7 +11,7 @@ struct PerObject {
 
 layout(std430, binding = 0) buffer Objects {
 
-	PerObject arr[4096];
+	PerObject arr[64];
 	
 } obj;
 
@@ -45,6 +46,6 @@ out gl_PerVertex {
 };
 
 void main() {
-    gl_Position = obj.arr[gl_InstanceIndex].mvp * vec4(inPosition, 1.0);
+    gl_Position = obj.arr[gl_InstanceIndex + gl_BaseVertexARB].mvp * vec4(inPosition, 1.0);
 	uv = inUv;
 }

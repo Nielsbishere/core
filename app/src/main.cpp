@@ -12,6 +12,7 @@
 #include <format/oisl.h>
 #include <graphics/shaderbuffer.h>
 #include <graphics/mesh.h>
+#include <graphics/drawlist.h>
 
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
@@ -33,6 +34,10 @@ void Application::instantiate(WindowHandleExt *param){
 	w->setInterface(new MainInterface());
 	wmanager.waitAll();
 }
+
+//Setup MeshFormatEx
+
+std::vector<std::vector<TextureFormat>> MeshFormatEx::vertexData = { { TextureFormat::RGB32f, TextureFormat::RG32f } };
 
 //Setup cube data
 
@@ -104,10 +109,44 @@ u32 MeshFormatEx::cubeIndices[] = {
 
 };
 
-std::vector<std::vector<TextureFormat>> MeshFormatEx::vertexData = { { TextureFormat::RGB32f, TextureFormat::RG32f } };
+//Setup octahedron
+
+MeshFormatEx MeshFormatEx::pyramidVertices[] = {
+
+	{ { -2, -2, -2 }, { 0, 1 } },
+	{ { 2, -2, -2 }, { 1, 1 } },
+	{ { 2, -2, 2 }, { 1, 0 } },
+	{ { -2, -2, 2 }, { 0, 0 } },
+
+	{ { 0, 2, 0 }, { 0.5, 1 } },
+	{ { 0, 2, 0 }, { 0.5, 0 } },
+	{ { 0, 2, 0 }, { 1, 0.5 } },
+	{ { 0, 2, 0 }, { 0, 0.5 } }
+
+};
+
+u32 MeshFormatEx::pyramidIndices[] = {
+
+	//Bottom
+	0, 1, 2,
+	2, 3, 0,
+
+	//Front
+	3, 2, 4,
+
+	//Back
+	0, 1, 5,
+
+	//Left
+	0, 3, 6,
+
+	//Right
+	2, 1, 7
+
+};
+
 
 ///TODO:
-///Support indirect rendering
 ///Multiple descriptor sets
 ///Support FBO textures;	FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
 ///							First transition to rt write and then to shader read after it ended
@@ -122,6 +161,7 @@ std::vector<std::vector<TextureFormat>> MeshFormatEx::vertexData = { { TextureFo
 ///Figure out why Android is throwing an error when it's rotated (width and height are flipped the wrong way)
 ///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
 ///Add matrices to shader buffer
+///obj->oiRM and oiRM->obj format
 
 //Set up the interface
 
@@ -145,11 +185,22 @@ void MainInterface::initScene() {
 	meshBuffer = g.create(MeshBufferInfo(65536, 65536, MeshFormatEx::vertexData));
 	g.use(meshBuffer);
 
-	//Setup our cube model
+	//Setup our models
 	meshBuffer->open();
-	mesh = g.create(MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::cubeVertices, sizeof(MeshFormatEx::cubeVertices)) }, Buffer::construct((u8*)MeshFormatEx::cubeIndices, sizeof(MeshFormatEx::cubeIndices))));
-	g.use(mesh);
+
+		//Setup our cube
+		mesh = g.create(MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::cubeVertices, sizeof(MeshFormatEx::cubeVertices)) }, Buffer::construct((u8*)MeshFormatEx::cubeIndices, sizeof(MeshFormatEx::cubeIndices))));
+		g.use(mesh);
+
+		//Setup our tetrahedron
+		mesh0 = g.create(MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::pyramidVertices, (u32) sizeof(MeshFormatEx::pyramidVertices)) }, Buffer::construct((u8*) MeshFormatEx::pyramidIndices, (u32) sizeof(MeshFormatEx::pyramidIndices))));
+		g.use(mesh0);
+
 	meshBuffer->close();
+
+	//Setup our drawList
+	drawList = g.create(DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
+	g.use(drawList);
 
 	//Allocate a texture
 	osomi = g.create(TextureInfo("res/textures/osomi.png"));
@@ -191,9 +242,8 @@ void MainInterface::renderScene(){
 	cmdList->begin(rt, Vec4d(0.25, 0.5, 1, 1) * (sin(getDuration()) * 0.5 + 0.5));
 	cmdList->bind(pipeline);
 
-	//Execute draw call
-	cmdList->bind(meshBuffer);
-	cmdList->draw(mesh, totalObjects);
+	//Execute draw calls
+	cmdList->draw(drawList);
 
 	//End fbo and cmdList
 	cmdList->end(rt);
@@ -222,15 +272,17 @@ void MainInterface::initSurface(){
 	for (u32 i = 0; i < totalObjects; ++i)
 		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
 
-	shader->get<ShaderBuffer>("Objects")->set(Buffer::construct((u8*)objects, (u32) sizeof(objects)));
+	//Reconstruct drawlist
+
+	drawList->clear();
+	drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
+	drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)(objects + totalObjects / 2), (u32) sizeof(objects) / 2));
+	drawList->flush();
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
 	Log::println(b.toString());
 }
-
-void MainInterface::load(String path){ Log::println("Loading"); }
-void MainInterface::save(String path){ Log::println("Saving"); }
 
 void MainInterface::update(flp dt) {
 	WindowInterface::update(dt); 
@@ -245,7 +297,9 @@ MainInterface::~MainInterface(){
 	g.destroy(sampler);
 	g.destroy(osomi);
 	g.destroy(mesh);
+	g.destroy(mesh0);
 	g.destroy(meshBuffer);
+	g.destroy(drawList);
 	g.destroy(pipeline);
 	g.destroy(pipelineState);
 	g.destroy(shader);

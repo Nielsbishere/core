@@ -7,6 +7,8 @@
 #include "graphics/graphics.h"
 #include "graphics/gbuffer.h"
 #include "graphics/camera.h"
+#include "graphics/drawlist.h"
+#include "graphics/meshbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -176,6 +178,17 @@ void CommandList::flush() {
 	g->finish();
 }
 
+void CommandList::draw(DrawList *drawList) {
 
+	bind(drawList->getInfo().meshBuffer);
+
+	drawList->getInfo().objectBuffer;
+
+	if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
+		vkCmdDrawIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), (u32) sizeof(VkDrawIndirectCommand));
+	else
+		vkCmdDrawIndexedIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), (u32) sizeof(VkDrawIndexedIndirectCommand));
+
+}
 
 #endif

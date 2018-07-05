@@ -38,6 +38,9 @@ namespace oi {
 		Buffer operator+(u32 off) const;
 		Buffer subbuffer(u32 offset, u32 length) const;
 
+		//Merge the two buffers into one
+		Buffer &operator+=(Buffer other);
+
 		template<typename T = u8>
 		T &operator[](u32 where) {									//Gets data at location
 			return *(T*)&data[where];
