@@ -12,6 +12,7 @@
 #include "graphics/shaderbuffer.h"
 #include "graphics/sampler.h"
 #include "graphics/camera.h"
+#include "graphics/mesh.h"
 #include "api/stbi/stbi_load.h"
 
 #undef min
@@ -189,6 +190,14 @@ Sampler *Graphics::create(SamplerInfo info) {
 
 Camera *Graphics::create(CameraInfo info) {
 	return init<Camera>(info);
+}
+
+MeshBuffer *Graphics::create(MeshBufferInfo info) {
+	return init<MeshBuffer>(info);
+}
+
+Mesh *Graphics::create(MeshInfo info) {
+	return init<Mesh>(info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

@@ -131,31 +131,31 @@ void CommandList::drawIndexed(u32 indices, u32 instances, u32 startIndex, u32 st
 	vkCmdDrawIndexed(ext.cmd, indices, instances, startIndex, startVertex, startInstance);
 }
 
-bool CommandList::bind(std::vector<GBuffer*> buffer) {
+bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 
-	if (buffer.size() == 0) return Log::warn("CommandList::bind GBuffer[] requires at least 1 GBuffer");
-
-	GBufferType type = buffer[0]->getType();
-
-	std::vector<VkBuffer> vkBuffer(buffer.size());
+	std::vector<VkBuffer> vkBuffer(vbos.size());
 
 	u32 i = 0;
 
-	for (GBuffer *b : buffer)
-		if (type != b->getType())
-			return Log::throwError<CommandList, 0x1>("CommandList::bind requires GBuffers to be of the same type");
+	for (GBuffer *b : vbos)
+		if (b->getType() != GBufferType::VBO)
+			return Log::throwError<CommandList, 0x1>("CommandList::bind requires VBOs as first argument");
 		else
 			vkBuffer[i++] = b->getExtension().resource;
 
 	VkDeviceSize zero = 0;
 
-	if(type == GBufferType::VBO)
-		vkCmdBindVertexBuffers(ext.cmd, 0, (u32) buffer.size(), vkBuffer.data(), &zero);
-	else if (type == GBufferType::IBO) {
-		if (i != 1) return Log::throwError<CommandList, 0x2>("CommandList::bind IBO can only handle 1 buffer");
-		vkCmdBindIndexBuffer(ext.cmd, vkBuffer[0], 0, VkIndexType::VK_INDEX_TYPE_UINT32);
-	} else 
-		return Log::throwError<CommandList, 0x3>("CommandList::bind(GBuffer*) can only be executed on a VBO or IBO");
+	if (vbos.size() != 0)
+		vkCmdBindVertexBuffers(ext.cmd, 0, (u32) vkBuffer.size(), vkBuffer.data(), &zero);
+
+	if (ibo != nullptr) {
+
+		if (ibo->getType() != GBufferType::IBO)
+			return Log::throwError<CommandList, 0x2>("CommandList::bind requires a valid IBO as second argument");
+
+		vkCmdBindIndexBuffer(ext.cmd, ibo->getExtension().resource, 0, VkIndexType::VK_INDEX_TYPE_UINT32);
+
+	}
 
 	return true;
 }

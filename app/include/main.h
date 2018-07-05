@@ -4,9 +4,21 @@
 #include <types/vector.h>
 #include <types/matrix.h>
 #include <platforms/generic.h>
+#include <graphics/texture.h>
 
 struct Application {
 	static void instantiate(oi::wc::WindowHandleExt *param = nullptr);
+};
+
+struct MeshFormatEx {
+
+	oi::Vec3f position;
+	oi::Vec2f uv;
+
+	static MeshFormatEx cubeVertices[];
+	static u32 cubeIndices[];
+	static std::vector<std::vector<oi::gc::TextureFormat>> vertexData;
+
 };
 
 class MainInterface : public oi::gc::GraphicsInterface {
@@ -28,10 +40,11 @@ private:
 	oi::gc::Shader *shader;
 	oi::gc::Pipeline *pipeline = nullptr;
 	oi::gc::PipelineState *pipelineState;
-	oi::gc::GBuffer *quadVbo, *quadIbo;
 	oi::gc::Texture *osomi;
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
+	oi::gc::MeshBuffer *meshBuffer;
+	oi::gc::Mesh *mesh;
 
 	struct PerObject {
 

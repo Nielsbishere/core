@@ -11,6 +11,7 @@
 #include <graphics/format/oisb.h>
 #include <format/oisl.h>
 #include <graphics/shaderbuffer.h>
+#include <graphics/mesh.h>
 
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
@@ -33,14 +34,83 @@ void Application::instantiate(WindowHandleExt *param){
 	wmanager.waitAll();
 }
 
+//Setup cube data
+
+MeshFormatEx MeshFormatEx::cubeVertices[] = {
+
+	//Bottom
+	{ { -1, -1, 1 }, { 0, 1 } },
+	{ { 1, -1, 1 }, { 1, 1 } },
+	{ { 1, -1, -1 }, { 1, 0 } },
+	{ { -1, -1, -1 }, { 0, 0 } },
+
+	//Top
+	{ { -1, 1, -1 }, { 1, 1 } },
+	{ { 1, 1, -1 }, { 0, 1 } },
+	{ { 1, 1, 1 }, { 0, 0 } },
+	{ { -1, 1, 1 }, { 1, 0 } },
+
+	//Back
+	{ { -1, -1, -1 }, { 1, 0 } },
+	{ { 1, -1, -1 }, { 0, 0 } },
+	{ { 1, 1, -1 }, { 0, 1 } },
+	{ { -1, 1, -1 }, { 1, 1 } },
+
+	//Front
+	{ { -1, 1, 1 }, { 0, 1 } },
+	{ { 1, 1, 1 }, { 1, 1 } },
+	{ { 1, -1, 1 }, { 1, 0 } },
+	{ { -1, -1, 1 }, { 0, 0 } },
+
+	//Left
+	{ { -1, 1, -1 }, { 0, 1 } },
+	{ { -1, 1, 1 }, { 1, 1 } },
+	{ { -1, -1, 1 }, { 1, 0 } },
+	{ { -1, -1, -1 }, { 0, 0 } },
+
+	//Right
+	{ { 1, -1, -1 }, { 1, 0 } },
+	{ { 1, -1, 1 }, { 1, 1 } },
+	{ { 1, 1, 1 }, { 0, 1 } },
+	{ { 1, 1, -1 }, { 0, 0 } }
+
+};
+
+u32 MeshFormatEx::cubeIndices[] = {
+
+	//Bottom
+	0, 1, 2,
+	2, 3, 0,
+
+	//Top
+	4, 5, 6,
+	6, 7, 4,
+
+	//Back
+	8, 9, 10,
+	10, 11, 8,
+
+	//Front
+	12, 13, 14,
+	14, 15, 12,
+
+	//Left
+	16, 17, 18,
+	18, 19, 16,
+
+	//Right
+	20, 21, 22,
+	22, 23, 20
+
+};
+
+std::vector<std::vector<TextureFormat>> MeshFormatEx::vertexData = { { TextureFormat::RGB32f, TextureFormat::RG32f } };
+
 ///TODO:
-///Fix nameless structs (oish_gen)
-///Support FBO textures;	FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
-///							First transition to rt write and then to shader read after it ended
-///Abstract Model
-///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
 ///Support indirect rendering
 ///Multiple descriptor sets
+///Support FBO textures;	FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
+///							First transition to rt write and then to shader read after it ended
 ///Android update project in CMake
 ///Abstract AssetManager
 ///Allow arrays in registers and buffers
@@ -50,6 +120,8 @@ void Application::instantiate(WindowHandleExt *param){
 ///Model validation with pipeline
 ///Abstract Entity
 ///Figure out why Android is throwing an error when it's rotated (width and height are flipped the wrong way)
+///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
+///Add matrices to shader buffer
 
 //Set up the interface
 
@@ -57,102 +129,45 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
+	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
 
+	//Setup our shader
 	shader = g.create(ShaderInfo("res/shaders/simple.oiSH"));
 	g.use(shader);
 
+	//Setup our pipeline state (with default settings)
 	pipelineState = g.create(PipelineStateInfo());
 	g.use(pipelineState);
 
-	//Vec3f position
-	//Vec2f uv
-	f32 vert[] = {
+	//Allocate 256 Ki of indices and 1.25 MiB of vertices
+	//This will be where we allocate meshes into
+	meshBuffer = g.create(MeshBufferInfo(65536, 65536, MeshFormatEx::vertexData));
+	g.use(meshBuffer);
 
-		//Bottom
-		-1, -1, 1, 0, 1,
-		1, -1, 1, 1, 1,
-		1, -1, -1, 1, 0,
-		-1, -1, -1, 0, 0,
+	//Setup our cube model
+	meshBuffer->open();
+	mesh = g.create(MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::cubeVertices, sizeof(MeshFormatEx::cubeVertices)) }, Buffer::construct((u8*)MeshFormatEx::cubeIndices, sizeof(MeshFormatEx::cubeIndices))));
+	g.use(mesh);
+	meshBuffer->close();
 
-		//Top
-		-1, 1, -1, 1, 1,
-		1, 1, -1, 0, 1,
-		1, 1, 1, 0, 0,
-		-1, 1, 1, 1, 0,
-
-		//Back
-		-1, -1, -1, 1, 0,
-		1, -1, -1, 0, 0,
-		1, 1, -1, 0, 1,
-		-1, 1, -1, 1, 1,
-
-		//Front
-		-1, 1, 1, 0, 1,
-		1, 1, 1, 1, 1,
-		1, -1, 1, 1, 0,
-		-1, -1, 1, 0, 0,
-
-		//Left
-		-1, 1, -1, 0, 1,
-		-1, 1, 1, 1, 1,
-		-1, -1, 1, 1, 0,
-		-1, -1, -1, 0, 0,
-
-		//Right
-		1, -1, -1, 1, 0,
-		1, -1, 1, 1, 1,
-		1, 1, 1, 0, 1,
-		1, 1, -1, 0, 0
-
-	};
-
-	u32 ind[] = {
-
-		//Bottom
-		0, 1, 2,
-		2, 3, 0,
-
-		//Top
-		4, 5, 6,
-		6, 7, 4,
-
-		//Back
-		8, 9, 10,
-		10, 11, 8,
-
-		//Front
-		12, 13, 14,
-		14, 15, 12,
-
-		//Left
-		16, 17, 18,
-		18, 19, 16,
-
-		//Right
-		20, 21, 22,
-		22, 23, 20
-
-	};
-
-	quadVbo = g.create(GBufferInfo(GBufferType::VBO, (u32) sizeof(vert), (u8*)vert));
-	g.use(quadVbo);
-
-	quadIbo = g.create(GBufferInfo(GBufferType::IBO, (u32) sizeof(ind), (u8*)ind));
-	g.use(quadIbo);
-
+	//Allocate a texture
 	osomi = g.create(TextureInfo("res/textures/osomi.png"));
 	g.use(osomi);
 
+	//Allocate sampler
 	sampler = g.create(SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
 	g.use(sampler);
 
+	//Set our shader sampler and texture
 	shader->set("samp", sampler);
 	shader->set("tex", osomi);
 
+	//Setup our camera
 	camera = g.create(CameraInfo(45.f, Vec3(15, 15, 55), Vec4(0, 0, 0, 1), Vec3(0, 1, 0), 0.1f, 100.f));
 	g.use(camera);
 
+	//Setup our objects
 	for (u32 i = 0; i < totalObjects; ++i)
 		objects[i].m = Matrixf::makeModel(Random::randomize<3>(0.f, 25.f), Vec3f(Random::randomize<2>(0.f, 360.f)), Vec3f(1.f));
 
@@ -177,9 +192,8 @@ void MainInterface::renderScene(){
 	cmdList->bind(pipeline);
 
 	//Execute draw call
-	cmdList->bind({ quadVbo });
-	cmdList->bind({ quadIbo });
-	cmdList->drawIndexed(36, totalObjects);
+	cmdList->bind(meshBuffer);
+	cmdList->draw(mesh, totalObjects);
 
 	//End fbo and cmdList
 	cmdList->end(rt);
@@ -230,8 +244,8 @@ MainInterface::~MainInterface(){
 	g.destroy(camera);
 	g.destroy(sampler);
 	g.destroy(osomi);
-	g.destroy(quadVbo);
-	g.destroy(quadIbo);
+	g.destroy(mesh);
+	g.destroy(meshBuffer);
 	g.destroy(pipeline);
 	g.destroy(pipelineState);
 	g.destroy(shader);
