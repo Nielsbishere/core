@@ -3,7 +3,7 @@
 #include "graphics/rendertarget.h"
 #include "graphics/gl/vulkan.h"
 #include "graphics/graphics.h"
-#include "graphics/texture.h"
+#include "graphics/versionedtexture.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -16,7 +16,7 @@ RenderTarget::~RenderTarget() {
 	for (VkFramebuffer fb : ext.frameBuffer)
 		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
 
-	for (Texture *t : info.textures)
+	for (VersionedTexture *t : info.textures)
 		g->destroy(t);
 
 	g->destroy(info.depth);
@@ -28,21 +28,20 @@ bool RenderTarget::init() {
 
 	//Set up attachments
 
-	std::vector<VkAttachmentDescription> attachments(info.targets);
+	std::vector<VkAttachmentDescription> attachments(info.targets + 1);
 
 	for (u32 i = 0; i < (u32)attachments.size(); ++i) {
 
 		VkAttachmentDescription &desc = attachments[i];
 		memset(&desc, 0, sizeof(desc));
 
-		Texture *target = getTarget(i, 0);
-		TextureFormat format = target->getFormat();
-		bool isDepth = format.getValue() >= TextureFormat::D16 && format.getValue() < TextureFormat::Depth;	//Don't include 'Depth' as that is only for auto type detection
+		TextureFormat format = i == 0 ? getDepth()->getFormat() : getTarget(i - 1)->getFormat();
+		bool isDepth = i == 0;
 
 		VkImageLayout layout;
 
 		if (isDepth) layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;							//Depth buffer
-		else if (target->isOwned()) layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;					//Regular texture
+		else if (getTarget(i - 1)->isOwned()) layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;			//Regular texture
 		else layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;													//Back buffer
 
 		desc.format = (VkFormat) VkTextureFormat(format.getName()).getValue().value;
@@ -63,10 +62,10 @@ bool RenderTarget::init() {
 	VkSubpassDescription subpass;
 	memset(&subpass, 0, sizeof(subpass));
 
-	std::vector<VkAttachmentReference> colorAttachment(info.targets - 1);
+	std::vector<VkAttachmentReference> colorAttachment(info.targets);
 	
-	for (u32 i = 1; i < info.targets; ++i)
-		colorAttachment[i - 1] = { i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+	for (u32 i = 0; i < info.targets; ++i)
+		colorAttachment[i] = { i + 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.pColorAttachments = colorAttachment.data();
@@ -75,7 +74,7 @@ bool RenderTarget::init() {
 	Texture *depth;
 	VkAttachmentReference depthRef;
 
-	if ((depth = getTarget(0, 0)) == nullptr) subpass.pDepthStencilAttachment = nullptr;
+	if ((depth = getDepth()) == nullptr) subpass.pDepthStencilAttachment = nullptr;
 	else {
 		depthRef = { 0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 		subpass.pDepthStencilAttachment = &depthRef;
@@ -107,11 +106,13 @@ bool RenderTarget::init() {
 		VkFramebufferCreateInfo fbInfo;
 		memset(&fbInfo, 0, sizeof(fbInfo));
 
-		std::vector<VkImageView> fbAttachment(info.targets);
+		std::vector<VkImageView> fbAttachment(info.targets + 1);
+		fbAttachment[0] = getDepth()->getExtension().view;
+
 		for (u32 j = 0; j < info.targets; ++j) {
-			Texture *t = getTarget(j, i);
+			Texture *t = getTarget(j)->getVersion(i);
 			VkTexture &tex = t->getExtension();
-			fbAttachment[j] = tex.view;
+			fbAttachment[j + 1] = tex.view;
 		}
 
 		fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -119,13 +120,13 @@ bool RenderTarget::init() {
 		fbInfo.width = info.res.x;
 		fbInfo.height = info.res.y;
 		fbInfo.layers = 1;
-		fbInfo.attachmentCount = info.targets;
+		fbInfo.attachmentCount = info.targets + 1;
 		fbInfo.pAttachments = fbAttachment.data();
 
 		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
 	}
 
-	for(Texture *t : info.textures)
+	for(VersionedTexture *t : info.textures)
 		g->use(t);
 
 	g->use(depth);

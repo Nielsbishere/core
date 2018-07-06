@@ -11,12 +11,17 @@ void GraphicsInterface::init() {
 	cmdList = g.create(CommandListInfo());
 	g.use(cmdList);
 
-	initScene();
-
 }
 
 void GraphicsInterface::initSurface() {
+
 	g.initSurface(getParent());
+
+	if (!initialized) {
+		initScene();
+		initialized = true;
+	}
+
 }
 
 void GraphicsInterface::destroySurface() {

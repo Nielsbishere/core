@@ -9,6 +9,7 @@
 #include "graphics/camera.h"
 #include "graphics/drawlist.h"
 #include "graphics/meshbuffer.h"
+#include "graphics/versionedtexture.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -36,15 +37,14 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	VkRenderPassBeginInfo beginInfo;
 	memset(&beginInfo, 0, sizeof(beginInfo));
 
-	std::vector<VkClearValue> clearValue(target->getTargets());
+	std::vector<VkClearValue> clearValue(target->getTargets() + 1);
 
-	for (u32 i = 0; i < target->getTargets(); ++i) {
+	for (u32 i = 0; i < target->getTargets() + 1; ++i) {
 
 		VkClearValue &cl = clearValue[i];
-		Texture *targ = target->getTarget(i, 0);
-		TextureFormat format = targ->getFormat();
+		TextureFormat format = i == 0 ? target->getDepth()->getFormat() : target->getTarget(i - 1)->getFormat();
 
-		if (g->isDepthFormat(format)) {
+		if (i == 0) {
 			cl.depthStencil.depth = clear.depthClear;
 			cl.depthStencil.stencil = clear.stencilClear;
 		}
@@ -107,7 +107,7 @@ void CommandList::bind(Pipeline *pipeline) {
 
 	pipeline->getInfo().shader->update();
 
-	vkCmdBindDescriptorSets(ext.cmd, pipelinePoint, pipeline->getInfo().shader->getExtension().layout, 0, 1, &pipeline->getInfo().shader->getExtension().descriptorSet, 0, nullptr);
+	vkCmdBindDescriptorSets(ext.cmd, pipelinePoint, pipeline->getInfo().shader->getExtension().layout, 0, 1, pipeline->getInfo().shader->getExtension().descriptorSet.data() + g->getExtension().current, 0, nullptr);
 
 	if (pipeline->getInfo().camera != nullptr) {
 
@@ -181,8 +181,6 @@ void CommandList::flush() {
 void CommandList::draw(DrawList *drawList) {
 
 	bind(drawList->getInfo().meshBuffer);
-
-	drawList->getInfo().objectBuffer;
 
 	if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
 		vkCmdDrawIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), (u32) sizeof(VkDrawIndirectCommand));

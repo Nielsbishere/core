@@ -147,9 +147,10 @@ u32 MeshFormatEx::pyramidIndices[] = {
 
 
 ///TODO:
-///Multiple descriptor sets
 ///Support FBO textures;	FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
 ///							First transition to rt write and then to shader read after it ended
+///Materials
+///Multiple descriptor sets
 ///Android update project in CMake
 ///Abstract AssetManager
 ///Allow arrays in registers and buffers
@@ -157,11 +158,11 @@ u32 MeshFormatEx::pyramidIndices[] = {
 ///Quaternions
 ///Support file reloading
 ///Model validation with pipeline
+///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
+///obj->oiRM and oiRM->obj format
+///Add matrices to shader buffer
 ///Abstract Entity
 ///Figure out why Android is throwing an error when it's rotated (width and height are flipped the wrong way)
-///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
-///Add matrices to shader buffer
-///obj->oiRM and oiRM->obj format
 
 //Set up the interface
 

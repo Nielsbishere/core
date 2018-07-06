@@ -31,7 +31,7 @@ void DrawList::prepareDrawList() {
 
 		info.drawBuffer->copy(Buffer::construct((u8*) drawCmd, (u32) sizeof(VkDrawIndirectCommand) * getBatches()));
 
-		delete drawCmd;
+		delete[] drawCmd;
 
 	} else {
 
@@ -54,7 +54,7 @@ void DrawList::prepareDrawList() {
 
 		info.drawBuffer->copy(Buffer::construct((u8*)drawCmd, (u32) sizeof(VkDrawIndexedIndirectCommand) * getBatches()));
 
-		delete drawCmd;
+		delete[] drawCmd;
 
 	}
 

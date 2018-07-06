@@ -14,6 +14,7 @@
 #include "graphics/camera.h"
 #include "graphics/mesh.h"
 #include "graphics/drawlist.h"
+#include "graphics/versionedtexture.h"
 #include "api/stbi/stbi_load.h"
 
 #undef min
@@ -87,6 +88,7 @@ u32 Graphics::getFormatSize(TextureFormat format) { return getChannelSize(format
 GraphicsExt &Graphics::getExtension() { return ext; }
 
 RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
+u32 Graphics::getBuffering() { return buffering; }
 
 Shader *Graphics::create(ShaderInfo info) {
 
@@ -148,13 +150,22 @@ RenderTarget *Graphics::create(RenderTargetInfo info) {
 
 	info.depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
 
-	std::vector<Texture*> &textures = info.textures;
-	textures.resize(info.buffering * info.targets);
+	std::vector<VersionedTexture*> &textures = info.textures;
+	std::vector<Texture*> vtextures(buffering);
+	textures.resize(info.targets);
 
-	for (u32 i = 0; i < (u32) textures.size(); ++i)
-		textures[i] = create(TextureInfo(info.res, info.formats[i / buffering], TextureUsage::Render_target));
+	for (u32 i = 0; i < info.targets; ++i) {
 
-	for (Texture *t : textures)
+		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], TextureUsage::Render_target);
+
+		for (u32 i = 0; i < buffering; ++i)
+			++(vtextures[i] = create(texInfo))->refCount;
+
+		textures[i] = create(VersionedTextureInfo(vtextures));
+
+	}
+
+	for (VersionedTexture *t : textures)
 		++t->refCount;
 
 	return init<RenderTarget>(info);
@@ -203,6 +214,10 @@ Mesh *Graphics::create(MeshInfo info) {
 
 DrawList *Graphics::create(DrawListInfo info) {
 	return init<DrawList>(info);
+}
+
+VersionedTexture *Graphics::create(VersionedTextureInfo info) {
+	return init<VersionedTexture>(info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

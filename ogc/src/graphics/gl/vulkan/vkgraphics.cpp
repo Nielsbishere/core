@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
-#include "graphics/texture.h"
+#include "graphics/versionedtexture.h"
 #include "graphics/rendertarget.h"
 #include "graphics/commandlist.h"
 #include <window/window.h>
@@ -76,9 +76,9 @@ Graphics::~Graphics(){
 	
 }
 
-void Graphics::init(Window *w, u32 buffering){
+void Graphics::init(Window *w){
 
-	this->buffering = buffering;
+	this->buffering = 3;				//Assume triple buffering
 
 	//Get extensions and layers
 
@@ -443,7 +443,7 @@ void Graphics::initSurface(Window *w) {
 	swapchainInfo.presentMode = mode;
 
 	vkCheck<0x9>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, vkAllocator, &ext.swapchain), "Couldn't create swapchain");
-	
+
 	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, nullptr);
 
 	Log::println(String("Successfully created swapchain (with buffering option ") + buffering + ")");
@@ -469,7 +469,11 @@ void Graphics::initSurface(Window *w) {
 		tex->hash = typeid(Texture).hash_code();
 
 		add(tex);
+
 	}
+
+	VersionedTexture *vt = create(VersionedTextureInfo(textures));
+	use(vt);
 
 	//Create depth buffer
 
@@ -481,7 +485,7 @@ void Graphics::initSurface(Window *w) {
 
 	RenderTargetInfo info(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() }, buffering);
 	info.depth = depthBuffer;
-	info.textures = textures;
+	info.textures = { vt };
 
 	backBuffer = new RenderTarget(info);
 	backBuffer->g = this;

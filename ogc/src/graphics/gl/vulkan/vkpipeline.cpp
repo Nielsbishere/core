@@ -3,6 +3,7 @@
 #include "graphics/shader.h"
 #include "graphics/shaderstage.h"
 #include "graphics/rendertarget.h"
+#include "graphics/versionedtexture.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -93,10 +94,10 @@ bool Pipeline::init() {
 
 		for (const ShaderOutput so : info.shader->getInfo().output) {
 
-			if (so.id >= rt->getTargets() - 1U)
+			if (so.id >= rt->getTargets())
 				Log::throwError<Pipeline, 0x4>("Invalid pipeline; Shader referenced a shader output to an unknown output");
 			
-			if(!Graphics::isCompatible(so.type, rt->getTarget(so.id + 1, 0)->getFormat()))
+			if(!Graphics::isCompatible(so.type, rt->getTarget(so.id)->getFormat()))
 				Log::throwError<Pipeline, 0x5>("Invalid pipeline; Shader referenced an incompatible output format");
 
 		}

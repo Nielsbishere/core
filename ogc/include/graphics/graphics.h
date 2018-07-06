@@ -27,6 +27,7 @@ namespace oi {
 		class MeshBuffer;
 		class Mesh;
 		class DrawList;
+		class VersionedTexture;
 
 		class GraphicsObject;
 
@@ -44,6 +45,7 @@ namespace oi {
 		struct MeshBufferInfo;
 		struct MeshInfo;
 		struct DrawListInfo;
+		struct VersionedTextureInfo;
 
 		enum class TextureFormatStorage;
 
@@ -66,7 +68,7 @@ namespace oi {
 			
 			~Graphics();
 			
-			void init(oi::wc::Window *w, u32 buffering = 3U);
+			void init(oi::wc::Window *w);
 			
 			void initSurface(oi::wc::Window *w);							//Inits surface & backbuffer
 			void destroySurface();											//Destroys surface & backBuffer
@@ -89,6 +91,7 @@ namespace oi {
 			MeshBuffer *create(MeshBufferInfo info);
 			Mesh *create(MeshInfo info);
 			DrawList *create(DrawListInfo info);
+			VersionedTexture *create(VersionedTextureInfo info);
 
 			GraphicsExt &getExtension();
 
@@ -102,6 +105,7 @@ namespace oi {
 			static Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
 
 			RenderTarget *getBackBuffer();
+			u32 getBuffering();
 
 			bool contains(GraphicsObject *go) const;
 			bool destroy(GraphicsObject *go);

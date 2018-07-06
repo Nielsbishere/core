@@ -7,6 +7,8 @@ namespace oi {
 
 	namespace gc {
 
+		class VersionedTexture;
+
 		struct RenderTargetInfo {
 
 			Vec2u res;
@@ -15,9 +17,9 @@ namespace oi {
 			std::vector<TextureFormat> formats;
 
 			Texture *depth;
-			std::vector<Texture*> textures;
+			std::vector<VersionedTexture*> textures;
 
-			RenderTargetInfo(Vec2u res, TextureFormat depth, std::vector<TextureFormat> formats, u32 buffering) : res(res), depthFormat(depth), formats(formats), buffering(buffering), targets((u32) formats.size() + 1) {}
+			RenderTargetInfo(Vec2u res, TextureFormat depth, std::vector<TextureFormat> formats, u32 buffering) : res(res), depthFormat(depth), formats(formats), buffering(buffering), targets((u32) formats.size()) {}
 
 		};
 
@@ -27,11 +29,11 @@ namespace oi {
 
 		public:
 
-			u32 getVersions();	//Get which buffering method is used; aka how many versions there are
-			u32 getTargets();	//Get the number of targets per version
+			u32 getVersions();
+			u32 getTargets();
 
-			Texture *getDepthBuffer();
-			Texture *getTarget(u32 target, u32 version);
+			Texture *getDepth();
+			VersionedTexture *getTarget(u32 target);
 
 			Vec2u getSize();
 
