@@ -118,7 +118,7 @@ bool Texture::init(bool isOwned) {
 
 		//Push that into the texture
 
-		if ((this->ext.cmdList = g->create(CommandListInfo())) == nullptr)
+		if ((this->ext.cmdList = g->create(getName() + " stage command", CommandListInfo())) == nullptr)
 			return Log::throwError<Texture, 0x6>("Couldn't send texture data; it requires a cmdList");
 
 		CommandListExt &cmd = this->ext.cmdList->getExtension();

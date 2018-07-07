@@ -1,5 +1,6 @@
 #include "graphics/shader.h"
 #include "graphics/sampler.h"
+#include "graphics/versionedtexture.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -32,8 +33,8 @@ bool Shader::set(String path, GraphicsResource *res) {
 
 		if (isBuffer && dynamic_cast<ShaderBuffer*>(res) == nullptr)
 			return Log::throwError<Shader, 0x1>(String("Shader::set(") + path + ") failed; invalid type (type is ShaderBuffer, but type mentioned isn't)");
-		else if((type == ShaderRegisterType::Texture2D || type == ShaderRegisterType::Image) && dynamic_cast<Texture*>(res) == nullptr)
-			return Log::throwError<Shader, 0x2>(String("Shader::set(") + path + ") failed; invalid type (type is Texture, but type mentioned isn't)");
+		else if((type == ShaderRegisterType::Texture2D || type == ShaderRegisterType::Image) && dynamic_cast<Texture*>(res) == nullptr && dynamic_cast<VersionedTexture*>(res) == nullptr)
+			return Log::throwError<Shader, 0x2>(String("Shader::set(") + path + ") failed; invalid type (type is Texture or VersionedTexture, but type mentioned isn't)");
 		else if(type == ShaderRegisterType::Sampler && dynamic_cast<Sampler*>(res) == nullptr)
 			return Log::throwError<Shader, 0x3>(String("Shader::set(") + path + ") failed; invalid type (type is Sampler, but type mentioned isn't)");
 

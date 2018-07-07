@@ -42,8 +42,8 @@ public:
 
 private:
 	
-	oi::gc::Shader *shader;
-	oi::gc::Pipeline *pipeline = nullptr;
+	oi::gc::Shader *shader, *shader0;
+	oi::gc::Pipeline *pipeline, *pipeline0;
 	oi::gc::PipelineState *pipelineState;
 	oi::gc::Texture *osomi;
 	oi::gc::Sampler *sampler;
@@ -51,6 +51,11 @@ private:
 	oi::gc::MeshBuffer *meshBuffer;
 	oi::gc::Mesh *mesh, *mesh0;
 	oi::gc::DrawList *drawList;
+	oi::gc::RenderTarget *renderTarget;
+	oi::gc::GBuffer *quadVbo;
+
+	float exposure = 5, gamma = 2.2f;
+	oi::Vec2f prevMouse;
 
 	struct PerObject {
 

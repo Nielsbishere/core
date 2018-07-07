@@ -90,7 +90,13 @@ GraphicsExt &Graphics::getExtension() { return ext; }
 RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
 u32 Graphics::getBuffering() { return buffering; }
 
-Shader *Graphics::create(ShaderInfo info) {
+void Graphics::printObjects() {
+	for (auto a : objects)
+		for (auto b : a.second)
+			Log::println(b->getName() + " (" + b->getTypeName() + ") refCount " + b->refCount);
+}
+
+Shader *Graphics::create(String name, ShaderInfo info) {
 
 	SHFile file;
 
@@ -101,7 +107,7 @@ Shader *Graphics::create(ShaderInfo info) {
 
 	info = oiSH::convert(this, file);
 
-	Shader *s = init<Shader>(info);
+	Shader *s = init<Shader>(name, info);
 
 	for (ShaderStage *ss : s->getInfo().stage)
 		++ss->refCount;
@@ -109,13 +115,13 @@ Shader *Graphics::create(ShaderInfo info) {
 	return s;
 }
 
-ShaderStage *Graphics::create(ShaderStageInfo info) {
+ShaderStage *Graphics::create(String name, ShaderStageInfo info) {
 	info.code = Buffer(info.code.addr(), info.code.size());
-	return init<ShaderStage>(info);
+	return init<ShaderStage>(name, info);
 }
 
 
-Texture *Graphics::create(TextureInfo info) {
+Texture *Graphics::create(String name, TextureInfo info) {
 
 	if (info.path != "") {
 
@@ -143,12 +149,12 @@ Texture *Graphics::create(TextureInfo info) {
 	} else 
 		info.mipLevels = 1U;
 
-	return init<Texture>(info);
+	return init<Texture>(name, info);
 }
 
-RenderTarget *Graphics::create(RenderTargetInfo info) {
+RenderTarget *Graphics::create(String name, RenderTargetInfo info) {
 
-	info.depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
+	info.depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(name + " depth", TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
 
 	std::vector<VersionedTexture*> &textures = info.textures;
 	std::vector<Texture*> vtextures(buffering);
@@ -158,20 +164,17 @@ RenderTarget *Graphics::create(RenderTargetInfo info) {
 
 		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], TextureUsage::Render_target);
 
-		for (u32 i = 0; i < buffering; ++i)
-			++(vtextures[i] = create(texInfo))->refCount;
+		for (u32 j = 0; j < buffering; ++j)
+			++(vtextures[j] = create(name + " target " + i + " version " + j, texInfo))->refCount;
 
-		textures[i] = create(VersionedTextureInfo(vtextures));
+		++(textures[i] = create(name + " target " + i, VersionedTextureInfo(vtextures)))->refCount;
 
 	}
 
-	for (VersionedTexture *t : textures)
-		++t->refCount;
-
-	return init<RenderTarget>(info);
+	return init<RenderTarget>(name, info);
 }
 
-Pipeline *Graphics::create(PipelineInfo info) {
+Pipeline *Graphics::create(String name, PipelineInfo info) {
 
 	++info.shader->refCount;
 
@@ -181,43 +184,43 @@ Pipeline *Graphics::create(PipelineInfo info) {
 	if (info.pipelineState != nullptr)
 		++info.pipelineState->refCount;
 
-	return init<Pipeline>(info);
+	return init<Pipeline>(name, info);
 }
 
-PipelineState *Graphics::create(PipelineStateInfo info) {
-	return init<PipelineState>(info);
+PipelineState *Graphics::create(String name, PipelineStateInfo info) {
+	return init<PipelineState>(name, info);
 }
 
-GBuffer *Graphics::create(GBufferInfo info) {
-	return init<GBuffer>(info);
+GBuffer *Graphics::create(String name, GBufferInfo info) {
+	return init<GBuffer>(name, info);
 }
 
-ShaderBuffer *Graphics::create(ShaderBufferInfo info) {
-	return init<ShaderBuffer>(info);
+ShaderBuffer *Graphics::create(String name, ShaderBufferInfo info) {
+	return init<ShaderBuffer>(name, info);
 }
 
-Sampler *Graphics::create(SamplerInfo info) {
-	return init<Sampler>(info);
+Sampler *Graphics::create(String name, SamplerInfo info) {
+	return init<Sampler>(name, info);
 }
 
-Camera *Graphics::create(CameraInfo info) {
-	return init<Camera>(info);
+Camera *Graphics::create(String name, CameraInfo info) {
+	return init<Camera>(name, info);
 }
 
-MeshBuffer *Graphics::create(MeshBufferInfo info) {
-	return init<MeshBuffer>(info);
+MeshBuffer *Graphics::create(String name, MeshBufferInfo info) {
+	return init<MeshBuffer>(name, info);
 }
 
-Mesh *Graphics::create(MeshInfo info) {
-	return init<Mesh>(info);
+Mesh *Graphics::create(String name, MeshInfo info) {
+	return init<Mesh>(name, info);
 }
 
-DrawList *Graphics::create(DrawListInfo info) {
-	return init<DrawList>(info);
+DrawList *Graphics::create(String name, DrawListInfo info) {
+	return init<DrawList>(name, info);
 }
 
-VersionedTexture *Graphics::create(VersionedTextureInfo info) {
-	return init<VersionedTexture>(info);
+VersionedTexture *Graphics::create(String name, VersionedTextureInfo info) {
+	return init<VersionedTexture>(name, info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

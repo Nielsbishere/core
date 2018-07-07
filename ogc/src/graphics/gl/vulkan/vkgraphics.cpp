@@ -49,7 +49,7 @@ Graphics::~Graphics(){
 
 		for (auto &a : objects)
 			for (u32 i = (u32) a.second.size() - 1; i != u32_MAX; --i) {
-				Log::warn(String("Left over object with hashcode ") + a.first + " #" + i + " and refCount " + a.second[i]->refCount);
+				Log::warn(String("Left over object ") + a.second[i]->getName() + " (" + a.second[i]->getTypeName() + ") #" + i + " and refCount " + a.second[i]->refCount);
 				destroy(a.second[i]);
 			}
 
@@ -462,22 +462,24 @@ void Graphics::initSurface(Window *w) {
 		vkTex.resource = swapchainImages[i];
 		
 		tex->g = this;
+		tex->name = String("Swapchain image ") + i;
+		tex->setHash<Texture>();
 
 		if(!tex->init(false))
 			Log::throwError<Graphics, 0xA>("Couldn't initialize swapchain image view");
 
-		tex->hash = typeid(Texture).hash_code();
-
 		add(tex);
+		use(tex);
 
 	}
 
-	VersionedTexture *vt = create(VersionedTextureInfo(textures));
+	VersionedTexture *vt = create("Swapchain images", VersionedTextureInfo(textures));
 	use(vt);
 
 	//Create depth buffer
 
-	Texture *depthBuffer = create(TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
+	Texture *depthBuffer = create("Swapchain depth", TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
+	use(depthBuffer);
 
 	Log::println("Successfully created image views of the swapchain");
 
@@ -488,13 +490,16 @@ void Graphics::initSurface(Window *w) {
 	info.textures = { vt };
 
 	backBuffer = new RenderTarget(info);
-	backBuffer->g = this;
 
-	if(!backBuffer->init())
+	backBuffer->g = this;
+	backBuffer->setHash<RenderTarget>();
+	backBuffer->name = "Swapchain";
+
+	if(!backBuffer->init(false))
 		Log::throwError<Graphics, 0xC>("Couldn't initialize back buffer (render target)");
 
-	backBuffer->hash = typeid(RenderTarget).hash_code();
 	add(backBuffer);
+	use(backBuffer);
 
 	Log::println("Successfully created back buffer");
 }
@@ -569,17 +574,19 @@ void Graphics::finish() {
 	vkQueueWaitIdle(ext.queue);
 }
 
-CommandList *Graphics::create(CommandListInfo info) {
+CommandList *Graphics::create(String name, CommandListInfo info) {
 
 	CommandList *cl = new CommandList(info);
 
 	cl->getExtension().pool = ext.pool;
 	cl->g = this;
+	cl->setHash<CommandList>();
+	cl->name = name;
 
 	if (!cl->init())
 		Log::throwError<Graphics, 0x15>("Couldn't create command list");
 
-	cl->hash = add(cl);
+	add(cl);
 	return cl;
 }
 

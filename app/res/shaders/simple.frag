@@ -20,5 +20,8 @@ vec4 sample2D(sampler s, texture2D t, vec2 uv){
 }
 
 void main() {
-    outColor = vec4(sample2D(samp, tex, uv).rgb, 1);
+
+	vec3 col = sample2D(samp, tex, uv).rgb;
+	col.r = pow(col.r, 2);
+    outColor = vec4(col, 1);
 }

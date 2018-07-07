@@ -117,8 +117,14 @@ bool MeshBuffer::init() {
 	
 	if (info.maxIndices != 0) {
 		info.indices = new VirtualBlockAllocator(info.maxIndices);
-		info.ibo = g->create(GBufferInfo(GBufferType::IBO, info.maxIndices * 4));
+		info.ibo = g->create(getName() + " ibo", GBufferInfo(GBufferType::IBO, info.maxIndices * 4));
+		g->use(info.ibo);
 	}
+
+	u32 i = 0;
+
+	info.vbos.resize(info.buffers.size());
+	info.vboStrides.resize(info.buffers.size());
 
 	for (auto &buf : info.buffers) {
 
@@ -127,9 +133,11 @@ bool MeshBuffer::init() {
 		for (TextureFormat format : buf)
 			size += Graphics::getFormatSize(format);
 
-		info.vbos.push_back(g->create(GBufferInfo(GBufferType::VBO, info.maxVertices * size)));
-		info.vboStrides.push_back(size);
+		info.vbos[i] = g->create(getName() + " vbo " + i, GBufferInfo(GBufferType::VBO, info.maxVertices * size));
+		info.vboStrides[i] = size;
+		g->use(info.vbos[i]);
 
+		++i;
 	}
 
 	return true;

@@ -30,7 +30,9 @@ setlocal enabledelayedexpansion
 set /a i=0
 set /a j=-1
 
-for %%f in (*.vert *.frag *.comp *.geom) do (
+for /f "eol=: delims=" %%f in (
+  'dir /b /a-d /one *.vert *.frag *.comp *.geom 2^>nul'
+) do (
 
 	rem Compile shader source into spir-v code
 	"%VULKAN_SDK%/Bin/glslangValidator.exe" -V -e main "%%~ff" -o "%%~nf%%~xf.spv"
@@ -42,7 +44,8 @@ for %%f in (*.vert *.frag *.comp *.geom) do (
 	rem Call 'perShader' if the shader name changes
 	
 	if NOT !name!==%%~nf (
-		if defined !name! (
+			
+		if NOT "!name!"=="" (
 			call :perShader !name! !i! !j! !fullname!
 		)
 		

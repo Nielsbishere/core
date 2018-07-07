@@ -16,11 +16,13 @@
 
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
+#include <graphics/versionedtexture.h>
 #include <graphics/sampler.h>
 #include <graphics/camera.h>
 #include <utils/random.h>
 
 #include <input/keyboard.h>
+#include <input/mouse.h>
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -147,22 +149,22 @@ u32 MeshFormatEx::pyramidIndices[] = {
 
 
 ///TODO:
-///Support FBO textures;	FBOTexture inherrits GraphicsObject. FBOTexture is std::vector<Texture*> and every frame has to be updated :(
-///							First transition to rt write and then to shader read after it ended
-///Materials
+///Normalize mouse 0->1 for Android
 ///Multiple descriptor sets
-///Android update project in CMake
+///obj->oiRM and oiRM->obj format
 ///Abstract AssetManager
+///Materials
 ///Allow arrays in registers and buffers
 ///Support runtime shader compilation
 ///Quaternions
 ///Support file reloading
+///Android update project in CMake
 ///Model validation with pipeline
 ///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
-///obj->oiRM and oiRM->obj format
 ///Add matrices to shader buffer
 ///Abstract Entity
-///Figure out why Android is throwing an error when it's rotated (width and height are flipped the wrong way)
+///Figure out why Android is throwing an error when device rotated (width and height are flipped the wrong way)
+///Test oiSH with source files and oish_gen executable before compiling. Also always run post build events
 
 //Set up the interface
 
@@ -174,60 +176,83 @@ void MainInterface::initScene() {
 	getInputManager().load("res/settings/input.json");
 
 	//Setup our shader
-	shader = g.create(ShaderInfo("res/shaders/simple.oiSH"));
+	shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
 	g.use(shader);
 
+	//Setup our post process shader
+	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.oiSH"));
+	g.use(shader0);
+
 	//Setup our pipeline state (with default settings)
-	pipelineState = g.create(PipelineStateInfo());
+	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
 
 	//Allocate 256 Ki of indices and 1.25 MiB of vertices
 	//This will be where we allocate meshes into
-	meshBuffer = g.create(MeshBufferInfo(65536, 65536, MeshFormatEx::vertexData));
+	meshBuffer = g.create("Mesh buffer", MeshBufferInfo(65536, 65536, MeshFormatEx::vertexData));
 	g.use(meshBuffer);
 
 	//Setup our models
 	meshBuffer->open();
 
 		//Setup our cube
-		mesh = g.create(MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::cubeVertices, sizeof(MeshFormatEx::cubeVertices)) }, Buffer::construct((u8*)MeshFormatEx::cubeIndices, sizeof(MeshFormatEx::cubeIndices))));
+		mesh = g.create("Cube", MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::cubeVertices, sizeof(MeshFormatEx::cubeVertices)) }, Buffer::construct((u8*)MeshFormatEx::cubeIndices, sizeof(MeshFormatEx::cubeIndices))));
 		g.use(mesh);
 
-		//Setup our tetrahedron
-		mesh0 = g.create(MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::pyramidVertices, (u32) sizeof(MeshFormatEx::pyramidVertices)) }, Buffer::construct((u8*) MeshFormatEx::pyramidIndices, (u32) sizeof(MeshFormatEx::pyramidIndices))));
+		//Setup our pyramid
+		mesh0 = g.create("Pyramid", MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::pyramidVertices, (u32) sizeof(MeshFormatEx::pyramidVertices)) }, Buffer::construct((u8*) MeshFormatEx::pyramidIndices, (u32) sizeof(MeshFormatEx::pyramidIndices))));
 		g.use(mesh0);
 
 	meshBuffer->close();
 
 	//Setup our drawList
-	drawList = g.create(DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
+	drawList = g.create("Draw list", DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
 	g.use(drawList);
 
 	//Allocate a texture
-	osomi = g.create(TextureInfo("res/textures/osomi.png"));
+	osomi = g.create("osomi", TextureInfo("res/textures/osomi.png"));
 	g.use(osomi);
 
 	//Allocate sampler
-	sampler = g.create(SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
+	sampler = g.create("Default sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
 	g.use(sampler);
 
 	//Set our shader sampler and texture
 	shader->set("samp", sampler);
 	shader->set("tex", osomi);
 
+	//Setup our post-process sampler
+	shader0->set("samp", sampler);
+
 	//Setup our camera
-	camera = g.create(CameraInfo(45.f, Vec3(15, 15, 55), Vec4(0, 0, 0, 1), Vec3(0, 1, 0), 0.1f, 100.f));
+	camera = g.create("Default camera", CameraInfo(45.f, Vec3(15, 15, 55), Vec4(0, 0, 0, 1), Vec3(0, 1, 0), 0.1f, 100.f));
 	g.use(camera);
 
 	//Setup our objects
 	for (u32 i = 0; i < totalObjects; ++i)
 		objects[i].m = Matrixf::makeModel(Random::randomize<3>(0.f, 25.f), Vec3f(Random::randomize<2>(0.f, 360.f)), Vec3f(1.f));
 
+	//Setup post process quad
+	Vec2f quadData[] = {
+
+		{ 1, -1 },
+		{ -1, -1 },
+		{ -1, 1 },
+
+		{ -1, 1 },
+		{ 1, 1 },
+		{ 1, -1 }
+
+	};
+
+	quadVbo = g.create("Quad vbo", GBufferInfo(GBufferType::VBO, (u32) sizeof(quadData), (u8*) quadData));
+	g.use(quadVbo);
+
+	g.printObjects();
+
 }
 
 void MainInterface::renderScene(){
-
-	RenderTarget *rt = g.getBackBuffer();
 
 	//Update per execution shader buffer
 
@@ -238,16 +263,41 @@ void MainInterface::renderScene(){
 	perExecution->set("time", (f32) getRuntime());
 	perExecution->close();
 
-	//Bind fbo and pipeline
+	//Setup post processing settings
+	ShaderBuffer *postProcessing = shader0->get<ShaderBuffer>("PostProcessingSettings");
+
+	postProcessing->open();
+	postProcessing->set("exposure", exposure);
+	postProcessing->set("gamma", gamma);
+	postProcessing->close();
+
+	//Start 'rendering'
 	cmdList->begin();
-	cmdList->begin(rt, Vec4d(0.25, 0.5, 1, 1) * (sin(getDuration()) * 0.5 + 0.5));
-	cmdList->bind(pipeline);
 
-	//Execute draw calls
-	cmdList->draw(drawList);
+	//Render to renderTarget
 
-	//End fbo and cmdList
-	cmdList->end(rt);
+		//Bind fbo and pipeline
+		cmdList->begin(renderTarget, Vec4d(0.25, 0.5, 1, 1) * (sin(getDuration()) * 0.5 + 0.5));
+		cmdList->bind(pipeline);
+
+		//Execute draw calls
+		cmdList->draw(drawList);
+
+		//End rt
+		cmdList->end(renderTarget);
+
+	//Render to backbuffer
+	RenderTarget *backBuffer = g.getBackBuffer();
+
+	cmdList->begin(backBuffer);
+	cmdList->bind(pipeline0);
+
+	//Execute our full screen shader 
+	cmdList->bind({ quadVbo });
+	cmdList->draw(6);
+
+	//End the command list and stop rendering
+	cmdList->end(backBuffer);
 	cmdList->end();
 
 }
@@ -259,16 +309,37 @@ void MainInterface::initSurface(){
 	//Reconstruct pipeline
 
 	if (pipeline != nullptr) {
+
+		g.destroy(renderTarget);
+		renderTarget = nullptr;
+
 		g.destroy(pipeline);
 		pipeline = nullptr;
+
+		g.destroy(pipeline0);
+		pipeline = nullptr;
+
 	}
 
-	if (getParent()->getInfo().getSize() != Vec2u())
-		pipeline = g.create(PipelineInfo(shader, pipelineState, g.getBackBuffer(), camera));
+	Vec2u res = g.getBackBuffer()->getSize();
+
+	if (res.x == 0 || res.y == 0)
+		return;
+
+	renderTarget = g.create("Post processing target", RenderTargetInfo(res, TextureFormat::Depth, { TextureFormat::RGBA16f }));
+	g.use(renderTarget);
+
+	shader0->set("tex", renderTarget->getTarget(0));
+
+	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, camera));
+	g.use(pipeline);
+
+	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), camera));
+	g.use(pipeline0);
 
 	//Reconstruct all VP affected objects
 
-	camera->bind(g.getBackBuffer()->getSize());
+	camera->bind(res);
 
 	for (u32 i = 0; i < totalObjects; ++i)
 		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
@@ -286,14 +357,33 @@ void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
 }
 
 void MainInterface::update(flp dt) {
+
 	WindowInterface::update(dt); 
 
 	if (getParent()->getInputHandler().getKeyboard()->isPressed(Key::F11))
 		getParent()->getInfo().toggleFullScreen();
+
+	Vec2f nextMouse;
+	nextMouse.x = getParent()->getInputHandler().getMouse()->getAxis(MouseAxis::X);
+	nextMouse.y = getParent()->getInputHandler().getMouse()->getAxis(MouseAxis::Y);
+
+	if (getParent()->getInputHandler().getMouse()->isDown(MouseButton::Left)) {
+
+		Vec2f delta = nextMouse - prevMouse;
+
+		exposure += delta.x / 3;
+		gamma += delta.y / 3;
+
+		Log::println(String(gamma) + ", " + exposure);
+
+	}
+
+	prevMouse = nextMouse;
 }
 
 MainInterface::~MainInterface(){
 	g.finish();
+	g.destroy(quadVbo);
 	g.destroy(camera);
 	g.destroy(sampler);
 	g.destroy(osomi);
@@ -301,8 +391,11 @@ MainInterface::~MainInterface(){
 	g.destroy(mesh0);
 	g.destroy(meshBuffer);
 	g.destroy(drawList);
+	g.destroy(renderTarget);
 	g.destroy(pipeline);
+	g.destroy(pipeline0);
 	g.destroy(pipelineState);
 	g.destroy(shader);
+	g.destroy(shader0);
 	g.destroy(cmdList);
 }

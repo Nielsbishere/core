@@ -18,6 +18,7 @@ VersionedTexture *RenderTarget::getTarget(u32 target) {
 }
 
 Vec2u RenderTarget::getSize() { return info.res; }
+bool RenderTarget::isOwned() { return owned; }
 
 RenderTargetExt &RenderTarget::getExtension() { return ext; }
 const RenderTargetInfo RenderTarget::getInfo() { return info; }

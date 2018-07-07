@@ -8,7 +8,7 @@ void GraphicsInterface::init() {
 
 	g.init(getParent());
 
-	cmdList = g.create(CommandListInfo());
+	cmdList = g.create("Default command list", CommandListInfo());
 	g.use(cmdList);
 
 }

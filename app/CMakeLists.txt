@@ -23,4 +23,4 @@ target_link_libraries(app ostlc)
 target_link_libraries(app owc)
 target_link_libraries(app ogc)
 
-add_custom_command(TARGET app PRE_BUILD COMMAND "${HOME_DIR}/compile_shaders")
+add_custom_command(TARGET app COMMAND "${HOME_DIR}/compile_shaders")

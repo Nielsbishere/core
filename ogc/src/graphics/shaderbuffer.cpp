@@ -198,8 +198,10 @@ ShaderBuffer::~ShaderBuffer() {
 
 bool ShaderBuffer::init() {
 
-	if (info.allocate)
-		buffer = g->create(GBufferInfo(info.type.getValue() - 1, info.size));
+	if (info.allocate) {
+		buffer = g->create(getName() + " buffer", GBufferInfo(info.type.getValue() - 1, info.size));
+		g->use(buffer);
+	}
 
 	return true;
 }

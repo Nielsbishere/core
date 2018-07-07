@@ -22,7 +22,12 @@ RenderTarget::~RenderTarget() {
 	g->destroy(info.depth);
 }
 
-bool RenderTarget::init() {
+bool RenderTarget::init(bool isOwned) {
+
+	owned = isOwned;
+
+	if (info.buffering == 0)
+		info.buffering = g->getBuffering();
 
 	VkGraphics &gext = g->getExtension();
 
@@ -125,11 +130,6 @@ bool RenderTarget::init() {
 
 		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
 	}
-
-	for(VersionedTexture *t : info.textures)
-		g->use(t);
-
-	g->use(depth);
 
 	Log::println("Successfully created framebuffers for render target");
 

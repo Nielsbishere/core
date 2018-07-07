@@ -6,7 +6,7 @@
 #include "graphics/gbuffer.h"
 #include "graphics/graphics.h"
 #include "graphics/sampler.h"
-#include "graphics/texture.h"
+#include "graphics/versionedtexture.h"
 #include "graphics/rendertarget.h"
 using namespace oi::gc;
 using namespace oi;
@@ -66,7 +66,7 @@ void Shader::update() {
 			descriptor.descriptorType = ShaderRegisterTypeExt(reg.type.getName()).getValue();
 			descriptor.descriptorCount = 1U;
 
-			bool sameDescriptor = true;
+			bool versioned = false;
 
 			GraphicsResource *res = info.shaderRegister[reg.name];
 			
@@ -119,10 +119,41 @@ void Shader::update() {
 
 				++l;
 
+			} else if (dynamic_cast<VersionedTexture*>(res) != nullptr) {
+
+				if (reg.type != ShaderRegisterType::Texture2D)
+					Log::throwError<Shader, 0x3>("A VersionedTexture has been placed on a register not meant for textures");
+
+				VersionedTexture *tex = (VersionedTexture*)res;
+
+				versioned = true;
+
+				VkDescriptorImageInfo *image = imageInfo.data() + l;
+				descriptor.pImageInfo = image;
+
+				image->imageView = tex->getVersion(0)->getExtension().view;
+				image->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		//TODO: Change for Image
+
+				for (u32 z = 1; z < g->getBuffering(); ++z) {
+
+					VkDescriptorImageInfo *image0 = image + z * images;
+					image0->imageLayout = image->imageLayout;
+					image0->imageView = tex->getVersion(z)->getExtension().view;
+
+					VkWriteDescriptorSet &descriptorz = descriptorSet[i + z * info.registers.size()];
+
+					descriptorz = descriptor;
+					descriptorz.pImageInfo = image0;
+					descriptorz.dstSet = ext.descriptorSet[z];
+
+				}
+
+				++l;
+
 			} else
 				Log::throwError<Shader, 0x4>("Shader mentions an invalid resource");
 
-			if (sameDescriptor) {
+			if (!versioned) {
 
 				for (u32 z = 1; z < g->getBuffering(); ++z) {
 
@@ -138,7 +169,6 @@ void Shader::update() {
 			++i;
 		}
 
-		
 		vkUpdateDescriptorSets(g->getExtension().device, (u32) descriptorSet.size(), descriptorSet.data(), 0, nullptr);
 
 		changed = false;
@@ -272,8 +302,17 @@ bool Shader::init() {
 
 	info.shaderRegister.reserve(info.registers.size());
 
-	for (auto &sb : info.buffer)
-		set(sb.first, sb.second.allocate ? g->create(info.buffer[sb.first]) : nullptr);
+	for (auto &sb : info.buffer) {
+
+		ShaderBuffer *buffer = nullptr;
+
+		if (sb.second.allocate) {
+			buffer = g->create(getName() + " " + sb.first, info.buffer[sb.first]);
+			g->use(buffer);
+		}
+
+		set(sb.first, buffer);
+	}
 
 	changed = true;
 

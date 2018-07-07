@@ -19,7 +19,7 @@ namespace oi {
 			Texture *depth;
 			std::vector<VersionedTexture*> textures;
 
-			RenderTargetInfo(Vec2u res, TextureFormat depth, std::vector<TextureFormat> formats, u32 buffering) : res(res), depthFormat(depth), formats(formats), buffering(buffering), targets((u32) formats.size()) {}
+			RenderTargetInfo(Vec2u res, TextureFormat depth, std::vector<TextureFormat> formats, u32 buffering = 0) : res(res), depthFormat(depth), formats(formats), buffering(buffering), targets((u32) formats.size()) {}
 
 		};
 
@@ -36,6 +36,7 @@ namespace oi {
 			VersionedTexture *getTarget(u32 target);
 
 			Vec2u getSize();
+			bool isOwned();
 
 			RenderTargetExt &getExtension();
 			const RenderTargetInfo getInfo();
@@ -44,9 +45,11 @@ namespace oi {
 
 			~RenderTarget();
 			RenderTarget(RenderTargetInfo info);
-			bool init();
+			bool init(bool isOwned = true);
 
 		private:
+
+			bool owned = true;
 
 			RenderTargetInfo info;
 			RenderTargetExt ext;

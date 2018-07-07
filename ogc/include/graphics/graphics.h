@@ -77,21 +77,21 @@ namespace oi {
 			void end();
 			void finish();
 
-			Texture *create(TextureInfo info);
-			RenderTarget *create(RenderTargetInfo info);
-			CommandList *create(CommandListInfo info);
-			Shader *create(ShaderInfo info);
-			ShaderStage *create(ShaderStageInfo info);
-			Pipeline *create(PipelineInfo info);
-			PipelineState *create(PipelineStateInfo info);
-			GBuffer *create(GBufferInfo info);
-			ShaderBuffer *create(ShaderBufferInfo info);
-			Sampler *create(SamplerInfo info);
-			Camera *create(CameraInfo info);
-			MeshBuffer *create(MeshBufferInfo info);
-			Mesh *create(MeshInfo info);
-			DrawList *create(DrawListInfo info);
-			VersionedTexture *create(VersionedTextureInfo info);
+			Texture *create(String name, TextureInfo info);
+			RenderTarget *create(String name, RenderTargetInfo info);
+			CommandList *create(String name, CommandListInfo info);
+			Shader *create(String name, ShaderInfo info);
+			ShaderStage *create(String name, ShaderStageInfo info);
+			Pipeline *create(String name, PipelineInfo info);
+			PipelineState *create(String name, PipelineStateInfo info);
+			GBuffer *create(String name, GBufferInfo info);
+			ShaderBuffer *create(String name, ShaderBufferInfo info);
+			Sampler *create(String name, SamplerInfo info);
+			Camera *create(String name, CameraInfo info);
+			MeshBuffer *create(String name, MeshBufferInfo info);
+			Mesh *create(String name, MeshInfo info);
+			DrawList *create(String name, DrawListInfo info);
+			VersionedTexture *create(String name, VersionedTextureInfo info);
 
 			GraphicsExt &getExtension();
 
@@ -106,6 +106,7 @@ namespace oi {
 
 			RenderTarget *getBackBuffer();
 			u32 getBuffering();
+			void printObjects();
 
 			bool contains(GraphicsObject *go) const;
 			bool destroy(GraphicsObject *go);
@@ -117,10 +118,10 @@ namespace oi {
 		protected:
 
 			template<typename T>
-			size_t add(T *t);
+			void add(T *t);
 
 			template<typename T, typename TInfo>
-			T *init(TInfo info);
+			T *init(String name, TInfo info);
 
 			bool remove(GraphicsObject *go);
 
@@ -138,7 +139,7 @@ namespace oi {
 		
 
 		template<typename T>
-		size_t Graphics::add(T *t) {
+		void Graphics::add(T *t) {
 
 			static_assert(std::is_base_of<GraphicsObject, T>::value, "Graphics::add is only available to GraphicsObjects");
 
@@ -150,7 +151,6 @@ namespace oi {
 			if (it != o.end()) Log::warn("Graphics::add called on an already existing object");
 			else o.push_back(t);
 
-			return id;
 		}
 
 		template<typename T>
@@ -167,14 +167,18 @@ namespace oi {
 		}
 
 		template<typename T, typename TInfo>
-		T *Graphics::init(TInfo info) {
+		T *Graphics::init(String name, TInfo info) {
+
 			T *t = new T(info);
 			t->g = this;
+
+			t->name = name;
+			t->template setHash<T>();
 
 			if (!t->init())
 				return (T*) Log::throwError<Graphics, 0xB>("Couldn't init GraphicsObject");
 
-			t->hash = add(t);
+			add(t);
 			return t;
 		}
 

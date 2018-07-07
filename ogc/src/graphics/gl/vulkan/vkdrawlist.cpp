@@ -63,7 +63,8 @@ void DrawList::prepareDrawList() {
 }
 
 bool DrawList::createCBO() {
-	return (info.drawBuffer = g->create(GBufferInfo(GBufferType::CBO, getMaxBatches() * u32(info.meshBuffer->getInfo().maxIndices != 0 ? sizeof(VkDrawIndexedIndirectCommand) : sizeof(VkDrawIndirectCommand))))) != nullptr;
+	g->use(info.drawBuffer = g->create(getName() + " CBO", GBufferInfo(GBufferType::CBO, getMaxBatches() * u32(info.meshBuffer->getInfo().maxIndices != 0 ? sizeof(VkDrawIndexedIndirectCommand) : sizeof(VkDrawIndirectCommand)))));
+	return true;
 }
 
 #endif

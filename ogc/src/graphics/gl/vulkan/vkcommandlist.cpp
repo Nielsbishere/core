@@ -76,7 +76,54 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 }
 
 void CommandList::end(RenderTarget *target) {
+
+	//End render pass
 	vkCmdEndRenderPass(ext.cmd);
+
+	if (target->isOwned()) {
+
+		//Transition to shader read
+		//Only if it will be used later (so when it's owned by the user, not our API)
+
+		VkImageMemoryBarrier barrier;
+		memset(&barrier, 0, sizeof(barrier));
+
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.levelCount = 1U;
+		barrier.subresourceRange.layerCount = 1U;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		std::vector<VkImageMemoryBarrier> barriers;
+
+		for (u32 i = 0; i < target->getTargets(); ++i) {
+
+			Texture *tex = target->getTarget(i)->getVersion(g->getExtension().current);
+			barrier.image = tex->getExtension().resource;
+
+			barriers.push_back(barrier);
+
+		}
+
+		Texture *depth = target->getDepth();
+
+		if (depth != nullptr) {
+
+			barrier.image = depth->getExtension().resource;
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+			barriers.push_back(barrier);
+
+		}
+
+		vkCmdPipelineBarrier(ext.cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, (u32) barriers.size(), barriers.data());
+
+	}
+
 }
 
 void CommandList::end() {
@@ -117,7 +164,7 @@ void CommandList::bind(Pipeline *pipeline) {
 		ShaderBuffer *sb = pipeline->getInfo().shader->get<ShaderBuffer>("Camera");
 
 		if (sb == nullptr)
-			Log::throwError<CommandList, 0x5>("Pipeline has camera bound, but there is no Camera buffer.");
+			return;
 
 		sb->set(Buffer::construct((u8*)&cs, (u32) sizeof(cs)));
 

@@ -73,7 +73,7 @@ namespace oi {
 			auto it = info.shaderRegister.find(path);
 
 			if (it == info.shaderRegister.end())
-				return (T*) Log::throwError<Shader, 0x1>(String("Shader::get<T>(") + path + ") failed; invalid path");
+				return nullptr;
 			
 			return dynamic_cast<T*>(it->second);
 
