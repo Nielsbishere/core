@@ -149,7 +149,6 @@ u32 MeshFormatEx::pyramidIndices[] = {
 
 
 ///TODO:
-///Normalize mouse 0->1 for Android
 ///Multiple descriptor sets
 ///obj->oiRM and oiRM->obj format
 ///Abstract AssetManager
@@ -163,7 +162,8 @@ u32 MeshFormatEx::pyramidIndices[] = {
 ///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
 ///Add matrices to shader buffer
 ///Abstract Entity
-///Figure out why Android is throwing an error when device rotated (width and height are flipped the wrong way)
+///Fix around rotation issues. Check APP_CMD_CONFIG_CHANGED, but you can't trust ANativeWindow.
+///Allow HDR textures
 
 //Set up the interface
 
@@ -344,6 +344,8 @@ void MainInterface::initSceneSurface(){
 	drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
 	drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)(objects + totalObjects / 2), (u32) sizeof(objects) / 2));
 	drawList->flush();
+
+	Log::println(res);
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
@@ -373,6 +375,7 @@ void MainInterface::update(flp dt) {
 	}
 
 	prevMouse = nextMouse;
+
 }
 
 MainInterface::~MainInterface(){

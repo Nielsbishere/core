@@ -71,6 +71,8 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 		Vec2u prevSize = win.size;
 		win._forceSize(size);
 
+		win.minimized = IsIconic(hwnd);
+
 		if (size.x != 0 && size.y != 0 && wi != nullptr)
 			wi->onResize(size);
 	}

@@ -25,6 +25,7 @@ void WindowInfo::toggleFullScreen() {
 void WindowInfo::focus() { inFocus = true; notify(WindowAction::IN_FOCUS); }
 
 bool WindowInfo::isInFocus() const { return inFocus; }
+bool WindowInfo::isMinimized() const { return minimized; }
 u32 WindowInfo::getVersion() const { return version; }
 
 void WindowInfo::setParent(Window *w) { parent = w; }

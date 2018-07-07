@@ -387,10 +387,7 @@ void Graphics::initSurface(Window *w) {
 	if (size == Vec2u::max())
 		Log::throwError<Graphics, 0x7>("Size is undefined; this is not supported!");
 
-	if (!w->isRotated())
-		w->getInfo()._forceSize(size);
-	else
-		w->getInfo()._forceSize(size = Vec2u(size.y, size.x));
+	w->getInfo()._forceSize(size);
 
 	Log::println("Successfully created surface");
 	

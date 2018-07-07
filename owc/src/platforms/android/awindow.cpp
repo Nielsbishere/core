@@ -42,7 +42,6 @@ void AWindow::terminate(Window *w){
 		wi->destroySurface();
 
 	w->initialized = false;
-	w->rotated = false;
 }
 
 void AWindow::handleCmd(struct android_app *app, int32_t cmd){
@@ -74,12 +73,20 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 
 			Vec2i pos = Vec2i((i32)rect.left, (i32)rect.top);
 
-			Log::println("Resize?");
-
 			w->getInfo().position = pos;
 
 			if (wi != nullptr)
 				wi->onMove(pos);
+
+			{
+				int32_t width = ANativeWindow_getWidth(app->window);
+				int32_t height = ANativeWindow_getHeight(app->window);
+
+				w->getInfo().size = Vec2u((u32)width, (u32)height);
+			}
+
+			if (wi != nullptr)
+				wi->onResize(w->getInfo().size);
 		}
 		break;
 
@@ -139,11 +146,6 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 
 			if (!w->initialized)
 				initDisplay(w);
-			else 
-				w->rotated = true;
-
-			if (wi != nullptr)
-				wi->onResize(w->getInfo().getSize());
 
 			break;
 
@@ -216,10 +218,10 @@ int32_t AWindow::handleInput(struct android_app *app, AInputEvent *event){
 							wi->onInput(mouse, b, isDown);
 					}
 				
-					mouse->axes[0] = x;
-					mouse->axes[1] = y;
+					mouse->axes[0] = pos.x;
+					mouse->axes[1] = pos.y;
 					mouse->axes[2] = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_VSCROLL, 0);
-					
+
 				} else
 					Log::warn(String("Motion event not supported; ") + source + " " + action + " " + " " + x + " " + y);
 			}

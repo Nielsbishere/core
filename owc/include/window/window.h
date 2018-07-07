@@ -33,7 +33,6 @@ namespace oi {
 			u32 getSurfaceSize();
 
 			bool hasPreviousFrame();
-			bool isRotated();
 
 		protected:
 
@@ -54,7 +53,7 @@ namespace oi {
 			InputHandler inputHandler;
 			InputManager inputManager;
 			WindowInterface *wi = nullptr;
-			bool initialized = false, hasPrevFrame = false, rotated = false;
+			bool initialized = false, hasPrevFrame = false;
 			u32 finalizeCount = 0;
 
 			flp lastTick = (flp) 0;

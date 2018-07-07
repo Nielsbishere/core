@@ -51,7 +51,7 @@ void Window::finalize(){
 
 void Window::update() {
 
-	if(!initialized || info.size.x == 0 || info.size.y == 0 || !info.inFocus){
+	if(!initialized || info.size.x == 0 || info.size.y == 0 || info.isMinimized()){
 		lastTick = Timer::getGlobalTimer().getDuration();
 		hasPrevFrame = false;
 		return;
@@ -76,4 +76,3 @@ void Window::update() {
 }
 
 bool Window::hasPreviousFrame() { return hasPrevFrame; }
-bool Window::isRotated() { return rotated; }

@@ -54,7 +54,7 @@ private:
 	oi::gc::RenderTarget *renderTarget;
 	oi::gc::GBuffer *quadVbo;
 
-	float exposure = 5, gamma = 2.2f;
+	float exposure = .15f, gamma = .85f;
 	oi::Vec2f prevMouse;
 
 	struct PerObject {

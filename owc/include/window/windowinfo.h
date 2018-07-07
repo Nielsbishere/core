@@ -33,6 +33,7 @@ namespace oi {
 			void focus();
 
 			bool isInFocus() const;
+			bool isMinimized() const;
 			u32 getVersion() const;
 
 			void _forceSize(Vec2u size);
@@ -47,7 +48,7 @@ namespace oi {
 			Vec2i position = {};
 			Vec2u size = {};
 			WindowAction pending;
-			bool inFocus, fullScreen = false;
+			bool inFocus, fullScreen = false, minimized = false;
 
 			u32 version;
 			String title;
