@@ -513,6 +513,7 @@ void Graphics::destroySurface() {
 		vkDestroySwapchainKHR(ext.device, ext.swapchain, vkAllocator);
 		vkDestroySurfaceKHR(ext.instance, ext.surface, vkAllocator);
 
+		destroy(backBuffer);
 		ext.swapchain = nullptr;
 
 		Log::println("Successfully destroyed surface");

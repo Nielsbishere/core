@@ -38,7 +38,7 @@ public:
 	void save(oi::String path) override {}
 
 	void update(flp dt) override;
-	void initSurface() override;
+	void initSceneSurface() override;
 
 private:
 	

@@ -53,3 +53,6 @@ CMakeFiles/
 Makefile
 bin/
 app_pc/res/
+ogc/ogc.dir/
+ostlc/ostlc.dir/
+owc/owc.dir/

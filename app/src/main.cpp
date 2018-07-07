@@ -164,7 +164,6 @@ u32 MeshFormatEx::pyramidIndices[] = {
 ///Add matrices to shader buffer
 ///Abstract Entity
 ///Figure out why Android is throwing an error when device rotated (width and height are flipped the wrong way)
-///Test oiSH with source files and oish_gen executable before compiling. Also always run post build events
 
 //Set up the interface
 
@@ -248,8 +247,6 @@ void MainInterface::initScene() {
 	quadVbo = g.create("Quad vbo", GBufferInfo(GBufferType::VBO, (u32) sizeof(quadData), (u8*) quadData));
 	g.use(quadVbo);
 
-	g.printObjects();
-
 }
 
 void MainInterface::renderScene(){
@@ -302,9 +299,7 @@ void MainInterface::renderScene(){
 
 }
 
-void MainInterface::initSurface(){
-
-	GraphicsInterface::initSurface();
+void MainInterface::initSceneSurface(){
 
 	//Reconstruct pipeline
 
@@ -344,8 +339,7 @@ void MainInterface::initSurface(){
 	for (u32 i = 0; i < totalObjects; ++i)
 		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
 
-	//Reconstruct drawlist
-
+	//Setup draws
 	drawList->clear();
 	drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
 	drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)(objects + totalObjects / 2), (u32) sizeof(objects) / 2));

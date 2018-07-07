@@ -22,6 +22,8 @@ void GraphicsInterface::initSurface() {
 		initialized = true;
 	}
 
+	initSceneSurface();
+
 }
 
 void GraphicsInterface::destroySurface() {

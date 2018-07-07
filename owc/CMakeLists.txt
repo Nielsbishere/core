@@ -24,3 +24,8 @@ target_link_libraries(owc Xinput.lib)
 elseif(Android)
 target_link_libraries(owc android egl)
 endif()
+
+if(MSVC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()

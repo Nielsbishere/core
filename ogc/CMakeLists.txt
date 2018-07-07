@@ -20,3 +20,8 @@ target_link_libraries(ogc owc)
 if(Vulkan)
 target_link_libraries(ogc ${VULKAN_LIB})
 endif()
+
+if(MSVC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()

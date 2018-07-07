@@ -21,7 +21,11 @@ target_link_libraries(app_pc owc)
 target_link_libraries(app_pc ogc)
 target_link_libraries(app_pc app)
 
-add_custom_command(TARGET app_pc PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${CMAKE_CURRENT_SOURCE_DIR}/res/")
-add_custom_command(TARGET app_pc PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${HOME_DIR}/app/res" "${CMAKE_BINARY_DIR}/bin/$<CONFIG>/res/")
+set_target_properties(app_pc PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/app")
 
 set_target_properties(app_pc PROPERTIES OUTPUT_NAME "${APP_NAME}")
+
+if(MSVC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()

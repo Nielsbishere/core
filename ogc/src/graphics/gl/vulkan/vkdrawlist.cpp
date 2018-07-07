@@ -9,8 +9,6 @@ using namespace oi;
 
 void DrawList::prepareDrawList() {
 
-	info.drawBuffer->open();
-
 	if (info.meshBuffer->getInfo().maxIndices == 0) {
 
 		VkDrawIndirectCommand *drawCmd = new VkDrawIndirectCommand[getBatches()];
@@ -29,7 +27,7 @@ void DrawList::prepareDrawList() {
 			++ptr;
 		}
 
-		info.drawBuffer->copy(Buffer::construct((u8*) drawCmd, (u32) sizeof(VkDrawIndirectCommand) * getBatches()));
+		info.drawBuffer->set(Buffer::construct((u8*) drawCmd, (u32) sizeof(VkDrawIndirectCommand) * getBatches()));
 
 		delete[] drawCmd;
 
@@ -52,13 +50,11 @@ void DrawList::prepareDrawList() {
 			++ptr;
 		}
 
-		info.drawBuffer->copy(Buffer::construct((u8*)drawCmd, (u32) sizeof(VkDrawIndexedIndirectCommand) * getBatches()));
+		info.drawBuffer->set(Buffer::construct((u8*)drawCmd, (u32) sizeof(VkDrawIndexedIndirectCommand) * getBatches()));
 
 		delete[] drawCmd;
 
 	}
-
-	info.drawBuffer->close();
 
 }
 

@@ -20,9 +20,12 @@ bool GBuffer::set(Buffer buf) {
 
 bool GBuffer::copy(Buffer buf) {
 
+	if (info.size == 0 || info.ptr == nullptr)
+		return Log::error("GBuffer::copy; can't copy to a null buffer. Please unmap first.");
+
 	if (buf.size() > info.size)
 		return Log::error("GBuffer::set please use a buffer that matches the gbuffer's size");
 
-	memcpy(info.ptr, buf.addr(), info.size);
+	memcpy(info.ptr, buf.addr(), buf.size());
 	return true;
 }
