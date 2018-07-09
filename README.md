@@ -65,7 +65,7 @@ someType(_(std::unordered_map<OString, u32>), val, _({ { "Test", 0 }, { "Test2",
 ```
 The above does generate the correct code. Yes, it doesn't look perfect, but at least you can use commas in a macro now.
 ### Standard data types
-OSTLC includes defines for types and handles vectors and colors as well. The following is how you note objects from the OSTLC:
+OSTLC includes defines for types. The following is how you note objects from the OSTLC:
 ```cpp
    //Unsigned integer (u<bits>)
   u32 i = 0U;
