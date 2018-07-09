@@ -10,21 +10,6 @@ struct Application {
 	static void instantiate(oi::wc::WindowHandleExt *param = nullptr);
 };
 
-struct MeshFormatEx {
-
-	oi::Vec3f position;
-	oi::Vec2f uv;
-
-	static MeshFormatEx cubeVertices[];
-	static u32 cubeIndices[];
-
-	static MeshFormatEx pyramidVertices[];
-	static u32 pyramidIndices[];
-
-	static std::vector<std::vector<std::pair<oi::String, oi::gc::TextureFormat>>> vertexData;
-
-};
-
 class MainInterface : public oi::gc::GraphicsInterface {
 
 public:
@@ -49,7 +34,7 @@ private:
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
-	oi::gc::Mesh *mesh, *mesh0, *mesh1;
+	oi::gc::Mesh *mesh, *mesh0;
 	oi::gc::DrawList *drawList;
 	oi::gc::RenderTarget *renderTarget;
 

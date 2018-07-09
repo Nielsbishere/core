@@ -379,7 +379,7 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 	file.size = (u32)(buf.addr() - start.addr());
 	if(buf.size() == 0) file.size = start.size();
 
-	Log::println(String("Successfully loaded oiSH file with version ") + v.getName());
+	Log::println(String("Successfully loaded oiSH file with version ") + v.getName() + " (" + file.size + " bytes)");
 
 	return true;
 }

@@ -10,6 +10,7 @@
 
 #include <graphics/format/oisb.h>
 #include <format/oisl.h>
+#include <graphics/format/oirm.h>
 #include <graphics/shaderbuffer.h>
 #include <graphics/mesh.h>
 #include <graphics/drawlist.h>
@@ -37,119 +38,8 @@ void Application::instantiate(WindowHandleExt *param){
 	wmanager.waitAll();
 }
 
-//Setup MeshFormatEx
-
-std::vector<std::vector<std::pair<String, TextureFormat>>> MeshFormatEx::vertexData = { { { "inPosition", TextureFormat::RGB32f }, { "inUv", TextureFormat::RG32f } } };
-
-//Setup cube data
-
-MeshFormatEx MeshFormatEx::cubeVertices[] = {
-
-	//Bottom
-	{ { -1, -1, 1 }, { 0, 1 } },
-	{ { 1, -1, 1 }, { 1, 1 } },
-	{ { 1, -1, -1 }, { 1, 0 } },
-	{ { -1, -1, -1 }, { 0, 0 } },
-
-	//Top
-	{ { -1, 1, -1 }, { 1, 1 } },
-	{ { 1, 1, -1 }, { 0, 1 } },
-	{ { 1, 1, 1 }, { 0, 0 } },
-	{ { -1, 1, 1 }, { 1, 0 } },
-
-	//Back
-	{ { -1, -1, -1 }, { 1, 0 } },
-	{ { 1, -1, -1 }, { 0, 0 } },
-	{ { 1, 1, -1 }, { 0, 1 } },
-	{ { -1, 1, -1 }, { 1, 1 } },
-
-	//Front
-	{ { -1, 1, 1 }, { 0, 1 } },
-	{ { 1, 1, 1 }, { 1, 1 } },
-	{ { 1, -1, 1 }, { 1, 0 } },
-	{ { -1, -1, 1 }, { 0, 0 } },
-
-	//Left
-	{ { -1, 1, -1 }, { 0, 1 } },
-	{ { -1, 1, 1 }, { 1, 1 } },
-	{ { -1, -1, 1 }, { 1, 0 } },
-	{ { -1, -1, -1 }, { 0, 0 } },
-
-	//Right
-	{ { 1, -1, -1 }, { 1, 0 } },
-	{ { 1, -1, 1 }, { 1, 1 } },
-	{ { 1, 1, 1 }, { 0, 1 } },
-	{ { 1, 1, -1 }, { 0, 0 } }
-
-};
-
-u32 MeshFormatEx::cubeIndices[] = {
-
-	//Bottom
-	0, 1, 2,
-	2, 3, 0,
-
-	//Top
-	4, 5, 6,
-	6, 7, 4,
-
-	//Back
-	8, 9, 10,
-	10, 11, 8,
-
-	//Front
-	12, 13, 14,
-	14, 15, 12,
-
-	//Left
-	16, 17, 18,
-	18, 19, 16,
-
-	//Right
-	20, 21, 22,
-	22, 23, 20
-
-};
-
-//Setup octahedron
-
-MeshFormatEx MeshFormatEx::pyramidVertices[] = {
-
-	{ { -2, -2, -2 }, { 0, 1 } },
-	{ { 2, -2, -2 }, { 1, 1 } },
-	{ { 2, -2, 2 }, { 1, 0 } },
-	{ { -2, -2, 2 }, { 0, 0 } },
-
-	{ { 0, 2, 0 }, { 0.5, 1 } },
-	{ { 0, 2, 0 }, { 0.5, 0 } },
-	{ { 0, 2, 0 }, { 1, 0.5 } },
-	{ { 0, 2, 0 }, { 0, 0.5 } }
-
-};
-
-u32 MeshFormatEx::pyramidIndices[] = {
-
-	//Bottom
-	0, 1, 2,
-	2, 3, 0,
-
-	//Front
-	3, 2, 4,
-
-	//Back
-	0, 1, 5,
-
-	//Left
-	0, 3, 6,
-
-	//Right
-	2, 1, 7
-
-};
-
-
 ///TODO:
-///obj->oiRM and oiRM->obj format
+///Obj and fbx loading
 ///Materials
 ///Allow arrays in registers and buffers
 ///Support runtime shader compilation
@@ -182,44 +72,35 @@ void MainInterface::initScene() {
 	//Setup our pipeline state (with default settings)
 	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
+	 
+	//Setup our cube
+	RMFile file;
+	oiRM::read("res/models/cube.oiRM", file);
+	auto info = oiRM::convert(&g, file);
 
-	//Allocate 256 Ki of indices and 1.25 MiB of vertices
-	//This will be where we allocate meshes into
-	//Setup our models
-	meshBuffer = g.create("Mesh buffer", MeshBufferInfo(65536, 65536, MeshFormatEx::vertexData));
+	meshBuffer = g.create("Mesh buffer", info.first);
 	g.use(meshBuffer);
 	meshBuffer->open();
 
-		//Setup our cube
-		mesh = g.create("Cube", MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::cubeVertices, sizeof(MeshFormatEx::cubeVertices)) }, Buffer::construct((u8*)MeshFormatEx::cubeIndices, sizeof(MeshFormatEx::cubeIndices))));
-		g.use(mesh);
+	info.second.buffer = meshBuffer;
+	mesh = g.create("Cube", info.second);
 
-		//Setup our pyramid
-		mesh0 = g.create("Pyramid", MeshInfo(meshBuffer, { Buffer::construct((u8*)MeshFormatEx::pyramidVertices, (u32) sizeof(MeshFormatEx::pyramidVertices)) }, Buffer::construct((u8*) MeshFormatEx::pyramidIndices, (u32) sizeof(MeshFormatEx::pyramidIndices))));
-		g.use(mesh0);
+	g.use(mesh);
 
 	meshBuffer->close();
 
 	//Setup our quad
-	meshBuffer0 = g.create("Mesh buffer 1", MeshBufferInfo(6, 0, { { { "inPos", TextureFormat::RG32f } } }));
+	oiRM::read("res/models/post_processing_quad.oiRM", file);
+	info = oiRM::convert(&g, file);
+
+	meshBuffer0 = g.create("Mesh buffer 1", info.first);
 	g.use(meshBuffer0);
 	meshBuffer0->open();
 
-		//Setup post process quad
-		Vec2f quadData[] = {
+	info.second.buffer = meshBuffer0;
+	mesh0 = g.create("Quad", info.second);
 
-			{ 1, -1 },
-			{ -1, -1 },
-			{ -1, 1 },
-
-			{ -1, 1 },
-			{ 1, 1 },
-			{ 1, -1 }
-
-		};
-
-		mesh1 = g.create("Quad", MeshInfo(meshBuffer0, { Buffer::construct((u8*)quadData, sizeof(quadData)) }));
-		g.use(mesh1);
+	g.use(mesh0);
 
 	meshBuffer0->close();
 
@@ -291,7 +172,7 @@ void MainInterface::renderScene(){
 		//Execute our post processing shader
 		cmdList->begin(g.getBackBuffer());
 		cmdList->bind(pipeline0);
-		cmdList->draw(mesh1);
+		cmdList->draw(mesh0);
 		cmdList->end(g.getBackBuffer());
 
 	cmdList->end();
@@ -340,8 +221,7 @@ void MainInterface::initSceneSurface(){
 
 	//Setup draws
 	drawList->clear();
-	drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
-	drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)(objects + totalObjects / 2), (u32) sizeof(objects) / 2));
+	drawList->draw(mesh, totalObjects, Buffer::construct((u8*)objects, (u32) sizeof(objects)));
 	drawList->flush();
 
 	Log::println(res);
@@ -384,7 +264,6 @@ MainInterface::~MainInterface(){
 	g.destroy(osomi);
 	g.destroy(mesh);
 	g.destroy(mesh0);
-	g.destroy(mesh1);
 	g.destroy(meshBuffer);
 	g.destroy(meshBuffer0);
 	g.destroy(drawList);

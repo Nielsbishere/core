@@ -8,7 +8,7 @@ namespace oi {
 
 		struct MeshInfo {
 
-			//String origin;
+			u32 vertices, indices;
 
 			MeshBuffer *buffer;
 			std::vector<Buffer> vbo;
@@ -16,8 +16,9 @@ namespace oi {
 
 			MeshAllocation allocation;
 
-			MeshInfo(MeshBuffer *buffer, std::vector<Buffer> vbo, Buffer ibo = {}) : buffer(buffer), vbo(vbo), ibo(ibo) {}
-			MeshInfo() : MeshInfo(nullptr, {}) {}
+			MeshInfo(MeshBuffer *buffer, u32 vertices, u32 indices, std::vector<Buffer> vbo, Buffer ibo = {}) : buffer(buffer), vbo(vbo), ibo(ibo), vertices(vertices), indices(indices) { }
+
+			MeshInfo() : MeshInfo(nullptr, 0, 0, {}) {}
 
 		};
 

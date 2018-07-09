@@ -6,8 +6,24 @@ using namespace oi;
 
 Buffer::Buffer() : data(nullptr), length(0) {}
 Buffer::Buffer(u32 length) : data(new u8[length]), length(length) { }
+Buffer::Buffer(std::vector<u8> arr) : Buffer((u32)arr.size()) { memcpy(addr(), arr.data(), arr.size()); }
 Buffer::Buffer(String ostr) : Buffer((u8*)ostr.toCString(), ostr.size()) {}
 u32 Buffer::size() const { return length; }
+
+Buffer::Buffer(std::vector<std::vector<u8>> dat): Buffer() {
+	
+	for (auto &arr : dat)
+		length += (u32) arr.size();
+
+	data = new u8[length];
+
+	u32 offset = 0;
+	for (auto &arr : dat) {
+		memcpy(addr() + offset, arr.data(), arr.size());
+		offset += (u32) arr.size();
+	}
+
+}
 
 Buffer Buffer::offset(u32 i) const {
 	if (i >= length) return { nullptr, 0 };
@@ -171,4 +187,13 @@ void Buffer::setBit(u32 bitoff, bool value) {
 bool Buffer::getBit(u32 bitoff) {
 	u8 val = data[bitoff / 8];
 	return val & (1U << (bitoff % 8U));
+}
+
+u8 *Buffer::addr() { return data; }
+std::vector<u8> Buffer::toArray() {
+
+	if (size() == 0)
+		return {};
+
+	return { addr(), addr() + size() };
 }

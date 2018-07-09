@@ -105,7 +105,7 @@ end:
 	else
 		file.size = start.size();
 
-	Log::println(String("Successfully loaded oiSL file with version ") + v.getName());
+	Log::println(String("Successfully loaded oiSL file with version ") + v.getName() + " (" + file.size + " bytes)");
 
 	return true;
 }
