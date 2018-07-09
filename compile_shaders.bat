@@ -22,14 +22,18 @@ set /a target1=%t1:~0,8%
 set /a target2=%t0:~8%
 set /a target3=%t1:~8%
 
-if %target0% geq %target1% (
-	if NOT %target2% gtr %target3% (
-		set result=0
-	) else (
+if %target0% equ %target1% (
+	if %target2% gtr %target3% (
 		set result=1
+	) else (
+		set result=0
 	)
 ) else (
-	set result=0
+	if %target0% gtr %target1% (
+		set result=1
+	) else (
+		set result=0
+	)
 )
 
 exit /b

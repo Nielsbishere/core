@@ -33,8 +33,10 @@ void MeshBuffer::close() {
 		buffers[i] = {};
 	}
 
-	info.ibo->close();
-	ibo = {};
+	if (info.ibo != nullptr) {
+		info.ibo->close();
+		ibo = {};
+	}
 
 	isOpen = false;
 
@@ -130,8 +132,8 @@ bool MeshBuffer::init() {
 
 		u32 size = 0;
 
-		for (TextureFormat format : buf)
-			size += Graphics::getFormatSize(format);
+		for (auto elem : buf)
+			size += Graphics::getFormatSize(elem.second);
 
 		info.vbos[i] = g->create(getName() + " vbo " + i, GBufferInfo(GBufferType::VBO, info.maxVertices * size));
 		info.vboStrides[i] = size;

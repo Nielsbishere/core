@@ -71,7 +71,9 @@ void VirtualBlockAllocator::merge(BlockAllocation allocation) {
 u32 VirtualBlockAllocator::size() { return length; }
 
 BlockAllocator::BlockAllocator(Buffer buffer) : VirtualBlockAllocator(buffer.size()), buffer(buffer) { }
-BlockAllocator::~BlockAllocator() { buffer.deconstruct(); }
+BlockAllocator::~BlockAllocator() { 
+	buffer.deconstruct(); 
+}
 
 Buffer BlockAllocator::alloc(u32 size) {
 

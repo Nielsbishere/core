@@ -3,6 +3,7 @@
 #include <memory/blockallocator.h>
 #include "graphics/texture.h"
 #include "graphics/gbuffer.h"
+#include "graphics/graphics.h"
 
 namespace oi {
 
@@ -21,7 +22,9 @@ namespace oi {
 		struct MeshBufferInfo {
 
 			u32 maxVertices, maxIndices;
-			std::vector<std::vector<TextureFormat>> buffers;
+			std::vector<std::vector<std::pair<String, TextureFormat>>> buffers;
+			TopologyMode topologyMode;
+			FillMode fillMode;
 
 			VirtualBlockAllocator *vertices = nullptr, *indices = nullptr;
 			std::vector<u32> vboStrides;
@@ -29,8 +32,8 @@ namespace oi {
 			std::vector<GBuffer*> vbos;
 			GBuffer *ibo = nullptr;
 
-			MeshBufferInfo(u32 maxVertices, u32 maxIndices, std::vector<std::vector<TextureFormat>> vbos) : maxVertices(maxVertices), maxIndices(maxIndices), buffers(vbos) { }
-			MeshBufferInfo() : MeshBufferInfo(0, 0, {}) {}
+			MeshBufferInfo(u32 maxVertices, u32 maxIndices, std::vector<std::vector<std::pair<String, TextureFormat>>> vbos, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : maxVertices(maxVertices), maxIndices(maxIndices), buffers(vbos), topologyMode(topologyMode), fillMode(fillMode) { }
+			MeshBufferInfo() : MeshBufferInfo(0, 0, {}, TopologyMode::Triangle) {}
 
 		};
 

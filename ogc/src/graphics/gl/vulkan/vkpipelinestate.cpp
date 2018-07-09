@@ -18,7 +18,6 @@ bool PipelineState::init() {
 	memset(&assembler, 0, sizeof(assembler));
 
 	assembler.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	assembler.topology = TopologyModeExt(info.topologyMode.getName()).getValue();
 	assembler.primitiveRestartEnable = VK_FALSE;
 
 	//Rasterizer
@@ -27,7 +26,6 @@ bool PipelineState::init() {
 	memset(&rasterizer, 0, sizeof(rasterizer));
 
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizer.polygonMode = FillModeExt(info.fillMode.getName()).getValue();
 	rasterizer.lineWidth = info.lineWidth;
 	rasterizer.cullMode = CullModeExt(info.cullMode.getName()).getValue();
 	rasterizer.frontFace = WindModeExt(info.windMode.getName()).getValue();

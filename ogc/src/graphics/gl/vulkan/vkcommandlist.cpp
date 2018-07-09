@@ -149,6 +149,9 @@ bool CommandList::init() {
 
 void CommandList::bind(Pipeline *pipeline) {
 
+	if(pipeline->getInfo().meshBuffer != nullptr)
+		bind(pipeline->getInfo().meshBuffer);
+
 	VkPipelineBindPoint pipelinePoint = pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
 	vkCmdBindPipeline(ext.cmd, pipelinePoint, pipeline->getExtension());
 
@@ -226,8 +229,6 @@ void CommandList::flush() {
 }
 
 void CommandList::draw(DrawList *drawList) {
-
-	bind(drawList->getInfo().meshBuffer);
 
 	if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
 		vkCmdDrawIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), (u32) sizeof(VkDrawIndirectCommand));

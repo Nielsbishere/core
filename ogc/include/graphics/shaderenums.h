@@ -12,26 +12,13 @@ namespace oi {
 		class ShaderStage;
 		class GBuffer;
 
-		struct ShaderVBSection {
-
-			u32 stride;
-			bool perInstance;
-
-			ShaderVBSection(u32 stride, bool perInstance = false) : stride(stride), perInstance(perInstance) {}
-			ShaderVBSection() : ShaderVBSection(0) {}
-
-		};
-
 		struct ShaderVBVar {
 
-			u32 buffer, offset;
 			TextureFormat type;
 			String name;
 
-			ShaderVBVar(u32 buffer, u32 offset, TextureFormat type, String name) : buffer(buffer), offset(offset), type(type), name(name) {}
-			ShaderVBVar() : ShaderVBVar(0, 0, 0, "") {}
-
-			bool operator<(const ShaderVBVar &other) const { return buffer < other.buffer || (buffer == other.buffer && offset < other.offset); }
+			ShaderVBVar(TextureFormat type, String name) : type(type), name(name) {}
+			ShaderVBVar() : ShaderVBVar(0, "") {}
 
 		};
 

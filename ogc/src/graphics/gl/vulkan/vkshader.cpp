@@ -188,26 +188,6 @@ bool Shader::init() {
 	for (u32 i = 0; i < (u32) ext.stage.size(); ++i)
 		ext.stage[i] = &info.stage[i]->getExtension();
 
-	//Set up bindings and attributes
-
-	VkPipelineVertexInputStateCreateInfo &inputInfo = ext.vertexInput;
-	memset(&inputInfo, 0, sizeof(inputInfo));
-
-	auto &binding = ext.inputBuffer = std::vector<VkVertexInputBindingDescription>(info.section.size());
-	auto &attribute = ext.inputAttribute = std::vector<VkVertexInputAttributeDescription>(info.var.size());
-	
-	for (u32 i = 0; i < binding.size(); ++i)
-		binding[i] = { i, info.section[i].stride, info.section[i].perInstance ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX };
-
-	for (u32 i = 0; i < attribute.size(); ++i)
-		attribute[i] = { i, info.var[i].buffer, TextureFormatExt(info.var[i].type.getName()).getValue(), info.var[i].offset };
-
-	inputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	inputInfo.vertexBindingDescriptionCount = (u32) binding.size();
-	inputInfo.pVertexBindingDescriptions = binding.data();
-	inputInfo.vertexAttributeDescriptionCount = (u32) attribute.size();
-	inputInfo.pVertexAttributeDescriptions = attribute.data();
-
 	//Set up descriptors
 
 	std::vector<VkDescriptorSetLayoutBinding> descriptorSet(info.registers.size());

@@ -18,7 +18,6 @@ namespace oi {
 			std::vector<ShaderStage*> stage;
 			std::vector<ShaderStageInfo> stages;
 
-			std::vector<ShaderVBSection> section;
 			std::vector<ShaderVBVar> var;
 			std::vector<ShaderOutput> output;
 			std::vector<ShaderRegister> registers;

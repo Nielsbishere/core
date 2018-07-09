@@ -135,7 +135,7 @@ Texture *Graphics::create(String name, TextureInfo info) {
 
 		int width, height, comp;
 
-		int perChannel = (int) info.loadFormat.getValue();
+		int perChannel = (int) (info.loadFormat.getValue() - 1) % 4 + 1;
 
 		//Convert data to image info
 

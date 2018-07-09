@@ -39,7 +39,7 @@ void Application::instantiate(WindowHandleExt *param){
 
 //Setup MeshFormatEx
 
-std::vector<std::vector<TextureFormat>> MeshFormatEx::vertexData = { { TextureFormat::RGB32f, TextureFormat::RG32f } };
+std::vector<std::vector<std::pair<String, TextureFormat>>> MeshFormatEx::vertexData = { { { "inPosition", TextureFormat::RGB32f }, { "inUv", TextureFormat::RG32f } } };
 
 //Setup cube data
 
@@ -149,21 +149,18 @@ u32 MeshFormatEx::pyramidIndices[] = {
 
 
 ///TODO:
-///Multiple descriptor sets
 ///obj->oiRM and oiRM->obj format
-///Abstract AssetManager
 ///Materials
 ///Allow arrays in registers and buffers
 ///Support runtime shader compilation
-///Quaternions
-///Support file reloading
-///Android update project in CMake
-///Model validation with pipeline
 ///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
-///Add matrices to shader buffer
+///Abstract AssetManager
+///Support file reloading
+///Quaternions
+///Android update project in CMake
 ///Abstract Entity
 ///Fix around rotation issues. Check APP_CMD_CONFIG_CHANGED, but you can't trust ANativeWindow.
-///Allow HDR textures
+///Add matrices to shader buffer
 
 //Set up the interface
 
@@ -188,10 +185,9 @@ void MainInterface::initScene() {
 
 	//Allocate 256 Ki of indices and 1.25 MiB of vertices
 	//This will be where we allocate meshes into
+	//Setup our models
 	meshBuffer = g.create("Mesh buffer", MeshBufferInfo(65536, 65536, MeshFormatEx::vertexData));
 	g.use(meshBuffer);
-
-	//Setup our models
 	meshBuffer->open();
 
 		//Setup our cube
@@ -203,6 +199,29 @@ void MainInterface::initScene() {
 		g.use(mesh0);
 
 	meshBuffer->close();
+
+	//Setup our quad
+	meshBuffer0 = g.create("Mesh buffer 1", MeshBufferInfo(6, 0, { { { "inPos", TextureFormat::RG32f } } }));
+	g.use(meshBuffer0);
+	meshBuffer0->open();
+
+		//Setup post process quad
+		Vec2f quadData[] = {
+
+			{ 1, -1 },
+			{ -1, -1 },
+			{ -1, 1 },
+
+			{ -1, 1 },
+			{ 1, 1 },
+			{ 1, -1 }
+
+		};
+
+		mesh1 = g.create("Quad", MeshInfo(meshBuffer0, { Buffer::construct((u8*)quadData, sizeof(quadData)) }));
+		g.use(mesh1);
+
+	meshBuffer0->close();
 
 	//Setup our drawList
 	drawList = g.create("Draw list", DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
@@ -230,22 +249,6 @@ void MainInterface::initScene() {
 	//Setup our objects
 	for (u32 i = 0; i < totalObjects; ++i)
 		objects[i].m = Matrixf::makeModel(Random::randomize<3>(0.f, 25.f), Vec3f(Random::randomize<2>(0.f, 360.f)), Vec3f(1.f));
-
-	//Setup post process quad
-	Vec2f quadData[] = {
-
-		{ 1, -1 },
-		{ -1, -1 },
-		{ -1, 1 },
-
-		{ -1, 1 },
-		{ 1, 1 },
-		{ 1, -1 }
-
-	};
-
-	quadVbo = g.create("Quad vbo", GBufferInfo(GBufferType::VBO, (u32) sizeof(quadData), (u8*) quadData));
-	g.use(quadVbo);
 
 }
 
@@ -284,17 +287,13 @@ void MainInterface::renderScene(){
 		cmdList->end(renderTarget);
 
 	//Render to backbuffer
-	RenderTarget *backBuffer = g.getBackBuffer();
 
-	cmdList->begin(backBuffer);
-	cmdList->bind(pipeline0);
+		//Execute our post processing shader
+		cmdList->begin(g.getBackBuffer());
+		cmdList->bind(pipeline0);
+		cmdList->draw(mesh1);
+		cmdList->end(g.getBackBuffer());
 
-	//Execute our full screen shader 
-	cmdList->bind({ quadVbo });
-	cmdList->draw(6);
-
-	//End the command list and stop rendering
-	cmdList->end(backBuffer);
 	cmdList->end();
 
 }
@@ -326,10 +325,10 @@ void MainInterface::initSceneSurface(){
 
 	shader0->set("tex", renderTarget->getTarget(0));
 
-	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, camera));
+	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, meshBuffer, camera));
 	g.use(pipeline);
 
-	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), camera));
+	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0, camera));
 	g.use(pipeline0);
 
 	//Reconstruct all VP affected objects
@@ -380,13 +379,14 @@ void MainInterface::update(flp dt) {
 
 MainInterface::~MainInterface(){
 	g.finish();
-	g.destroy(quadVbo);
 	g.destroy(camera);
 	g.destroy(sampler);
 	g.destroy(osomi);
 	g.destroy(mesh);
 	g.destroy(mesh0);
+	g.destroy(mesh1);
 	g.destroy(meshBuffer);
+	g.destroy(meshBuffer0);
 	g.destroy(drawList);
 	g.destroy(renderTarget);
 	g.destroy(pipeline);

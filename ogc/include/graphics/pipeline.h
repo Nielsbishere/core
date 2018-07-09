@@ -11,6 +11,7 @@ namespace oi {
 		class PipelineState;
 		class RenderTarget;
 		class Camera;
+		class MeshBuffer;
 
 		struct PipelineInfo {
 
@@ -18,12 +19,13 @@ namespace oi {
 			PipelineState *pipelineState;
 			RenderTarget *renderTarget;
 			Camera *camera;
+			MeshBuffer *meshBuffer;
 
 			//Graphics pipeline
-			PipelineInfo(Shader *shader, PipelineState *pipelineState, RenderTarget *renderTarget, Camera *camera) : shader(shader), pipelineState(pipelineState), renderTarget(renderTarget), camera(camera) {}
+			PipelineInfo(Shader *shader, PipelineState *pipelineState, RenderTarget *renderTarget, MeshBuffer *meshBuffer, Camera *camera) : shader(shader), pipelineState(pipelineState), renderTarget(renderTarget), camera(camera), meshBuffer(meshBuffer) {}
 
 			//Compute pipeline
-			PipelineInfo(Shader *shader) : PipelineInfo(shader, nullptr, nullptr, nullptr) {}
+			PipelineInfo(Shader *shader) : PipelineInfo(shader, nullptr, nullptr, nullptr, nullptr) {}
 
 		};
 

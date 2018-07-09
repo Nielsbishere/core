@@ -71,9 +71,6 @@ namespace oi {
 		struct VkShader {
 
 			std::vector<VkShaderStage*> stage;
-			VkPipelineVertexInputStateCreateInfo vertexInput{};
-			std::vector<VkVertexInputBindingDescription> inputBuffer;
-			std::vector<VkVertexInputAttributeDescription> inputAttribute;
 
 			VkPipelineLayout layout = nullptr;
 			VkDescriptorSetLayout setLayout = nullptr;

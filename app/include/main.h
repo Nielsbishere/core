@@ -21,7 +21,7 @@ struct MeshFormatEx {
 	static MeshFormatEx pyramidVertices[];
 	static u32 pyramidIndices[];
 
-	static std::vector<std::vector<oi::gc::TextureFormat>> vertexData;
+	static std::vector<std::vector<std::pair<oi::String, oi::gc::TextureFormat>>> vertexData;
 
 };
 
@@ -48,11 +48,10 @@ private:
 	oi::gc::Texture *osomi;
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
-	oi::gc::MeshBuffer *meshBuffer;
-	oi::gc::Mesh *mesh, *mesh0;
+	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
+	oi::gc::Mesh *mesh, *mesh0, *mesh1;
 	oi::gc::DrawList *drawList;
 	oi::gc::RenderTarget *renderTarget;
-	oi::gc::GBuffer *quadVbo;
 
 	float exposure = .15f, gamma = .85f;
 	oi::Vec2f prevMouse;

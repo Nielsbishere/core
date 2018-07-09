@@ -4,6 +4,7 @@
 #include "graphics/shaderstage.h"
 #include "graphics/rendertarget.h"
 #include "graphics/versionedtexture.h"
+#include "graphics/meshbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -19,7 +20,7 @@ Pipeline::~Pipeline() {
 bool Pipeline::init() {
 
 	if (info.shader == nullptr)
-		Log::throwError<Pipeline, 0x2>("Pipeline requires a shader");
+		return Log::throwError<Pipeline, 0x2>("Pipeline requires a shader");
 
 	GraphicsExt &gext = g->getExtension();
 
@@ -31,8 +32,8 @@ bool Pipeline::init() {
 
 	if (info.shader->getInfo().stage.size() > 1) {
 
-		if (info.renderTarget == nullptr || info.pipelineState == nullptr)
-			Log::throwError<Pipeline, 0x3>("Graphics pipeline requires a render target and/or pipeline state");
+		if (info.renderTarget == nullptr || info.pipelineState == nullptr || info.meshBuffer == nullptr)
+			return Log::throwError<Pipeline, 0x3>("Graphics pipeline requires a render target, pipeline state and mesh buffer");
 
 		//Init viewport and scissor
 
@@ -70,17 +71,88 @@ bool Pipeline::init() {
 		pipelineInfo.stageCount = (u32)stage.size();
 		pipelineInfo.pStages = stage.data();
 		pipelineInfo.layout = shext.layout;
-		pipelineInfo.pVertexInputState = &shext.vertexInput;
 
 		//PipelineState
 
 		PipelineStateExt &psext = info.pipelineState->getExtension();
+		
+		VkPipelineRasterizationStateCreateInfo rasterizer = psext.rasterizer;
+		VkPipelineInputAssemblyStateCreateInfo assembler = psext.assembler;
 
-		pipelineInfo.pInputAssemblyState = &psext.assembler;
-		pipelineInfo.pRasterizationState = &psext.rasterizer;
+		rasterizer.polygonMode = FillModeExt(info.meshBuffer->getInfo().fillMode.getName()).getValue();
+		assembler.topology = TopologyModeExt(info.meshBuffer->getInfo().topologyMode.getName()).getValue();
+
+		pipelineInfo.pInputAssemblyState = &assembler;
+		pipelineInfo.pRasterizationState = &rasterizer;
 		pipelineInfo.pMultisampleState = &psext.multiSample;
 		pipelineInfo.pDepthStencilState = &psext.depthStencil;
 		pipelineInfo.pColorBlendState = &psext.blending;
+
+		//MeshBuffer
+		//Set up bindings and attributes
+
+		const MeshBufferInfo meshBuffer = info.meshBuffer->getInfo();
+
+		VkPipelineVertexInputStateCreateInfo inputInfo;
+		memset(&inputInfo, 0, sizeof(inputInfo));
+
+		u32 attributes = 0;
+
+		for (auto &elem : meshBuffer.buffers)
+			attributes += (u32) elem.size();
+
+		auto binding = std::vector<VkVertexInputBindingDescription>(meshBuffer.buffers.size());
+		auto attribute = std::vector<VkVertexInputAttributeDescription>(attributes);
+		memset(attribute.data(), 0, sizeof(VkVertexInputAttributeDescription) * attribute.size());
+
+		u32 i = 0;
+
+		const ShaderInfo shinfo = info.shader->getInfo();
+
+		for (auto &elem : meshBuffer.buffers) {
+
+			binding[i] = { i, meshBuffer.vboStrides[i], VK_VERTEX_INPUT_RATE_VERTEX };
+
+			u32 offset = 0;
+
+			for (auto elem0 : elem) {
+
+				String name = elem0.first;
+				TextureFormat format = elem0.second;
+
+				u32 j = 0;
+
+				for (ShaderVBVar var : shinfo.var)
+					if (var.name == name) {
+
+						if (!Graphics::isCompatible(var.type, format))
+							return Log::throwError<PipelineExt, 0x1>(String("Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; ") + info.shader->getName() + "'s " + var.name + " and " + info.meshBuffer->getName() + "'s " + name);
+
+						break;
+					}
+					else ++j;
+
+				if(j == (u32) shinfo.var.size())
+					return Log::throwError<PipelineExt, 0x0>(String("Couldn't create pipeline; no match found in shader input from vertex input; ") + name);
+
+				if(attribute[j].format != 0)
+					return Log::throwError<PipelineExt, 0x0>(String("Couldn't create pipeline; vertex input (") + name + ") is already set. Don't use duplicate vertex inputs");
+
+				attribute[j] = { j, i, TextureFormatExt(format.getName()).getValue(), offset };
+
+				offset += Graphics::getFormatSize(format);
+
+			}
+
+			++i;
+		}
+
+		inputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		inputInfo.vertexBindingDescriptionCount = (u32)binding.size();
+		inputInfo.pVertexBindingDescriptions = binding.data();
+		inputInfo.vertexAttributeDescriptionCount = (u32)attribute.size();
+		inputInfo.pVertexAttributeDescriptions = attribute.data();
+		pipelineInfo.pVertexInputState = &inputInfo;
 
 		//RenderTarget
 

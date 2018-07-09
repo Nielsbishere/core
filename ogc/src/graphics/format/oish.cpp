@@ -121,21 +121,6 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 	}
 
-	//Convert vb sections
-
-	output.ibuffer.resize(info.section.size());
-
-	for (u32 i = 0; i < (u32)info.section.size(); ++i) {
-
-		ShaderVBSection &sec = info.section[i];
-
-		output.ibuffer[i] = {
-			(u8)sec.perInstance,
-			(u16)sec.stride
-		};
-
-	}
-
 	//Convert outputs
 
 	output.outputs.resize(info.output.size());
@@ -163,7 +148,6 @@ SHFile oiSH::convert(ShaderInfo info) {
 		ShaderVBVar &var = info.var[i];
 
 		output.ivar[i] = {
-			(u8) var.buffer,
 			(u8) var.type.getValue(),
 			(u16) output.stringlist.names.size()
 		};
@@ -201,7 +185,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 		(u8)SHHeaderVersion::v0_0_1,
 		(u8)shaderFlag,
 		(u8)info.stages.size(),
-		(u8)info.section.size(),
+		(u8) 0,
 
 		(u8)info.var.size(),
 		(u8)info.buffer.size(),
@@ -237,23 +221,15 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 	}
 
 	//Vertex inputs
-
-	std::vector<ShaderVBSection> &buf = info.section = std::vector<ShaderVBSection>(file.ibuffer.size());
+	
 	std::vector<ShaderVBVar> &var = info.var = std::vector<ShaderVBVar>(file.ivar.size());
-	std::vector<u32> offsets(buf.size());
-
-	for (u32 i = 0; i < (u32)buf.size(); ++i) {
-		SHInputBuffer &b = file.ibuffer[i];
-		buf[i] = ShaderVBSection(b.size, (bool)b.type);
-	}
 
 	for (u32 i = 0; i < (u32)var.size(); ++i) {
 
 		SHInputVar &v = file.ivar[i];
 		TextureFormat format = TextureFormat(v.type);
 
-		var[i] = ShaderVBVar(v.buffer, offsets[v.buffer], format, file.stringlist.names[v.nameIndex]);
-		offsets[v.buffer] += g->getFormatSize(format);
+		var[i] = ShaderVBVar(format, file.stringlist.names[v.nameIndex]);
 
 	}
 
@@ -357,19 +333,15 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 	{
 
 		u32 stages = (u32)(header.shaders * sizeof(SHStage));
-		u32 ibuffers = (u32)(header.inputBuffers * sizeof(SHInputBuffer));
 		u32 ivars = (u32)(header.inputAttributes * sizeof(SHInputVar));
 		u32 registers = (u32)(header.registers * sizeof(SHRegister));
 		u32 outputs = (u32)(header.outputs * sizeof(SHOutput));
 
-		if (buf.size() < stages + ibuffers + ivars + registers + outputs)
+		if (buf.size() < stages + ivars + registers + outputs)
 			return Log::error("Invalid oiSH file; too small");
 
 		file.stage.assign((SHStage*)buf.addr(), (SHStage*)(buf.addr() + stages));
 		buf = buf.offset(stages);
-
-		file.ibuffer.assign((SHInputBuffer*)buf.addr(), (SHInputBuffer*)(buf.addr() + ibuffers));
-		buf = buf.offset(ibuffers);
 
 		file.ivar.assign((SHInputVar*)buf.addr(), (SHInputVar*)(buf.addr() + ivars));
 		buf = buf.offset(ivars);
@@ -417,7 +389,6 @@ Buffer oiSH::write(SHFile &file) {
 	SHHeader &header = file.header;
 
 	u32 stages = (u32)(header.shaders * sizeof(SHStage));
-	u32 ibuffers = (u32)(header.inputBuffers * sizeof(SHInputBuffer));
 	u32 ivars = (u32)(header.inputAttributes * sizeof(SHInputVar));
 	u32 registers = (u32)(header.registers * sizeof(SHRegister));
 	u32 outputs = (u32)(header.outputs * sizeof(SHOutput));
@@ -432,7 +403,7 @@ Buffer oiSH::write(SHFile &file) {
 		bufferSize += file.buffers[i].size;
 	}
 
-	file.size = (u32) sizeof(header) + stages + ibuffers + ivars + registers + outputs + header.codeSize + file.stringlist.size + bufferSize;
+	file.size = (u32) sizeof(header) + stages + ivars + registers + outputs + header.codeSize + file.stringlist.size + bufferSize;
 
 	Buffer output(file.size);
 	Buffer write = output;
@@ -442,9 +413,6 @@ Buffer oiSH::write(SHFile &file) {
 
 	memcpy(write.addr(), file.stage.data(), stages);
 	write = write.offset(stages);
-
-	memcpy(write.addr(), file.ibuffer.data(), ibuffers);
-	write = write.offset(ibuffers);
 
 	memcpy(write.addr(), file.ivar.data(), ivars);
 	write = write.offset(ivars);

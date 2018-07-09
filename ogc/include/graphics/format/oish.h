@@ -28,7 +28,7 @@ namespace oi {
 			u8 version;			//SHHeaderVersion_s
 			u8 type;			//SHStageTypeFlag
 			u8 shaders;
-			u8 inputBuffers;
+			u8 p0;
 
 			u8 inputAttributes;
 			u8 buffers;
@@ -36,7 +36,7 @@ namespace oi {
 			u8 registers;
 
 			u16 codeSize;
-			u16 padding;
+			u16 p1;
 
 		};
 
@@ -59,25 +59,14 @@ namespace oi {
 			INSTANCE = 1
 		};
 
-		struct SHInputBuffer {
-
-			u8 padding;
-			u8 type;			//SHInputBufferType
-			u16 size;
-
-			SHInputBuffer(u8 type, u16 size) : type(type), size(size), padding(0) {}
-			SHInputBuffer() : SHInputBuffer(0, 0) {}
-
-		};
-
 		struct SHInputVar {
 
 			u16 nameIndex;
-			u8 buffer;
+			u8 padding = 0;
 			u8 type;			//TextureFormat
 
-			SHInputVar(u8 buffer, u8 type, u16 nameIndex) : type(type), buffer(buffer), nameIndex(nameIndex) {}
-			SHInputVar() : SHInputVar(0, 0, 0) {}
+			SHInputVar(u8 type, u16 nameIndex) : type(type), nameIndex(nameIndex) {}
+			SHInputVar() : SHInputVar(0, 0) {}
 		};
 
 		enum class SHRegisterType : u8 {
@@ -118,7 +107,6 @@ namespace oi {
 
 			SHHeader header;
 			std::vector<SHStage> stage;
-			std::vector<SHInputBuffer> ibuffer;
 			std::vector<SHInputVar> ivar;
 			std::vector<SHRegister> registers;
 			std::vector<SHOutput> outputs;
@@ -128,8 +116,8 @@ namespace oi {
 
 			u32 size;
 
-			SHFile(std::vector<SHStage> stage, std::vector<SHInputBuffer> ibuffer, std::vector<SHInputVar> ivar, std::vector<SHRegister> registers, std::vector<SHOutput> outputs, SLFile stringlist, std::vector<SBFile> buffers, std::vector<u8> bytecode) : stage(stage), ibuffer(ibuffer), ivar(ivar), registers(registers), outputs(outputs), stringlist(stringlist), buffers(buffers), bytecode(bytecode) {}
-			SHFile() : SHFile({}, {}, {}, {}, {}, {}, {}, {}) {}
+			SHFile(std::vector<SHStage> stage, std::vector<SHInputVar> ivar, std::vector<SHRegister> registers, std::vector<SHOutput> outputs, SLFile stringlist, std::vector<SBFile> buffers, std::vector<u8> bytecode) : stage(stage), ivar(ivar), registers(registers), outputs(outputs), stringlist(stringlist), buffers(buffers), bytecode(bytecode) {}
+			SHFile() : SHFile({}, {}, {}, {}, {}, {}, {}) {}
 
 		};
 
