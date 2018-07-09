@@ -122,9 +122,11 @@ Not exclusive to Java, but Java has very nice enums. They are compile time value
 Structured enums only allow basic constexpr data types. They do allow you to add custom functions or constructors; but they should be pure constexpr structs (so no calling non-constexpr constructors and no overriding the = operator). This is because of limitations and because it should be a compile time constant.
 All values have to be declared; so no assuming it will increment the last int, because enums aren't always ints anymore.
 #### Defining an enum
-Defining a data enum (integer/float) is easy; just use the following (include Template/Enum.h)
+Defining a data enum (integer/float) is easy; just use the following (include template/enum.h)
 ```cpp
-  DEnum(Name, u32, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);
+  DEnum(Name, u32, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);	//Define a data type (must be constexpr)
+  UEnum(Name, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);		//An unsigned integer enum
+  IEnum(Name, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);		//An integer enum
 ```
 Creating your own (structured) enum can be done using the following;
 ```cpp
