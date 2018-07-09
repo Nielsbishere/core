@@ -1,15 +1,40 @@
-# OCore (Osomi Core
+# OCore (Osomi Core)
 Osomi Core - A basic template library for (graphic) engines
 ## Building using CMake
 This project uses CMake and a few tools to help the user setup their environment.
 ### Cleaning & Reloading project
 The user can run the 'clean' script to either regenerate or get rid of all generated cmake files. Clean without arguments gets rid of them, and with arguments runs reload. Reload either reloads the project or reinstalls it, depending on if it has been run before.
-### The template project system
-We use a sort of template system; you specify a template you want to use and it copies the template and replaces all occurences of [PROJECT_NAME] by the project name you entered; if those files contain the extension ".child", afterwards those files will get renamed to their original name. If the file name contains [PROJECT_NAME] it will also be replaced.
+```bat
+# Clean the CMake and generated files
+clean.bat
+# Clean the project and make it as a MinGW Makefiles project
+clean.bat "MinGW Makefiles"
+# Reload the project
+reload.bat
 ```
-addproject myapp android
+### Building for Android
+If you have developer mode enabled on your Android device and have the Android NDK version that supports the 'android update' command, you can build it as long as the environment variables are set correctly. You can create the MinGW makefile by using 'make_android.bat' (if the project is clean) and turn it into a .apk and run it by using 'run_android.bat'.
+```bat
+# Setup an Android CMake project; with default settings (API level 24, arm64-v8a architecture and windows-x86_64 environment)
+make_android.bat
+# Setup an Android CMake project; with custom settings (but same as before)
+make_android.bat windows-x86_64 arm64-v8a 24
+# Run android (requires connected device with developer settings)
+run_android.bat
 ```
-The code above can be ran through your terminal and it will use the android template to generate the 'myapp' project.
+### Building for Windows
+'make_pc.bat' creates a Visual Studio project, which means you need Visual Studio. If you don't want to use Visual Studio, you can specify a different generator.
+```bat
+# Setup a Visual Studio 15 x86_64 project
+make_pc.bat
+# Explicitly set the generator
+make_pc.bat "Visual Studio 15 2017 Win64"
+```
+### Compiling shaders
+Normally, this is done automatically when you compile your project. However, if you don't want to recompile or can't, you can still convert the shaders to oiSH (Osomi SHader) file format.
+```bat
+compile_shaders.bat
+```
 ## OSTLC (Osomi Standard Template Library Core)
 ### Underscore 'operator'/macro
 Underscore has a specific use in OSTLC; it is a 'function' that escapes commas so they can be used in other macros. The reason for this is because C++ macros use a comma as a split character, therefore not allowing you to input any commas into a macro. This does however mean that the syntax will look different, but it is worth it, seeing all of the benefits from it:
@@ -40,7 +65,7 @@ someType(_(std::unordered_map<OString, u32>), val, _({ { "Test", 0 }, { "Test2",
 ```
 The above does generate the correct code. Yes, it doesn't look perfect, but at least you can use commas in a macro now.
 ### Standard data types
-OSTLC includes defines for types and handles vectors and colors as well. The following is how you note objects from the OSTLC:
+OSTLC includes defines for types. The following is how you note objects from the OSTLC:
 ```cpp
    //Unsigned integer (u<bits>)
   u32 i = 0U;
@@ -51,8 +76,19 @@ OSTLC includes defines for types and handles vectors and colors as well. The fol
   //Floating point (f<bits>)
   f32 f = 0.f;
   
-  //String
-  OString someValue = "Test";
+  //Buffer
+  //A wrapper around void* and size_t (u8*, u32) that makes data management easier
+  Buffer empty(1024);	//Allocate 1024
+  Buffer emptyCpy = Buffer::construct(empty.addr(), empty.size());	//Construct a buffer from existing data
+  //Don't deallocate emptyCpy, since it is a copy
+  empty.deconstruct();	//Deallocate 1024
+  
+  //CopyBuffer
+  //A buffer that handles its own memory (But will create copies of the internal data)
+  CopyBuffer empty0(1024);	//Allocate 1024; which automatically gets deleted when it goes out of scope
+  
+  //String (with extra helper functions)
+  String someValue = "Test";
   
   //Vector (Vec<n><special>)
   Vec3 someFloatVec3(1, 2, 3);
@@ -61,16 +97,36 @@ OSTLC includes defines for types and handles vectors and colors as well. The fol
   Vec2i someIntVec2(128);
   TVec<5, f32> someVec5;
   
+  //Matrices
+  Matrixf someMatrix;
+  Matrix3f someMatrix0;
+  
+  //Log
+  Log::println("Testing");				//Print info to console
+  Log::warn("Something is going on...");		//Print warning to console
+  Log::error("There's an error here?");			//Print error to console
+  Log::throwError<MyClass, MyErrorId>(MyErrorCode);	//Stop program with error code (String) & id (u32) and class that the error occured in.
+  
+  //Timer
+  Timer timer;
+  doSomeWork();
+  timer.lap("Lap 0");
+  doSomeMoreWork();
+  timer.stop();
+  timer.print();
+  
 ```
 ### 'Java' enums
-Not exclusive to Java, but Java has very nice enums. They are compile time values of any class, you can loop through all enums and check their names and values and reference them like regular C++ enums. This is what OSTLC's Enum define is supposed to do; allow you to have a list of all the values of an enum and ways to access them.
+Not exclusive to Java, but Java has very nice enums. They are compile time values of any class, you can loop through all enums and check their names and values and reference them like regular C++ enums. This is what OSTLC's Enum class is supposed to do; allow you to have a list of all the values of an enum and ways to access them.
 #### Enum restrictions
 Structured enums only allow basic constexpr data types. They do allow you to add custom functions or constructors; but they should be pure constexpr structs (so no calling non-constexpr constructors and no overriding the = operator). This is because of limitations and because it should be a compile time constant.
 All values have to be declared; so no assuming it will increment the last int, because enums aren't always ints anymore.
 #### Defining an enum
-Defining a data enum (integer/float) is easy; just use the following (include Template/Enum.h)
+Defining a data enum (integer/float) is easy; just use the following (include template/enum.h)
 ```cpp
-  DEnum(Name, u32, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);
+  DEnum(Name, u32, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);	//Define a data type (must be constexpr)
+  UEnum(Name, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);		//An unsigned integer enum
+  IEnum(Name, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);		//An integer enum
 ```
 Creating your own (structured) enum can be done using the following;
 ```cpp
@@ -82,7 +138,7 @@ Remember that the _ macro (escape macro) has to be used whenever your expression
 ```
 But the following wouldn't be;
 ```cpp
-  SEnum(Name, i32 x, i32 y, i32 z, Value0 = { 0, 1, 2 }, Value1 = { 1, 2, 3 }, Value2 = { 5, 5, 6 });
+  SEnum(Name, i32 x, y, z;, Value0 = { 0, 1, 2 }, Value1 = { 1, 2, 3 }, Value2 = { 5, 5, 6 });
 ```
 #### Looping through an enum
 You access an enum like you would with any enum class; so Name::Value0 for example. This can evaluate to two values; either const Name_s&, which is the value of that enum, or Name, which contains the current index, name and value.
@@ -122,8 +178,8 @@ The following example is from InputManager; it writes the input bindings & axes 
 
 	for (u32 i = 0; i < (u32)bindings.size(); ++i) {
 
-		OString base = OString("bindings/") + bindings[i].first;
-		u32 j = json.getMembers(base);
+		String base = String("bindings/") + bindings[i].first;
+		u32 j = json.getMembers(base);					//Append our bindings at the end
 
 		json.setString(base + "/" + j, bindings[i].second.toString());
 	}
@@ -132,7 +188,7 @@ The following example is from InputManager; it writes the input bindings & axes 
 
 		auto &ax = axes[i].second;
 
-		OString base = OString("axes/") + axes[i].first;
+		String base = String("axes/") + axes[i].first;
 		u32 j = json.getMembers(base);
 
 		json.setString(base + "/" + j + "/binding", ax.binding.toString());
@@ -140,25 +196,25 @@ The following example is from InputManager; it writes the input bindings & axes 
 		json.setFloat(base + "/" + j + "/axisScale", ax.axisScale);
 	}
 
-	return json.operator oi::OString().writeToFile(path);
+	return json.toString().writeToFile(path);
 ```
 #### Example (reading)
 The following is from InputManager; it reads the input bindings & axes from a file:
 ```cpp
-  JSON json = OString::readFromFile(path);
+	JSON json = String::readFromFile(path);
 
 	if (json.exists("bindings")) {
 
-		for (OString handle : json.getMemberIds("bindings")) {
+		for (String handle : json.getMemberIds("bindings")) {
 
-			for (OString id : json.getMemberIds(OString("bindings/") + handle)) {
+			for (String id : json.getMemberIds(OString("bindings/") + handle)) {
 
-				OString bstr = json.getString(OString("bindings/") + handle + "/" + id);
+				String bstr = json.getString(String("bindings/") + handle + "/" + id);
 				Binding b(bstr);
 
 				if (b.getType() != BindingType::UNDEFINED && b.getCode() != 0) {
 					bind(handle, b);
-					Log::println(OString("Binding event ") + b.toString());
+					Log::println(String("Binding event ") + b.toString());
 				}
 				else
 					Log::error("Couldn't read binding; invalid identifier");
@@ -170,12 +226,12 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 	}
 
 	if (json.exists("axes")) {
-		for (OString handle : json.getMemberIds("axes")) {
-			for (OString id : json.getMemberIds(OString("axes/") + handle)) {
+		for (String handle : json.getMemberIds("axes")) {
+			for (String id : json.getMemberIds(String("axes/") + handle)) {
 
-				OString base = OString("axes/") + handle + "/" + id;
+				String base = String("axes/") + handle + "/" + id;
 
-				OString bstr = json.getString(base + "/binding");
+				String bstr = json.getString(base + "/binding");
 				Binding b(bstr);
 
 				if (b.getType() == BindingType::UNDEFINED || b.getCode() == 0) {
@@ -183,7 +239,7 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 					continue;
 				}
 
-				OString effect = json.getString(base + "/effect");
+				String effect = json.getString(base + "/effect");
 				InputAxis1D axis;
 
 				if (effect.equalsIgnoreCase("x")) axis = InputAxis1D::X;
@@ -197,104 +253,31 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 				f32 axisScale = json.getFloat(base + "/axisScale", 1.f);
 
 				bindAxis(handle, InputAxis(b, axis, axisScale));
-				Log::println(OString("Binding axis ") + b.toString() + " with axis " + effect + " and scale " + axisScale);
+				Log::println(String("Binding axis ") + b.toString() + " with axis " + effect + " and scale " + axisScale);
 			}
 		}
 	}
 
 	return true;
 ```
-### StructuredBuffer
-A structured buffer is something useful for when you want a buffer to represent data of some kind, and you need ways of knowing what offsets belong that what and what type they are. A structured buffer is exactly this; it contains variables with paths and the variable description. This variable description is not that useful by itself, because it requires a fully defined path instead of a simplified one. A simplified path is something like `test.something.someType` while a fully defined type would be something like `test.something[4, 3, 2].someType[3]`. The fully defined type specifies offsets to those variables and needs to be parsed by the `operator[]` of the StructuredBuffer to return a BufferVar, which can either be converted to the raw data (Buffer) or to the data type it represents. Intially, the structured buffer was created for GPU purposes, but you can still use it for other types, though only 4 and 8 byte data types are supported (due to limitations of shader languages). This means that a 'bool' doesn't exist anymore, it uses 'gbool' which is simply a wrapper that uses a u32 instead and can be converted to a real bool or converts a real bool into a gbool.
-#### StructuredBuffer add
-add is a really simple function, it simply adds the type you're describing. It doesn't do anything else, it doesn't see the name as a fully defined path, but rather as a simplified path. You yourself have to define the structs all by themselves; their sizes, their offsets and their strides. If you want to add a multi dimensional array, you need to allocate a 1D array (size of x * y * z * w * ....) and then use the 'setDimensions' function on the variable to your desired amount. This variable can be found using the simplified name with the 'find' function (don't use `operator[]` because that returns a BufferVar; which requires a fully defined path).
-#### StructuredBuffer addAll
-addAll is a helper function that adds all variables in the variable path. This does require your path to be fully defined and use lengths instead of indices when using braces. Since it is a structured buffer, it requires you to use `[x, y, z, w]` instead of `[x][y][z][w]` through addAll and `operator[]`. Something like this is how you should use addAll.
+### Block allocator
+OSTLC also provides some memory management; (Virtual)BlockAllocator. A VirtualBlockAllocator simply handles storing multiple objects in one array; this can be bytes, render objects, particles, or whatever. However; VirtualBlockAllocator isn't for handling memory. BlockAllocator is for handling memory, VirtualBlockAllocator is about handling virtual blocks (objects without knowing their size for example). 
+#### Virtual
+The virtual block allocator can be used as following:
 ```cpp
-  sbuffer.addAll("something[4, 4].transform.pos", GDataType::oi_float4, 0);
-  sbuffer.addAll("something.transform.rot", GDataType::oi_float4, 16);
-  sbuffer.addAll("something.transform.scl", GDataType::oi_float4, 32);
+myVirtualBalloc = new VirtualBlockAllocator(1024); 	//We have 1Ki objects
+BlockAllocation alloc = myVirtualBalloc->alloc(512); 	//Reserve 512 objects
+myVirtualBalloc->dealloc(alloc.start);			//Free those objects
+delete myVirtualBalloc;					//Get rid of the allocator
 ```
-As you can see above; the first time you access a branch, you need to fully define it, but if you are 100% sure that the path is already initialized, you don't have to fully define it. However, it is good practice anyways.  
-addAll is a little weird; because it uses fake structs. These structs offsets and lengths change constantly when you add new elements. This means that you shouldn't try accessing anything from the SB when you are initializing it. In our case; 'something' starts of as an array of 16 (4x4) vec4s (or float4s) with a stride of 16 and offset of 0. Then we suddenly add two more float4s, which changes the stride to 48. The same is true for 'transform' though it is just an array of length 1 (everything; even objects 'are an array').
-#### StructuredBuffer arrays and MDAs
-MDAs (Multi-Dimensional Arrays) are accessed the C# way; `arr[x, y, z, w, ...]` instead of using `arr[x][y][z][...]`, this is due to limitations and because it is more expandable. They are also fake MDAs, as in reality, they are just 1D arrays but accessed as either 1D or nD arrays. Don't forget that GLSL uses 16-byte alignment, which means that arrays might be aligned differently on the CPU than the GPU. This is annoying but you have to think about it for any array; especially MDs. SB assumes the minimum amount of bytes used, while the GPU requires 16-byte alignment. If you don't align it between the CPU/GPU, the variable becomes unsettable through the CPU, unless you use the raw buffer data yourself. So be careful.
-## OGC (Osomi Graphics Core)
-Osomi Graphics Core / OGC is the part that renders things; it is using some of the fastest GL functions to ensure that you can do lots of things and you don't have to wait on the GPU a lot. An example of this is the GPU buffer that is used; BufferGPU, the thing handling storage in VRAM, it uses persistent double buffer techniques with the glBufferRange example; this just requires one call and automatically syncs if you write to the buffer (low overhead!). This is called 'AZDO' (Approaching Zero Driver Overhead) and when combined with bindless textures and deferred rendering can squeeze the most out of your GPU (it also allows you to multi thread more on the GPU). 
-### OGC Shaders
-OGC Shaders for now just use GLSL; however, they do require OpenGL 4.5+, because the engine is built on the idea of achieving the highest FPS with the most objects and lights in the scene. This requires certain extensions that only modern GPUs have, but it is focused on the future, not the past. For obtaining a cross API structure, so I could handle DX12 (maybe) in the future, I need to handle a certain architecture. This does result into a few changes for how OpenGL works high level.
-#### Limitations
-One of the shader struggles is that OpenGL has the uniform system, but DirectX uses the buffer system. In OpenGL, you update a uniform with its location index and it all works. DirectX however, needs you to put stuff into various buffers and it does make more sense than to use multiple calls for sending data; this is very slow. Due to this, I have decided to completely remove uniforms and uniform buffers. You simply fill a buffer either manually or through the Shader class; this buffer then gets automatically synced and you won't have to worry about any GL calls happening while you are sending that data. (Meaning that you can even multi thread your uniform calls!). Instead, you will use the Shader Storage Buffer Object (SSBO), which is quite similar to DirectX's structure, which also makes it more compatible.  
-The shader automatically creates the SSBOs required and can find the reflection data automatically. This means that you don't have to access everything like a buffer if you don't want to. You can get the GPU buffer and put things inside of there by using variable paths. Similar to OpenGL's 'glGetUniformLocation', you pass in the name of the variable, prefixed by the buffer's name and seperated by a period.
-```glsl
-struct Test {
-  vec3 var1;
-  float var2;
-};
-
-struct Test2 {
-  uint count;
-  Test tests[3];
-};
-
-layout(std430, binding = 0) buffer testBuffer {
-	uint variable;
-	Test2 t[];
-};
+If the allocator is out of memory, it will return a BlockAllocation of 0,0; start = 0, length = 0.
+#### Memory
+A memory block allocator uses a Buffer as constructor argument. This means that you can allocate a buffer or use some existing buffer. 
+```cpp
+myBalloc = new BlockAllocator(1024);			//We have 1KiB
+Buffer subbuffer = myBalloc->alloc(512);		//Reserve 512B
+myBalloc->dealloc(subbuffer.addr());			//Release 512B
+MyObject *obj = myBalloc->alloc<MyObject>();		//Allocate MyObject
+myBalloc->dealloc(obj);					//Deallocate MyObject
+delete myBalloc;					//Delete allocator (DOESN'T CLEAN UP CHILD OBJECTS!)
 ```
-Now this looks strange; `Test2 t[]`, it is a dynamically sized array. This can only be done to the last element in an SSBO and is so you can have a buffer of undefined size. OGC will interpret this as a call to allocate 4 MiB worth of data (per shader), so make sure it is really required!  
-You can access the variables like the following:
-```
-testBuffer.variable
-testBuffer.t[i].count
-testBuffer.t[i].tests[j].var1
-testBuffer.t[i].tests[j].var2
-testBuffer
-```
-They yield the following types (on the CPU):
-```
-u32
-u32
-Vec3
-f32
-BufferGPU*
-```
-You can then access those using the structured buffer. A structured buffer is essentially a way of structuring data and laying out what the data represents. It allows you to look through the variables and see what they mean. The way you do it is through the 'get' function, which returns a BufferVar. If you input the variable paths (like shown above), you can use a to<x> function to cast it. toUInt, toInt, toFloat, toFloat4, toBool3, toBuffer, etc. If you are not sure which type it is, you can either surround it by a try and catch or check the result from getType. getType returns a GDataType, which is an Osomi Enum that represents a data type on the GPU, which also has the custom 4-byte gbool (since booleans are 4 bytes on the GPU). This result can then be compared by GDataType::oi_x, when it returns oi_struct, it still contains variables, otherwise it is the base. Vectors are automatically split into both the vector and the children (.x, .y, .z and .w).  
-If for some reason (I wouldn't recommend it), use either dynamic or multi-dimensional arrays, you need to know the following:
-**Multi-dimensional arrays are accessed in the C# way; array[x, y] or array[x, y, z] or array[x, y, z, w]. This is due to limitations and syntax; it looks better and it makes more sense. However, in GLSL and C++ you can still use the regular way of accessing, just not through the structured buffer. 'Dynamic' arrays are a huge problem, since HLSL doesn't support them, but GLSL does. This is when your last element of your array is defined as type name[], without initializing the size. Since OGC creates the structured buffers for you, it needs to know a size. It assumes you want at least 1 object and otherwise it will try to fill 4 MiB (4 * 1024 * 1024) per shader per buffer (that uses this), so ONLY use it when you're sure you need it. In OGC, this is utilized for lights and materials in Tiled-Material Rendering, so only 1 shader uses it; resulting in a total of 8 MiB GPU VRAM and CPU RAM. Allowing for roughly 131k lights and 65k materials.**
-#### Disabling generating buffers automatically
-Sometimes, you don't want the buffers generated automatically. This can be because you want to reuse things like a light, material or object buffer and so you don't want one per shader. This is done by using the '_ext' after your buffer; it stands for 'external' and it means that the generation of the buffer will be handled externally. With '_ext' enabled; it does still create a structured buffer; but it doesn't allocate it, this means that you have to set the buffer manually.
-```glsl
-  struct Material {
-
-	vec3 ambient;
-	float opacity;
-
-	vec3 emissive;
-	uint textures;
-
-	vec3 diffuse;
-	float specularScale;
-
-	vec3 specular;
-	float specularPower;
-
-	float roughness, metallic;
-	uint p0, p1;
-
-	uvec2 t_ambient, t_emissive;
-
-	uvec2 t_diffuse, t_specular;
-
-	uvec2 t_specularPower, t_normal;
-
-	uvec2 t_bump, t_opacity;
-
-	uvec2 t_roughness, t_metallic;
-};
-
-layout(std140 binding = 0) buffer materialBuffer_ext {
-	Material material[];
-};
-```
-The code above is for using a material array that supports bindless textures. Instead of generating a 4 MiB array, it sets the size and specifies the layout of the buffer. Allocating it has to be done by creating a GPU buffer and setting the buffer object in the structured buffer.
