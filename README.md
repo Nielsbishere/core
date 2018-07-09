@@ -1,4 +1,4 @@
-# OCore (Osomi Core
+# OCore (Osomi Core)
 Osomi Core - A basic template library for (graphic) engines
 ## Building using CMake
 This project uses CMake and a few tools to help the user setup their environment.
