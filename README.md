@@ -138,7 +138,7 @@ Remember that the _ macro (escape macro) has to be used whenever your expression
 ```
 But the following wouldn't be;
 ```cpp
-  SEnum(Name, i32 x, i32 y, i32 z, Value0 = { 0, 1, 2 }, Value1 = { 1, 2, 3 }, Value2 = { 5, 5, 6 });
+  SEnum(Name, i32 x, y, z;, Value0 = { 0, 1, 2 }, Value1 = { 1, 2, 3 }, Value2 = { 5, 5, 6 });
 ```
 #### Looping through an enum
 You access an enum like you would with any enum class; so Name::Value0 for example. This can evaluate to two values; either const Name_s&, which is the value of that enum, or Name, which contains the current index, name and value.
