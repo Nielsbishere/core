@@ -9,7 +9,18 @@ MeshBuffer *Mesh::getBuffer() { return info.buffer; }
 MeshAllocation Mesh::getAllocation() { return info.allocation; }
 
 Mesh::Mesh(MeshInfo info) : info(info) {}
-Mesh::~Mesh() { if(info.allocation.vertices != 0) info.buffer->dealloc(info.allocation); }
+
+Mesh::~Mesh() { 
+
+	if(info.allocation.vertices != 0) 
+		info.buffer->dealloc(info.allocation); 
+
+	for (Buffer &buf : info.vbo)
+		buf.deconstruct();
+
+	info.ibo.deconstruct();
+
+}
 
 bool Mesh::init() {
 

@@ -154,7 +154,6 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(Graphics *g, RMFile file) {
 			for (u32 i = 0; i < (u32)file.indices.size(); ++i)
 				ib.operator[]<u32>(i * 4) = (u32) file.indices[i];
 
-		Log::println(ib.toHex());
 	}
 
 	result.first = MeshBufferInfo(file.header.vertices, file.header.indices, vbos, file.header.topologyMode, file.header.fillMode);
@@ -242,13 +241,7 @@ Buffer oiRM::write(RMFile &file) {
 	u32 misc = (u32)(header.miscs * sizeof(RMMisc));
 	u32 index = (u32)(header.indices * perIndex);
 
-	std::vector<u8> indices(index);
-
-	for (u32 i = 0; i < header.indices; ++i) {
-		if (perIndex == 1) indices[i] = file.indices[i * 4];
-		else if (perIndex == 2) *(u16*) indices[i * 2] = *(u16*) file.indices[i * 4];
-		else if (perIndex == 4) *(u32*) indices[i * 4] = *(u32*) file.indices[i * 4];
-	}
+	std::vector<u8> &indices = file.indices;
 
 	Buffer b = oiSL::write(file.names);
 	Buffer vertices(file.vertices);

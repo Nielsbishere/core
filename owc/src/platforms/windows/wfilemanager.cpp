@@ -64,19 +64,8 @@ bool FileManager::mkdir(String path) const {
 	return true;
 }
 
-String getSystemPath() {
-
-	char buffer[MAX_PATH];
-	GetModuleFileName(NULL, buffer, MAX_PATH);
-
-	return String(buffer).replace("\\", "/").getPath();
-}
-
 String FileManager::getAbsolutePath(String path) const {
-
-	static const String apath = getSystemPath();
-
-	return apath + (path == "" ? "" : String("/") + path);
+	return (path == "" ? "" : String("./") + path);
 
 }
 

@@ -11,6 +11,7 @@
 #include <graphics/format/oisb.h>
 #include <format/oisl.h>
 #include <graphics/format/oirm.h>
+#include <graphics/format/obj.h>
 #include <graphics/shaderbuffer.h>
 #include <graphics/mesh.h>
 #include <graphics/drawlist.h>
@@ -39,7 +40,9 @@ void Application::instantiate(WindowHandleExt *param){
 }
 
 ///TODO:
-///Obj and fbx loading
+///Fix obj & triangulate obj
+///Fbx converting
+///Bake script
 ///Materials
 ///Allow arrays in registers and buffers
 ///Support runtime shader compilation
@@ -73,19 +76,30 @@ void MainInterface::initScene() {
 	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
 	 
+	Obj::convert("res/models/cube.obj", "out/cube.oiRM");
+	Obj::convert("res/models/sphere.obj", "out/sphere.oiRM");
+
 	//Setup our cube
 	RMFile file;
 	oiRM::read("res/models/cube.oiRM", file);
 	auto info = oiRM::convert(&g, file);
 
+	info.first.maxIndices = 99999;
+	info.first.maxVertices = 99999;
 	meshBuffer = g.create("Mesh buffer", info.first);
 	g.use(meshBuffer);
 	meshBuffer->open();
 
 	info.second.buffer = meshBuffer;
 	mesh = g.create("Cube", info.second);
-
 	g.use(mesh);
+
+	oiRM::read("res/models/sphere.oiRM", file);
+	info = oiRM::convert(&g, file);
+
+	info.second.buffer = meshBuffer;
+	mesh0 = g.create("Sphere", info.second);
+	g.use(mesh0);
 
 	meshBuffer->close();
 
@@ -98,9 +112,8 @@ void MainInterface::initScene() {
 	meshBuffer0->open();
 
 	info.second.buffer = meshBuffer0;
-	mesh0 = g.create("Quad", info.second);
-
-	g.use(mesh0);
+	mesh1 = g.create("Quad", info.second);
+	g.use(mesh1);
 
 	meshBuffer0->close();
 
@@ -172,7 +185,7 @@ void MainInterface::renderScene(){
 		//Execute our post processing shader
 		cmdList->begin(g.getBackBuffer());
 		cmdList->bind(pipeline0);
-		cmdList->draw(mesh0);
+		cmdList->draw(mesh1);
 		cmdList->end(g.getBackBuffer());
 
 	cmdList->end();
@@ -221,10 +234,10 @@ void MainInterface::initSceneSurface(){
 
 	//Setup draws
 	drawList->clear();
-	drawList->draw(mesh, totalObjects, Buffer::construct((u8*)objects, (u32) sizeof(objects)));
+	drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
+	drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)objects + sizeof(objects) / 2, (u32) sizeof(objects) / 2));
 	drawList->flush();
 
-	Log::println(res);
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
@@ -264,6 +277,7 @@ MainInterface::~MainInterface(){
 	g.destroy(osomi);
 	g.destroy(mesh);
 	g.destroy(mesh0);
+	g.destroy(mesh1);
 	g.destroy(meshBuffer);
 	g.destroy(meshBuffer0);
 	g.destroy(drawList);

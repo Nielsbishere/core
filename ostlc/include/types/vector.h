@@ -504,7 +504,7 @@ namespace oi {
 			return result;
 		}
 
-		std::vector<String> s = split(",");
+		std::vector<String> s = contains(',') ? split(',') : split(' ');
 
 		u32 i = 0;
 		for (auto &e : s) {

@@ -37,9 +37,11 @@ layout(binding = 2) uniform Camera {
 } cam;
 
 layout(location = 0) out vec2 uv;
+layout(location = 1) out vec3 normal;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec2 inUv;
+layout(location = 2) in vec3 inNormal;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -48,4 +50,5 @@ out gl_PerVertex {
 void main() {
     gl_Position = obj.arr[gl_InstanceIndex + gl_BaseVertexARB].mvp * vec4(inPosition, 1.0);
 	uv = inUv;
+	normal = inNormal;
 }

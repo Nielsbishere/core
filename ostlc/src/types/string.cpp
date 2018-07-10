@@ -1,6 +1,7 @@
 #include "types/string.h"
 #include "types/buffer.h"
 #include "utils/json.h"
+#include "types/vector.h"
 #include <cmath>
 #include <algorithm>
 using namespace oi;
@@ -88,6 +89,31 @@ std::vector<u32> String::find(const String s) const {
 	}
 
 	return result;
+}
+
+std::vector<Vec2u> String::find(const String s, const String end, u32 offset) const {
+
+	std::vector<u32> sit = find(s), endit = find(end);
+	std::vector<Vec2u> strings(sit.size());
+
+	u32 j = 0;
+	for (u32 i : sit) {
+
+		size_t endit = source.find(end.source, i + s.size());
+		u32 k = 0;
+
+		if (endit == std::string::npos)
+			k = size();
+		else
+			k = (u32) endit;
+
+		strings[j] = i + offset >= k ? Vec2u() : Vec2u(i + offset, k);
+
+		++j;
+	}
+
+	return strings;
+
 }
 
 String String::operator+(const String &s) const {
@@ -356,7 +382,7 @@ bool String::isFloat() const {
 
 bool String::isVector() const {
 
-	std::vector<String> splits = splitIgnoreCase(",");
+	std::vector<String> splits = contains(',') ? splitIgnoreCase(',') : splitIgnoreCase(' ');
 
 	for (u32 i = 0; i < splits.size(); ++i)
 		if (!splits[i].trim().isFloat())

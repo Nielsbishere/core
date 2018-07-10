@@ -57,6 +57,10 @@ namespace oi {
 		std::vector<u32> find(char c) const;
 		std::vector<u32> find(const String s) const;
 
+		//Get all strings starting at find(s) with length of find(s) - find(end)
+		//If it can't find anything it will just pick size()
+		std::vector<TVec<u32, 2>> find(const String s, const String end, u32 offset) const;
+
 		String replace(String s0, String s1) const;
 		String replaceLast(String s0, String s1) const;
 		String replaceFirst(String s0, String s1) const;

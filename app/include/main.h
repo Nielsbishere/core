@@ -34,7 +34,7 @@ private:
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
-	oi::gc::Mesh *mesh, *mesh0;
+	oi::gc::Mesh *mesh, *mesh0, *mesh1;
 	oi::gc::DrawList *drawList;
 	oi::gc::RenderTarget *renderTarget;
 
