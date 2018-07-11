@@ -40,9 +40,9 @@ void Application::instantiate(WindowHandleExt *param){
 }
 
 ///TODO:
-///Fix obj & triangulate obj
-///Fbx converting
 ///Bake script
+///Triangulate obj
+///Fbx converting
 ///Materials
 ///Allow arrays in registers and buffers
 ///Support runtime shader compilation
@@ -75,9 +75,6 @@ void MainInterface::initScene() {
 	//Setup our pipeline state (with default settings)
 	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
-	 
-	Obj::convert("res/models/cube.obj", "out/cube.oiRM");
-	Obj::convert("res/models/sphere.obj", "out/sphere.oiRM");
 
 	//Setup our cube
 	RMFile file;

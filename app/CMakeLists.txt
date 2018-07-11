@@ -23,7 +23,11 @@ target_link_libraries(app ostlc)
 target_link_libraries(app owc)
 target_link_libraries(app ogc)
 
-add_custom_command(TARGET app COMMAND "${HOME_DIR}/compile_shaders")
+if(Desktop)
+add_dependencies(app oirm_gen)
+endif()
+
+add_custom_command(TARGET app COMMAND "${HOME_DIR}/prepare_resources")
 
 if(MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")

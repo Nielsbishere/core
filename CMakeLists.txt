@@ -47,6 +47,7 @@ if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_
 	set(CMAKE_VERBOSE_MAKEFILE 0)
 
 	set(Vulkan ON)
+	set(Desktop OFF)
 	add_definitions(-D__PHONE__)
 	
 else()
@@ -61,6 +62,7 @@ elseif(WIN32)
 	add_definitions(-D__DESKTOP__)
 	add_definitions(-D__WINDOWS__)
 	set(Windows ON)
+	set(Desktop ON)
 
 else()
 
@@ -119,6 +121,12 @@ add_subdirectory(ostlc)
 add_subdirectory(owc)
 add_subdirectory(ogc)
 
+# Desktop conversion tools
+if(Desktop)
+	add_subdirectory(oirm_gen)
+endif()
+
+# App projects
 if(Android)
 	add_subdirectory(app)
 	add_subdirectory(app_android)
