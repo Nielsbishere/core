@@ -118,8 +118,10 @@ Buffer Obj::convert(Buffer objBuffer) {
 							break;
 						}
 
-					if (index == next)
+					if (index == next) {
 						vertices.insert(vertices.end(), perVert.begin(), perVert.end());
+						++vertexCount;
+					}
 
 					indices.push_back(index);
 
@@ -130,7 +132,7 @@ Buffer Obj::convert(Buffer objBuffer) {
 
 	}
 
-	u32 perIndex = vertices.size() <= 256 ? 1 : (vertices.size() <= 65536 ? 2 : 4);
+	u32 perIndex = vertexCount <= 256 ? 1 : (vertexCount <= 65536 ? 2 : 4);
 
 	std::vector<u8> ibo(indices.size() * perIndex);
 
@@ -184,7 +186,7 @@ Buffer Obj::convert(Buffer objBuffer) {
 
 			{ 0, 0, 0, 0 },
 
-			(u32) (vertices.size() / stride),
+			(u32) vertexCount,
 			(u32) indices.size()
 
 		},
