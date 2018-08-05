@@ -17,7 +17,7 @@ InputState Keyboard::getState(Binding b) const {
 	return InputState::RELEASED;
 }
 
-flp Keyboard::getAxis(Binding b) const {
+f32 Keyboard::getAxis(Binding b) const {
 
 	if (b.toKey() == Key::Undefined)
 		return 0.f;

@@ -34,12 +34,12 @@ namespace oi {
 			bool isPressed(Binding b) const;
 			bool isReleased(Binding b) const;
 
-			flp toAxis(InputState state) const;
+			f32 toAxis(InputState state) const;
 
 			virtual InputState getState(Binding b) const = 0;
 
-			virtual flp getAxis(Binding b) const = 0;
-			virtual void update(Window *w, flp dt) = 0;
+			virtual f32 getAxis(Binding b) const = 0;
+			virtual void update(Window *w, f32 dt) = 0;
 			virtual void update(Binding b, bool down) {}
 
 			const InputType getType() const;

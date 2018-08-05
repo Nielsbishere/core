@@ -17,7 +17,7 @@ InputState Mouse::getState(Binding b) const {
 	return InputState::RELEASED;
 }
 
-flp Mouse::getAxis(Binding b) const {
+f32 Mouse::getAxis(Binding b) const {
 
 	if (b.getBindingType() != BindingType::MOUSE_AXIS)
 		return toAxis(getState(b));

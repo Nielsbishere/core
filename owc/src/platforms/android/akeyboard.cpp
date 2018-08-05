@@ -5,7 +5,7 @@
 #include "window/window.h"
 using namespace oi::wc;
 
-void Keyboard::update(Window *w, flp dt) {
+void Keyboard::update(Window *w, f32 dt) {
 	prev = next;
 }
 

@@ -56,7 +56,7 @@ namespace oi {
 			bool initialized = false, hasPrevFrame = false;
 			u32 finalizeCount = 0;
 
-			flp lastTick = (flp) 0;
+			f32 lastTick = 0;
 
 			WindowExt ext;
 

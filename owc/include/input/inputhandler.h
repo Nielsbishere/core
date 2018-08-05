@@ -25,7 +25,7 @@ namespace oi {
 			};
 
 			void init();
-			void update(Window *w, flp dt);
+			void update(Window *w, f32 dt);
 
 			InputDevice *getDevice(InputDeviceBinding binding);
 			InputDevice *getDevice(Binding b);

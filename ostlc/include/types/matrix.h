@@ -361,28 +361,17 @@ namespace oi {
 
 	};
 
-	typedef TMatrix<flp, 4, 4> Matrix4;
-	typedef TMatrix<flp, 4, 4> Matrix;
-	typedef TMatrix<flp, 3, 3> Matrix3;
-	typedef TMatrix<flp, 2, 2> Matrix2;
-	typedef TMatrix<flp, 2, 3> Matrix2x3;
-	typedef TMatrix<flp, 2, 4> Matrix2x4;
-	typedef TMatrix<flp, 3, 2> Matrix3x2;
-	typedef TMatrix<flp, 3, 4> Matrix3x4;
-	typedef TMatrix<flp, 4, 3> Matrix4x3;
-	typedef TMatrix<flp, 4, 2> Matrix4x2;
-
-	typedef TMatrix<f32, 4, 4> Matrix4f;
-	typedef TMatrix<f32, 4, 4> Matrixf;
-	typedef TMatrix<f32, 3, 3> Matrix3f;
-	typedef TMatrix<f32, 2, 2> Matrix2f;
-	typedef TMatrix<f32, 2, 3> Matrix2x3f;
-	typedef TMatrix<f32, 2, 4> Matrix2x4f;
-	typedef TMatrix<f32, 3, 2> Matrix3x2f;
-	typedef TMatrix<f32, 3, 4> Matrix3x4f;
-	typedef TMatrix<f32, 4, 3> Matrix4x3f;
-	typedef TMatrix<f32, 4, 2> Matrix4x2f;
-
+	typedef TMatrix<f32, 4, 4> Matrix4;
+	typedef TMatrix<f32, 4, 4> Matrix;
+	typedef TMatrix<f32, 3, 3> Matrix3;
+	typedef TMatrix<f32, 2, 2> Matrix2;
+	typedef TMatrix<f32, 2, 3> Matrix2x3;
+	typedef TMatrix<f32, 2, 4> Matrix2x4;
+	typedef TMatrix<f32, 3, 2> Matrix3x2;
+	typedef TMatrix<f32, 3, 4> Matrix3x4;
+	typedef TMatrix<f32, 4, 3> Matrix4x3;
+	typedef TMatrix<f32, 4, 2> Matrix4x2;
+	
 	typedef TMatrix<f64, 4, 4> Matrix4d;
 	typedef TMatrix<f64, 3, 3> Matrix3d;
 	typedef TMatrix<f64, 2, 2> Matrix2d;

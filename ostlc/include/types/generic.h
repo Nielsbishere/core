@@ -41,13 +41,6 @@ constexpr i32 i32_MIN = (i32)0x80000000;
 constexpr i64 i64_MAX = (i64)0x7FFFFFFFFFFFFFFF;
 constexpr i64 i64_MIN = (i64)0x8000000000000000;
 
-///Floating point; if define "USE_DOUBLES" is defined, it will use a 64-bit float, otherwise it uses a 32-bit float.
-#ifdef USE_DOUBLES
-typedef f64 flp;		//64-bit float; clear define USE_DOUBLES to change it to 32-bit
-#else
-typedef f32 flp;		//32-bit float; set define USE_DOUBLES to change it to 64-bit
-#endif
-
 class gbool {
 
 public:

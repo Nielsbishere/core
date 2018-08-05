@@ -16,6 +16,8 @@
 #include <graphics/mesh.h>
 #include <graphics/drawlist.h>
 
+#include <graphics/format/fbx.h>
+
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
 #include <graphics/versionedtexture.h>
@@ -39,27 +41,13 @@ void Application::instantiate(WindowHandleExt *param){
 	wmanager.waitAll();
 }
 
-///TODO:
-///Bake script
-///Triangulate obj
-///Fbx converting
-///Materials
-///Allow arrays in registers and buffers
-///Support runtime shader compilation
-///RenderTarget support textures too; so a RenderTarget could also just be a bunch of textures you render to
-///Abstract AssetManager
-///Support file reloading
-///Quaternions
-///Android update project in CMake
-///Abstract Entity
-///Fix around rotation issues. Check APP_CMD_CONFIG_CHANGED, but you can't trust ANativeWindow.
-///Add matrices to shader buffer
-
 //Set up the interface
 
 void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
+
+	Fbx::read("res/models/cube.fbx");
 
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
@@ -76,7 +64,7 @@ void MainInterface::initScene() {
 	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
 
-	//Setup our cube
+	//Setup our cube & sphere
 	RMFile file;
 	oiRM::read("res/models/cube.oiRM", file);
 	auto info = oiRM::convert(&g, file);
@@ -134,12 +122,12 @@ void MainInterface::initScene() {
 	shader0->set("samp", sampler);
 
 	//Setup our camera
-	camera = g.create("Default camera", CameraInfo(45.f, Vec3(15, 15, 55), Vec4(0, 0, 0, 1), Vec3(0, 1, 0), 0.1f, 100.f));
+	camera = g.create("Default camera", CameraInfo(45.f, Vec3(15, 15, 55), Vec4(0, 0, 0, 1)));
 	g.use(camera);
 
 	//Setup our objects
 	for (u32 i = 0; i < totalObjects; ++i)
-		objects[i].m = Matrixf::makeModel(Random::randomize<3>(0.f, 25.f), Vec3f(Random::randomize<2>(0.f, 360.f)), Vec3f(1.f));
+		objects[i].m = Matrix::makeModel(Random::randomize<3>(0.f, 25.f), Vec3(Random::randomize<2>(0.f, 360.f)), Vec3(1.f));
 
 }
 
@@ -150,7 +138,7 @@ void MainInterface::renderScene(){
 	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
 
 	perExecution->open();
-	perExecution->set("ambient", Vec3f(1));
+	perExecution->set("ambient", Vec3(1));
 	perExecution->set("time", (f32) getRuntime());
 	perExecution->close();
 
@@ -241,20 +229,20 @@ void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
 	Log::println(b.toString());
 }
 
-void MainInterface::update(flp dt) {
+void MainInterface::update(f32 dt) {
 
 	WindowInterface::update(dt); 
 
 	if (getParent()->getInputHandler().getKeyboard()->isPressed(Key::F11))
 		getParent()->getInfo().toggleFullScreen();
 
-	Vec2f nextMouse;
+	Vec2 nextMouse;
 	nextMouse.x = getParent()->getInputHandler().getMouse()->getAxis(MouseAxis::X);
 	nextMouse.y = getParent()->getInputHandler().getMouse()->getAxis(MouseAxis::Y);
 
 	if (getParent()->getInputHandler().getMouse()->isDown(MouseButton::Left)) {
 
-		Vec2f delta = nextMouse - prevMouse;
+		Vec2 delta = nextMouse - prevMouse;
 
 		exposure += delta.x / 3;
 		gamma += delta.y / 3;

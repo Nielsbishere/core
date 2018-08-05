@@ -42,10 +42,10 @@ namespace oi {
 			virtual void onInput(InputDevice *device, Binding b, bool isDown) {}
 
 			virtual void onMouseMove(Vec2 pos) {}
-			virtual void onMouseWheel(flp delta) {}
+			virtual void onMouseWheel(f32 delta) {}
 			virtual void onMouseDrag(Vec2 dpos) {}
 			
-			virtual void update(flp delta) { runtime += delta; }
+			virtual void update(f32 delta) { runtime += delta; }
 			virtual void render() {}
 
 			virtual void setFocus(bool isFocussed) {}

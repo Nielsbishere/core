@@ -22,10 +22,10 @@ void setVibration(u32 id, Vec2 amount) {
 }
 
 Controller::~Controller() {
-	setVibration(getId(), (flp) 0);
+	setVibration(getId(), 0);
 }
 
-void Controller::update(Window *w, flp dt) {
+void Controller::update(Window *w, f32 dt) {
 
 	prev = next;
 
@@ -38,7 +38,7 @@ void Controller::update(Window *w, flp dt) {
 		vibrationTime -= dt;
 		if (vibrationTime <= 0) {
 			vibrationTime = 0;
-			setVibration(getId(), (flp)0);
+			setVibration(getId(), 0);
 		}
 	}
 

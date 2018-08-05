@@ -40,6 +40,12 @@ namespace oi {
 		Buffer operator+(u32 off) const;
 		Buffer subbuffer(u32 offset, u32 length) const;
 
+		//Uncompress with zlib
+		bool uncompress(Buffer result) const;
+
+		//TODO: Compress with zlib
+		Buffer compress() const;
+
 		//Merge the two buffers into one
 		Buffer &operator+=(Buffer other);
 
@@ -58,7 +64,7 @@ namespace oi {
 
 		u32 size() const;
 
-		u8 *addr();
+		u8 *addr() const;
 
 		std::vector<u8> toArray();
 
@@ -77,6 +83,7 @@ namespace oi {
 		CopyBuffer(u32 length);
 		CopyBuffer(u8 *initData, u32 length);
 		CopyBuffer(Buffer buf);
+		CopyBuffer();
 		~CopyBuffer();
 
 		CopyBuffer(const CopyBuffer &cb);

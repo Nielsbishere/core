@@ -17,7 +17,7 @@ InputState Controller::getState(Binding b) const {
 	return InputState::RELEASED;
 }
 
-flp Controller::getAxis(Binding b) const {
+f32 Controller::getAxis(Binding b) const {
 
 	if (b.getBindingType() != BindingType::CONTROLLER_AXIS)
 		return toAxis(getState(b));

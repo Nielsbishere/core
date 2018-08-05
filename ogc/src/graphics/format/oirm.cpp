@@ -148,7 +148,7 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(Graphics *g, RMFile file) {
 
 		if (perIndex == 4) ib.copy(Buffer::construct(file.indices.data(), (u32) file.indices.size()));
 		else if (perIndex == 2)
-			for (u32 i = 0; i < (u32)file.indices.size(); ++i)
+			for (u32 i = 0; i < (u32) file.indices.size() / 2; ++i)
 				ib.operator[]<u32>(i * 4) = *(u16*)(file.indices.data() + i * 2);
 		else if (perIndex == 1)
 			for (u32 i = 0; i < (u32)file.indices.size(); ++i)

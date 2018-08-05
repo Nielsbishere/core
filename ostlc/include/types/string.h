@@ -30,7 +30,7 @@ namespace oi {
 		String(i32 i);
 		String(u32 u);
 		String(u64 u);
-		String(flp f);
+		String(f32 f);
 		String(char c);
 		explicit String(void *v);
 
@@ -65,6 +65,11 @@ namespace oi {
 		String replaceLast(String s0, String s1) const;
 		String replaceFirst(String s0, String s1) const;
 
+		String fromLast(String split) const;
+		String untilLast(String split) const;
+		String fromFirst(String split) const;
+		String untilFirst(String split) const;
+
 		std::vector<String> split(String s) const;
 		std::vector<String> splitIgnoreCase(String s) const;
 		String trim() const;
@@ -80,7 +85,7 @@ namespace oi {
 		}
 
 		i64 toLong() const;
-		flp toFloat() const;
+		f32 toFloat() const;
 		std::string toStdString() const;
 		const char *toCString() const;
 

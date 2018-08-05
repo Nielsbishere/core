@@ -67,8 +67,7 @@ namespace oi {
 		u32 len;
 	};
 
-	typedef TGrid<flp> Grid2D;
-	typedef TGrid<f32> Grid2Df;
+	typedef TGrid<f32> Grid2D;
 	typedef TGrid<u32> Grid2Du;
 	typedef TGrid<i32> Grid2Di;
 	typedef TGrid<f64> Grid2Dd;

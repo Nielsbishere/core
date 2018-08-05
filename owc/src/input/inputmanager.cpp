@@ -4,7 +4,7 @@
 using namespace oi;
 using namespace wc;
 
-InputAxis::InputAxis(Binding binding, InputAxis1D effect, flp axisScale) : binding(binding), effect(effect), axisScale(axisScale) {}
+InputAxis::InputAxis(Binding binding, InputAxis1D effect, f32 axisScale) : binding(binding), effect(effect), axisScale(axisScale) {}
 InputManager::InputManager(InputHandler *handler) : handler(handler) {}
 
 bool InputManager::contains(String handle) const {
@@ -64,11 +64,11 @@ bool InputManager::isUp(String handle) const { return getState(handle) == InputS
 Vec3 InputManager::getAxis(String handle, bool clamp) const {
 	auto it = axes.find(handle);
 	if (it != axes.end())
-		return clamp ? it->second.value.clamp((flp)-1, (flp)1) : it->second.value;
+		return clamp ? it->second.value.clamp(-1, 1) : it->second.value;
 	return {};
 }
 
-flp InputManager::getAxis1D(String handle, InputAxis1D ia, bool clamp) const {
+f32 InputManager::getAxis1D(String handle, InputAxis1D ia, bool clamp) const {
 
 	Vec3 val = getAxis(handle, clamp);
 
@@ -244,7 +244,7 @@ void InputManager::update() {
 
 			if (mapped == nullptr) continue;
 
-			flp val = mapped->getAxis(elem.binding) * elem.axisScale;
+			f32 val = mapped->getAxis(elem.binding) * elem.axisScale;
 
 			ax.value[(u32)elem.effect] += val;
 

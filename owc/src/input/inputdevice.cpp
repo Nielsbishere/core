@@ -11,7 +11,7 @@ bool InputDevice::isUp(Binding b) const { return getState(b) == InputState::UP; 
 bool InputDevice::isPressed(Binding b) const { return getState(b) == InputState::PRESSED; }
 bool InputDevice::isReleased(Binding b) const { return getState(b) == InputState::RELEASED; }
 
-flp InputDevice::toAxis(InputState state) const { return (flp)(state == InputState::DOWN ? 1 : 0); }
+f32 InputDevice::toAxis(InputState state) const { return state == InputState::DOWN ? 1.f : 0.f; }
 
 u32 InputDevice::getId() const { return id; }
 const InputType InputDevice::getType() const { return type; }

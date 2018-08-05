@@ -8,7 +8,7 @@ using namespace oi;
 
 Controller::~Controller() {}
 
-void Controller::update(Window *w, flp dt) {
+void Controller::update(Window *w, f32 dt) {
 	prev = next;
 }
 

@@ -17,17 +17,17 @@ namespace oi {
 
 		struct CameraStruct {
 
-			Matrixf p;
+			Matrix p;
 
-			Matrixf v;
+			Matrix v;
 
-			Vec3f position;
+			Vec3 position;
 			f32 fov;
 
-			Vec3f up;
+			Vec3 up;
 			f32 aspect;
 
-			Vec3f forward;
+			Vec3 forward;
 			f32 padding;
 
 			f32 near;
@@ -35,23 +35,23 @@ namespace oi {
 			Vec2u resolution;
 
 			CameraStruct() {}
-			CameraStruct(Matrixf p, Matrixf v, Vec3f position, f32 fov, Vec3f up, f32 aspect, Vec3f forward, f32 near, f32 far, Vec2u resolution) : p(p), v(v), position(position), fov(fov), up(up), aspect(aspect), forward(forward), near(near), far(far), resolution(resolution) {}
+			CameraStruct(Matrix p, Matrix v, Vec3 position, f32 fov, Vec3 up, f32 aspect, Vec3 forward, f32 near, f32 far, Vec2u resolution) : p(p), v(v), position(position), fov(fov), up(up), aspect(aspect), forward(forward), near(near), far(far), resolution(resolution) {}
 
 		};
 
 		struct CameraInfo {
 
-			Vec3f position;
+			Vec3 position;
 			f32 fov;
 
-			Vec3f up;
+			Vec3 up;
 			f32 near;
 
-			Vec4f directionOrCenter;
+			Vec4 directionOrCenter;
 
 			f32 far;
 
-			CameraInfo(f32 fov = 45.f, Vec3f position = { }, Vec4f directionOrCenter = { 0, 0, -1, 0 }, Vec3f up = { 0, 1, 0 }, f32 near = 0.1f, f32 far = 100.f) : fov(fov), position(position), directionOrCenter(directionOrCenter), up(up), near(near), far(far) {}
+			CameraInfo(f32 fov = 45.f, Vec3 position = { }, Vec4 directionOrCenter = { 0, 0, -1, 0 }, Vec3 up = { 0, 1, 0 }, f32 near = 0.1f, f32 far = 100.f) : fov(fov), position(position), directionOrCenter(directionOrCenter), up(up), near(near), far(far) {}
 
 		};
 
@@ -66,18 +66,18 @@ namespace oi {
 			void bind(Vec2u res);
 			CameraStruct getBound() const;
 
-			Matrixf getBoundProjection() const;
-			Matrixf getBoundView() const;
+			Matrix getBoundProjection() const;
+			Matrix getBoundView() const;
 
-			void move(Vec3f dposition);
+			void move(Vec3 dposition);
 
-			void setPosition(Vec3f position);
+			void setPosition(Vec3 position);
 			void setFov(f32 fov);
 			void setNear(f32 near);
 			void setFar(f32 far);
-			void setUp(Vec3f up);
-			void setDirection(Vec3f direction);
-			void setCenter(Vec3f center);
+			void setUp(Vec3 up);
+			void setDirection(Vec3 direction);
+			void setCenter(Vec3 center);
 
 		protected:
 

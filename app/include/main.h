@@ -22,7 +22,7 @@ public:
 	void load(oi::String path) override {}
 	void save(oi::String path) override {}
 
-	void update(flp dt) override;
+	void update(f32 dt) override;
 	void initSceneSurface() override;
 
 private:
@@ -39,12 +39,12 @@ private:
 	oi::gc::RenderTarget *renderTarget;
 
 	float exposure = .15f, gamma = .85f;
-	oi::Vec2f prevMouse;
+	oi::Vec2 prevMouse;
 
 	struct PerObject {
 
-		oi::Matrixf m;
-		oi::Matrixf mvp;
+		oi::Matrix m;
+		oi::Matrix mvp;
 
 	};
 

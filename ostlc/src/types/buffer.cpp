@@ -1,6 +1,7 @@
 #include "types/buffer.h"
-#include <math.h>
-#include <string.h>
+#include "utils/log.h"
+#include "math.h"
+#include "string.h"
 using namespace oi;
 
 
@@ -113,6 +114,7 @@ bool Buffer::setString(u32 where, String str) {
 CopyBuffer::CopyBuffer(u32 length): Buffer(length) { }
 CopyBuffer::CopyBuffer(u8 *initData, u32 length): Buffer(initData, length) { }
 CopyBuffer::CopyBuffer(Buffer buf): Buffer(buf) {}
+CopyBuffer::CopyBuffer() : CopyBuffer(0) {}
 CopyBuffer::~CopyBuffer() {
 	deconstruct();
 }
@@ -189,11 +191,28 @@ bool Buffer::getBit(u32 bitoff) {
 	return val & (1U << (bitoff % 8U));
 }
 
-u8 *Buffer::addr() { return data; }
+u8 *Buffer::addr() const { return data; }
 std::vector<u8> Buffer::toArray() {
 
 	if (size() == 0)
 		return {};
 
 	return { addr(), addr() + size() };
+}
+
+//Compressing and uncompressing (end of file to avoid poluting our Buffer.cpp's namespace
+
+#include "api/zlib/zlib.h"
+
+bool Buffer::uncompress(Buffer output) const {
+
+	uLong outLen = (uLong) output.size();
+
+	if (::uncompress((Bytef*)output.addr(), &outLen, (Bytef*) addr(), (uLong) size()) != Z_OK)
+		return Log::error("Couldn't uncompress buffer");
+
+	if ((u32)outLen != output.length - 1)
+		return Log::error("Couldn't uncompress buffer; requested size wasn't equal to the actual size");
+
+	return true;
 }

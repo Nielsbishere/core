@@ -14,7 +14,7 @@ String::String(u32 len, char filler) : source(len, filler) {}
 String::String(i32 i) { *this = fromNumber<i32>(i); }
 String::String(u64 i) { *this = fromNumber<u64>(i); }
 String::String(u32 i) { *this = fromNumber<u32>(i); }
-String::String(flp f) { *this = fromNumber<flp>(f); }
+String::String(f32 f) { *this = fromNumber<f32>(f); }
 String::String(char c): source(1, c) {}
 String::String(JSON json) {  *this = json.toString(); }
 String::String(const String &str): source(str.source) { }
@@ -152,6 +152,42 @@ String String::replaceLast(String s0, String s1) const {
 	return first + s1 + last;
 }
 
+String String::fromLast(String split) const {
+
+	std::vector<u32> parts = find(split);
+
+	if (parts.size() == 0) return "";
+	return cutBegin(parts[(u32) parts.size() - 1]);
+
+}
+
+String String::untilLast(String split) const {
+
+	std::vector<u32> parts = find(split);
+
+	if (parts.size() == 0) return "";
+	return cutEnd(parts[(u32)parts.size() - 1]);
+
+}
+
+String String::fromFirst(String split) const {
+
+	std::vector<u32> parts = find(split);
+
+	if (parts.size() == 0) return "";
+	return cutBegin(parts[0]);
+
+}
+
+String String::untilFirst(String split) const {
+
+	std::vector<u32> parts = find(split);
+
+	if (parts.size() == 0) return "";
+	return cutEnd(parts[0]);
+
+}
+
 i64 String::toLong() const {
 
 	i64 object;
@@ -163,9 +199,9 @@ i64 String::toLong() const {
 	return object;
 }
 
-flp String::toFloat() const {
+f32 String::toFloat() const {
 
-	flp object;
+	f32 object;
 
 	std::stringstream ss;
 	ss << source;
@@ -294,50 +330,24 @@ bool String::startsWith(String other) const {
 }
 
 String String::getPath() const {
-	std::vector<String> subs = split("/");
-	if (subs.size() > 1) {
-
-		if(subs[subs.size() - 1].contains("."))
-			subs.erase(subs.end() - 1);
-
-		return combine(subs, "/");
-	}
-	return "/";
+	return untilLast("/");
 }
 
 String String::getExtension() const {
-	std::vector<String> subs = getFile().split(".");
-	if (subs.size() > 1)
-		return subs[subs.size() - 1];
-	return "";
+	return fromLast(".");
 }
 
 String String::getFileName() const {
-	std::vector<String> subs = getFile().split(".");
-	if (subs.size() > 1) {
-		subs.erase(subs.end() - 1);
-		return combine(subs, ".");
-	}
-	return "";
+	return getFile().untilLast(".");
 
 }
 
 String String::getFile() const {
-	std::vector<String> subs = split("/");
-
-	if (subs.size() > 1)
-		return subs[subs.size() - 1];
-
-	return "";
+	return fromLast("/");
 }
 
 String String::getFilePath() const {
-	std::vector<String> subs = split(".");
-	if (subs.size() > 1) {
-		subs.erase(subs.end() - 1);
-		return combine(subs, ".");
-	}
-	return "";
+	return untilLast(".");
 }
 
 bool String::isInt() const {

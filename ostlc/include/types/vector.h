@@ -527,13 +527,9 @@ namespace oi {
 	template<typename T>
 	using TVec4 = TVec<T, 4>;
 
-	typedef TVec2<flp> Vec2;
-	typedef TVec3<flp> Vec3;
-	typedef TVec4<flp> Vec4;
-
-	typedef TVec2<f32> Vec2f;
-	typedef TVec3<f32> Vec3f;
-	typedef TVec4<f32> Vec4f;
+	typedef TVec2<f32> Vec2;
+	typedef TVec3<f32> Vec3;
+	typedef TVec4<f32> Vec4;
 
 	typedef TVec2<u32> Vec2u;
 	typedef TVec3<u32> Vec3u;

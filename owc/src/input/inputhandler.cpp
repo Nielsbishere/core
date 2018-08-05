@@ -45,7 +45,7 @@ Controller *InputHandler::getController(u32 i) {
 	return dynamic_cast<Controller*>(getDevice((InputDeviceBinding)((u32)InputDeviceBinding::CONTROLLER0 + i))); 
 }
 
-void InputHandler::update(Window *w, flp dt) {
+void InputHandler::update(Window *w, f32 dt) {
 	for (auto dev : devices)
 		if(dev.second != nullptr)
 			dev.second->update(w, dt);

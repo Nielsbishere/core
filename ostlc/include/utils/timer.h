@@ -25,9 +25,9 @@ namespace oi {
 		void stop();
 
 		void print() const;
-		flp getDuration() const;
+		f32 getDuration() const;
 
-		flp count(flp previous) const;
+		f32 count(f32 previous) const;
 
 		static const Timer &getGlobalTimer();
 		static CTP getTime();
@@ -36,7 +36,7 @@ namespace oi {
 
 		static Timer global;
 
-		static flp duration(CTP t0, CTP t1);
+		static f32 duration(CTP t0, CTP t1);
 
 		std::vector<TimePoint> timePoints;
 		CTP start;

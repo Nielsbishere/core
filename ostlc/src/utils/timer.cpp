@@ -29,10 +29,10 @@ void Timer::print() const {
 		Log::warn(String("Lap ") + String((i32)(i + 1)) + ": " + timePoints[i].name + "; time since start " + String(duration(start, timePoints[i].point)) + "s, time since last time point: " + String(i == 0 ? duration(start, timePoints[i].point) : duration(timePoints[i - 1].point, timePoints[i].point)) + "s");
 }
 
-flp Timer::duration(CTP t0, CTP t1) { return (flp) std::chrono::duration<f64>(t1 - t0).count(); }
-flp Timer::count(flp previous) const { return getDuration() - previous; }
+f32 Timer::duration(CTP t0, CTP t1) { return std::chrono::duration<f32>(t1 - t0).count(); }
+f32 Timer::count(f32 previous) const { return getDuration() - previous; }
 
-flp Timer::getDuration() const { return duration(start, getTime()); }
+f32 Timer::getDuration() const { return duration(start, getTime()); }
 
 Timer Timer::global = Timer();
 const Timer &Timer::getGlobalTimer() { return global; }

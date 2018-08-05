@@ -33,8 +33,8 @@ Buffer Obj::convert(Buffer objBuffer) {
 		String s = str.substring(object.x, object.y);
 		std::vector<Vec2u> lines = s.find("\n", "\n", 1);
 
-		std::vector<Vec3f> positions, normals;
-		std::vector<Vec2f> uvs;
+		std::vector<Vec3> positions, normals;
+		std::vector<Vec2> uvs;
 
 		//Approx 1/4 goes to every attribute, so reserve that to minimize resizing as much as possible
 		positions.reserve(lines.size() / 4);
@@ -64,18 +64,16 @@ Buffer Obj::convert(Buffer objBuffer) {
 				hasNrm = true;
 			} else if (identifier == "f") {
 
-				if (line.count(' ') != 3) {												//TODO: Multi face
-					Log::error("Couldn't convert Obj; please triangulate the mesh");
-					return {};
-				}
-
 				std::vector<String> parts = line.split(' ');
 				stride = (hasPos ? 3 : 0) + (hasUv ? 2 : 0) + (hasNrm ? 3 : 0);
 
 				if ((u32)perVert.size() == 0)
 					perVert.resize(stride);
 
-				for (u32 k = 1; k < (u32)4; ++k) {
+				std::vector<u32> polind(parts.size() - 1);
+				u32 poli = 0;
+
+				for (u32 k = 1; k < (u32) parts.size(); ++k) {
 
 					std::vector<String> part = parts[k].split('/');
 
@@ -123,8 +121,13 @@ Buffer Obj::convert(Buffer objBuffer) {
 						++vertexCount;
 					}
 
-					indices.push_back(index);
+					polind[poli] = index;
+					++poli;
+				}
 
+				for (u32 x = 1; x < poli - 1; ++x) {
+					u32 ind[] = { polind[0], polind[x], polind[x + 1] };
+					indices.insert(indices.end(), ind, ind + 3);
 				}
 
 			}
@@ -193,7 +196,7 @@ Buffer Obj::convert(Buffer objBuffer) {
 
 		//VBO
 		{{
-			(u16) ((hasPos ? sizeof(Vec3f) : 0) + (hasUv ? sizeof(Vec2f) : 0) + (hasNrm ? sizeof(Vec3f) : 0)),
+			(u16) ((hasPos ? sizeof(Vec3) : 0) + (hasUv ? sizeof(Vec2) : 0) + (hasNrm ? sizeof(Vec3) : 0)),
 			(u16) attributeCount
 		}},
 
@@ -219,7 +222,7 @@ bool Obj::convert(Buffer objBuffer, String outPath) {
 
 	if (!FileManager::get()->write(outPath, buf)) {
 		buf.deconstruct();
-		return Log::error("Couldn't write obj file to disk");
+		return Log::error("Couldn't write oiRM file to disk");
 	}
 
 	buf.deconstruct();

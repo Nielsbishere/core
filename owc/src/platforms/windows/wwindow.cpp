@@ -112,7 +112,7 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 
 	case WM_MOUSEMOVE:
 		{
-			Vec2 c = Vec2((flp)LOWORD(lParam), (flp)HIWORD(lParam)) / Vec2(w->getInfo().getSize());
+			Vec2 c = Vec2(LOWORD(lParam), HIWORD(lParam)) / Vec2(w->getInfo().getSize());
 			Mouse *mouse = w->getInputHandler().getMouse();
 			
 			Vec2 &ax = *(Vec2*) mouse->axes;
@@ -133,7 +133,7 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 
 	case WM_MOUSEWHEEL:
 		{
-			flp perc = (flp) GET_WHEEL_DELTA_WPARAM(wParam) / (flp) WHEEL_DELTA;
+			f32 perc = (f32) GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 			Mouse *mouse = w->getInputHandler().getMouse();
 			mouse->axes[MouseAxis::Mouse_wheel - 1] = perc;
 

@@ -15,16 +15,16 @@ namespace oi {
 
 			Mouse();
 			InputState getState(Binding b) const override;
-			flp getAxis(Binding b) const override;
+			f32 getAxis(Binding b) const override;
 
-			void update(Window *w, flp dt) override;
+			void update(Window *w, f32 dt) override;
 
 		protected:
 
 			void update(Binding b, bool down) override;
 
 			std::bitset<MouseButton::length - 1> prev, next;
-			flp axes[MouseAxis::length - 1];
+			f32 axes[MouseAxis::length - 1];
 
 		};
 	}

@@ -59,7 +59,7 @@ void Window::update() {
 
 	updatePlatform();
 
-	flp dt = Timer::getGlobalTimer().getDuration() - lastTick;
+	f32 dt = Timer::getGlobalTimer().getDuration() - lastTick;
 
 	if (wi != nullptr)
 		wi->update(dt);

@@ -59,7 +59,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 			else if (storedFormat == TextureFormatStorage::UINT)
 				*(Vec4u*)cl.color.uint32 = Vec4u(color);
 			else
-				*(Vec4f*)cl.color.float32 = Vec4f(color);
+				*(Vec4*)cl.color.float32 = Vec4(color);
 
 		}
 	}
