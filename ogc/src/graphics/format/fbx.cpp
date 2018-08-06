@@ -7,41 +7,40 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-TFbxPropertyBase *FbxProperty::read(Buffer &buffer, u32 &offset) {
+FbxProperty *FbxProperty::readProperty(Buffer &buffer, u32 &offset) {
 
 	if (buffer.size() == 0)
-		return (TFbxPropertyBase*) Log::error("Couldn't read FbxProperty; buffer was null");
+		return (FbxProperty*) Log::error("Couldn't read FbxProperty; buffer was null");
 
 	char type = buffer[0];
 
-	TFbxPropertyBase *allocated = FbxTypeAlloc::allocate(type);
+	FbxProperty *allocated = FbxTypeAlloc::allocate(type);
 
 	if(allocated == nullptr)
-		return (TFbxPropertyBase*) Log::error("Couldn't allocate FbxProperty; invalid type");
+		return (FbxProperty*) Log::error("Couldn't allocate FbxProperty; invalid type");
 
 	if (!allocated->read(buffer, offset)) {
 		delete allocated;
-		return (TFbxPropertyBase*)Log::error("Couldn't read FbxProperty");
+		return (FbxProperty*)Log::error("Couldn't read FbxProperty");
 	}
 
 	return allocated;
 }
 
-FbxNode FbxNode::read(Buffer &buf, u32 &offset, bool is64bit) {
+FbxNode *FbxNode::read(Buffer &buf, u32 &offset, bool is64bit) {
 
 	u32 headerSize = is64bit ? FbxNodeHeader64::size() : FbxNodeHeader32::size();
 
-	if (buf.size() < headerSize) {
-		Log::error("Couldn't read FbxNode; invalid buffer size");
-		return {};
-	}
+	if (buf.size() < headerSize)
+		return (FbxNode*) Log::error("Couldn't read FbxNode; invalid buffer size");
 
-	FbxNode node;
+	FbxNode *node = new FbxNode();
+	node->childs.reserve(16);
 
 	if (is64bit) {
 
-		memset(&node, 0, headerSize);
-		memcpy(&node, buf.addr(), headerSize);
+		memset(&node->header, 0, headerSize);
+		memcpy(&node->header, buf.addr(), headerSize);
 
 		buf = buf.offset(headerSize);
 		offset += headerSize;
@@ -56,45 +55,39 @@ FbxNode FbxNode::read(Buffer &buf, u32 &offset, bool is64bit) {
 		buf = buf.offset(headerSize);
 		offset += headerSize;
 
-		node.header = header;
+		node->header = header;
 
 	}
 
-	if (buf.size() < node.header.nameLen) {
-		Log::error("Couldn't read FbxNode's name; invalid buffer size");
-		return {};
-	}
+	if (buf.size() < node->header.nameLen)
+		return (FbxNode*) Log::error("Couldn't read FbxNode's name; invalid buffer size");
 
-	node.name = String((char*) buf.addr(), node.header.nameLen);
-	buf = buf.offset(node.header.nameLen);
-	offset += node.header.nameLen;
+	node->name = String((char*) buf.addr(), node->header.nameLen);
+	buf = buf.offset(node->header.nameLen);
+	offset += node->header.nameLen;
 
 	u32 i = 0;
-	TFbxPropertyBase *prop;
+	FbxProperty *prop;
 
-	while (i < node.header.numProperties) {
+	while (i < node->header.numProperties) {
 
-		if((prop = FbxProperty::read(buf, offset)) != nullptr)
-			node.properties.push_back(prop);
-		else {
-			Log::error(String("Couldn't read FbxNode's properties (") + node.name + ")");
-			return {};
-		}
+		if((prop = FbxProperty::readProperty(buf, offset)) != nullptr)
+			node->properties.push_back(prop);
+		else 
+			return (FbxNode*) Log::error(String("Couldn't read FbxNode's properties (") + node->name + ")");
 
 		++i;
 	}
 
-	FbxNode subnode;
+	FbxNode *subnode;
 
-	while (offset < node.header.endOffset) {
+	while (offset < node->header.endOffset) {
 
-		if ((subnode = FbxNode::read(buf, offset, is64bit)).header.endOffset == (u64) -1) {
-			Log::error(String("Couldn't read FbxNode's child nodes (") + node.name + ")");
-			return {};
-		}
+		if ((subnode = FbxNode::read(buf, offset, is64bit)) == nullptr)
+			return (FbxNode*) Log::error(String("Couldn't read FbxNode's child nodes (") + node->name + ")");
 
-		if (subnode.header.nameLen != 0)
-			node.childs.push_back(subnode);
+		if (subnode->header.nameLen != 0)
+			node->childs.push_back(subnode);
 
 	}
 
@@ -102,20 +95,23 @@ FbxNode FbxNode::read(Buffer &buf, u32 &offset, bool is64bit) {
 
 }
 
-std::vector<FbxNode> FbxNode::readAll(Buffer &buf, u32 &offset, bool is64bit) {
+FbxNodes FbxNode::readAll(Buffer &buf, u32 &offset, bool is64bit) {
 
-	FbxNode node;
-	std::vector<FbxNode> nodes;
+	FbxNode *node = nullptr;
+	FbxNodes nodes;
+	nodes.reserve(16);
 
 	while (buf.size() > 0) {
 
-		if ((node = read(buf, offset, is64bit)).header.endOffset == -1 && node.header.nameLen != 0) {
+		if ((node = read(buf, offset, is64bit)) == nullptr) {
 			Log::error("Couldn't read an fbx node");
 			return {};
 		}
 
-		if(node.header.nameLen != 0)
+		if (node->header.nameLen != 0)
 			nodes.push_back(node);
+		else
+			break;
 
 	}
 
@@ -123,20 +119,79 @@ std::vector<FbxNode> FbxNode::readAll(Buffer &buf, u32 &offset, bool is64bit) {
 
 }
 
+void FbxFile::findNodes(String path, const FbxNodes &loc, FbxNodes &target) {
+
+	String term = path.untilFirst("/");
+	String child = path.fromFirst("/");
+
+	for(FbxNode *node : loc)
+		if (node->getName() == term) {
+			if (child != "")
+				findNodes(child, node->getChildArray(), target);
+			else
+				target.push_back(node);
+		}
+
+}
+
+FbxNodes FbxFile::findNodes(String path) {
+	FbxNodes result;
+	findNodes(path, nodes, result);
+	return result;
+
+}
+
+FbxFile::~FbxFile() {
+	for (FbxNode *node : nodes)
+		delete node;
+}
+
+void FbxFile::copy(const FbxFile &other) {
+
+	header = other.header;
+	nodes = other.nodes;
+
+	for (FbxNode *&node : nodes)
+		node = new FbxNode(*node);
+
+}
+
+FbxFile::FbxFile(const FbxFile &other) { copy(other); }
+FbxFile &FbxFile::operator=(const FbxFile &other) { copy(other); return *this; }
+
+FbxNodes FbxFile::findMeshes() { return findNodes("Objects/Model", { 2 }, String("Mesh")); }
+FbxNodes FbxFile::findLights() { return findNodes("Objects/Model", { 2 }, String("Light")); }
+FbxNodes FbxFile::findCameras() { return findNodes("Objects/Model", { 2 }, String("Camera")); }
+FbxNodes FbxFile::findGeometry() { return findNodes("Objects/Geometry"); }
+FbxFile::FbxFile(FbxHeader header, FbxNodes nodes) : header(header), nodes(nodes) {}
 
 u32 FbxNode::getChildren() { return (u32) childs.size(); }
-FbxNode &FbxNode::getChild(u32 i) { return childs[i]; }
+FbxNode &FbxNode::getChild(u32 i) { return *childs[i]; }
+u32 FbxNode::getProperties(){ return (u32) properties.size(); }
+FbxProperty *FbxNode::getProperty(u32 i) { return properties[i]; }
+String FbxNode::getName() { return name; }
 
-std::vector<FbxNode> Fbx::read(Buffer buf) {
+FbxProperties::iterator FbxNode::getPropertyBegin() { return properties.begin(); }
+FbxProperties::iterator FbxNode::getPropertyEnd() { return properties.end(); }
+const FbxProperties &FbxNode::getPropertyArray() { return properties; }
+FbxNodes::iterator FbxNode::getChildBegin() { return childs.begin(); }
+FbxNodes::iterator FbxNode::getChildEnd() { return childs.end(); }
+const FbxNodes &FbxNode::getChildArray() { return childs; }
+
+u32 FbxFile::getVersion() { return header.getVersion(); }
+bool FbxFile::isValid() { return header.getHeader() == "Kaydara FBX Binary  " && header.getUnknown() == 0x1A; }
+
+u32 FbxFile::getNodeCount() { return (u32) nodes.size(); }
+FbxNode *FbxFile::getNode(u32 id) { return nodes[id]; }
+
+FbxFile *FbxFile::read(Buffer buf) {
 
 	goto binary;
 
 binary:
 
-	if (buf.size() < FbxHeader::size()) {
-		Log::error("Couldn't read Fbx; invalid buffer size");
-		return {};
-	}
+	if (buf.size() < FbxHeader::size())
+		return (FbxFile*) Log::error("Couldn't read Fbx; invalid buffer size");
 
 	FbxHeader head;
 
@@ -146,20 +201,18 @@ binary:
 	u32 offset = (u32)FbxHeader::size();
 	buf = buf.offset(offset);
 
-	if (head.getHeader() != "Kaydara FBX Binary  " || head.getUnknown() != 0x001A) {
-		Log::error("Couldn't read Fbx; invalid header");
-		return {};
-	}
+	if (head.getHeader() != "Kaydara FBX Binary  " || head.getUnknown() != 0x001A)
+		return (FbxFile*) Log::error("Couldn't read Fbx; invalid header");
 
-	std::vector<FbxNode> nodes = FbxNode::readAll(buf, offset, head.getVersion() >= 7500 /* Starting from version 7.5, they use 64-bit format for nodes*/);
+	FbxNodes nodes = FbxNode::readAll(buf, offset, head.getVersion() >= 7500 /* Starting from version 7.5, they use 64-bit format for nodes*/);
 
 	if (nodes.size() != 0)
 		Log::println(String("Successfully read fbx file with version ") + head.getVersion());
 
-	return nodes;
+	return new FbxFile(head, nodes);
 }
 
-std::vector<FbxNode> Fbx::read(String fbxPath) {
+FbxFile *FbxFile::read(String fbxPath) {
 
 	Buffer buf;
 	FileManager::get()->read(fbxPath, buf);
@@ -169,24 +222,30 @@ std::vector<FbxNode> Fbx::read(String fbxPath) {
 		return {};
 	}
 
-	std::vector<FbxNode> data = read(buf);
+	FbxFile *file = read(buf);
 	buf.deconstruct();
-	return data;
+	return file;
 
 }
 
-Fbx::FbxMeshes Fbx::convertMeshes(Buffer buf) {
+std::vector<Buffer> Fbx::convertMeshes(Buffer buf) {
 
-	//TODO:
+	FbxFile *file = FbxFile::read(buf);
 
-	return {};
+	std::vector<Buffer> meshes;
+
+	FbxNodes geometry = file->findGeometry();
+
+	for (FbxNode *node : geometry);
+
+	return meshes;
 
 }
 
 
 bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath) {
 
-	Fbx::FbxMeshes buf = convertMeshes(fbxBuffer);
+	std::vector<Buffer> buf = convertMeshes(fbxBuffer);
 
 	String base = outPath.getFilePath();
 	String extension = outPath.getExtension();
@@ -212,7 +271,7 @@ bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath) {
 	return true;
 }
 
-Fbx::FbxMeshes Fbx::convertMeshes(String fbxPath) {
+std::vector<Buffer> Fbx::convertMeshes(String fbxPath) {
 
 	Buffer buf;
 	FileManager::get()->read(fbxPath, buf);

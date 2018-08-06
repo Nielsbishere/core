@@ -157,7 +157,7 @@ String String::fromLast(String split) const {
 	std::vector<u32> parts = find(split);
 
 	if (parts.size() == 0) return "";
-	return cutBegin(parts[(u32) parts.size() - 1]);
+	return cutBegin(parts[(u32) parts.size() - 1] + 1);
 
 }
 
@@ -165,7 +165,7 @@ String String::untilLast(String split) const {
 
 	std::vector<u32> parts = find(split);
 
-	if (parts.size() == 0) return "";
+	if (parts.size() == 0) return *this;
 	return cutEnd(parts[(u32)parts.size() - 1]);
 
 }
@@ -175,7 +175,7 @@ String String::fromFirst(String split) const {
 	std::vector<u32> parts = find(split);
 
 	if (parts.size() == 0) return "";
-	return cutBegin(parts[0]);
+	return cutBegin(parts[0] + 1);
 
 }
 
@@ -183,7 +183,7 @@ String String::untilFirst(String split) const {
 
 	std::vector<u32> parts = find(split);
 
-	if (parts.size() == 0) return "";
+	if (parts.size() == 0) return *this;
 	return cutEnd(parts[0]);
 
 }

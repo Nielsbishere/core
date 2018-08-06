@@ -47,7 +47,7 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
-	Fbx::read("res/models/cube.fbx");
+	Fbx::convertMeshes("res/models/cube.fbx");
 
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
