@@ -32,7 +32,7 @@ namespace oi {
 
 		};
 
-		//A class to read a value from a buffer into a variable
+		//A class to read a value from a buffer into a variable and to get the pointer of a T[]
 		template<typename T>
 		struct FbxPropertyHelper {
 
@@ -46,6 +46,10 @@ namespace oi {
 				buf = buf.offset((u32) sizeof(T));
 				return true;
 
+			}
+
+			static T *getPtr(std::vector<T> &arr) {
+				return arr.data();
 			}
 
 		};
@@ -67,6 +71,9 @@ namespace oi {
 				return true;
 
 			}
+
+			//There is no bool[] stored low-level, so nullptr
+			static bool *getPtr(std::vector<bool> &arr) { return nullptr; }
 
 		};
 
@@ -107,7 +114,7 @@ namespace oi {
 
 				if (getEncoding() != 0) {
 
-					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) &vec[0], getArrayLength() * (u32) sizeof(T) + 1));
+					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) vec.data(), getArrayLength() * (u32) sizeof(T) + 1));
 
 					buf = buf.offset(getCompressedLength());
 					offset += getCompressedLength();
@@ -119,6 +126,35 @@ namespace oi {
 						return Log::error("Couldn't read FbxPropertyArray; one of the elements was invalid");
 
 				return true;
+			}
+
+			//This function loads data from a buffer like a char[] or a compressed char[], depending on this header
+			//Since a std::vector<bool> is implemented as a bitset (low level), it requires a different function
+			bool read(Buffer &buf, u32 &offset, std::vector<bool> &vec) {
+
+				vec.resize(getArrayLength());
+
+				if (getEncoding() != 0) {
+
+					std::vector<u8> tempVec(vec.size());	//A vector that is dependable, and not a bitset
+
+					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) tempVec.data(), getArrayLength() + 1));
+
+					//Copy it into a bitset
+					for (u32 i = 0; i < (u32)tempVec.size(); ++i)
+						vec[i] = tempVec[i];
+
+					buf = buf.offset(getCompressedLength());
+					offset += getCompressedLength();
+					return result;
+				}
+
+				for (u32 i = 0; i < getArrayLength(); ++i)
+					if (!FbxPropertyHelper<bool>::readOne(buf, offset, vec[i]))
+						return Log::error("Couldn't read FbxPropertyArray; one of the elements was invalid");
+
+				return true;
+
 			}
 
 		};
@@ -215,6 +251,9 @@ namespace oi {
 			//Allocate and fill a property from buffer
 			static FbxProperty *readProperty(Buffer &buffer, u32 &offset);
 
+			template<typename T>
+			T *cast();
+
 		};
 
 		typedef std::vector<FbxProperty*> FbxProperties;
@@ -231,7 +270,7 @@ namespace oi {
 			char getCode() override { return header.getType(); }
 
 			static constexpr char getTypeCode() { return Id; }
-			static constexpr u32 getHeaderSize() { return header.size(); }
+			static constexpr u32 getHeaderSize() { return Header::size(); }
 
 			//Get a value from this property
 			//If this property has more values, you can use an index
@@ -241,7 +280,7 @@ namespace oi {
 
 			//Copy this property
 			FbxProperty *clone() override {
-				return new TFbxProperty<Id, Header, T>(*this);
+				return (FbxProperty*) new TFbxProperty<Id, Header, T>(*this);
 			}
 
 			TFbxProperty() {
@@ -275,6 +314,15 @@ namespace oi {
 			template<typename T2>
 			bool operator==(const T2 &other) const {
 				return false;
+			}
+
+			//Returns nullptr for FbxBool or FbxBoolArray; because that's a bitset, not a C array
+			T *getPtr() {
+				return FbxPropertyHelper<T>::getPtr(contents);
+			}
+
+			u32 size() {
+				return (u32) contents.size();
 			}
 
 		protected:
@@ -320,6 +368,16 @@ namespace oi {
 			}
 
 		};
+		
+		template<typename T>
+		T *FbxProperty::cast() {
+
+			if (FbxTypeCheck::template check(T{}, getCode()))
+				return (T*) this;
+
+			return (T*) Log::throwError<FbxProperty, 0x0>("Couldn't cast an FbxProperty");
+
+		}
 
 		//Allocate a type from a type code (non-last recursion)
 		template<typename T, typename ...args>
@@ -328,7 +386,7 @@ namespace oi {
 			//Cascade down into the next if the type doesn't match
 			static FbxProperty *get(char type) {
 
-				if (FbxTypeCheck::check(T{}, type))
+				if (FbxTypeCheck::template check(T{}, type))
 					return new T();
 
 				return TFbxTypeAlloc<args...>::get(type);
@@ -343,7 +401,7 @@ namespace oi {
 			//Return nullptr if the type doesn't match
 			static FbxProperty *get(char type) {
 
-				if (FbxTypeCheck::check(T{}, type))
+				if (FbxTypeCheck::template check(T{}, type))
 					return new T();
 
 				return nullptr;
@@ -362,7 +420,7 @@ namespace oi {
 
 			//Allocate by type code
 			static FbxProperty *allocate(char type) {
-				return allocate(FbxTypes{}, type);
+				return FbxTypeAlloc::template allocate(FbxTypes{}, type);
 			}
 
 		};
@@ -390,6 +448,8 @@ namespace oi {
 			}
 
 			FbxNode() {}
+			FbxNode(FbxNodes nodes) : childs(nodes), name("Root") { }
+
 			FbxNode(const FbxNode &other) {
 				copy(other);
 			}
@@ -406,7 +466,7 @@ namespace oi {
 			static FbxNodes readAll(Buffer &buf, u32 &offset, bool is64bit);
 
 			u32 getChildren();
-			FbxNode &getChild(u32 i);
+			FbxNode *getChild(u32 i);
 
 			FbxNodes::iterator getChildBegin();
 			FbxNodes::iterator getChildEnd();
@@ -421,7 +481,23 @@ namespace oi {
 
 			String getName();
 
+			//Path works just like file paths, but there can be nodes with the same path
+			//Objects/Model is the path for all object data
+			//Objects/Geometry is the path for all geometry data
+			//For scanning on properties, use findNodes(path, { propertyId0, propertyId1, ... }, value0, value1, ...);
+			FbxNodes findNodes(String path);
+
+			//Example:
+			//findNodes("Objects/Model", { 2 }, String("Mesh")) -> findMeshes()
+			//findNodes("Objects/Model", { 2 }, String("Light")) -> findLights()
+			//findNodes("Objects/Model", { 2 }, String("Camera")) -> findCameras()
+			template<typename ...args>
+			FbxNodes findNodes(String path, std::vector<u32> propertyIds, args... arg);
+
 		private:
+
+			//Find nodes with a path
+			void findNodes(String path, const FbxNodes &loc, FbxNodes &target);
 
 			//Copy all children and properties
 			void copy(const FbxNode &other) {
@@ -457,8 +533,8 @@ namespace oi {
 			template<typename T2>
 			static bool check(FbxProperty *prop, T2 t) {
 
-				if (!FbxTypeCheck::check(T{}, prop->getCode()))
-					return FbxCheckPropertyValue_inner<args...>::check(prop, t);
+				if (!FbxTypeCheck::template check(T{}, prop->getCode()))
+					return FbxCheckPropertyValue_inner<args...>::template check(prop, t);
 
 				T &castProperty = *(T*)prop;
 				return castProperty == t;
@@ -475,7 +551,7 @@ namespace oi {
 			template<typename T2>
 			static bool check(FbxProperty *prop, T2 t) {
 
-				if (!FbxTypeCheck::check(T{}, prop->getCode()))
+				if (!FbxTypeCheck::template check(T{}, prop->getCode()))
 					return Log::error("FbxCheckPropertyValue couldn't find the requested type");
 
 				T &castProperty = *(T*)prop;
@@ -490,7 +566,7 @@ namespace oi {
 
 			template<typename T, typename ...args>
 			static bool check(TFbxTypes<args...> types, FbxProperty *prop, T t) {
-				return FbxCheckPropertyValue_inner<args...>::check(prop, t);
+				return FbxCheckPropertyValue_inner<args...>::template check(prop, t);
 			}
 
 		};
@@ -504,7 +580,7 @@ namespace oi {
 				if (i != index)
 					return FbxCheckProperty<i + 1, args...>::check(prop, index, arg...);
 
-				return FbxCheckPropertyValue::check(FbxTypes{}, prop, t);
+				return FbxCheckPropertyValue::template check(FbxTypes{}, prop, t);
 
 			}
 
@@ -519,11 +595,50 @@ namespace oi {
 				if (i != index)
 					return Log::error("FbxCheckProperty couldn't find the right property; out of bounds");
 
-				return FbxCheckPropertyValue::check(FbxTypes{}, prop, t);
+				return FbxCheckPropertyValue::template check(FbxTypes{}, prop, t);
 
 			}
 
 		};
+		template<typename ...args>
+		FbxNodes FbxNode::findNodes(String path, std::vector<u32> propertyIds, args... arg) {
+
+			if (propertyIds.size() != ParamCount<args...>::get) {
+				Log::error("Fbx::findNodes failed; propertyIds should have the same elements as type arguments");
+				return {};
+			}
+
+			FbxNodes nodes = findNodes(path);
+			FbxNodes result;
+
+			for (FbxNode *node : nodes) {
+
+				bool match = true;
+
+				for (u32 i = 0; i < node->getProperties(); ++i) {
+
+					FbxProperty *prop = node->getProperty(i);
+
+					for (u32 j = 0; j < (u32)propertyIds.size(); ++j) {
+
+						u32 k = propertyIds[j];
+
+						if (i == k)
+							match = match && FbxCheckProperty<0, args...>::check(prop, j, arg...);
+
+					}
+
+				}
+
+				if (match)
+					result.push_back(node);
+
+			}
+
+			return result;
+
+		}
+
 
 		//Class for storing and traversing fbx nodes
 		class FbxFile {
@@ -536,57 +651,7 @@ namespace oi {
 			u32 getVersion();	//Get the version (7500 = 7.5, 7400 = 7.4)
 			bool isValid();		//Checks if the header is valid
 
-			u32 getNodeCount();
-			FbxNode *getNode(u32 id);
-
-			//Path works just like file paths, but there can be nodes with the same path
-			//Objects/Model is the path for all object data
-			//Objects/Geometry is the path for all geometry data
-			//For scanning on properties, use findNodes(path, { propertyId0, propertyId1, ... }, value0, value1, ...);
-			FbxNodes findNodes(String path);
-
-			//Example:
-			//findNodes("Objects/Model", { 2 }, String("Mesh")) -> findMeshes()
-			//findNodes("Objects/Model", { 2 }, String("Light")) -> findLights()
-			//findNodes("Objects/Model", { 2 }, String("Camera")) -> findCameras()
-			template<typename ...args>
-			FbxNodes findNodes(String path, std::vector<u32> propertyIds, args... arg) {
-
-				if (propertyIds.size() != ParamCount<args...>::get) {
-					Log::error("Fbx::findNodes failed; propertyIds should have the same elements as type arguments");
-					return {};
-				}
-
-				FbxNodes nodes = findNodes(path);
-				FbxNodes result;
-
-				for (FbxNode *node : nodes) {
-
-					bool match = true;
-
-					for (u32 i = 0; i < node->getProperties(); ++i) {
-
-						FbxProperty *prop = node->getProperty(i);
-
-						for (u32 j = 0; j < (u32) propertyIds.size(); ++j) {
-
-							u32 k = propertyIds[j];
-
-							if (i == k)
-								match = match && FbxCheckProperty<0, args...>::check(prop, j, arg...);
-
-						}
-
-					}
-
-					if (match)
-						result.push_back(node);
-
-				}
-
-				return result;
-
-			}
+			FbxNode *get();
 
 			FbxNodes findMeshes();
 			FbxNodes findLights();
@@ -602,12 +667,10 @@ namespace oi {
 			FbxFile(FbxHeader header, FbxNodes nodes);
 			void copy(const FbxFile &other);
 
-			void findNodes(String path, const FbxNodes &loc, FbxNodes &target);
-
 		private:
 
 			FbxHeader header;
-			FbxNodes nodes;
+			FbxNode *root;
 
 		};
 
@@ -618,10 +681,10 @@ namespace oi {
 		//convertMesh picks all meshes (geometry) and converts them to oiRM format
 		struct Fbx {
 
-			static std::vector<Buffer> convertMeshes(Buffer fbxBuffer);
+			static std::unordered_map<String, Buffer> convertMeshes(Buffer fbxBuffer);
 			static bool convertMeshes(Buffer fbxBuffer, String outPath);
 
-			static std::vector<Buffer> convertMeshes(String fbxPath);
+			static std::unordered_map<String, Buffer> convertMeshes(String fbxPath);
 			static bool convertMeshes(String fbxPath, String outPath);
 
 		};

@@ -197,6 +197,8 @@ RMFile oiRM::convert(MeshInfo info) {
 		++i;
 	}
 
+	std::vector<RMMisc> miscs;
+
 	return {
 
 		{
@@ -221,7 +223,7 @@ RMFile oiRM::convert(MeshInfo info) {
 
 		vbos,
 		attributes,
-		{},
+		miscs,
 		vertices,
 		info.ibo.toArray(),
 		{},

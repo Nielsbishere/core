@@ -47,7 +47,10 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
-	Fbx::convertMeshes("res/models/cube.fbx");
+	Fbx::convertMeshes("res/models/cube.fbx", "out/models/cube.oiRM");
+	Fbx::convertMeshes("res/models/sphere.fbx", "out/models/sphere.oiRM");
+	Fbx::convertMeshes("res/models/cube0.fbx", "out/models/cube0.oiRM");
+	Fbx::convertMeshes("res/models/icosphere.fbx", "out/models/icosphere.oiRM");
 
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
