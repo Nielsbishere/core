@@ -3,6 +3,7 @@
 #include <utils/log.h>
 #include <file/filemanager.h>
 #include <types/vector.h>
+#include <graphics/format/oirm.h>
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -202,9 +203,6 @@ binary:
 
 	FbxNodes nodes = FbxNode::readAll(buf, offset, head.getVersion() >= 7500 /* Starting from version 7.5, they use 64-bit format for nodes*/);
 
-	if (nodes.size() != 0)
-		Log::println(String("Successfully read fbx file with version ") + head.getVersion());
-
 	return new FbxFile(head, nodes);
 }
 
@@ -243,15 +241,15 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf) {
 			goto failed;
 		}
 
-		String name = namep->cast<FbxString>()->get();
+		String name = namep->cast<FbxString>()->get().untilFirst(String("\0\x1", 2));
 
-		FbxNodes vertices = node->findNodes("Vertices");
-		FbxNodes indices = node->findNodes("PolygonVertexIndex");
-		FbxNodes normals = node->findNodes("LayerElementNormal");
-		FbxNodes uvs = node->findNodes("LayerElementUV");
+		FbxNodes vertices = node->findNodes("Vertices");						//Vec3d[]
+		FbxNodes vertexOrder = node->findNodes("PolygonVertexIndex");			//i32[]
+		FbxNodes normals = node->findNodes("LayerElementNormal");				//Vec3d[]
+		FbxNodes uvs = node->findNodes("LayerElementUV");						//Vec2d[] and i32[]
 		//FbxNodes materials = node->findNodes("LayerElementMaterial");
 
-		if (vertices.size() == 0) {
+		if (vertices.size() == 0 || vertexOrder.size() == 0 || vertices[0]->getProperties() == 0 || vertexOrder[0]->getProperties() == 0) {
 			lastError = String("Couldn't find the vertices of a geometry object (") + name + ")";
 			goto failed;
 		}
@@ -261,20 +259,77 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf) {
 			goto failed;
 		}
 
-		std::vector<Vec3> position;
+		FbxDoubleArray *pos = vertices[0]->getProperty(0)->cast<FbxDoubleArray>();
+		FbxIntArray *posOrder = vertexOrder[0]->getProperty(0)->cast<FbxIntArray>();
 
-		//TODO: Construct position
+		if (pos == nullptr || posOrder == nullptr) {
+			lastError = String("The geometry object \"") + name + "\" has invalid positional data.";
+			goto failed;
+		}
 
-		std::vector<Vec3> normal;
+		//required Vec3 pos; optional Vec2 uv; optional Vec3 normal;
+		u32 posuv = 3 + (uvs.size() != 0 ? 2 : 0);
+		u32 stride = posuv + (normals.size() != 0 ? 3 : 0);
+		u32 vertCount = posOrder->size();
+		std::vector<f32> buffer(vertCount * stride);
 
-		if (normals.size() > 0) {
+		std::vector<Vec2u> faces;
+		u32 prev = 0, indices = 0;
 
-			//TODO: Construct normals
+		//Vertex positions are only stored once, but referenced to by vertexOrder
+		Vec3d *vpos = (Vec3d*)&pos->get();
+
+		for (u32 i = 0; i < vertCount; ++i) {
+
+			i32 j = posOrder->get(i);
+			i32 k = j < 0 ? (-j - 1) : j;
+
+			if ((u32)k >= pos->size() / 3) {
+				lastError = String("The geometry object \"") + name + "\" has invalid positional data.";
+				goto failed;
+			}
+
+			*(Vec3*)(buffer.data() + i * stride) = ((Vec3(vpos[k]) * 1000).round() / 1000).fix();
+
+			if (j < 0) {
+				indices += (i - prev - 1) * 3;
+				faces.push_back(Vec2u(prev, i));
+				prev = i + 1;
+			}
 
 		}
 
-		std::vector<Vec2> uv;
+		//Normals are stored in a Vec3d[]
+		if (normals.size() > 0) {
 
+			if (normals.size() != 1) {
+				lastError = String("The geometry object \"") + name + "\" has more than 1 normal set. This is not supported.";
+				goto failed;
+			}
+
+			FbxNodes normalDat = normals[0]->findNodes("Normals");
+
+			if (normalDat.size() != 1 || normalDat[0]->getProperties() == 0) {
+				lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal set.";
+				goto failed;
+			}
+
+			FbxDoubleArray *normalp = normalDat[0]->getProperty(0)->cast<FbxDoubleArray>();
+
+			if (normalp == nullptr) {
+				lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal array.";
+				goto failed;
+			}
+
+			Vec3d *uvDat = (Vec3d*)normalp->getPtr();
+
+			for (u32 i = 0; i < normalp->size() / 3; ++i)
+				*(Vec3*)(buffer.data() + i * stride + posuv) = ((Vec3(uvDat[i]) * 1000).round() / 1000).fix();
+
+		}
+
+		//Uvs are stored in a Vec2d[] and duplicated uvs are not allowed
+		//so an index to a UV is used to avoid duplicating uvs
 		if (uvs.size() > 0) {
 
 			if (uvs.size() != 1) {
@@ -290,18 +345,46 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf) {
 				goto failed;
 			}
 
-			Vec2d *uvDat = (Vec2d*) uvDatn[0]->getProperty(0)->cast<FbxDoubleArray>()->getPtr();
+			FbxDoubleArray *uvData = uvDatn[0]->getProperty(0)->cast<FbxDoubleArray>();
+
+			if (uvData == nullptr) {
+				lastError = String("The geometry object \"") + name + "\" had an invalid UV array.";
+				goto failed;
+			}
+
+			Vec2d *uvDat = (Vec2d*)uvData->getPtr();
 
 			FbxIntArray *uvInd = uvIndn[0]->getProperty(0)->cast<FbxIntArray>();
 
-			uv.resize(uvInd->size());
+			if (uvInd == nullptr) {
+				lastError = String("The geometry object \"") + name + "\" had an invalid UVIndex array.";
+				goto failed;
+			}
 
 			for (u32 i = 0; i < uvInd->size(); ++i)
-				uv[i] = Vec2(uvDat[uvInd->get(i)]);
+				*(Vec2*)(buffer.data() + i * stride + 3) = ((Vec2(uvDat[uvInd->get(i)]) * 1000).round() / 1000).fix();
 
 		}
 
-		meshes[name] = /* TODO: This is the fun part!*/{};
+		u32 ind = 0;
+		std::vector<u32> index(indices);
+
+		for (Vec2u face : faces) {
+			for (u32 x = 1; x < face.y - face.x; ++x) {
+				*(Vec3u*)(index.data() + ind) = { face.x, face.x + x, face.x + x + 1};
+				ind += 3;
+
+			}
+		}
+
+		Buffer obuf = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices);
+
+		if (obuf.size() == 0) {
+			lastError = String("The geometry object \"") + name + "\" couldn't be converted to oiRM.";
+			goto failed;
+		}
+
+		meshes[name.untilFirst(String("\0\x1", 2))] = obuf;
 
 	}
 
@@ -330,16 +413,12 @@ bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath) {
 
 	String base = outPath.getFilePath();
 	String fileName = outPath.getFileName();
-	String extension = outPath.getExtension();
 
 	if (buf.size() == 0)
 		return Log::error("Fbx conversion failed (or it didn't contain any meshes)");
 
-	String match;
-
 	for (auto &elem : buf)
-		if (elem.first.untilFirst(String("\0\x1", 2)).equalsIgnoreCase(fileName)) {
-
+		if (elem.first.equalsIgnoreCase(fileName)) {
 			if (!FileManager::get()->write(outPath, elem.second)) {
 
 				for (auto &elem : buf)
@@ -348,19 +427,7 @@ bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath) {
 				return Log::error("Couldn't write oiRM file to disk");
 
 			}
-
-			match = elem.first;
-			break;
-		}
-
-	if (match == "")
-		Log::warn("Converting an fbx with multiple meshes to oiRM is not recommended, unless a mesh matches the fbx's name. Otherwise, scene conversion is recommended.");
-
-	for (auto &elem : buf) {
-
-		String dest = base + "." + elem.first.untilFirst(String("\0\x1", 2)) + "." + extension;
-
-		if (elem.first != match && !FileManager::get()->write(dest, elem.second)) {
+		} else if(!FileManager::get()->write(base + "." + elem.first + ".oiRM", elem.second)) {
 
 			for (auto &elem : buf)
 				elem.second.deconstruct();
@@ -368,8 +435,6 @@ bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath) {
 			return Log::error("Couldn't write oiRM file to disk");
 
 		}
-
-	}
 
 	for (auto &elem : buf)
 		elem.second.deconstruct();

@@ -1,4 +1,5 @@
 #include <graphics/format/obj.h>
+#include <graphics/format/fbx.h>
 #include <utils/log.h>
 #include <fstream>
 using namespace oi::gc;
@@ -77,15 +78,31 @@ int main(int argv, char *argc[]) {
 		else {
 			res = (int) writeFileAbsolute(base + ".oiRM", model);
 			model.deconstruct();
+			if(res) Log::println(String("Successfully converted \"") + path + "\" to \"" + base + ".oiRM\"");
 		}
 
-	} else if(path.endsWithIgnoreCase(".fbx"))
-		res = (int)Log::error(String("Fbx format conversion isn't supported yet... Skipping \"") + path + "\"");
+	} else if (path.endsWithIgnoreCase(".fbx")) {
+
+		String fname = path.fromLast("\\").untilLast(".");
+
+		auto models = Fbx::convertMeshes(buf);
+
+		for (auto &elem : models) {
+
+			if (elem.first.equalsIgnoreCase(fname)) {
+				res = (int)writeFileAbsolute(base + ".oiRM", elem.second);
+				if(res) Log::println(String("Successfully converted \"") + path + "\" to \"" + base + ".oiRM\"");
+			} else {
+				res = (int)writeFileAbsolute(base + "." + elem.first + ".oiRM", elem.second);
+				if(res) Log::println(String("Successfully converted \"") + path + "\" to \"" + base + "." + elem.first + + ".oiRM\"");
+			}
+
+			elem.second.deconstruct();
+		}
+
+	}
 
 	buf.deconstruct();
-	
-	if(res == 1)
-		Log::println(String("Successfully converted \"") + path + "\" to \"" + base + ".oiRM\"");
 
 	return res;
 }

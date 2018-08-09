@@ -13,7 +13,7 @@ namespace oi {
 		struct MeshBufferInfo;
 
 		UEnum(RMHeaderVersion, Undefined = 0, V0_0_1 = 1);
-		UEnum(RMHeaderFlag1, None = 0, Contains_materials = 1, Per_tri_materials = 2);
+		UEnum(RMHeaderFlag1, None = 0, Contains_materials = 1, Per_tri_materials = 2, Uses_compression = 4);
 
 		struct RMHeader {
 
@@ -88,8 +88,17 @@ namespace oi {
 			//It does allocate memory for vertices and indices, so clean that up.
 			static std::pair<MeshBufferInfo, MeshInfo> convert(Graphics *g, RMFile file);
 
-			static Buffer write(RMFile &file);					//Creates new buffer
+			static Buffer write(RMFile &file, bool compression = true);					//Creates new buffer
 			static bool write(String path, RMFile &file);
+
+			//Generate a default oiRM file
+			//The layout is as follows:
+			//Vec3 inPosition (if hasPos)
+			//Vec2 inUv (if hasUv)
+			//Vec3 inNormal (if hasNrm)
+			//Meaning that vbo should be stride * vertices
+			//Ibo should be u32[indices]
+			static Buffer generate(Buffer vbo, Buffer ibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices);
 
 		};
 

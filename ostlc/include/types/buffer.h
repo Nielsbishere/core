@@ -92,6 +92,9 @@ namespace oi {
 
 		Buffer &toBuffer() const;
 
+		CopyBuffer &operator+=(const CopyBuffer &cb);
+		CopyBuffer operator+(const CopyBuffer &cb) const;
+
 	private:
 
 		CopyBuffer &copy(const CopyBuffer &cb);

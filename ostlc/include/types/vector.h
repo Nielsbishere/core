@@ -54,6 +54,20 @@ namespace oi {
 
 	};
 
+	struct VecFloatHelper {
+
+		static bool isInvalid(f32 f) {
+			u32 asint = (*(u32*)&f);
+			return (asint >= 0x7F800000U /* +Infinity & +NaN*/ && asint <= 0x80000000U /* -0 */) || asint >= 0xFF800000U /* -Infinity & -NaN */;
+		}
+
+		static bool isInvalid(f64 f) {
+			u64 asint = (*(u64*)&f);
+			return (asint >= 0x7FF0000000000000U /* +Infinity & +NaN*/ && asint <= 0x8000000000000000U /* -0 */) || asint >= 0xFFF0000000000000U /* -Infinity & -NaN */;
+		}
+
+	};
+
 	template<typename T, u32 n>
 	class TVec : public TVecStorage<T, n> {
 	
@@ -440,6 +454,20 @@ namespace oi {
 			return res;
 		}
 
+		//Only implemented for floating points;
+		//Sets invalid floating point values (like signed zero, (+/-)infinity, (+/-)NaN) to 0.
+		TVec &fix() {
+
+			static_assert(std::is_floating_point<T>::value, "TVec<T,n>::fix can only be performed on a floating point vector");
+
+			for (u32 i = 0; i < n; ++i)
+				if (VecFloatHelper::isInvalid(this->arr[i]))
+					this->arr[i] = 0;
+
+			return *this;
+
+		}
+
 		//Retrieves values and puts them into a different order
 		//Example for TVec3:
 		//query(1, 0, 2) would be something like '.yxz' in GLSL/HLSL
@@ -535,9 +563,25 @@ namespace oi {
 	typedef TVec3<u32> Vec3u;
 	typedef TVec4<u32> Vec4u;
 
+	typedef TVec2<u16> Vec2us;
+	typedef TVec3<u16> Vec3us;
+	typedef TVec4<u16> Vec4us;
+
+	typedef TVec2<u8> Vec2ub;
+	typedef TVec3<u8> Vec3ub;
+	typedef TVec4<u8> Vec4ub;
+
 	typedef TVec2<i32> Vec2i;
 	typedef TVec3<i32> Vec3i;
 	typedef TVec4<i32> Vec4i;
+
+	typedef TVec2<i16> Vec2is;
+	typedef TVec3<i16> Vec3is;
+	typedef TVec4<i16> Vec4is;
+
+	typedef TVec2<i8> Vec2ib;
+	typedef TVec3<i8> Vec3ib;
+	typedef TVec4<i8> Vec4ib;
 
 	typedef TVec2<f64> Vec2d;
 	typedef TVec3<f64> Vec3d;

@@ -1,9 +1,102 @@
 #include <file/filemanager.h>
+#include <types/bitset.h>
 #include "graphics/format/oirm.h"
 #include "graphics/mesh.h"
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
+
+Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices) {
+
+	u32 stride = (hasPos ? 12 : 0) + (hasUv ? 8 : 0) + (hasNrm ? 12 : 0);
+
+	if (vbo.size() != stride * vertices) {
+		Log::error("Couldn't generate oiRM file; the vbo was of invalid size");
+		return {};
+	}
+
+	if (bibo.size() != 4 * indices) {
+		Log::error("Couldn't generate oiRM file; the vbo was of invalid size");
+		return {};
+	}
+
+	u32 *ibo = (u32*) bibo.addr();
+
+	u32 perIndex = vertices <= 256 ? 1 : (vertices <= 65536 ? 2 : 4);
+	std::vector<u8> fibo(indices * perIndex);
+
+	if (perIndex == 4)
+		memcpy(fibo.data(), ibo, bibo.size());
+	else
+		for (u32 i = 0; i < (u32) indices; ++i) {
+
+			if (perIndex == 1)
+				fibo[i] = (u8) ibo[i];
+			else if (perIndex == 2)
+				*(u16*)(fibo.data() + i * 2) = (u16) ibo[i];
+		}
+
+	u32 attributeCount = (u32) hasPos + hasUv + hasNrm;
+	std::vector<String> names;
+	std::vector<RMAttribute> attributes;
+
+	names.reserve(attributeCount);
+	attributes.reserve(attributeCount);
+
+	if (hasPos) {
+		names.push_back("inPosition");
+		attributes.push_back({ (u8)0, (u8)TextureFormat::RGB32f, (u16)0 });
+	}
+
+	if (hasUv) {
+		names.push_back("inUv");
+		attributes.push_back({ (u8)0, (u8)TextureFormat::RG32f, (u16)attributes.size() });
+	}
+
+	if (hasNrm) {
+		names.push_back("inNormal");
+		attributes.push_back({ (u8)0, (u8)TextureFormat::RGB32f, (u16)attributes.size() });
+	}
+
+	RMFile file = {
+
+		//Header
+		{
+			{ 'o', 'i', 'R', 'M' },
+			(u8)RMHeaderVersion::V0_0_1,
+			(u8)RMHeaderFlag1::None,
+			(u8)1,
+			(u8)attributeCount,
+
+			(u8)TopologyMode::Triangle,
+			(u8)FillMode::Fill,
+			(u8)0,
+			(u8)0,
+
+			{ 0, 0, 0, 0 },
+
+			(u32) vertices,
+			(u32) indices
+
+		},
+
+		//VBO
+		{ {
+			(u16)((hasPos ? sizeof(Vec3) : 0) + (hasUv ? sizeof(Vec2) : 0) + (hasNrm ? sizeof(Vec3) : 0)),
+			(u16)attributeCount
+		} },
+
+		attributes,
+		{},
+		{ vbo.toArray() },
+		fibo,
+		{},
+		SLFile(String::getDefaultCharset(), names),
+
+	};
+
+	return oiRM::write(file);
+}
 
 bool oiRM::read(String path, RMFile &file) {
 
@@ -232,7 +325,24 @@ RMFile oiRM::convert(MeshInfo info) {
 	};
 }
 
-Buffer oiRM::write(RMFile &file) {
+template<typename T>
+void fillKeyset(CopyBuffer &buf, std::vector<u8> &vbo, T *loc, u32 m, std::vector<u32> &indices) {
+
+	T *beg = (T*) buf.addr();
+	T *end = (T*)(buf.addr() + buf.size());
+	T &val = *loc;
+
+	auto it = std::find(beg, end, val);
+
+	if (it == end) {
+		indices[m] = buf.size() / sizeof(T);
+		buf += CopyBuffer((u8*)loc, sizeof(T));
+	} else
+		indices[m] = (u32)(it - beg);
+
+}
+
+Buffer oiRM::write(RMFile &file, bool compression) {
 
 	RMHeader &header = file.header;
 
@@ -246,8 +356,66 @@ Buffer oiRM::write(RMFile &file) {
 	std::vector<u8> &indices = file.indices;
 
 	Buffer b = oiSL::write(file.names);
-	Buffer vertices(file.vertices);
+	CopyBuffer vertices;
 	Buffer miscBuf(file.miscBuffer);
+
+	if (compression) {
+
+		u32 layoutOff = 0;
+
+		for (u32 j = 0; j < (u32) file.vbos.size(); ++j) {
+
+			RMVBO &vb = file.vbos[j];
+			std::vector<u8> &vbo = file.vertices[j];
+
+			u32 offset = 0;
+
+			for (u32 i = layoutOff; i < layoutOff + vb.layouts; ++i) {
+
+				RMAttribute &attrib = file.vbo[i];
+				TextureFormat format = attrib.format;
+
+				u32 channels = Graphics::getChannels(format);
+				u32 bpc = Graphics::getChannelSize(format);
+
+				std::vector<u32> indices(channels * file.header.vertices);
+
+				CopyBuffer buf;
+
+				for (u32 l = 0; l < channels; ++l)
+					for (u32 k = 0; k < file.header.vertices; ++k)
+						if (bpc == 4)
+							fillKeyset(buf, vbo, (u32*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+						else if (bpc == 2)
+							fillKeyset(buf, vbo, (u16*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+						else if (bpc == 1)
+							fillKeyset(buf, vbo, vbo.data() + offset + k * vb.stride + l * bpc, l + k * channels, indices);
+						else if (bpc == 8)
+							fillKeyset(buf, vbo, (u64*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+
+				u32 keyset = buf.size() / bpc;
+				u32 perKey = (u32) std::ceil(std::log2((f64)keyset));
+
+				Bitset bitset(perKey * (u32) indices.size());
+				bitset.write(indices, perKey);
+
+				vertices += CopyBuffer((u8*)&keyset, 4) + buf + bitset.toBuffer();
+
+				offset += channels * bpc;
+
+			}
+
+			layoutOff += vb.layouts;
+
+		}
+
+		header.flags |= RMHeaderFlag1::Uses_compression;
+
+	} else {
+		Buffer vert = file.vertices;
+		vertices = CopyBuffer(vert);
+		vert.deconstruct();
+	}
 
 	file.size = (u32) sizeof(header) + vertexBuffer + vertexAttribute + misc + vertices.size() + index + miscBuf.size() + file.names.size;
 
