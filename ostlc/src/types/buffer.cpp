@@ -1,5 +1,5 @@
 #include "types/buffer.h"
-#include "utils/log.h"
+#include "types/bitset.h"
 #include "math.h"
 #include "string.h"
 using namespace oi;
@@ -110,6 +110,19 @@ bool Buffer::setString(u32 where, String str) {
 	return true;
 }
 
+bool Buffer::read(Bitset &bitset, u32 bits) {
+
+	u32 bytes = (u32) std::ceil(bits / 8.f);
+
+	if (bytes > length)
+		return Log::error("Couldn't read bitset from buffer; not enough bytes");
+
+	bitset = Bitset(bits);
+	memcpy(bitset.addr(), data, bytes);
+	*this = offset(bytes);
+	return true;
+}
+
 
 CopyBuffer::CopyBuffer(u32 length): Buffer(length) { }
 CopyBuffer::CopyBuffer(u8 *initData, u32 length): Buffer(initData, length) { }
@@ -175,6 +188,12 @@ Buffer &Buffer::operator+=(Buffer other) {
 
 	deconstruct();
 	return *this = cpy;
+}
+
+Buffer &Buffer::operator+=(u32 delta) {
+	if (delta >= length)
+		return *this = {};
+	return *this = offset(delta);
 }
 
 Buffer Buffer::subbuffer(u32 off, u32 length) const {

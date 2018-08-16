@@ -111,23 +111,22 @@ bool BitsetRef::operator&&(bool other) const {
 /* Bitset */
 
 Bitset::Bitset() : data(nullptr), bits(0), bytes(0) {}
-Bitset::Bitset(u32 size) : data(new u8[size]), bits(size), bytes((u32)std::ceil(size / 8.f)) {
-	memset(data, 0, size);
+
+//Allocate in blocks of 4, so bitwise operators can be executed using uint
+Bitset::Bitset(u32 size) : bytes((u32)std::ceil(size / 32.f) * 4), data(nullptr), bits(size) {
+	data = new u8[bytes];
+	memset(data, 0, bytes);
 }
 
-Bitset::Bitset(u32 size, bool def) {
+Bitset::Bitset(u32 size, bool def): Bitset(size) {
 	memset(data, def ? 0xFF : 0, size);
 }
 
 u8 *Bitset::addr() { return data; }
-CopyBuffer Bitset::toBuffer() { return CopyBuffer(data, bytes); }
+CopyBuffer Bitset::toBuffer() { return CopyBuffer(data, (u32) std::ceil(bits / 8.f)); }
 
 u32 Bitset::getBits() { return bits; }
 u32 Bitset::getBytes() { return bytes; }
-
-bool Bitset::fetch(u32 i) const {
-	return (data[i / 8] & (1 << (7 - i % 8))) != 0;
-}
 
 BitsetRef Bitset::operator[](u32 i) {
 
@@ -149,29 +148,33 @@ Bitset &Bitset::operator=(const Bitset &other) {
 }
 
 Bitset &Bitset::flip() {
-	for (u32 i = 0; i < bytes; ++i)
-		data[i] = ~data[i];
+	u32 *uarr = (u32*)data;
+	for (u32 i = 0; i < bytes / 4; ++i)
+		uarr[i] = ~uarr[i];
 	return *this;
 }
 
 Bitset &Bitset::operator^=(bool other) {
-	u8 c = other ? 0xFF : 0;
-	for (u32 i = 0; i < bytes; ++i)
-		data[i] ^= c;
+	u32 *uarr = (u32*)data;
+	u32 c = other ? 0xFFFFFFFFU : 0;
+	for (u32 i = 0; i < bytes / 4; ++i)
+		uarr[i] ^= c;
 	return *this;
 }
 
 Bitset &Bitset::operator|=(bool other) {
-	u8 c = other ? 0xFF : 0;
-	for (u32 i = 0; i < bytes; ++i)
-		data[i] |= c;
+	u32 *uarr = (u32*)data;
+	u32 c = other ? 0xFFFFFFFFU : 0;
+	for (u32 i = 0; i < bytes / 4; ++i)
+		uarr[i] |= c;
 	return *this;
 }
 
 Bitset &Bitset::operator&=(bool other) {
-	u8 c = other ? 0xFF : 0;
-	for (u32 i = 0; i < bytes; ++i)
-		data[i] &= c;
+	u32 *uarr = (u32*)data;
+	u32 c = other ? 0xFFFFFFFFU : 0;
+	for (u32 i = 0; i < bytes / 4; ++i)
+		uarr[i] &= c;
 	return *this;
 }
 
@@ -220,6 +223,8 @@ Bitset Bitset::operator~() const {
 
 Bitset &Bitset::operator^=(const Bitset &other) {
 
+	//TODO: Optimize this
+
 	u32 sbytes = bytes <= other.bytes ? bytes : other.bytes;
 
 	for (u32 i = 0; i < sbytes; ++i)
@@ -233,6 +238,8 @@ Bitset &Bitset::operator^=(const Bitset &other) {
 }
 
 Bitset &Bitset::operator|=(const Bitset &other) {
+
+	//TODO: Optimize this
 
 	u32 sbytes = bytes <= other.bytes ? bytes : other.bytes;
 
@@ -248,6 +255,8 @@ Bitset &Bitset::operator|=(const Bitset &other) {
 
 Bitset &Bitset::operator&=(const Bitset &other) {
 
+	//TODO: Optimize this
+
 	u32 sbytes = bytes <= other.bytes ? bytes : other.bytes;
 
 	for (u32 i = 0; i < sbytes; ++i)
@@ -261,6 +270,8 @@ Bitset &Bitset::operator&=(const Bitset &other) {
 }
 
 void Bitset::write(std::vector<u32> &values, u32 bitsPerVal) {
+
+	//TODO: Optimize this
 
 	if (bits != bitsPerVal * values.size())
 		Log::throwError<Bitset, 0x0>("Couldn't write values to bitset; bitset didn't have enough space");
@@ -277,8 +288,37 @@ void Bitset::read(std::vector<u32> &values, u32 bitsPerVal) {
 
 	memset(values.data(), 0, values.size() * sizeof(u32));
 
-	for (u32 i = 0; i < (u32)values.size() * bitsPerVal; ++i)
-		values[i / bitsPerVal] |= u32(fetch(i)) << (bitsPerVal == 1 ? 0 : bitsPerVal - 1 - i % bitsPerVal);
+	u32 *dest = values.data(), *src = (u32*) data;
+
+	u32 mask = (1 << bitsPerVal) - 1, offset = 0;
+
+	for (u32 i = 0, len = (u32)values.size(); i < len; ++i) {
+
+		u32 leftIndex = offset / 32;
+		u32 rightIndex = (offset + bitsPerVal) / 32;
+		u32 localOff = offset % 32;
+
+		u32 toEnd = 32 - bitsPerVal;
+		u32 leftBits = toEnd - localOff;
+		u32 rightBits = localOff - toEnd;
+
+		u32 left = src[leftIndex];
+		left = ((left & 0xFF) << 24) | ((left & 0xFF00) << 8) | ((left & 0xFF0000) >> 8) | ((left & 0xFF000000) >> 24);
+
+		if (leftBits <= toEnd)												//Sample from first uint
+			*(dest + i) = (left & (mask << leftBits)) >> leftBits;
+		else {																//Sample from both uints
+
+			u32 right = src[rightIndex];
+			right = ((right & 0xFF) << 24) | ((right & 0xFF00) << 8) | ((right & 0xFF0000) >> 8) | ((right & 0xFF000000) >> 24);
+
+			*(dest + i) = ((left & (mask >> rightBits)) << rightBits) | ((right & (mask << (32 - rightBits))) >> (32 - rightBits));
+
+		}
+
+		offset += bitsPerVal;
+
+	}
 
 }
 

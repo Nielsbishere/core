@@ -47,10 +47,6 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
-	Fbx::convertMeshes("res/models/cube.fbx", "out/models/cube.oiRM");
-	Fbx::convertMeshes("res/models/sphere.fbx", "out/models/sphere.oiRM");
-	Fbx::convertMeshes("res/models/anvil.fbx", "out/models/anvil.oiRM");
-
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
 
@@ -71,7 +67,7 @@ void MainInterface::initScene() {
 	oiRM::read("res/models/cube.oiRM", file);
 	auto info = oiRM::convert(&g, file);
 
-	info.first.maxIndices = 99999;
+	info.first.maxIndices = 999999;
 	info.first.maxVertices = 99999;
 	meshBuffer = g.create("Mesh buffer", info.first);
 	g.use(meshBuffer);
@@ -81,7 +77,7 @@ void MainInterface::initScene() {
 	mesh = g.create("Cube", info.second);
 	g.use(mesh);
 
-	oiRM::read("res/models/sphere.oiRM", file);
+	oiRM::read("res/models/anvil.oiRM", file);
 	info = oiRM::convert(&g, file);
 
 	info.second.buffer = meshBuffer;

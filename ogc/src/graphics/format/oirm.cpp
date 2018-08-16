@@ -1,12 +1,13 @@
 #include <file/filemanager.h>
 #include <types/bitset.h>
+#include <utils/timer.h>
 #include "graphics/format/oirm.h"
 #include "graphics/mesh.h"
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices) {
+Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression) {
 
 	u32 stride = (hasPos ? 12 : 0) + (hasUv ? 8 : 0) + (hasNrm ? 12 : 0);
 
@@ -95,7 +96,7 @@ Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 
 	};
 
-	return oiRM::write(file);
+	return oiRM::write(file, compression);
 }
 
 bool oiRM::read(String path, RMFile &file) {
@@ -114,6 +115,8 @@ bool oiRM::read(String path, RMFile &file) {
 }
 
 bool oiRM::read(Buffer data, RMFile &file) {
+
+	Timer t;
 
 	const char magicNumber[] = { 'o', 'i', 'R', 'M' };
 
@@ -161,17 +164,81 @@ V0_0_1:
 		memcpy(file.miscs.data(), read.addr(), misc);
 		read = read.offset(misc);
 
+		u32 attr = 0;
+		bool compression = isSet((RMHeaderFlag1_s) file.header.flags, RMHeaderFlag1::Uses_compression);
+
 		file.vertices.resize(file.header.vertexBuffers);
+
+		RMVBO *vbo = file.vbos.data();
+		std::vector<u8> *vbdat = file.vertices.data();
+		std::vector<u32> indices;
+
 		for (u32 i = 0; i < file.header.vertexBuffers; ++i) {
 
-			u32 length = file.vbos[i].stride * file.header.vertices;
+			vbdat->resize(vbo->stride * file.header.vertices);
 
-			if (length + index > read.size())
-				return Log::error("Couldn't read oiRM file; invalid vertex length");
+			u8 *vbdata = vbdat->data();
 
-			file.vertices[i].resize(length);
-			memcpy(file.vertices[i].data(), read.addr(), length);
-			read = read.offset(length);
+			memset(vbdata, 0, vbo->stride * file.header.vertices);
+
+			if (!compression) {
+
+				u32 length = vbo->stride * file.header.vertices;
+
+				if (length + index > read.size())
+					return Log::error("Couldn't read oiRM file; invalid vertex length");
+
+				memcpy(vbdata, read.addr(), length);
+				read = read.offset(length);
+
+			} else {
+
+				RMAttribute *attrib = file.vbo.data();
+
+				for (u32 j = 0, offset = 0; j < vbo->layouts; ++j) {
+
+					TextureFormat format = attrib->format;
+
+					u32 channels = Graphics::getChannels(format);
+					u32 bpc = Graphics::getChannelSize(format);
+					
+					u32 keyset;
+
+					if (!read.read(keyset) || read.size() < keyset * bpc)
+						return Log::error("Couldn't read oiRM file; invalid keyset");
+
+					Buffer values = read.subbuffer(0, keyset * bpc);
+					read += keyset * bpc;
+
+					u32 perKey = (u32)std::ceil(std::log2((f64)keyset));
+
+					Bitset bitset;
+
+					if (!read.read(bitset, file.header.vertices * channels * perKey))
+						return Log::error("Couldn't read oiRM file; invalid bitset");
+
+					indices.resize(file.header.vertices * channels);
+					bitset.read(indices, perKey);
+
+					u32 uncompSiz = channels * bpc * file.header.vertices;
+
+					u8 *dest = values.addr();
+
+					for (u32 k = 0; k < channels * file.header.vertices; ++k)
+						memcpy(vbdata + k / channels * vbo->stride + offset + k % channels * bpc, dest + indices[k] * bpc, bpc);
+
+					offset += channels * bpc;
+					++attrib;
+
+				}
+
+				attr += vbo->layouts;
+
+			}
+
+			++vbo;
+			++vbdat;
+
 		}
 
 		if (file.header.indices != 0) {
@@ -204,6 +271,9 @@ end:
 
 	file.size = (u32)(read.addr() - data.addr());
 	if (read.size() == 0) file.size = data.size();
+
+	t.stop();
+	t.print();
 
 	Log::println(String("Successfully loaded oiRM file with version ") + v.getName() + " (" + file.size + " bytes)");
 	return true;
@@ -382,8 +452,9 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 				CopyBuffer buf;
 
-				for (u32 l = 0; l < channels; ++l)
-					for (u32 k = 0; k < file.header.vertices; ++k)
+				for (u32 k = 0; k < file.header.vertices; ++k) {
+
+					for (u32 l = 0; l < channels; ++l)
 						if (bpc == 4)
 							fillKeyset(buf, vbo, (u32*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
 						else if (bpc == 2)
@@ -392,6 +463,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 							fillKeyset(buf, vbo, vbo.data() + offset + k * vb.stride + l * bpc, l + k * channels, indices);
 						else if (bpc == 8)
 							fillKeyset(buf, vbo, (u64*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+
+				}
 
 				u32 keyset = buf.size() / bpc;
 				u32 perKey = (u32) std::ceil(std::log2((f64)keyset));

@@ -1,14 +1,17 @@
 #include "graphics/format/obj.h"
 #include <file/filemanager.h>
+#include <utils/timer.h>
 #include "graphics/graphics.h"
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-Buffer Obj::convert(Buffer objBuffer) {
+Buffer Obj::convert(Buffer objBuffer, bool compression) {
 
 	//Convert obj to oiRM
 	String str((char*) objBuffer.addr(), objBuffer.size());
+	
+	Timer t;
 
 	//Find all locations of objects
 	std::vector<Vec2u> objects = str.find("\no ", "\no ", 1);
@@ -135,12 +138,15 @@ Buffer Obj::convert(Buffer objBuffer) {
 
 	}
 
-	return oiRM::generate(Buffer::construct((u8*) vertices.data(), vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size());
+	t.stop();
+	t.print();
+
+	return oiRM::generate(Buffer::construct((u8*) vertices.data(), vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size(), compression);
 }
 
-bool Obj::convert(Buffer objBuffer, String outPath) {
+bool Obj::convert(Buffer objBuffer, String outPath, bool compression) {
 
-	Buffer buf = convert(objBuffer);
+	Buffer buf = convert(objBuffer, compression);
 
 	if(buf.size() == 0)
 		return Log::error("Obj conversion failed");
@@ -154,7 +160,7 @@ bool Obj::convert(Buffer objBuffer, String outPath) {
 	return true;
 }
 
-Buffer Obj::convert(String objPath) {
+Buffer Obj::convert(String objPath, bool compression) {
 
 	Buffer buf;
 	FileManager::get()->read(objPath, buf);
@@ -162,11 +168,11 @@ Buffer Obj::convert(String objPath) {
 	if (buf.size() == 0)
 		return Log::error("Couldn't read from file");
 
-	return convert(buf);
+	return convert(buf, compression);
 
 }
 
-bool Obj::convert(String objPath, String outPath) {
+bool Obj::convert(String objPath, String outPath, bool compression) {
 	
 	Buffer buf;
 	FileManager::get()->read(objPath, buf);
@@ -174,7 +180,7 @@ bool Obj::convert(String objPath, String outPath) {
 	if (buf.size() == 0) 
 		return Log::error("Couldn't read from file");
 
-	bool converted = convert(buf, outPath);
+	bool converted = convert(buf, outPath, compression);
 	buf.deconstruct();
 	return converted;
 }

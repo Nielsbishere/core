@@ -13,11 +13,11 @@ namespace oi {
 		//All convert functions convert to oiRM format as a Buffer.
 		struct Obj {
 
-			static Buffer convert(Buffer objBuffer);
-			static bool convert(Buffer objBuffer, String outPath);
+			static Buffer convert(Buffer objBuffer, bool compression);
+			static bool convert(Buffer objBuffer, String outPath, bool compression);
 
-			static Buffer convert(String objPath);
-			static bool convert(String objPath, String outPath);
+			static Buffer convert(String objPath, bool compression);
+			static bool convert(String objPath, String outPath, bool compression);
 
 		};
 

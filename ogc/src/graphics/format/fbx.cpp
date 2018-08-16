@@ -1,6 +1,7 @@
 #include "graphics/format/fbx.h"
 
 #include <utils/log.h>
+#include <utils/timer.h>
 #include <file/filemanager.h>
 #include <types/vector.h>
 #include <graphics/format/oirm.h>
@@ -222,7 +223,9 @@ FbxFile *FbxFile::read(String fbxPath) {
 
 }
 
-std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf) {
+std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compression) {
+
+	Timer t;
 
 	FbxFile *file = FbxFile::read(buf);
 
@@ -241,7 +244,9 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf) {
 			goto failed;
 		}
 
-		String name = namep->cast<FbxString>()->get().untilFirst(String("\0\x1", 2));
+		const char *zeroNe = "\0\x1";
+		
+		String name = namep->cast<FbxString>()->get().untilFirst(String((char*) zeroNe, 2));
 
 		FbxNodes vertices = node->findNodes("Vertices");						//Vec3d[]
 		FbxNodes vertexOrder = node->findNodes("PolygonVertexIndex");			//i32[]
@@ -377,14 +382,17 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf) {
 			}
 		}
 
-		Buffer obuf = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices);
+		t.print();
+		t.stop();
+
+		Buffer obuf = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices, compression);
 
 		if (obuf.size() == 0) {
 			lastError = String("The geometry object \"") + name + "\" couldn't be converted to oiRM.";
 			goto failed;
 		}
 
-		meshes[name.untilFirst(String("\0\x1", 2))] = obuf;
+		meshes[name.untilFirst(String((char*) zeroNe, 2))] = obuf;
 
 	}
 
@@ -407,9 +415,9 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf) {
 }
 
 
-bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath) {
+bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath, bool compression) {
 
-	std::unordered_map<String, Buffer> buf = convertMeshes(fbxBuffer);
+	std::unordered_map<String, Buffer> buf = convertMeshes(fbxBuffer, compression);
 
 	String base = outPath.getFilePath();
 	String fileName = outPath.getFileName();
@@ -442,7 +450,7 @@ bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath) {
 	return true;
 }
 
-std::unordered_map<String, Buffer> Fbx::convertMeshes(String fbxPath) {
+std::unordered_map<String, Buffer> Fbx::convertMeshes(String fbxPath, bool compression) {
 
 	Buffer buf;
 	FileManager::get()->read(fbxPath, buf);
@@ -452,11 +460,11 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(String fbxPath) {
 		return {};
 	}
 
-	return convertMeshes(buf);
+	return convertMeshes(buf, compression);
 
 }
 
-bool Fbx::convertMeshes(String fbxPath, String outPath) {
+bool Fbx::convertMeshes(String fbxPath, String outPath, bool compression) {
 
 	Buffer buf;
 	FileManager::get()->read(fbxPath, buf);
@@ -464,7 +472,7 @@ bool Fbx::convertMeshes(String fbxPath, String outPath) {
 	if (buf.size() == 0)
 		return Log::error("Couldn't read from file");
 
-	bool converted = convertMeshes(buf, outPath);
+	bool converted = convertMeshes(buf, outPath, compression);
 	buf.deconstruct();
 	return converted;
 }

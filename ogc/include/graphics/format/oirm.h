@@ -98,7 +98,7 @@ namespace oi {
 			//Vec3 inNormal (if hasNrm)
 			//Meaning that vbo should be stride * vertices
 			//Ibo should be u32[indices]
-			static Buffer generate(Buffer vbo, Buffer ibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices);
+			static Buffer generate(Buffer vbo, Buffer ibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression);
 
 		};
 

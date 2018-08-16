@@ -49,10 +49,11 @@ bool writeFileAbsolute(String path, Buffer buffer) {
 //In an Android App, you're not able to write into resources, so all of that should be handled beforehand.
 int main(int argv, char *argc[]) {
 
-	if (argv != 2)
-		return (int) Log::error("Syntax: oirm_gen.exe \"modelPath\"");
+	if (argv < 2)
+		return (int) Log::error("Syntax: oirm_gen.exe \"modelPath\" (compression; y/n)");
 
 	String path = argc[1];
+	bool compression = argv < 3 ? true : (String(argc[2]) == "y");
 
 	bool isValid = path.endsWithIgnoreCase(".obj") || path.endsWithIgnoreCase(".fbx");
 
@@ -71,7 +72,7 @@ int main(int argv, char *argc[]) {
 
 	if (path.endsWithIgnoreCase(".obj")) {
 
-		Buffer model = Obj::convert(buf);
+		Buffer model = Obj::convert(buf, compression);
 
 		if (model.size() == 0)
 			res = (int) Log::error(String("Couldn't convert \"") + path + "\"");
@@ -85,7 +86,7 @@ int main(int argv, char *argc[]) {
 
 		String fname = path.fromLast("\\").untilLast(".");
 
-		auto models = Fbx::convertMeshes(buf);
+		auto models = Fbx::convertMeshes(buf, compression);
 
 		for (auto &elem : models) {
 

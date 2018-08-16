@@ -69,7 +69,10 @@ namespace oi {
 		u32 getBits();				//Without padding
 		u32 getBytes();				//With padding
 
-		bool fetch(u32 i) const;
+		inline bool fetch(u32 i) const {
+			return (data[i / 8] & (1 << (7 - i % 8))) != 0;
+		}
+
 		BitsetRef operator[](u32 i);
 
 		~Bitset();

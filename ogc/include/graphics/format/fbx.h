@@ -681,11 +681,11 @@ namespace oi {
 		//convertMesh picks all meshes (geometry) and converts them to oiRM format
 		struct Fbx {
 
-			static std::unordered_map<String, Buffer> convertMeshes(Buffer fbxBuffer);
-			static bool convertMeshes(Buffer fbxBuffer, String outPath);
+			static std::unordered_map<String, Buffer> convertMeshes(Buffer fbxBuffer, bool compression);
+			static bool convertMeshes(Buffer fbxBuffer, String outPath, bool compression);
 
-			static std::unordered_map<String, Buffer> convertMeshes(String fbxPath);
-			static bool convertMeshes(String fbxPath, String outPath);
+			static std::unordered_map<String, Buffer> convertMeshes(String fbxPath, bool compression);
+			static bool convertMeshes(String fbxPath, String outPath, bool compression);
 
 		};
 

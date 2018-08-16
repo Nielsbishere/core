@@ -104,7 +104,7 @@ void Graphics::init(Window *w){
 
 	#ifdef __ANDROID__
 	clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
-				"VK_LAYER_LUNARG_core_validation", "VK_LAYER_LUNARG_swapchain", "VK_LAYER_GOOGLE_unique_objects" };
+				"VK_LAYER_LUNARG_core_validation", /* TODO: "VK_LAYER_LUNARG_swapchain", */ "VK_LAYER_GOOGLE_unique_objects" };
 	#else 
 	clayers.push_back("VK_LAYER_LUNARG_standard_validation");
 	#endif
