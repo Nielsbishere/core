@@ -28,6 +28,8 @@
 #include <input/keyboard.h>
 #include <input/mouse.h>
 
+#include <math/simplexnoise.h>
+
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
@@ -43,7 +45,101 @@ void Application::instantiate(WindowHandleExt *param){
 
 //Set up the interface
 
+void genPlanet(f32 (*displace)(Vec3 loc)) {
+
+	Timer t;
+
+	u32 resolution = 42;
+
+	u32 resolutio = resolution - 1;
+	u32 vertices = 6 * resolution * resolution;
+	u32 indices = resolutio * resolutio * 36;
+
+	Vec3 norm[] = {
+		{ 0, 1, 0 },
+		{ 0, -1, 0 },
+		{ 1, 0, 0 },
+		{ -1, 0, 0 },
+		{ 0, 0, 1 },
+		{ 0, 0, -1 }
+	};
+
+	Vec3 tang[] = {
+		{ 1, 0, 0 },
+		{ -1, 0, 0 },
+		{ 0, 0, 1 },
+		{ 0, 0, -1 },
+		{ 0, 1, 0 },
+		{ 0, -1, 0 }
+	};
+
+	Vec3 bit[] = {
+		norm[0].cross(tang[0]),
+		norm[1].cross(tang[1]),
+		norm[2].cross(tang[2]),
+		norm[3].cross(tang[3]),
+		norm[4].cross(tang[4]),
+		norm[5].cross(tang[5])
+	};
+
+	std::vector<f32> vertex(vertices * 8);
+	std::vector<u32> index(indices);
+	f32 *avertex = vertex.data();
+	u32 *aindex = index.data();
+
+	for (u32 i = 0; i < vertices; ++i) {
+
+		u32 x = i % resolution;
+		u32 y = (i / resolution) % resolution;
+		u32 z = i / resolution / resolution;
+
+		Vec3 &up = norm[z];
+		Vec3 &tangent = tang[z];
+		Vec3 &bitangent = bit[z];
+
+		Vec2 uv = Vec2((f32)x, (f32)y) / Vec2((f32)resolutio);
+		Vec2 xy = uv * 2.f - 1.f;
+
+		Vec3 pos = (up + tangent * xy.x + bitangent * xy.y).normalize();
+
+		*(Vec3*)(avertex + 8 * i) = pos * (1 + displace(pos));
+		*(Vec2*)(avertex + 8 * i + 3) = uv;		//Temporary planar projection
+		*(Vec3*)(avertex + 8 * i + 5) = pos;	//Normal = position for a sphere; TODO: Use displacement for this
+
+		if (x != resolutio && y != resolutio) {
+
+			u32 ind = (z * resolutio * resolutio + y * resolutio + x) * 6;
+
+			aindex[ind] = i;
+			aindex[ind + 1] = i + resolution + 1;
+			aindex[ind + 2] = i + resolution;
+			aindex[ind + 3] = i;
+			aindex[ind + 4] = i + 1;
+			aindex[ind + 5] = i + resolution + 1;
+
+		}
+
+	}
+
+	Buffer buf = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices, true);
+
+	FileManager::get()->write("out/models/planet.oiRM", buf);
+
+	buf.deconstruct();
+
+	t.stop();
+	t.print();
+
+}
+
+float myNoise(Vec3 noise) {
+	return SimplexNoise::noise(noise, 4, 0.5, 1.5);
+}
+
 void MainInterface::initScene() {
+
+	//
+	genPlanet(myNoise);
 
 	Log::println("Started main interface!");
 
@@ -77,7 +173,7 @@ void MainInterface::initScene() {
 	mesh = g.create("Cube", info.second);
 	g.use(mesh);
 
-	oiRM::read("res/models/anvil.oiRM", file);
+	oiRM::read("out/models/planet.oiRM", file);
 	info = oiRM::convert(&g, file);
 
 	info.second.buffer = meshBuffer;
