@@ -90,7 +90,7 @@ namespace oi {
 			return vec;																				\
 		}																							\
 																									\
-		static std::vector<oi::String> getNames() {													\
+		static const std::vector<oi::String> &getNames() {											\
 			static const std::vector<oi::String> names = initNames();								\
 			return names;																			\
 		}																							\

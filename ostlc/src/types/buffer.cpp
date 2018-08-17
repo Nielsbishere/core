@@ -253,11 +253,40 @@ bool Buffer::uncompress(Buffer output) const {
 
 	uLong outLen = (uLong) output.size();
 
-	if (::uncompress((Bytef*)output.addr(), &outLen, (Bytef*) addr(), (uLong) size()) != Z_OK)
+	if (::uncompress((Bytef*) output.data, &outLen, (Bytef*) data, (uLong) length) != Z_OK)
 		return Log::error("Couldn't uncompress buffer");
 
 	if ((u32)outLen != output.length - 1)
 		return Log::error("Couldn't uncompress buffer; requested size wasn't equal to the actual size");
 
 	return true;
+}
+
+Buffer Buffer::compress() const {
+
+	Buffer buf(length);
+
+	uLong outLen = buf.length;
+
+	if (::compress((Bytef*) buf.data, &outLen, (Bytef*) data, length) != Z_OK)
+		return Log::error("Couldn't uncompress buffer");
+
+	Buffer output((u32)outLen);
+	memcpy(output.data, buf.data, outLen);
+
+	buf.deconstruct();
+
+	return output;
+
+}
+
+bool Buffer::compress(Buffer output) const {
+
+	uLong outLen = output.length;
+
+	if (::compress((Bytef*)output.data, &outLen, (Bytef*)data, length) != Z_OK)
+		return Log::error("Couldn't uncompress buffer");
+
+	return true;
+
 }

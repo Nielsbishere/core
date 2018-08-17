@@ -527,11 +527,6 @@ namespace oi {
 
 		TVec<T, n> result;
 
-		if (!isVector()) {
-			Log::throwError<String, 0>("String couldn't be converted to vector");
-			return result;
-		}
-
 		std::vector<String> s = contains(',') ? split(',') : split(' ');
 
 		u32 i = 0;

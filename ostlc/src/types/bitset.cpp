@@ -223,12 +223,12 @@ Bitset Bitset::operator~() const {
 
 Bitset &Bitset::operator^=(const Bitset &other) {
 
-	//TODO: Optimize this
-
 	u32 sbytes = bytes <= other.bytes ? bytes : other.bytes;
 
-	for (u32 i = 0; i < sbytes; ++i)
-		data[i] ^= other.data[i];
+	u32 *udat = (u32*)data, *oudat = (u32*) other.data;
+
+	for (u32 i = 0; i < sbytes / 4; ++i)
+		udat[i] ^= oudat[i];
 
 	for (u32 i = sbytes * 8; i < bits; ++i)
 		operator[](i) ^= i >= other.bits ? false : other.fetch(i);
@@ -239,12 +239,12 @@ Bitset &Bitset::operator^=(const Bitset &other) {
 
 Bitset &Bitset::operator|=(const Bitset &other) {
 
-	//TODO: Optimize this
-
 	u32 sbytes = bytes <= other.bytes ? bytes : other.bytes;
 
-	for (u32 i = 0; i < sbytes; ++i)
-		data[i] |= other.data[i];
+	u32 *udat = (u32*)data, *oudat = (u32*)other.data;
+
+	for (u32 i = 0; i < sbytes / 4; ++i)
+		udat[i] |= oudat[i];
 
 	for (u32 i = sbytes * 8; i < bits; ++i)
 		operator[](i) |= i >= other.bits ? false : other.fetch(i);
@@ -255,12 +255,12 @@ Bitset &Bitset::operator|=(const Bitset &other) {
 
 Bitset &Bitset::operator&=(const Bitset &other) {
 
-	//TODO: Optimize this
-
 	u32 sbytes = bytes <= other.bytes ? bytes : other.bytes;
 
-	for (u32 i = 0; i < sbytes; ++i)
-		data[i] &= other.data[i];
+	u32 *udat = (u32*)data, *oudat = (u32*)other.data;
+
+	for (u32 i = 0; i < sbytes / 4; ++i)
+		udat[i] &= oudat[i];
 
 	for (u32 i = sbytes * 8; i < bits; ++i)
 		operator[](i) &= i >= other.bits ? false : other.fetch(i);
@@ -270,8 +270,6 @@ Bitset &Bitset::operator&=(const Bitset &other) {
 }
 
 void Bitset::write(std::vector<u32> &values, u32 bitsPerVal) {
-
-	//TODO: Optimize this
 
 	if (bits != bitsPerVal * values.size())
 		Log::throwError<Bitset, 0x0>("Couldn't write values to bitset; bitset didn't have enough space");

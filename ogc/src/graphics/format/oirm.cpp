@@ -223,9 +223,10 @@ V0_0_1:
 					u32 uncompSiz = channels * bpc * file.header.vertices;
 
 					u8 *dest = values.addr();
+					u32 *aindices = indices.data();
 
 					for (u32 k = 0; k < channels * file.header.vertices; ++k)
-						memcpy(vbdata + k / channels * vbo->stride + offset + k % channels * bpc, dest + indices[k] * bpc, bpc);
+						memcpy(vbdata + k / channels * vbo->stride + offset + k % channels * bpc, dest + aindices[k] * bpc, bpc);
 
 					offset += channels * bpc;
 					++attrib;

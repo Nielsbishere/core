@@ -46,8 +46,11 @@ namespace oi {
 		//Uncompress with zlib
 		bool uncompress(Buffer result) const;
 
-		//TODO: Compress with zlib
+		//Compress with zlib
 		Buffer compress() const;
+
+		//Compress with zlib into buffer
+		bool compress(Buffer result) const;
 
 		//Merge the two buffers into one
 		Buffer &operator+=(Buffer other);

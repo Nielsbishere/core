@@ -8,10 +8,10 @@ using namespace oi;
 
 Buffer Obj::convert(Buffer objBuffer, bool compression) {
 
+	Timer t;
+
 	//Convert obj to oiRM
 	String str((char*) objBuffer.addr(), objBuffer.size());
-	
-	Timer t;
 
 	//Find all locations of objects
 	std::vector<Vec2u> objects = str.find("\no ", "\no ", 1);
@@ -28,25 +28,35 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 	std::vector<u32> indices;
 	std::vector<f32> perVert;
 
+	f32 *aperVert, *avertices;
+
+	u32 avertexSiz = 0;
+
+	std::vector<u32> polind;
+	polind.reserve(32);
+
 	u32 stride = 0;
 
 	for (u32 i = 0; i < (u32)objects.size(); ++i) {
 
 		Vec2u object = objects[i];
 		String s = str.substring(object.x, object.y);
+
 		std::vector<Vec2u> lines = s.find("\n", "\n", 1);
 
 		std::vector<Vec3> positions, normals;
 		std::vector<Vec2> uvs;
 
-		//Approx 1/4 goes to every attribute, so reserve that to minimize resizing as much as possible
-		positions.reserve(lines.size() / 4);
-		normals.reserve(lines.size() / 4);
-		uvs.reserve(lines.size() / 4);
-		vertices.reserve(vertices.size() + lines.size() / 4 * 5);
-		indices.reserve(indices.size() + lines.size() / 4 * 5);
+		u32 lineCount = (u32) lines.size();
 
-		for (u32 j = 0; j < lines.size(); ++j) {
+		//Approx 1/4 goes to every attribute, so reserve that to minimize resizing as much as possible
+		positions.reserve(lineCount / 4);
+		normals.reserve(lineCount / 4);
+		uvs.reserve(lineCount / 4);
+		vertices.reserve(vertices.size() + lineCount / 4 * 5);
+		indices.reserve(indices.size() + lineCount / 4 * 5);
+
+		for (u32 j = 0; j < lineCount; ++j) {
 
 			String line = s.substring(lines[j].x, lines[j].y);
 
@@ -70,10 +80,12 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 				std::vector<String> parts = line.split(' ');
 				stride = (hasPos ? 3 : 0) + (hasUv ? 2 : 0) + (hasNrm ? 3 : 0);
 
-				if ((u32)perVert.size() == 0)
+				if ((u32)perVert.size() == 0) {
 					perVert.resize(stride);
+					aperVert = perVert.data();
+				}
 
-				std::vector<u32> polind(parts.size() - 1);
+				polind.resize(parts.size() - 1);
 				u32 poli = 0;
 
 				for (u32 k = 1; k < (u32) parts.size(); ++k) {
@@ -92,35 +104,33 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 					}
 
 					if (hasPos) {
-						perVert[m] = positions[vert.x].x;
-						perVert[m + 1] = positions[vert.x].y;
-						perVert[m + 2] = positions[vert.x].z;
+						*(Vec3*)(aperVert + m) = positions[vert.x];
 						m += 3;
 					}
 
 					if (hasUv) {
-						perVert[m] = uvs[vert.y].x;
-						perVert[m + 1] = uvs[vert.y].y;
+						*(Vec2*)(aperVert + m) = uvs[vert.y];
 						m += 2;
 					}
 
-					if (hasNrm) {
-						perVert[m] = normals[vert.z].x;
-						perVert[m + 1] = normals[vert.z].y;
-						perVert[m + 2] = normals[vert.z].z;
-					}
+					if (hasNrm)
+						*(Vec3*)(aperVert + m) = normals[vert.z];
 
-					u32 next = (u32) vertices.size() / stride;
+					u32 next = (u32) avertexSiz / stride;
 					u32 index = next;
 
-					for (u32 n = 0; n < (u32)vertices.size() / stride; ++n)
-						if (memcmp(vertices.data() + n * stride, perVert.data(), stride * 4) == 0) {
+					//TODO: memcmp
+
+					for (u32 n = 0; n < (u32) avertexSiz / stride; ++n)
+						if (memcmp(avertices + n * stride, aperVert, stride * 4) == 0) {
 							index = n;
 							break;
 						}
 
 					if (index == next) {
 						vertices.insert(vertices.end(), perVert.begin(), perVert.end());
+						avertices = vertices.data();
+						avertexSiz = (u32) vertices.size();
 						++vertexCount;
 					}
 
@@ -128,10 +138,14 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 					++poli;
 				}
 
-				for (u32 x = 1; x < poli - 1; ++x) {
-					u32 ind[] = { polind[0], polind[x], polind[x + 1] };
-					indices.insert(indices.end(), ind, ind + 3);
-				}
+				u32 indlen = (poli - 2) * 3;
+				u32 *ind = new u32[indlen];
+
+				for (u32 x = 1; x < poli - 1; ++x)
+					*(Vec3u*)(ind + (x - 1) * 3) = Vec3u(polind[0], polind[x], polind[x + 1]);
+
+				indices.insert(indices.end(), ind, ind + indlen);
+				delete[] ind;
 
 			}
 		}
@@ -141,7 +155,7 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 	t.stop();
 	t.print();
 
-	return oiRM::generate(Buffer::construct((u8*) vertices.data(), vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size(), compression);
+	return oiRM::generate(Buffer::construct((u8*) avertices, vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size(), compression);
 }
 
 bool Obj::convert(Buffer objBuffer, String outPath, bool compression) {
