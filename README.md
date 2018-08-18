@@ -5,27 +5,27 @@ This project uses CMake and a few tools to help the user setup their environment
 ### Cleaning & Reloading project
 The user can run the 'clean' script to either regenerate or get rid of all generated cmake files. Clean without arguments gets rid of them, and with arguments runs reload. Reload either reloads the project or reinstalls it, depending on if it has been run before.
 ```bat
-# Clean the CMake and generated files
+rem Clean the CMake and generated files
 clean.bat
-# Clean the project and make it as a MinGW Makefiles project
+rem Clean the specified build directory
 clean.bat "MinGW Makefiles"
-# Reload the project
-reload.bat
+rem Reload with a specified generator (desktop)
+reload.bat "MinGW Makefiles"
 ```
 ### Building for Android
 If you have developer mode enabled on your Android device and have the Android NDK version that supports the 'android update' command, you can build it as long as the environment variables are set correctly. You can create the MinGW makefile by using 'make_android.bat' (if the project is clean) and turn it into a .apk and run it by using 'run_android.bat'.
 ```bat
-# Setup an Android CMake project; with default settings (API level 24, arm64-v8a architecture and windows-x86_64 environment)
+# Setup an Android CMake project; with default settings (API level 24, arm64-v8a/armeabi-v7a/x86/x64 architecture and windows-x86_64 environment)
 make_android.bat
-# Setup an Android CMake project; with custom settings (but same as before)
-make_android.bat windows-x86_64 arm64-v8a 24
+# Setup an Android CMake project; specified for the ABI (if you leave it out, it will create 4 different ABI directories)
+make_android.bat windows-x86_64 24 arm64-v8a
 # Run android (requires connected device with developer settings)
-run_android.bat
+"builds/Android %abi% %lvl%/run_android.bat"
 ```
 ### Building for Windows
 'make_pc.bat' creates a Visual Studio project, which means you need Visual Studio. If you don't want to use Visual Studio, you can specify a different generator.
 ```bat
-# Setup a Visual Studio 15 x86_64 project
+# Setup a Visual Studio 15 x86_64 and x86 project
 make_pc.bat
 # Explicitly set the generator
 make_pc.bat "Visual Studio 15 2017 Win64"
