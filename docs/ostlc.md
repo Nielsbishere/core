@@ -51,7 +51,28 @@ ostlc includes defines for types. The following is how you note objects from the
   CopyBuffer empty0(1024);	//Allocate 1024; which automatically gets deleted when it goes out of scope
   
   //String (with extra helper functions)
-  String someValue = "Test";
+  String someValue = "Test.exe";
+  String extension = someValue.getExtension();		//exe
+  String other = someValue.untilLast("e");		//Test.ex
+  String other2 = someValue.untilFirst("e");		//T
+  String other3 = someValue.fromFirst("e");		//st.exe
+  String other4 = someValue.fromLast(".");		//exe
+  
+  std::vector<String> strings = someValue.split(".");	//["Test", "exe"]
+  std::vector<u32> occurences = someValue.find('e');	//[1, 5, 7]
+  
+  someValue = someValue.replace("e", "a");		//Tast.axa
+  someValue = someValue.replaceLast("a", "e");		//Tast.axe
+  someValue = someValue.toLowerCase();			//tast.axe
+  someValue = someValue.toUpperCase();			//TAST.AXE
+  
+  someValue = someValue + 0;				//TAST.AXE0
+  someValue = (void*) 0xFFAADDEE;			//Hex value
+  
+  for(char &c : someValue)				//Loop through string
+   ;
+  
+  someValue[0] = 'S';					//Access value
   
   //Vector (Vec<n><special>)
   Vec3 someFloatVec3(1, 2, 3);
@@ -60,9 +81,51 @@ ostlc includes defines for types. The following is how you note objects from the
   Vec2i someIntVec2(128);
   TVec<5, f32> someVec5;
   
+  someValue = someFloatVec3;				//toString
+  
   //Matrices
   Matrixf someMatrix;
   Matrix3f someMatrix0;
+  
+  //Bitset
+  Bitset test(32, true), test2(32, false);		//Create 0x00 00 00 00 and 0xFF FF FF FF bitsets
+  test &= test2;					//FF FF FF FF & 00 00 00 00
+  test |= true;						//00 00 00 00 | true (FF FF FF FF)
+  
+  bool val = test.fetch(0);
+  BitsetRef ref = test[0];
+  ref = true;
+  
+  std::vector<u32> values(test.getBits() / 6);		//Reserve sized vector so it can be filled
+  test.read(values, 6);					//Read 6 byte uints into the sized values vector
+  
+  CopyBuffer buf = test.toBuffer();			//Get binary data of bitset
+  
+  //Grid
+  Grid2D grid(0.f, Vec2u(32, 32));
+  grid[Vec2u(3, 3)] = 1.f;				//At 2d position
+  grid[9] = 3.f;					//At 1d position
+  Vec2u dims = grid.getDimensions();
+  
+  TGrid<f32, 5> grid(0.f, TVec<u32, 5>(1, 2, 3, 4, 5));//At 5d position 
+  
+  //Simple threading
+  u32 cores = Thread::cores();
+  
+  //Where func either returns void or anything
+  //And takes a u32 for core id
+  //func can be a function pointer or an std::function
+  //If the function returns anything; it puts the objects into an std::vector
+  Thread::foreachCore(func);				//Run function for each core
+  
+  //Check if our system is little endian
+  BinaryHelper::isLittleEndian;				//false on Big Endian machines
+  
+  //Static class for randomizing floats/ints
+  u32 val = Random::randU32() % 10;			//Returns 0-9; randU32() returns 0-u32_MAX
+  val = Random::randInt(0, 9);
+  
+  Vec3 values = Random::randomize(-1, 1);		//Random position within -1 and 1
   
   //Log
   Log::println("Testing");				//Print info to console
