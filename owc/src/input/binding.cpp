@@ -13,6 +13,7 @@ u32 Binding::toUInt() const {
 	return ((u32)bindingType << 24U) | ((u32)controllerId << 16U) | (u32)code;
 }
 
+Binding::Binding(u32 value) : bindingType((value >> 24) & 0xFF), controllerId((value >> 16) & 0xFF), code(value & 0xFFFF) { }
 BindingType Binding::getBindingType() const { return (BindingType) bindingType; }
 u32 Binding::getControllerId() const { return (u32)controllerId; }
 u32 Binding::getCode() const { return (u32) code; }

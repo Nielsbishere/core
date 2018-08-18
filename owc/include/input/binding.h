@@ -32,6 +32,7 @@ namespace oi {
 			Binding(const ControllerAxis_s ca, u8 controllerId = 0);
 
 			Binding(String name);
+			Binding(u32 value);
 
 			u32 toUInt() const;
 

@@ -122,9 +122,8 @@ add_subdirectory(owc)
 add_subdirectory(ogc)
 
 # Desktop conversion tools
-if(Desktop)
-	add_subdirectory(oirm_gen)
-endif()
+add_subdirectory(oirm_gen)
+add_subdirectory(oish_gen)
 
 # App projects
 if(Android)

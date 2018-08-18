@@ -228,12 +228,12 @@ void MainInterface::initScene() {
 void MainInterface::renderScene(){
 
 	//Update per execution shader buffer
-
 	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
 
 	perExecution->open();
 	perExecution->set("ambient", Vec3(1));
 	perExecution->set("time", (f32) getRuntime());
+	perExecution->set("power", 1.f);
 	perExecution->close();
 
 	//Setup post processing settings
@@ -243,6 +243,15 @@ void MainInterface::renderScene(){
 	postProcessing->set("exposure", exposure);
 	postProcessing->set("gamma", gamma);
 	postProcessing->close();
+
+	//Setup lighting
+	ShaderBuffer *directionalLight = shader->get<ShaderBuffer>("DirectionalLights");
+
+	directionalLight->open();
+	directionalLight->set("dir", Vec3(0, -1, 0));
+	directionalLight->set("intensity", 1.f);
+	directionalLight->set("col", Vec3(1, 1, 0));
+	directionalLight->close();
 
 	//Start 'rendering'
 	cmdList->begin();

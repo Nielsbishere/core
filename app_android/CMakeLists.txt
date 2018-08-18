@@ -28,8 +28,8 @@ target_link_libraries(app_android android)
 
 set(ANDROID_NAME app_android)
 set(ANDROID_DIR ${HOME_DIR}/${ANDROID_NAME})
-set(APK_DIR ${CMAKE_SOURCE_DIR}/bin/apk)
-set(LIBS_DIR ${CMAKE_SOURCE_DIR}/lib)
+set(APK_DIR bin/apk)
+set(LIBS_DIR lib)
 
 set(ANDROID_APK_PACKAGE net.osomi.${APP_PACKAGE})
 set(ANDROID_APK_SIGNER_KEYSTORE	"~/my-release-key.keystore")

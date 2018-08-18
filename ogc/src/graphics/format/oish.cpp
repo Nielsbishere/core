@@ -91,28 +91,11 @@ SHFile oiSH::convert(ShaderInfo info) {
 		if (reg.type.getValue() == 0U)
 			Log::throwError<oiSH, 0x6>("Invalid register type");
 
-		u32 representation = 0U;
-
-		if (reg.type.getValue() <= ShaderRegisterType::SSBO) {
-
-			representation = 1U;
-
-			for (auto &sbi : info.buffer)
-				if (sbi.first == reg.name)
-					break;
-				else
-					++representation;
-
-			if (representation > (u32)info.buffer.size())
-				Log::throwError<oiSH, 0x6>("ShaderBuffer had no representation; this is illegal");
-
-		}
-
 		output.registers[i] = {
 
 			(u8)reg.type.getValue(),
 			(u8)reg.access.getValue(),
-			(u16)representation,
+			(u16) 0,
 
 			(u16)output.stringlist.names.size()
 		};
@@ -171,6 +154,16 @@ SHFile oiSH::convert(ShaderInfo info) {
 			if (elem2.second == elem.first) {
 				id = elem2.first;
 				break;
+			}
+
+		for (auto &rep : output.registers)
+			if (output.stringlist.names[rep.nameIndex] == elem.first) {
+
+				if (rep.representation != 0)
+					Log::throwError<oiSH, 0x6>("ShaderBuffer had multiple representations; this is illegal");
+
+				rep.representation = id + 1;
+
 			}
 
 		output.buffers[id] = oiSB::convert(elem.second, &output.stringlist);

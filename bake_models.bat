@@ -1,7 +1,7 @@
 @echo off
-cd res/models
+setlocal enabledelayedexpansion
 call :treeProcess
-cd ../../
+endlocal
 goto :eof
 
 rem Get the date as a YYYYMMDDhhmmss format
@@ -41,8 +41,6 @@ if %target0% equ %target1% (
 exit /b
 
 :treeProcess
-
-setlocal enabledelayedexpansion
 
 set executable="%~dp0oirm_gen.exe"
 set script="%~dp0bake_models.bat"
@@ -97,14 +95,10 @@ for %%f in (*.obj *.fbx) do (
 	)
 )
 
-endlocal
-
-
 
 rem go through other directories inside this directory
 for /D %%d in (*) do (
-    cd %%d
-	echo %%d
+    >NUL cd %%d
     call :treeProcess
     cd ..
 )
