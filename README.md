@@ -1,5 +1,5 @@
 # OCore (Osomi Core)
-Osomi Core - A basic template library for (graphic) engines
+Osomi Core - A basic framework for engines
 ## Building using CMake
 This project uses CMake and a few tools to help the user setup their environment.
 ### Cleaning & Reloading project
@@ -35,3 +35,5 @@ Normally, this is done automatically when you compile your project. However, if 
 ```bat
 compile_shaders.bat
 ```
+### Getting started
+To understand how to use Osomi Graphics Core (ogc; rendering), Osomi Window Core (owc; window/app and input), Osomi STandard Library Core (ostlc; main data types and utils), you can look at the docs directory, which contains markdown files about every important feature of the library.
