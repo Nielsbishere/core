@@ -1,5 +1,5 @@
 # Osomi STandard Library Core (ostlc)
-### Underscore 'operator'/macro
+## Underscore 'operator'/macro
 Underscore has a specific use in ostlc; it is a 'function' that escapes commas so they can be used in other macros. The reason for this is because C++ macros use a comma as a split character, therefore not allowing you to input any commas into a macro. This does however mean that the syntax will look different, but it is worth it, seeing all of the benefits from it:
 ```cpp
 #define someType(x, y, z) x y = z;
@@ -27,7 +27,7 @@ which doesn't make sense if you put it in. This is where the _ operator comes in
 someType(_(std::unordered_map<OString, u32>), val, _({ { "Test", 0 }, { "Test2", 1 } }));
 ```
 The above does generate the correct code. Yes, it doesn't look perfect, but at least you can use commas in a macro now.
-### Standard data types
+## Standard data types
 ostlc includes defines for types. The following is how you note objects from the ostlc:
 ```cpp
    //Unsigned integer (u<bits>)
@@ -142,12 +142,12 @@ ostlc includes defines for types. The following is how you note objects from the
   timer.print();
   
 ```
-### 'Java' enums
+## 'Java' enums
 Not exclusive to Java, but Java has very nice enums. They are compile time values of any class, you can loop through all enums and check their names and values and reference them like regular C++ enums. This is what OSTLC's Enum class is supposed to do; allow you to have a list of all the values of an enum and ways to access them.
-#### Enum restrictions
+### Enum restrictions
 Structured enums only allow basic constexpr data types. They do allow you to add custom functions or constructors; but they should be pure constexpr structs (so no calling non-constexpr constructors and no overriding the = operator). This is because of limitations and because it should be a compile time constant.
 All values have to be declared; so no assuming it will increment the last int, because enums aren't always ints anymore.
-#### Defining an enum
+### Defining an enum
 Defining a data enum (integer/float) is easy; just use the following (include template/enum.h)
 ```cpp
   DEnum(Name, u32, Value0 = 0, Value1 = 1, Value2 = 2, Value3 = 3);	//Define a data type (must be constexpr)
@@ -166,7 +166,7 @@ But the following wouldn't be;
 ```cpp
   SEnum(Name, i32 x, y, z;, Value0 = { 0, 1, 2 }, Value1 = { 1, 2, 3 }, Value2 = { 5, 5, 6 });
 ```
-#### Looping through an enum
+### Looping through an enum
 You access an enum like you would with any enum class; so Name::Value0 for example. This can evaluate to two values; either const Name_s&, which is the value of that enum, or Name, which contains the current index, name and value.
 However, the regular method doesn't allow you to loop through those values, but Osomi Enums do. You simply get the length of the enum; Name::length and make a for loop; then you can write Name n = i; and it will auto detect the name and value of the enum.
 ```cpp
@@ -176,10 +176,10 @@ However, the regular method doesn't allow you to loop through those values, but 
 	}
 ```
 The code above gets the enum at i and gets the value, whereafter printing the abcd values for that enum.
-### JSON
+## JSON
 Osomi Core (STL) wraps around rapidjson to make JSON parsing more intuitive and less of a pain to think about how you're copying stuff and if something already exists. The Utils/JSON.h provides you with a couple of utils, mainly, getting and setting things in the JSON file.  
 It treats the JSON more like a file system; you access it by using /'s as seperators and while it does have lists and objects, you can access anything using paths.
-#### JSON Paths
+### JSON Paths
 ```json
 { "testJson": { "object": [ [ 3, 3, 3 ], [ 4, 4, 4 ] ] } }
 ```
@@ -192,12 +192,12 @@ However, using the JSON class, we use the following:
   i32 testJson_object_0_1 = json.getInt("testJson/object/0/1");
 ```
 This system provides more clarity and allows you to reference a JSON in a better way than by just passing the JSON Value around every time. It doesn't require you to know anything about the JSON you're parsing, as you can also retrieve all 'members' in one function call. This will list all paths that are available, but of course you can also just use the paths that are in the folder you're in (non-recursively). It also allows you to throw in the default value it returns on failure; so getInt can have the 2nd param that is returned when it can't find it, it is the incorrect type or anything else bad happened. By default, this is 0 for numbers, "" for strings and empty vectors for arrays. Setting is pretty much the same, only it takes a value instead of returning it.
-#### Checking JSON structure
+### Checking JSON structure
 To validate whether or not something is there; you can use 'exists' and 'mkdir'. Exists checks if the directories leading to an object (including the object itself) actually exist within the JSON. Mkdir tries to ensure the path you gave will be available, but it can fail (if you're referencing to a non-object/non-array), it returns true on success. Mkdir does do a few things by default; when you're in an array and reference an index it doesn't have, it will add elements until it does. If the object doesn't exist, it will set it to an empty object ("{ }"), however, this doesn't matter for how you access it or how you get/set it; an empty object is just seen as filler and can be overriden by anything. mkdir("testJson/object/2") would create an empty object behind the Vec3(4), you can set it to anything and getting things from it isn't possible. mkdir("testJson/object/2/3") after the first mkdir would result into the object turning into an array; `[{}, {}, {}, {}]` instead of '{ }'.
-#### Checking 'folders' aka members
+### Checking 'folders' aka members
 You can check the number of members by using 'getMembers'; this returns the fields / members that the object has. Any members inside those won't be counted. getMemberIds returns the relative paths to those members and getMemberNames returns the absolute paths to those members.
 Getting all members recursively can be done using getAllMembers and this returns absolute paths.
-#### Example (Writing)
+### Example (Writing)
 The following example is from InputManager; it writes the input bindings & axes to a file:
 ```cpp
 	JSON json;
@@ -224,7 +224,7 @@ The following example is from InputManager; it writes the input bindings & axes 
 
 	return json.toString().writeToFile(path);
 ```
-#### Example (reading)
+### Example (reading)
 The following is from InputManager; it reads the input bindings & axes from a file:
 ```cpp
 	JSON json = String::readFromFile(path);
@@ -286,9 +286,9 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 
 	return true;
 ```
-### Block allocator
+## Block allocator
 OSTLC also provides some memory management; (Virtual)BlockAllocator. A VirtualBlockAllocator simply handles storing multiple objects in one array; this can be bytes, render objects, particles, or whatever. However; VirtualBlockAllocator isn't for handling memory. BlockAllocator is for handling memory, VirtualBlockAllocator is about handling virtual blocks (objects without knowing their size for example). 
-#### Virtual
+### Virtual
 The virtual block allocator can be used as following:
 ```cpp
 myVirtualBalloc = new VirtualBlockAllocator(1024); 	//We have 1Ki objects
@@ -297,7 +297,7 @@ myVirtualBalloc->dealloc(alloc.start);			//Free those objects
 delete myVirtualBalloc;					//Get rid of the allocator
 ```
 If the allocator is out of memory, it will return a BlockAllocation of 0,0; start = 0, length = 0.
-#### Memory
+### Memory
 A memory block allocator uses a Buffer as constructor argument. This means that you can allocate a buffer or use some existing buffer. 
 ```cpp
 myBalloc = new BlockAllocator(1024);			//We have 1KiB
