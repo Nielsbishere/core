@@ -35,5 +35,12 @@ Normally, this is done automatically when you compile your project. However, if 
 ```bat
 compile_shaders.bat
 ```
+### Baking models
+Using oiRM (Osomi Raw Model) files is way easier & faster than using fbx/obj files. This is why you have to convert models to this format; to avoid long load times. This can be done by going into the app directory and running bake_models. Just like compile_shaders, this is run automatically by the build system.
+```bat
+cd app
+"../bake_models.bat"
+cd ../
+```
 ### Getting started
 To understand how to use Osomi Graphics Core (ogc; rendering), Osomi Window Core (owc; window/app and input), Osomi STandard Library Core (ostlc; main data types and utils), you can look at the docs directory, which contains markdown files about every important feature of the library.
