@@ -133,7 +133,7 @@ void genPlanet(f32 (*displace)(Vec3 loc)) {
 }
 
 float myNoise(Vec3 noise) {
-	return SimplexNoise::noise(noise, 4, 0.5, 1.5);
+	return pow(SimplexNoise::noise(noise * ((SimplexNoise::noise(noise * 1.5 + 399) * 0.5 + 0.5) * 20.f + 3.f), 4, 1.5f, 0.5f), 1.5) * 0.8f + 0.1f;
 }
 
 void MainInterface::initScene() {
@@ -221,7 +221,7 @@ void MainInterface::initScene() {
 
 	//Setup our objects
 	for (u32 i = 0; i < totalObjects; ++i)
-		objects[i].m = Matrix::makeModel(Random::randomize<3>(0.f, 25.f), Vec3(Random::randomize<2>(0.f, 360.f)), Vec3(1.f));
+		objects[i].m = Matrix::makeModel(Random::randomize<3>(0.f, 12.f), Vec3(Random::randomize<2>(0.f, 360.f)), Vec3(1.f));
 
 }
 
@@ -248,9 +248,9 @@ void MainInterface::renderScene(){
 	ShaderBuffer *directionalLight = shader->get<ShaderBuffer>("DirectionalLights");
 
 	directionalLight->open();
-	directionalLight->set("dir", Vec3(0, -1, 0));
-	directionalLight->set("intensity", 1.f);
-	directionalLight->set("col", Vec3(1, 1, 0));
+	directionalLight->set("dir", Vec3(-1, -1, -1));
+	directionalLight->set("intensity", 2.f);
+	directionalLight->set("col", Vec3(1.f));
 	directionalLight->close();
 
 	//Start 'rendering'

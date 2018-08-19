@@ -35,6 +35,6 @@ void main() {
 
 	pos = (obj.m * vec4(inPosition, 1.0)).xyz;
 	uv = inUv;
-	normal = (obj.m * vec4(inNormal, 0.0)).xyz;
+	normal = normalize(obj.m * vec4(normalize(inNormal), 0.0)).xyz;
 
 }

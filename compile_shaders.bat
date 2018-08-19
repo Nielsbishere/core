@@ -97,7 +97,7 @@ rem generate the per stage spirv
 for /l %%y in (0, 1, %end%) do (
 
   rem Compile shader source into spir-v code
-  "%VULKAN_SDK%/Bin/glslangValidator.exe" -V -e main "%~4!stages[%%y]!" -o "%~4!stages[%%y]!.spv" >nul 2>&1
+  "%VULKAN_SDK%/Bin/glslangValidator.exe" -V -e main "%~4!stages[%%y]!" -o "%~4!stages[%%y]!.spv"
   
   rem Optimize shader source code and strip all reflection data from source
   "%VULKAN_SDK%/Bin/spirv-opt.exe" -Os -O "%~4!stages[%%y]!.spv" -o "%~4!stages[%%y]!.ospv"
