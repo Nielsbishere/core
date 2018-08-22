@@ -376,9 +376,8 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 
 		for (Vec2u face : faces) {
 			for (u32 x = 1; x < face.y - face.x; ++x) {
-				*(Vec3u*)(index.data() + ind) = { face.x, face.x + x, face.x + x + 1};
+				*(Vec3u*)(index.data() + ind) = { face.x + x + 1, face.x + x, face.x };
 				ind += 3;
-
 			}
 		}
 

@@ -35,7 +35,7 @@ private:
 	oi::gc::Camera *camera;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
 	oi::gc::Mesh *mesh, *mesh0, *mesh1;
-	oi::gc::DrawList *drawList;
+	//oi::gc::DrawList *drawList;
 	oi::gc::RenderTarget *renderTarget;
 
 	float exposure = .15f, gamma = .85f;
@@ -48,8 +48,10 @@ private:
 
 	};
 
-	static constexpr u32 totalObjects = 64U;
+	static constexpr u32 totalObjects = 1U;
 
 	PerObject objects[totalObjects];
+
+	oi::Vec3 planetRotation;
 
 };

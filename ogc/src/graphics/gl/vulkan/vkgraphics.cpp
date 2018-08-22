@@ -92,6 +92,20 @@ void Graphics::init(Window *w){
 	VkExtensionProperties *extensions = new VkExtensionProperties[extensionCount];
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 
+	#ifdef __DEBUG__
+	
+	Log::println("Supported layers:");
+	
+	for(u32 i = 0; i < layerCount; ++i)
+		Log::println(layers[i].layerName);
+	
+	Log::println("Supported extensions:");
+	
+	for(u32 i = 0; i < extensionCount; ++i)
+		Log::println(extensions[i].extensionName);
+	
+	#endif
+	
 	//Constants
 	
 	const u32 majorVersion = 1, minorVersion = 0, patchVersion = 0;					///Vulkan version
@@ -104,7 +118,7 @@ void Graphics::init(Window *w){
 
 	#ifdef __ANDROID__
 	clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
-				"VK_LAYER_LUNARG_core_validation", /* TODO: "VK_LAYER_LUNARG_swapchain", */ "VK_LAYER_GOOGLE_unique_objects" };
+				"VK_LAYER_LUNARG_core_validation", "VK_LAYER_GOOGLE_unique_objects" };
 	#else 
 	clayers.push_back("VK_LAYER_LUNARG_standard_validation");
 	#endif

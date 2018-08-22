@@ -133,7 +133,7 @@ void genPlanet(f32 (*displace)(Vec3 loc)) {
 }
 
 float myNoise(Vec3 noise) {
-	return pow(SimplexNoise::noise(noise * ((SimplexNoise::noise(noise * 1.5 + 399) * 0.5 + 0.5) * 20.f + 3.f), 4, 1.5f, 0.5f), 1.5) * 0.8f + 0.1f;
+	return pow(SimplexNoise::noise(noise * ((SimplexNoise::noise(noise * 1.5f + 399) * 0.5f + 0.5f) * 20.f + 3.f), 4, 1.5f, 0.5f), 1.5f) * 0.8f + 0.1f;
 }
 
 void MainInterface::initScene() {
@@ -160,11 +160,11 @@ void MainInterface::initScene() {
 
 	//Setup our cube & sphere
 	RMFile file;
-	oiRM::read("res/models/cube.oiRM", file);
+	oiRM::read("res/models/anvil0.oiRM", file);
 	auto info = oiRM::convert(&g, file);
 
-	info.first.maxIndices = 999999;
-	info.first.maxVertices = 99999;
+	info.first.maxIndices = 300000;
+	info.first.maxVertices = 200000;
 	meshBuffer = g.create("Mesh buffer", info.first);
 	g.use(meshBuffer);
 	meshBuffer->open();
@@ -173,7 +173,7 @@ void MainInterface::initScene() {
 	mesh = g.create("Cube", info.second);
 	g.use(mesh);
 
-	oiRM::read("out/models/planet.oiRM", file);
+	oiRM::read("res/models/sword.oiRM", file);
 	info = oiRM::convert(&g, file);
 
 	info.second.buffer = meshBuffer;
@@ -196,9 +196,9 @@ void MainInterface::initScene() {
 
 	meshBuffer0->close();
 
-	//Setup our drawList
-	drawList = g.create("Draw list", DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
-	g.use(drawList);
+	////Setup our drawList (indirect)
+	//drawList = g.create("Draw list", DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
+	//g.use(drawList);
 
 	//Allocate a texture
 	osomi = g.create("osomi", TextureInfo("res/textures/osomi.png"));
@@ -216,12 +216,12 @@ void MainInterface::initScene() {
 	shader0->set("samp", sampler);
 
 	//Setup our camera
-	camera = g.create("Default camera", CameraInfo(45.f, Vec3(15, 15, 55), Vec4(0, 0, 0, 1)));
+	camera = g.create("Default camera", CameraInfo(45.f, Vec3(5, 5, 5), Vec4(0, 0, 0, 1)));
 	g.use(camera);
 
-	//Setup our objects
-	for (u32 i = 0; i < totalObjects; ++i)
-		objects[i].m = Matrix::makeModel(Random::randomize<3>(0.f, 12.f), Vec3(Random::randomize<2>(0.f, 360.f)), Vec3(1.f));
+	////Setup our objects (indirect)
+	//for (u32 i = 0; i < totalObjects; ++i)
+	//	objects[i].m = Matrix::makeModel(Random::randomize<3>(0.f, 12.f), Vec3(Random::randomize<2>(0.f, 360.f)), Vec3(1.f));
 
 }
 
@@ -262,8 +262,10 @@ void MainInterface::renderScene(){
 		cmdList->begin(renderTarget, Vec4d(0.25, 0.5, 1, 1) * (sin(getDuration()) * 0.5 + 0.5));
 		cmdList->bind(pipeline);
 
-		//Execute draw calls
-		cmdList->draw(drawList);
+		//Execute indirect draw calls
+		//cmdList->draw(drawList);
+		
+		cmdList->draw(mesh);
 
 		//End rt
 		cmdList->end(renderTarget);
@@ -313,18 +315,18 @@ void MainInterface::initSceneSurface(){
 	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0, camera));
 	g.use(pipeline0);
 
+	////Setup indirect draws
+
 	//Reconstruct all VP affected objects
+	//camera->bind(res);
 
-	camera->bind(res);
+	/*for (u32 i = 0; i < totalObjects; ++i)
+		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };*/
 
-	for (u32 i = 0; i < totalObjects; ++i)
-		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
-
-	//Setup draws
-	drawList->clear();
-	drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
-	drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)objects + sizeof(objects) / 2, (u32) sizeof(objects) / 2));
-	drawList->flush();
+	//drawList->clear();
+	//drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
+	//drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)objects + sizeof(objects) / 2, (u32) sizeof(objects) / 2));
+	//drawList->flush();
 
 }
 	
@@ -355,6 +357,16 @@ void MainInterface::update(f32 dt) {
 	}
 
 	prevMouse = nextMouse;
+	planetRotation += Vec3(30, 50) * dt;
+
+	//Update planet rotation
+
+	camera->bind(getParent()->getInfo().getSize());
+	objects[0].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.f));
+	objects[0].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[0].m };
+
+	ShaderBuffer *objects = shader->get<ShaderBuffer>("Objects");
+	objects->set(Buffer::construct((u8*)this->objects, (u32)sizeof(this->objects)));
 
 }
 
@@ -368,7 +380,7 @@ MainInterface::~MainInterface(){
 	g.destroy(mesh1);
 	g.destroy(meshBuffer);
 	g.destroy(meshBuffer0);
-	g.destroy(drawList);
+	//g.destroy(drawList);
 	g.destroy(renderTarget);
 	g.destroy(pipeline);
 	g.destroy(pipeline0);

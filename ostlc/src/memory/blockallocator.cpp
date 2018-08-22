@@ -5,7 +5,7 @@ VirtualBlockAllocator::VirtualBlockAllocator(u32 length) : length(length) { bloc
 
 BlockAllocation VirtualBlockAllocator::alloc(u32 size) {
 
-	BlockAllocation result;
+	BlockAllocation result = { 0, 0 };
 	u32 i = 0;
 
 	for (BlockAllocation block : blocks)
