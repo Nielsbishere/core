@@ -34,8 +34,8 @@ private:
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
-	oi::gc::Mesh *mesh, *mesh0, *mesh1;
-	//oi::gc::DrawList *drawList;
+	oi::gc::Mesh *mesh, *mesh0, *mesh1, *mesh2, *mesh3;
+	oi::gc::DrawList *drawList, *drawList0;
 	oi::gc::RenderTarget *renderTarget;
 
 	float exposure = .15f, gamma = .85f;
@@ -48,7 +48,7 @@ private:
 
 	};
 
-	static constexpr u32 totalObjects = 1U;
+	static constexpr u32 totalObjects = 4U;
 
 	PerObject objects[totalObjects];
 

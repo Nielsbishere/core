@@ -175,14 +175,6 @@ void CommandList::bind(Pipeline *pipeline) {
 
 }
 
-void CommandList::draw(u32 vertices, u32 instances, u32 startVertex, u32 startInstance) {
-	vkCmdDraw(ext.cmd, vertices, instances, startVertex, startInstance);
-}
-
-void CommandList::drawIndexed(u32 indices, u32 instances, u32 startIndex, u32 startVertex, u32 startInstance) {
-	vkCmdDrawIndexed(ext.cmd, indices, instances, startIndex, startVertex, startInstance);
-}
-
 bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 
 	std::vector<VkBuffer> vkBuffer(vbos.size());
@@ -230,10 +222,24 @@ void CommandList::flush() {
 
 void CommandList::draw(DrawList *drawList) {
 
-	if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
-		vkCmdDrawIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), (u32) sizeof(VkDrawIndirectCommand));
-	else
-		vkCmdDrawIndexedIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), (u32) sizeof(VkDrawIndexedIndirectCommand));
+	constexpr u32 arraysCmd = (u32) sizeof(VkDrawIndirectCommand), indexedCmd = (u32) sizeof(VkDrawIndexedIndirectCommand);
+
+	if (g->getExtension().pfeatures.multiDrawIndirect) {
+
+		if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
+			vkCmdDrawIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), arraysCmd);
+		else
+			vkCmdDrawIndexedIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), indexedCmd);
+
+	} else {
+
+		for (u32 i = 0; i < drawList->getBatches(); ++i)
+			if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
+				vkCmdDrawIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, arraysCmd * i, 1, arraysCmd);
+			else
+				vkCmdDrawIndexedIndirect(ext.cmd, drawList->getInfo().drawBuffer->getExtension().resource, indexedCmd * i, 1, indexedCmd);
+
+	}
 
 }
 

@@ -155,12 +155,14 @@ void MainInterface::initScene() {
 	g.use(shader0);
 
 	//Setup our pipeline state (with default settings)
-	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
+	PipelineStateInfo psinfo;
+	psinfo.depthMode = DepthMode::Depth_write;
+	pipelineState = g.create("Default pipeline state", psinfo);
 	g.use(pipelineState);
 
 	//Setup our cube & sphere
 	RMFile file;
-	oiRM::read("res/models/anvil0.oiRM", file);
+	oiRM::read("res/models/anvil.oiRM", file);
 	auto info = oiRM::convert(&g, file);
 
 	info.first.maxIndices = 300000;
@@ -170,15 +172,29 @@ void MainInterface::initScene() {
 	meshBuffer->open();
 
 	info.second.buffer = meshBuffer;
-	mesh = g.create("Cube", info.second);
+	mesh = g.create("Anvil", info.second);
 	g.use(mesh);
 
 	oiRM::read("res/models/sword.oiRM", file);
 	info = oiRM::convert(&g, file);
 
 	info.second.buffer = meshBuffer;
-	mesh0 = g.create("Sphere", info.second);
+	mesh0 = g.create("Sword", info.second);
 	g.use(mesh0);
+
+	oiRM::read("res/models/sphere.oiRM", file);
+	info = oiRM::convert(&g, file);
+
+	info.second.buffer = meshBuffer;
+	mesh2 = g.create("Sphere", info.second);
+	g.use(mesh2);
+
+	oiRM::read("res/models/cube.oiRM", file);
+	info = oiRM::convert(&g, file);
+
+	info.second.buffer = meshBuffer;
+	mesh3 = g.create("Cube", info.second);
+	g.use(mesh3);
 
 	meshBuffer->close();
 
@@ -196,9 +212,15 @@ void MainInterface::initScene() {
 
 	meshBuffer0->close();
 
-	////Setup our drawList (indirect)
-	//drawList = g.create("Draw list", DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
-	//g.use(drawList);
+	//Setup our drawLists (indirect)
+	drawList = g.create("Draw list (main geometry)", DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
+	g.use(drawList);
+
+	drawList0 = g.create("Draw list (second pass)", DrawListInfo(meshBuffer0, nullptr, 1, false));
+	g.use(drawList0);
+
+	drawList0->draw(mesh1, 1, {});
+	drawList0->flush();
 
 	//Allocate a texture
 	osomi = g.create("osomi", TextureInfo("res/textures/osomi.png"));
@@ -218,10 +240,6 @@ void MainInterface::initScene() {
 	//Setup our camera
 	camera = g.create("Default camera", CameraInfo(45.f, Vec3(5, 5, 5), Vec4(0, 0, 0, 1)));
 	g.use(camera);
-
-	////Setup our objects (indirect)
-	//for (u32 i = 0; i < totalObjects; ++i)
-	//	objects[i].m = Matrix::makeModel(Random::randomize<3>(0.f, 12.f), Vec3(Random::randomize<2>(0.f, 360.f)), Vec3(1.f));
 
 }
 
@@ -258,16 +276,18 @@ void MainInterface::renderScene(){
 
 	//Render to renderTarget
 
+		//Setup draw calls
+		drawList->clear();
+		drawList->draw(mesh0, totalObjects / 4, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 4));
+		drawList->draw(mesh, totalObjects / 4, Buffer::construct((u8*)(objects + totalObjects / 4), (u32) sizeof(objects) / 4));
+		drawList->draw(mesh2, totalObjects / 4, Buffer::construct((u8*)(objects + totalObjects / 4 * 2), (u32) sizeof(objects) / 4));
+		drawList->draw(mesh3, totalObjects / 4, Buffer::construct((u8*)(objects + totalObjects / 4 * 3), (u32) sizeof(objects) / 4));
+		drawList->flush();
+
 		//Bind fbo and pipeline
-		cmdList->begin(renderTarget, Vec4d(0.25, 0.5, 1, 1) * (sin(getDuration()) * 0.5 + 0.5));
+		cmdList->begin(renderTarget);
 		cmdList->bind(pipeline);
-
-		//Execute indirect draw calls
-		//cmdList->draw(drawList);
-		
-		cmdList->draw(mesh);
-
-		//End rt
+		cmdList->draw(drawList);
 		cmdList->end(renderTarget);
 
 	//Render to backbuffer
@@ -275,7 +295,7 @@ void MainInterface::renderScene(){
 		//Execute our post processing shader
 		cmdList->begin(g.getBackBuffer());
 		cmdList->bind(pipeline0);
-		cmdList->draw(mesh1);
+		cmdList->draw(drawList0);
 		cmdList->end(g.getBackBuffer());
 
 	cmdList->end();
@@ -315,19 +335,6 @@ void MainInterface::initSceneSurface(){
 	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0, camera));
 	g.use(pipeline0);
 
-	////Setup indirect draws
-
-	//Reconstruct all VP affected objects
-	//camera->bind(res);
-
-	/*for (u32 i = 0; i < totalObjects; ++i)
-		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };*/
-
-	//drawList->clear();
-	//drawList->draw(mesh, totalObjects / 2, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 2));
-	//drawList->draw(mesh0, totalObjects / 2, Buffer::construct((u8*)objects + sizeof(objects) / 2, (u32) sizeof(objects) / 2));
-	//drawList->flush();
-
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
@@ -362,11 +369,11 @@ void MainInterface::update(f32 dt) {
 	//Update planet rotation
 
 	camera->bind(getParent()->getInfo().getSize());
-	objects[0].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.f));
-	objects[0].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[0].m };
 
-	ShaderBuffer *objects = shader->get<ShaderBuffer>("Objects");
-	objects->set(Buffer::construct((u8*)this->objects, (u32)sizeof(this->objects)));
+	for (u32 i = 0; i < totalObjects; ++i) {
+		objects[i].m = Matrix::makeModel(Vec3(i, 0, 0), Vec3(planetRotation, 0.f), Vec3(0.2f));
+		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
+	}
 
 }
 
@@ -378,9 +385,12 @@ MainInterface::~MainInterface(){
 	g.destroy(mesh);
 	g.destroy(mesh0);
 	g.destroy(mesh1);
+	g.destroy(mesh2);
+	g.destroy(mesh3);
 	g.destroy(meshBuffer);
 	g.destroy(meshBuffer0);
-	//g.destroy(drawList);
+	g.destroy(drawList);
+	g.destroy(drawList0);
 	g.destroy(renderTarget);
 	g.destroy(pipeline);
 	g.destroy(pipeline0);

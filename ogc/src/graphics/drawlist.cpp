@@ -14,20 +14,24 @@ void DrawList::flush() {
 
 	prepareDrawList();
 
-	u32 totalSize = 0;
+	if (info.objectBuffer != nullptr) {
 
-	for (auto it : info.objects)
-		totalSize += it.second.objectBuffer.size();
+		u32 totalSize = 0;
 
-	Buffer total(totalSize);
-	totalSize = 0;
+		for (auto it : info.objects)
+			totalSize += it.second.objectBuffer.size();
 
-	for (auto it : info.objects) {
-		total.copy(it.second.objectBuffer, it.second.objectBuffer.size(), 0, totalSize);
-		totalSize += it.second.objectBuffer.size();
+		Buffer total(totalSize);
+		totalSize = 0;
+
+		for (auto it : info.objects) {
+			total.copy(it.second.objectBuffer, it.second.objectBuffer.size(), 0, totalSize);
+			totalSize += it.second.objectBuffer.size();
+		}
+
+		info.objectBuffer->set(total);
+
 	}
-
-	info.objectBuffer->set(total);
 
 	if (info.clearOnUse)
 		clear();
@@ -57,7 +61,9 @@ void DrawList::draw(Mesh *m, u32 instances, Buffer buffer) {
 	}
 	else {
 		info.objects[m].instances += instances;
-		info.objects[m].objectBuffer += buffer;
+
+		if(info.objectBuffer != nullptr)
+			info.objects[m].objectBuffer += buffer;
 	}
 
 }
@@ -73,7 +79,7 @@ bool DrawList::init() {
 	if (info.maxBatches == 0)
 		return Log::error("Couldn't create DrawList; it needs at least 1 object");
 
-	if (info.objectBuffer == nullptr || info.meshBuffer == nullptr)
+	if (info.meshBuffer == nullptr)
 		return Log::error("Couldn't create DrawList; object buffer or mesh buffer was invalid");
 
 	info.objects.reserve(info.maxBatches);

@@ -11,7 +11,7 @@ struct PerObject {
 
 layout(std430, binding = 0) buffer Objects {
 
-	PerObject arr[1];
+	PerObject arr[4];
 	
 } obj;
 
@@ -29,7 +29,7 @@ out gl_PerVertex {
 
 void main() {
 
-	PerObject obj = obj.arr[gl_InstanceIndex + gl_BaseVertexARB];
+	PerObject obj = obj.arr[gl_InstanceIndex];
 
     gl_Position = obj.mvp * vec4(inPosition, 1.0);
 

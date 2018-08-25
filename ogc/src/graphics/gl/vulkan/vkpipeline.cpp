@@ -68,6 +68,7 @@ bool Pipeline::init() {
 		pipelineInfo.pViewportState = &viewportInfo;
 
 		//Shader
+
 		pipelineInfo.stageCount = (u32)stage.size();
 		pipelineInfo.pStages = stage.data();
 		pipelineInfo.layout = shext.layout;
