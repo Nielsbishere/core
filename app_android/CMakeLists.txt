@@ -40,7 +40,6 @@ set(ANDROID_APK_SIGNER_ALIAS "myalias")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E remove_directory "${APK_DIR}/libs/${ANDROID_ABI}")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/libs/${ANDROID_ABI}")
 add_custom_command(TARGET ${ANDROID_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${LIBS_DIR}" "${APK_DIR}/libs/${ANDROID_ABI}")
-add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/third_party/vulkan/src/build-android/jniLibs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
   
 # Set debuggable
 
@@ -67,6 +66,13 @@ add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E 
 configure_file("${ANDROID_DIR}/AndroidManifest.xml" "${APK_DIR}/AndroidManifest.xml")
 configure_file("${ANDROID_DIR}/strings.xml" "${APK_DIR}/res/values/strings.xml")
 
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+
+  # Get Vulkan's validation layers into the APK
+  add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/third_party/vulkan/src/build-android/jniLibs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
+
+endif()
+
 # Refresh command
 add_custom_command(TARGET ${ANDROID_NAME}
   COMMAND android update project -t android-${ANDROID_NATIVE_API_LEVEL} --name ${ANDROID_NAME} --path "${APK_DIR}")
@@ -91,7 +97,6 @@ if(CMAKE_BUILD_TYPE MATCHES Release)
   endif()
   
 else()
-
   # Let Ant create the unsigned apk file
   add_custom_command(TARGET ${ANDROID_NAME} COMMAND ant debug WORKING_DIRECTORY "${APK_DIR}")
   

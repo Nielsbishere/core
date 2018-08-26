@@ -12,7 +12,6 @@ namespace oi {
 		class Mesh;
 
 		struct DrawListObject {
-			Buffer objectBuffer;
 			u32 instances;
 		};
 
@@ -23,12 +22,11 @@ namespace oi {
 
 			MeshBuffer *meshBuffer;
 			GBuffer *drawBuffer = nullptr;
-			GBuffer *objectBuffer = nullptr;
 
 			std::unordered_map<Mesh*, DrawListObject> objects;
 
-			DrawListInfo(MeshBuffer *meshBuffer, GBuffer *objectBuffer, u32 maxBatches, bool clearOnUse = true) : meshBuffer(meshBuffer), objectBuffer(objectBuffer), maxBatches(maxBatches), clearOnUse(clearOnUse) {}
-			DrawListInfo() : DrawListInfo(nullptr, nullptr, 0) {}
+			DrawListInfo(MeshBuffer *meshBuffer, u32 maxBatches, bool clearOnUse = true) : meshBuffer(meshBuffer), maxBatches(maxBatches), clearOnUse(clearOnUse) {}
+			DrawListInfo() : DrawListInfo(nullptr, 0) {}
 
 		};
 
@@ -50,7 +48,7 @@ namespace oi {
 
 			//Push instances into the draw list
 			//Try avoiding calling this every time, it's better to call this function just once per mesh
-			void draw(Mesh *m, u32 instances, Buffer buffer);
+			void draw(Mesh *m, u32 instances);
 
 		protected:
 

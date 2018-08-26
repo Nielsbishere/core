@@ -155,9 +155,7 @@ void MainInterface::initScene() {
 	g.use(shader0);
 
 	//Setup our pipeline state (with default settings)
-	PipelineStateInfo psinfo;
-	psinfo.depthMode = DepthMode::Depth_write;
-	pipelineState = g.create("Default pipeline state", psinfo);
+	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
 
 	//Setup our cube & sphere
@@ -213,13 +211,13 @@ void MainInterface::initScene() {
 	meshBuffer0->close();
 
 	//Setup our drawLists (indirect)
-	drawList = g.create("Draw list (main geometry)", DrawListInfo(meshBuffer, shader->get<ShaderBuffer>("Objects")->getBuffer(), 256, false));
+	drawList = g.create("Draw list (main geometry)", DrawListInfo(meshBuffer, 256, false));
 	g.use(drawList);
 
-	drawList0 = g.create("Draw list (second pass)", DrawListInfo(meshBuffer0, nullptr, 1, false));
+	drawList0 = g.create("Draw list (second pass)", DrawListInfo(meshBuffer0, 1, false));
 	g.use(drawList0);
 
-	drawList0->draw(mesh1, 1, {});
+	drawList0->draw(mesh1, 1);
 	drawList0->flush();
 
 	//Allocate a texture
@@ -267,7 +265,7 @@ void MainInterface::renderScene(){
 
 	directionalLight->open();
 	directionalLight->set("dir", Vec3(-1, -1, -1));
-	directionalLight->set("intensity", 2.f);
+	directionalLight->set("intensity", 4.f);
 	directionalLight->set("col", Vec3(1.f));
 	directionalLight->close();
 
@@ -278,10 +276,10 @@ void MainInterface::renderScene(){
 
 		//Setup draw calls
 		drawList->clear();
-		drawList->draw(mesh0, totalObjects / 4, Buffer::construct((u8*)objects, (u32) sizeof(objects) / 4));
-		drawList->draw(mesh, totalObjects / 4, Buffer::construct((u8*)(objects + totalObjects / 4), (u32) sizeof(objects) / 4));
-		drawList->draw(mesh2, totalObjects / 4, Buffer::construct((u8*)(objects + totalObjects / 4 * 2), (u32) sizeof(objects) / 4));
-		drawList->draw(mesh3, totalObjects / 4, Buffer::construct((u8*)(objects + totalObjects / 4 * 3), (u32) sizeof(objects) / 4));
+		drawList->draw(mesh0, totalObjects / 4);
+		drawList->draw(mesh, totalObjects / 4);
+		drawList->draw(mesh2, totalObjects / 4);
+		drawList->draw(mesh3, totalObjects / 4);
 		drawList->flush();
 
 		//Bind fbo and pipeline
@@ -371,9 +369,11 @@ void MainInterface::update(f32 dt) {
 	camera->bind(getParent()->getInfo().getSize());
 
 	for (u32 i = 0; i < totalObjects; ++i) {
-		objects[i].m = Matrix::makeModel(Vec3(i, 0, 0), Vec3(planetRotation, 0.f), Vec3(0.2f));
+		objects[i].m = Matrix::makeModel(Vec3((f32)i / totalObjects * 10 - 5, 0, 0), Vec3(planetRotation, 0.f), Vec3(2.f) / (i + 1));
 		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
 	}
+
+	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
 
 }
 

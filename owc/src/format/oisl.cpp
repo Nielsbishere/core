@@ -100,7 +100,7 @@ v1:
 
 end:
 
-	if(buf.addr() != nullptr)
+	if(buf.size() != 0)
 		file.size = (u32)(buf.addr() - start.addr());
 	else
 		file.size = start.size();

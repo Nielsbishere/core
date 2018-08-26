@@ -14,25 +14,6 @@ void DrawList::flush() {
 
 	prepareDrawList();
 
-	if (info.objectBuffer != nullptr) {
-
-		u32 totalSize = 0;
-
-		for (auto it : info.objects)
-			totalSize += it.second.objectBuffer.size();
-
-		Buffer total(totalSize);
-		totalSize = 0;
-
-		for (auto it : info.objects) {
-			total.copy(it.second.objectBuffer, it.second.objectBuffer.size(), 0, totalSize);
-			totalSize += it.second.objectBuffer.size();
-		}
-
-		info.objectBuffer->set(total);
-
-	}
-
 	if (info.clearOnUse)
 		clear();
 }
@@ -41,7 +22,7 @@ void DrawList::clear() {
 	info.objects.clear();
 }
 
-void DrawList::draw(Mesh *m, u32 instances, Buffer buffer) {
+void DrawList::draw(Mesh *m, u32 instances) {
 
 	if (m->getInfo().buffer != info.meshBuffer) {
 		Log::error("Every MeshBuffer requires a different DrawList. The drawcall mentioned a Mesh that wasn't in the same MeshBuffer.");
@@ -57,14 +38,10 @@ void DrawList::draw(Mesh *m, u32 instances, Buffer buffer) {
 			return;
 		}
 
-		info.objects[m] = { Buffer(buffer.addr(), buffer.size()), instances };
+		info.objects[m] = { instances };
 	}
-	else {
+	else
 		info.objects[m].instances += instances;
-
-		if(info.objectBuffer != nullptr)
-			info.objects[m].objectBuffer += buffer;
-	}
 
 }
 
