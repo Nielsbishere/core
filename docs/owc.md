@@ -7,7 +7,7 @@ Because of the resource model on Android, we use an indicator before our file pa
 ### Checking directories/files
 If you want a directory path to exist, you can use the 'mkdir' function in FileManager. The fileExists, dirExists and exists functions are used to determine if something is already on the disk.
 ## Osomi String List (.oiSL)
-oiSL is a file format that stores strings in an efficient way; it stores a keyset next to names (if it isn't the default keyset). By default; there is no keyset and it uses the default keyset of " 0-9A-Za-z.", which results into 6 bits per character. This might not be a big deal, since it only saves 2 bits per character, but it also helps to obfuscate/encode strings and keep them safe from modification.
+oiSL is a file format that stores strings in an efficient way; it stores a keyset next to names (if it isn't the default keyset). By default; there is no keyset and it uses the default keyset of " 0-9A-Za-z.", which results into 6 bits per character. This might not be a big deal, since it only saves 2 bits per character, but it also helps to obfuscate/encode strings and keep them safe from modification. For information on implementation and file structures, go to docs/oiSL.md.
 ## Binding
 A binding is a key on an InputDevice; it can be either a Key, a MouseButton, a MouseAxis, a ControllerButton or a ControllerAxis. These are implicitly cast if you need a binding (unless it's a controller, then you also need a controllerId). This binding class stores a binding as 32-bits (uint), allowing it to be sent quickly & stored efficiently. It can also be translated to a String and created from a String; which is very handy for allowing users to modify controls.
 ### Key
