@@ -307,3 +307,14 @@ MyObject *obj = myBalloc->alloc<MyObject>();		//Allocate MyObject
 myBalloc->dealloc(obj);					//Deallocate MyObject
 delete myBalloc;					//Delete allocator (DOESN'T CLEAN UP CHILD OBJECTS!)
 ```
+## Redirect Log calls
+If you never want to use Log again, you could use the 'NO_LOG' define. However, if you want to redirect these callbacks, you can use the 'setCallback' function.
+```cpp
+setCallback(myFunc, LogLevel::ERROR);	//Direct errors to myFunc
+setCallback(myFunc2);			//Direct prints to myFunc2
+setCallback(myFunc3, LogLevel::WARN);	//Direct warnings to myFunc3
+
+void myFunc(String str){
+ //Do whatever; log into some database, display to user, etc.
+}
+```
