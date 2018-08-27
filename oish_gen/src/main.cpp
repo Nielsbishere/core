@@ -125,10 +125,10 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 
 		if (mem.basetype == SPIRType::Struct) {
 
-			u32 size = (u32)comp.get_declared_struct_member_size(mem, i);
+			u32 size = (u32)comp.get_declared_struct_member_size(type, i);
 
 			obj.length = size;
-			obj.arraySize = mem.array.size() == 0 ? 1U : (u32) mem.array[0];
+			obj.arraySize = type.array.size() == 0 ? 1U : (u32) type.array[0];
 			obj.format = TextureFormat::Undefined;
 
 			u32 objoff = (u32) info.elements.size();

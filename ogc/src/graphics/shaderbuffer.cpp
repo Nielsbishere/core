@@ -34,7 +34,7 @@ u32 ShaderBufferInfo::lookup(ShaderBufferObject *elem) {
 
 	for (ShaderBufferObject &e : elements)
 		if (&e == elem) return i;
-		else ++i;
+		else if(e.format == TextureFormat::Undefined) ++i;
 
 	return 0U;
 }
@@ -117,7 +117,9 @@ void ShaderBufferInfo::push(ShaderBufferObject obj, ShaderBufferObject &parent) 
 			ptr = elements.data() + (ptr - copy.elements.data());
 
 	elements.push_back(obj);
-	(obj.parent = (parentId == 0 ? &self : elements.data() + (parentId - 1U)))->childs.push_back(&elements[elements.size() - 1U]);
+
+	ShaderBufferObject *objptr = &elements[elements.size() - 1U];
+	(objptr->parent = (parentId == 0 ? &self : elements.data() + (parentId - 1U)))->childs.push_back(objptr);
 }
 
 ///ShaderBufferVar

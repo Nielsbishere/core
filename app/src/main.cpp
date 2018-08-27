@@ -239,6 +239,37 @@ void MainInterface::initScene() {
 	camera = g.create("Default camera", CameraInfo(45.f, Vec3(5, 5, 5), Vec4(0, 0, 0, 1)));
 	g.use(camera);
 
+	//Setup lighting
+	ShaderBuffer *lights = shader->get<ShaderBuffer>("Lights");
+
+	lights->open();
+
+	lights->set("directional.dir", Vec3(-1, -1, -1));
+	lights->set("directional.intensity", 0.5f);
+	lights->set("directional.col", Vec3(1.f));
+
+	lights->set("point.pos", Vec3());
+	lights->set("point.intensity", 2.f);
+	lights->set("point.radius", 4.f);
+	lights->set("point.col", Vec3(1.f));
+
+	lights->set("spot.pos", Vec3(0, 1, 0));
+	lights->set("spot.dir", Vec3(1, 1, 1));
+	lights->set("spot.intensity", 8.f);
+	lights->set("spot.angle", 40.f);
+	lights->set("spot.radius", 4.f);
+	lights->set("spot.col", Vec3(1.f));
+
+	lights->close();
+
+	//Setup drawcalls  (reserve objects for meshes)
+
+	drawList->draw(mesh0, totalObjects / 4);		//Reserve 0 until (not including) totalObjects/4
+	drawList->draw(mesh, totalObjects / 4);			//Reserve 1/4 until 2/4
+	drawList->draw(mesh2, totalObjects / 4);		//Reserve 2/4 until 3/4
+	drawList->draw(mesh3, totalObjects / 4);		//Reserve 3/4 until 4/4
+	drawList->flush();
+
 }
 
 void MainInterface::renderScene(){
@@ -260,27 +291,10 @@ void MainInterface::renderScene(){
 	postProcessing->set("gamma", gamma);
 	postProcessing->close();
 
-	//Setup lighting
-	ShaderBuffer *directionalLight = shader->get<ShaderBuffer>("DirectionalLights");
-
-	directionalLight->open();
-	directionalLight->set("dir", Vec3(-1, -1, -1));
-	directionalLight->set("intensity", 4.f);
-	directionalLight->set("col", Vec3(1.f));
-	directionalLight->close();
-
 	//Start 'rendering'
 	cmdList->begin();
 
 	//Render to renderTarget
-
-		//Setup draw calls
-		drawList->clear();
-		drawList->draw(mesh0, totalObjects / 4);
-		drawList->draw(mesh, totalObjects / 4);
-		drawList->draw(mesh2, totalObjects / 4);
-		drawList->draw(mesh3, totalObjects / 4);
-		drawList->flush();
 
 		//Bind fbo and pipeline
 		cmdList->begin(renderTarget);

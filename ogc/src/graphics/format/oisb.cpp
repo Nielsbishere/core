@@ -152,19 +152,13 @@ SBFile oiSB::convert(ShaderBufferInfo info, SLFile *names) {
 
 	SBFile file;
 
-	bool atVars = false;
-
 	for (u32 i = 0; i < info.elements.size(); ++i) {
 
 		auto &elem = info[i];
 
-		if (elem.format != TextureFormat::Undefined) {
-			atVars = true;
+		if (elem.format != TextureFormat::Undefined)
 			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, elem.arraySize, (u8) elem.format.getValue()));
-		} else if (atVars) {
-			Log::throwError<oiSB, 0x0>("Struct appeared after the block of structs");
-			return file;
-		} else 
+		else 
 			file.structs.push_back(SBStruct(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, elem.arraySize, elem.length));
 
 	}

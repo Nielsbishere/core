@@ -12,9 +12,6 @@ struct Light {
 	float radius;
 
 	vec3 dir;
-	float length;
-
-	vec3 padding;
 	float angle;
 
 };
@@ -37,13 +34,63 @@ vec3 calculateSpecular(Light li, vec3 dir, vec3 normal, vec3 cdir, float power){
 	return li.col * pow(max(0, dot(normalize(reflect(-dir, normal)), cdir)), power) * li.intensity;
 }
 
-LightResult calculateDirection(Light dli, vec3 pos, vec3 normal, vec3 cdir, float power){
+LightResult calculateDirectional(Light dli, vec3 pos, vec3 normal, vec3 cdir, float power){
 
 	LightResult res;
 	res.diffuse = calculateDiffuse(dli, -dli.dir, normal);
 	res.specular = calculateSpecular(dli, -dli.dir, normal, cdir, power);
 
 	return res;
+
+}
+
+float attenuation(float r, float d, float smoothness) {
+	return 1.0f - smoothstep(r * smoothness, r, d);
+}
+
+float attenuation(float r, float d) {
+	return attenuation(r, d, 0); 
+}
+
+LightResult calculatePoint(Light pli, vec3 pos, vec3 normal, vec3 cdir, float power){
+
+	vec3 dir = pli.pos - pos;
+	float dist = length(dir);
+	dir = dir / dist;
+
+	float a = attenuation(pli.radius, dist);
+
+	LightResult res;
+	res.diffuse = calculateDiffuse(pli, dir, normal) * a;
+	res.specular = calculateSpecular(pli, dir, normal, cdir, power) * a;
+
+	return res;
+
+}
+
+float calculateSpotIntensity(Light sli, vec3 dir){
+
+	float minCos = cos(radians(sli.angle));
+	float maxCos = mix(minCos, 1, 0.5f);
+	float cosAngle = dot(sli.dir, -dir);
+	return smoothstep(minCos, maxCos, cosAngle);
+
+}
+
+LightResult calculateSpot(Light sli, vec3 pos, vec3 normal, vec3 cdir, float power){
+
+	vec3 dir = sli.pos - pos;
+	float dist = length(dir);
+	dir = dir / dist;
+
+	float a = attenuation(sli.radius, dist) * calculateSpotIntensity(sli, dir);
+
+	LightResult res;
+	res.diffuse = calculateDiffuse(sli, dir, normal) * a;
+	res.specular = calculateSpecular(sli, dir, normal, cdir, power) * a;
+
+	return res;
+
 }
 
 vec3 calculateLighting(LightResult res, vec3 col, vec3 ambient){
@@ -92,17 +139,29 @@ layout(binding = 2) uniform Camera {
 layout(binding = 3) uniform sampler samp;
 layout(binding = 4) uniform texture2D tex;
 
-layout(std430, binding = 5) buffer DirectionalLights {
+layout(std430, binding = 5) buffer Lights {
 
-	Light light;
+	Light directional, point, spot;
 
-} directional;
+} lights;
 
 vec4 sample2D(sampler s, texture2D t, vec2 uv){
 	return texture(sampler2D(t, s), uv);
 }
 
 void main() {
-	LightResult lr = calculateDirection(directional.light, pos, normal, normalize(cam.position - pos), exc.power);
+
+	vec3 cpos = normalize(cam.position - pos);
+
+	LightResult lr = calculateDirectional(lights.directional, pos, normal, cpos, exc.power);
+
+	LightResult plr = calculatePoint(lights.point, pos, normal, cpos, exc.power);
+	lr.diffuse += plr.diffuse;
+	lr.specular += plr.specular;
+
+	LightResult slr = calculateSpot(lights.spot, pos, normal, cpos, exc.power);
+	lr.diffuse += slr.diffuse;
+	lr.specular += slr.specular;
+
     outColor = vec4(calculateLighting(lr, sample2D(samp, tex, uv).rgb, exc.ambient), 1);
 }
