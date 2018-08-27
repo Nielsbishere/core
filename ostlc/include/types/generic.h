@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef NO_LOG
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
+
 #include <string>
 #include <vector>
 #include <unordered_map>

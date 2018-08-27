@@ -2,21 +2,29 @@
 using namespace oi;
 
 bool Log::warn(String what) {
+	#ifndef NO_LOG
 	warningc(what + String::lineEnd());
+	#endif
 	return false;
 }
 
 bool Log::error(String what) {
+	#ifndef NO_LOG
 	errorc(what + String::lineEnd());
+	#endif
 	return false;
 }
 
 void Log::print(String what) {
+	#ifndef NO_LOG
 	printc(what);
+	#endif
 }
 
 void Log::println(String what) {
+	#ifndef NO_LOG
 	printc(what + String::lineEnd());
+	#endif
 }
 
 void Log::print(String what, LogLevel level) {

@@ -85,10 +85,10 @@ String Binding::toString() const {
 		return toMouseButton().getName() + " mouse";
 
 	if (getBindingType() == BindingType::MOUSE_AXIS)
-		return toMouseAxis().getName() + " mouse_axis";
+		return toMouseAxis().getName() + " axis";
 
 	if (getBindingType() == BindingType::CONTROLLER_BUTTON)
-		return toButton().getName() + " button #" + controllerId;
+		return toButton().getName() + " key #" + controllerId;
 
 	if (getBindingType() == BindingType::CONTROLLER_AXIS)
 		return toAxis().getName() + " axis #" + controllerId;
@@ -98,30 +98,32 @@ String Binding::toString() const {
 
 Binding::Binding(String ostr) {
 
-	auto split = ostr.split(" ");
-
 	controllerId = 0U;
 
-	if (split.size() != 1U) {
+	if (ostr.contains(" ")) {
 
-		String end = split[split.size() - 1];
+		String end = ostr.fromLast(" ");
+		String start = ostr.untilLast(" ");
 
 		if (end.equalsIgnoreCase("key")) {
 
 			bindingType = (u8)BindingType::KEYBOARD;
-			code = (u8)Key(split[0]).getIndex();
+			code = (u8)Key(start).getIndex();
 
 		} else if (end.equalsIgnoreCase("mouse")) {
 
 			bindingType = (u8) BindingType::MOUSE_BUTTON;
-			code = (u8) MouseButton(split[0]).getIndex();
+			code = (u8) MouseButton(start).getIndex();
 
-		} else if (end.equalsIgnoreCase("mouse_axis")) {
+		} else if (end.equalsIgnoreCase("axis")) {
 
 			bindingType = (u8)BindingType::MOUSE_AXIS;
-			code = (u8) MouseAxis(split[0]).getIndex();
+			code = (u8) MouseAxis(start).getIndex();
 
-		} else if (split.size() == 3U) {
+		} else {
+
+			if (end[0] != '#')
+				goto failed;
 
 			u32 num = (u32)end.cutBegin(1).toLong();
 
@@ -130,17 +132,22 @@ Binding::Binding(String ostr) {
 
 			controllerId = num;
 
-			if (split[1].equalsIgnoreCase("button")) {
+			end = end.fromLast(" ");
+
+			if (end == "")
+				goto failed;
+
+			if (end.equalsIgnoreCase("key")) {
 
 				bindingType = (u8)BindingType::CONTROLLER_BUTTON;
-				code = (u8)ControllerButton(split[0]).getIndex();
+				code = (u8)ControllerButton(end).getIndex();
 
-			}
-			else if (split[1].equalsIgnoreCase("axis")) {
+			} else if (end.equalsIgnoreCase("axis")) {
 
 				bindingType = (u8)BindingType::CONTROLLER_AXIS;
-				code = (u8)ControllerAxis(split[0]).getIndex();
-			}
+				code = (u8)ControllerAxis(end).getIndex();
+
+			} else goto failed;
 		}
 
 		goto success;

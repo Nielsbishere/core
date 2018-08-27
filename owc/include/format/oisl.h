@@ -15,12 +15,12 @@ namespace oi {
 
 	struct SLHeader {
 
-		char header[4];
+		char header[4];		//oiSL
 
-		u8 version;		//SLHeaderVersion_s
-		u8 perChar;		//SLHeaderFlags_s
+		u8 version;			//SLHeaderVersion_s
+		u8 perChar;
 		u8 keys;
-		u8 flags;
+		u8 flags;			//SLHeaderFlags_s
 
 		u16 names;
 		u16 length;

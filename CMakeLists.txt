@@ -22,6 +22,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# No console/log option
+
+option(No_log "No_log" OFF)
+
+if(No_log)
+add_definitions(-DNO_LOG")
+endif()
+
 # Android
 
 option(Android "Android" OFF)
