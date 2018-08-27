@@ -39,6 +39,7 @@ namespace oi {
 		SLFile();
 
 		u32 lookup(String name);
+		u32 add(String name);
 
 	};
 

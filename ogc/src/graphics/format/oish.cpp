@@ -18,7 +18,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 	//Setup stringlist and vars
 
 	output.stringlist.keyset = String::getDefaultCharset();
-	output.stringlist.names.push_back(info.path);
+	output.stringlist.add(info.path);
 
 	SHStageTypeFlag shaderFlag = SHStageTypeFlag::COMPUTE;
 
@@ -100,7 +100,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 			(u16)output.stringlist.names.size()
 		};
 
-		output.stringlist.names.push_back(reg.name);
+		output.stringlist.add(reg.name);
 
 	}
 
@@ -115,10 +115,8 @@ SHFile oiSH::convert(ShaderInfo info) {
 		output.outputs[i] = {
 			(u8)out.type.getValue(),
 			(u8)out.id,
-			(u16)output.stringlist.names.size()
+			(u16)output.stringlist.add(out.name)
 		};
-
-		output.stringlist.names.push_back(out.name);
 
 	}
 
@@ -132,10 +130,8 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 		output.ivar[i] = {
 			(u8) var.type.getValue(),
-			(u16) output.stringlist.names.size()
+			(u16) output.stringlist.add(var.name)
 		};
-
-		output.stringlist.names.push_back(var.name);
 
 	}
 
@@ -146,7 +142,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 	for (auto &elem : info.buffer) {
 
 		for (u32 i = 0; i < elem.second.elements.size(); ++i)
-			output.stringlist.names.push_back(elem.second.elements[i].name);
+			output.stringlist.add(elem.second.elements[i].name);
 
 		u32 id = 0U;
 

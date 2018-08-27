@@ -148,7 +148,7 @@ end:
 	return true;
 }
 
-SBFile oiSB::convert(ShaderBufferInfo info, SLFile *names) {
+SBFile oiSB::convert(ShaderBufferInfo &info, SLFile *names) {
 
 	SBFile file;
 

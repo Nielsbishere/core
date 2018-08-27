@@ -17,6 +17,17 @@ u32 SLFile::lookup(String name) {
 	return i;
 }
 
+u32 SLFile::add(String name) {
+
+	u32 id = lookup(name);
+
+	if (id == names.size())
+		names.push_back(name);
+
+	return id;
+
+}
+
 bool oiSL::read(String path, SLFile &file) {
 
 	Buffer buf;

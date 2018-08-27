@@ -87,7 +87,7 @@ namespace oi {
 			static bool read(String path, SBFile &file);
 			static bool read(Buffer data, SBFile &file);
 			
-			static SBFile convert(ShaderBufferInfo info, SLFile *names = nullptr);
+			static SBFile convert(ShaderBufferInfo &info, SLFile *names = nullptr);
 			static ShaderBufferInfo convert(Graphics *g, SBFile file, SLFile *names = nullptr);
 
 			static Buffer write(SBFile file);					//Creates new buffer
