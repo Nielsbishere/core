@@ -55,7 +55,7 @@ struct RMAttribute {
 'format' is the attribute's format.  
 'padding' is used to pad the attribute to 4 bytes, can also be used in the future.
 ## RMMisc
-``cpp
+```cpp
 struct RMMisc {
 
   u8 flags;			//RMMiscFlags
