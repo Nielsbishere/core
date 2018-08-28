@@ -59,7 +59,8 @@ The WindowManager can be obtained by using the static 'get' function. This class
 ### WindowAction
 WindowAction is a request from our app to the OS to complete an action. These actions currently include 'IN_FOCUS' and 'FULL_SCREEN'; which change the focus to the app or make it full screen. These actions are just requests, the implementation on a different platform can just deny it. Android doesn't allow these actions, but Windows does. These actions can be toggled through WindowInfo.
 ### WindowInfo
-The WindowInfo is for storing the dimensions and states of the actual window. You can request full screen and focus from here (though only supported on Windows).
+The WindowInfo is for storing the dimensions and states of the actual window. You can request full screen and focus from here (though only supported on Windows).  
+If you're rendering to a Window, know that the 'size' and 'position' of a Window can be in any space defined by the OS. On Windows, this includes window borders and on Android, the width and height of the window can be flipped (rotated device). If you want to acquire the space you can render to, it is (0, 0) to resolution (this can be acquired with 'getResolution' from WindowInfo). 
 ### Window
 The Window class stores the manager it belongs to, the WindowInfo, WindowExt, WindowInterface, InputHandler, InputManager and a few timing/initializing variables.
 ## Creating a Window
