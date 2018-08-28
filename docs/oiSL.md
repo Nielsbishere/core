@@ -6,15 +6,15 @@ The regular oiSL uses the default charset (space, 0-9, A-Z, a-z, .), if a char c
 ```cpp
 struct SLHeader {
 
-		char header[4];   //oiSL
+	char header[4];   //oiSL
 
-		u8 version;       //SLHeaderVersion_s
-		u8 perChar;
-		u8 keys;
-		u8 flags;         //SLHeaderFlags_s
+	u8 version;       //SLHeaderVersion_s
+	u8 perChar;
+	u8 keys;
+	u8 flags;         //SLHeaderFlags_s
 
-		u16 names;
-		u16 length;
+	u16 names;
+	u16 length;
 
 };
 ```
