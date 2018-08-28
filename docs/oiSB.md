@@ -3,20 +3,20 @@ The file format was created to support storage of shader buffer reflection data.
 # File specification
 ## Header
 ```cpp
-		struct SBHeader {
+struct SBHeader {
 
-			char header[4];     //oiSB
+	char header[4];     //oiSB
 
-			u8 version;         //SBHeaderVersion_s
-			u8 flags;           //SBHeaderFlag; & 0x3 = Buffer type
-			u16 padding = 0;
+	u8 version;         //SBHeaderVersion_s
+	u8 flags;           //SBHeaderFlag; & 0x3 = Buffer type
+	u16 padding = 0;
 
-			u16 structs;
-			u16 vars;
+	u16 structs;
+	u16 vars;
 
-			u32 bufferSize;
+	u32 bufferSize;
 
-		};
+};
 ```
 'version' is the oiSB version; currently there's only version v0_1 supported, but there could be newer editions that support different types if any new GPU types are introduced.  
 'flags' contains the flag info; IS_WRITE (1) defines if the buffer can be written to (from within shader), IS_STORAGE (2) defines if the buffer is handled as large buffer (aka structured shader buffer object (SSBO)), IS_ALLOCATED (4) defines if the buffer should be taken care of by the user or if it's automatically created (0x4 is checked unless the variable name contains '_ext').  
@@ -28,14 +28,14 @@ As said before, a struct is defined as a block of data types. This means that an
 ```cpp
 struct SBStruct {
 
-			u16 nameIndex;
-			u16 parent;
+	u16 nameIndex;
+	u16 parent;
 
-			u32 offset;
+	u32 offset;
 
-			u32 arraySize;
+	u32 arraySize;
 
-			u32 length;
+	u32 length;
       
 };
 ```
@@ -52,13 +52,13 @@ struct SBVar {
       u16 nameIndex;
       u16 parent;
 
-			u32 offset;
+	u32 offset;
 
-			u32 arraySize;
+	u32 arraySize;
 
-			u8 type;		//TextureFormat
-			u8 padding[3];
-      
+	u8 type;		//TextureFormat
+	u8 padding[3];
+
 };
 ```
 'nameIndex' is the index of the struct's name in the oiSL file (usually included at the end of the oiSH file).  
