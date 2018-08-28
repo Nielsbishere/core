@@ -79,8 +79,8 @@ For example;
 ```
 Vec3 position, normal(0, 1, 0), tangent(1, 0, 0);
 Vec2 uv;
-Vertex v0(position, uv, normal);
-Vertex v1(tangent);
+VBO0 v0(position, uv, normal);
+VBO1 v1(tangent);
 ```
 A vertex with buffers (position, uv, normal) and (tangent) would be stored as following:
 ```
