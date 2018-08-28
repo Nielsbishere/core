@@ -35,7 +35,7 @@ The file format was created to support the choice between low load times and sma
 'vertices' how many vertices are in this file.  
 'indices' how many indices are in this file (0 if there's no indices present).
 ## RMVBO
-``cpp
+```cpp
 struct RMVBO {
   u16 stride;
   u16 layouts;
