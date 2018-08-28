@@ -49,8 +49,8 @@ A variable is anything low level (matrix, vector or regular data types) and can 
 ```cpp
 struct SBVar {
 
-      u16 nameIndex;
-      u16 parent;
+	u16 nameIndex;
+	u16 parent;
 
 	u32 offset;
 
