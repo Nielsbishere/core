@@ -141,13 +141,13 @@ V0_0_1:
 	{
 
 		u32 perIndex = file.header.vertices <= 256 ? 1 : (file.header.vertices <= 65536 ? 2 : 4);
+		u32 perIndexb = (u32) std::ceil(std::log2(file.header.vertices));
 
 		u32 vertexBuffer = file.header.vertexBuffers * (u32) sizeof(RMVBO);
 		u32 vertexAttribute = file.header.vertexAttributes * (u32) sizeof(RMAttribute);
 		u32 misc = file.header.miscs * (u32) sizeof(RMMisc);
-		u32 index = file.header.indices * perIndex;
 
-		u32 destSize = vertexBuffer + vertexAttribute + misc + index;
+		u32 destSize = vertexBuffer + vertexAttribute + misc;
 
 		if (read.size() < destSize)
 			return Log::error("Couldn't read oiRM file; invalid size");
@@ -185,7 +185,7 @@ V0_0_1:
 
 				u32 length = vbo->stride * file.header.vertices;
 
-				if (length + index > read.size())
+				if (length > read.size())
 					return Log::error("Couldn't read oiRM file; invalid vertex length");
 
 				memcpy(vbdata, read.addr(), length);
@@ -243,9 +243,47 @@ V0_0_1:
 		}
 
 		if (file.header.indices != 0) {
-			file.indices.resize(index);
-			memcpy(file.indices.data(), read.addr(), index);
-			read = read.offset(index);
+
+			if (!compression) {
+
+				u32 index = file.header.indices * perIndex;
+
+				if (read.size() < index)
+					return Log::error("Couldn't read oiRM file; invalid index buffer length");
+
+				file.indices.resize(index);
+
+				u8 *aindices = file.indices.data();
+
+				memcpy(aindices, read.addr(), index);
+				read = read.offset(index);
+
+			} else {
+
+				u32 indexb = file.header.indices * perIndexb;
+
+				Bitset bitset;
+				if(!read.read(bitset, indexb))
+					return Log::error("Couldn't read oiRM file; invalid index buffer length");
+
+				std::vector<u32> ind(file.header.indices);
+				bitset.read(ind, perIndexb);
+				
+				u32 indexRes = file.header.indices * perIndex;
+				file.indices.resize(indexRes);
+
+				u8 *aindices = file.indices.data();
+
+				if (perIndex == 4)
+					memcpy(aindices, read.addr(), indexRes);
+				else if (perIndex == 2)
+					for (u32 i = 0; i < file.header.indices; ++i)
+						*(u16*)(aindices + i * 2) = ind[i];
+				else
+					for (u32 i = 0; i < file.header.indices; ++i)
+						*(aindices + i) = ind[i];
+
+			}
 		}
 
 		file.miscBuffer.resize(file.header.miscs);
@@ -418,13 +456,13 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 	RMHeader &header = file.header;
 
 	u32 perIndex = header.vertices <= 256 ? 1 : (header.vertices <= 65536 ? 2 : 4);
+	u32 perIndexb = (u32) std::ceil(std::log2(file.header.vertices));
 
 	u32 vertexBuffer = (u32)(header.vertexBuffers * sizeof(RMVBO));
 	u32 vertexAttribute = (u32)(header.vertexAttributes * sizeof(RMAttribute));
 	u32 misc = (u32)(header.miscs * sizeof(RMMisc));
-	u32 index = (u32)(header.indices * perIndex);
 
-	std::vector<u8> &indices = file.indices;
+	CopyBuffer ind;
 
 	Buffer b = oiSL::write(file.names);
 	CopyBuffer vertices;
@@ -434,10 +472,13 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 		u32 layoutOff = 0;
 
+		//Vertices
+
 		for (u32 j = 0; j < (u32) file.vbos.size(); ++j) {
 
 			RMVBO &vb = file.vbos[j];
 			std::vector<u8> &vbo = file.vertices[j];
+			u8 *avbo = vbo.data();
 
 			u32 offset = 0;
 
@@ -457,18 +498,20 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 					for (u32 l = 0; l < channels; ++l)
 						if (bpc == 4)
-							fillKeyset(buf, vbo, (u32*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+							fillKeyset(buf, vbo, (u32*)(avbo + offset + k * vb.stride + l * bpc), l + k * channels, indices);
 						else if (bpc == 2)
-							fillKeyset(buf, vbo, (u16*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+							fillKeyset(buf, vbo, (u16*)(avbo + offset + k * vb.stride + l * bpc), l + k * channels, indices);
 						else if (bpc == 1)
-							fillKeyset(buf, vbo, vbo.data() + offset + k * vb.stride + l * bpc, l + k * channels, indices);
+							fillKeyset(buf, vbo, avbo + offset + k * vb.stride + l * bpc, l + k * channels, indices);
 						else if (bpc == 8)
-							fillKeyset(buf, vbo, (u64*)(vbo.data() + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+							fillKeyset(buf, vbo, (u64*)(avbo + offset + k * vb.stride + l * bpc), l + k * channels, indices);
+						else
+							Log::throwError<oiRM, 0x0>("oiRM: Bytes per color (or attribute) is not supported");
 
 				}
 
 				u32 keyset = buf.size() / bpc;
-				u32 perKey = (u32) std::ceil(std::log2((f64)keyset));
+				u32 perKey = (u32) std::ceil(std::log2(keyset));
 
 				Bitset bitset(perKey * (u32) indices.size());
 				bitset.write(indices, perKey);
@@ -483,15 +526,48 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 		}
 
+		//Indices
+
+		if (file.header.indices != 0) {
+
+			std::vector<u32> indices(file.header.indices);
+
+			u32 *aindices0 = indices.data();
+			u8 *aindices = file.indices.data();
+
+			if (perIndex == 4)
+				memcpy(aindices0, aindices, file.header.indices * 4);
+			else if (perIndex == 2)
+				for (u32 i = 0; i < file.header.indices; ++i)
+					aindices0[i] = (u32)*(u16*)(aindices + i * 2);
+			else
+				for (u32 i = 0; i < file.header.indices; ++i)
+					aindices0[i] = (u32)*(aindices + i);
+
+			Bitset bitset(perIndexb * file.header.indices);
+			bitset.write(indices, perIndexb);
+
+			ind = bitset.toBuffer();
+
+		}
+
+		//Turn on the flag
+
 		header.flags |= RMHeaderFlag1::Uses_compression;
 
 	} else {
+
 		Buffer vert = file.vertices;
 		vertices = CopyBuffer(vert);
 		vert.deconstruct();
+
+		Buffer ind0 = file.indices;
+		ind = CopyBuffer(ind0);
+		ind0.deconstruct();
+
 	}
 
-	file.size = (u32) sizeof(header) + vertexBuffer + vertexAttribute + misc + vertices.size() + index + miscBuf.size() + file.names.size;
+	file.size = (u32) sizeof(header) + vertexBuffer + vertexAttribute + misc + vertices.size() + ind.size() + miscBuf.size() + file.names.size;
 
 	Buffer output(file.size);
 	Buffer write = output;
@@ -512,8 +588,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 	write = write.offset(vertices.size());
 	vertices.deconstruct();
 
-	memcpy(write.addr(), indices.data(), index);
-	write = write.offset(index);
+	memcpy(write.addr(), ind.addr(), ind.size());
+	write = write.offset(ind.size());
 
 	memcpy(write.addr(), miscBuf.addr(), miscBuf.size());
 	write = write.offset(miscBuf.size());

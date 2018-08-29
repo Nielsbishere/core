@@ -27,7 +27,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 option(No_log "No_log" OFF)
 
 if(No_log)
-add_definitions(-DNO_LOG")
+add_definitions(-DNO_LOG)
 endif()
 
 # Android

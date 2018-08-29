@@ -1,13 +1,12 @@
-
+@echo off
 echo Android requires the following dependencies to be installed:
 echo - Java
-echo - Android SDK & NDK
+echo - Android SDK
+echo - Android NDK
 echo - CMake
 echo - MinGW Makefiles (64-bit)
+echo - Apache Ant
 echo - Vulkan SDK
-
-@echo off
-
 setlocal enabledelayedexpansion
 
 set lvl=24

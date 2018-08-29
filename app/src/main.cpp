@@ -380,7 +380,7 @@ void MainInterface::update(f32 dt) {
 
 	//Update planet rotation
 
-	camera->bind(getParent()->getInfo().getSize());
+	camera->bind(getParent()->getInfo().getResolution());
 
 	for (u32 i = 0; i < totalObjects; ++i) {
 		objects[i].m = Matrix::makeModel(Vec3((f32)i / totalObjects * 10 - 5, 0, 0), Vec3(planetRotation, 0.f), Vec3(2.f) / (i + 1));

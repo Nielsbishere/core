@@ -69,7 +69,7 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 
 		Vec2u prevSize = win.size;
-		win._forceSize(size);
+		win.size = win.resolution = size;
 
 		win.minimized = IsIconic(hwnd);
 
@@ -223,7 +223,7 @@ void Window::initPlatform() {
 	RECT rect;
 	GetClientRect(ext.window, &rect);
 
-	info._forceSize(Vec2u((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top)));
+	info.resolution = info.size = Vec2u((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top));
 
 	info.focus();
 	updatePlatform();
@@ -266,6 +266,16 @@ void Window::updatePlatform() {
 			SetWindowLong(ext.window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
 			SetWindowPos(ext.window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 		}
+
+		RECT rect;
+		GetClientRect(ext.window, &rect);
+
+		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
+
+		info.size = info.resolution = size;
+
+		if (wi != nullptr)
+			wi->onResize(info.resolution);
 
 	}
 

@@ -401,9 +401,12 @@ void Graphics::initSurface(Window *w) {
 	if (size == Vec2u::max())
 		Log::throwError<Graphics, 0x7>("Size is undefined; this is not supported!");
 
-	w->getInfo()._forceSize(size);
+	if (size == w->getInfo().getResolution() || Vec2u(size.y, size.x) == w->getInfo().getResolution())			//If the device is rotated, rotate along
+		size = w->getInfo().getResolution();
+	else
+		Log::throwError<Graphics, 0x8>(String("Render resolution didn't match ") + size + " vs " + w->getInfo().getResolution());
 
-	Log::println("Successfully created surface");
+	Log::println(String("Successfully created surface (") + size + ")");
 	
 	//Create swapchain
 	

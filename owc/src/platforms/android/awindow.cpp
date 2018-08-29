@@ -58,7 +58,8 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 			int32_t width = ANativeWindow_getWidth(app->window);
 			int32_t height = ANativeWindow_getHeight(app->window);
 
-			w->getInfo().size = Vec2u((u32)width, (u32)height);
+			w->getInfo().size = Vec2u((u32)width, (u32)height); 
+			w->getInfo().resolution = w->getInfo().size;
 		}
 
 		if (wi != nullptr)
@@ -83,10 +84,12 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 				int32_t height = ANativeWindow_getHeight(app->window);
 
 				w->getInfo().size = Vec2u((u32)width, (u32)height);
+				w->getInfo().resolution = w->getInfo().size;
 			}
 
 			if (wi != nullptr)
-				wi->onResize(w->getInfo().size);
+				wi->onResize(w->getInfo().resolution);
+
 		}
 		break;
 
@@ -137,15 +140,21 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 			if(wi != nullptr && app->savedState != nullptr)
 				wi->load("out/lifetime.bin");
 
-			Log::println(String(ANativeWindow_getWidth(app->window)) + " " + ANativeWindow_getHeight(app->window));
-
+			w->getInfo().resolution = w->getInfo().size = Vec2u((u32)ANativeWindow_getWidth(app->window), (u32)ANativeWindow_getHeight(app->window));
 			initDisplay(w);
 			break;
 
 		case APP_CMD_CONFIG_CHANGED:
 
-			if (!w->initialized)
+			if (!w->initialized) {
+				w->getInfo().resolution = w->getInfo().size = Vec2u((u32)ANativeWindow_getWidth(app->window), (u32)ANativeWindow_getHeight(app->window));		//Device window should be reset
 				initDisplay(w);
+			}
+			else
+				w->getInfo().resolution = Vec2u((u32) ANativeWindow_getHeight(app->window), (u32) ANativeWindow_getWidth(app->window));							//Device is rotated
+
+			if (wi != nullptr)
+				wi->onResize(w->getInfo().resolution);
 
 			break;
 

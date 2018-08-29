@@ -86,6 +86,7 @@ namespace oi {
 
 			template<typename T>
 			T &cast() {
+
 				if (!ShaderBufferCast<T>::check(buf.size(), obj.format))
 					Log::throwError<ShaderBufferVar, 0x0>(String("Couldn't cast ShaderBufferVar with format ") + obj.format.getName() + " (" + obj.name + ")");
 

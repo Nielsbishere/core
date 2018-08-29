@@ -49,7 +49,7 @@ namespace oi {
 		};
 
 		UEnum(RMMiscType, Vertex = 0, Primitive = 1, Center_primitive = 2, Point = 3);
-		UEnum(RMMiscFlag, None = 0, Uses_offset = 1, Is_array = 2, Offset_in_tangent_space = 4);
+		UEnum(RMMiscFlag, None = 0, Uses_offset = 1, Is_array = 2, Offset_in_relative_space = 4);
 
 		struct RMMisc {
 

@@ -23,6 +23,7 @@ namespace oi {
 			String getTitle() const;
 			Vec2i getPosition() const;
 			Vec2u getSize() const;
+			Vec2u getResolution() const;				//Resolution != size; resolution is the size of the render layer
 			Window *getParent() const;
 			WindowHandleExt *getParam() const;
 			bool isFullScreen() const;
@@ -36,8 +37,6 @@ namespace oi {
 			bool isMinimized() const;
 			u32 getVersion() const;
 
-			void _forceSize(Vec2u size);
-
 		protected:
 
 			void setParent(Window *w);
@@ -46,7 +45,7 @@ namespace oi {
 		private:
 
 			Vec2i position = {};
-			Vec2u size = {};
+			Vec2u size = {}, resolution = {};
 			WindowAction pending;
 			bool inFocus, fullScreen = false, minimized = false;
 

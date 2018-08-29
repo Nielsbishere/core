@@ -23,7 +23,7 @@ namespace oi {
 
 		struct SBHeader {
 
-			char header[4];
+			char header[4];	//oiSB
 
 			u8 version;		//SBHeaderVersion_s
 			u8 flags;		//SBHeaderFlag; & 0x3 = Buffer type
