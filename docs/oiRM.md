@@ -114,6 +114,8 @@ For compression, the following formula is followed to determine the IBO size (in
 indices * std::ceil(std::log2(vertices))
 ```
 This means that if you have 24 vertices (ex. a cube), you can use ceil(log2(24)) = ceil(4.58) = 5 bits per index. Resulting in a total index buffer of 23 bytes (36 indices). This compresses a lot (especially when using 65536+ vertices, because mostly they won't end up using 32 bits, but 17 or 18).
-## (TODO) MiscBuffer
-## (TODO) Names
+## MiscBuffer
+The MiscBuffer is the buffer for every misc. Every misc can have up to 65535 bytes of data; right now this data doesn't have a use, or definition yet; however this feature will be further developed in the future (it is a task on the trello board).
+## Names
+Like all other Osomi file formats, the names are stored in a oiSL file that is embedded at the end of the object. 
 # (TODO) API Usage
