@@ -96,10 +96,24 @@ Second buffer
 
 ```
 The second buffer would be appended to the first buffer, giving us a float array `[0,0,0, 0,0, 0,1,0, 1,0,0]`, which is represented as a buffer. This means that the (relative) offset of the second buffer can be calculated by using RMVBO::stride * vertices and the index buffer (in this case; if there is no other buffer and if indices is not 0) is located at offset buf0.stride * vertices + buf1.stride * vertices.
-### (TODO) Compression
+### Compression
+Vertex compression is a more complex concept than index compression; this is because a TextureFormat has the concept of channels (RGBA for example). Every channel uses the same data type; allowing the optimization of sharing a value. For example; you have a texture with just red, blue, green, white and black; these values are either 0 or 1, allowing you to represent the texture as a bitset; turning it from 4 bytes per pixel to 3/8 bytes per pixel (10.67x as efficient). This can be done by utilizing a keyset with the data types and storing the actual data in a bitset that references the keyset.  
+This way of compression can significantly decrease required storage, but of course has to be decompressed. The data is compressed as follows:
+```cpp
+u32 keys;								//Different data values (stored in binary)
+u8 buffer[keys * Graphics::getChannelSize(format)];			//All values (stored in binary)
+u32 keyBits = std::ceil(std::log2(keys));				//Bits required to point to a key (not stored, but calculated)
+Bitset bitset(vertices * Graphics::getChannels(format) * keyBits];	//All references to keys (stored in binary)
+```
+For decompression; the vertex data's order has to be changed, so all attributes are placed next to each other for every vertex.
 ## IBO
 The index buffer is located after the vertex buffers and the size can be determined by first determing the format. If there's at max 256 vertices, it means that you can use a u8 to represent an index to it, if there's at max 65536, it means you can use a u16 and otherwise you have to use a u32. This means that the index buffer can be the size of vertices, 2 * vertices or 4 * vertices, depending on the vertexCount. On the GPU, this IBO is expanded to 4 * vertices, because of cache improvements that come with uints (it can fetch it with 1 operation instead of multiple).
-### (TODO) Compression
+### Compression
+For compression, the following formula is followed to determine the IBO size (in bits):
+```cpp
+indices * std::ceil(std::log2(vertices))
+```
+This means that if you have 24 vertices (ex. a cube), you can use ceil(log2(24)) = ceil(4.58) = 5 bits per index. Resulting in a total index buffer of 23 bytes (36 indices). This compresses a lot (especially when using 65536+ vertices, because mostly they won't end up using 32 bits, but 17 or 18).
 ## (TODO) MiscBuffer
 ## (TODO) Names
 # (TODO) API Usage
