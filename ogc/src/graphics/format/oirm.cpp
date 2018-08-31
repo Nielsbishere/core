@@ -69,8 +69,8 @@ Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 			(u8)1,
 			(u8)attributeCount,
 
-			(u8)TopologyMode::Triangle,
-			(u8)FillMode::Fill,
+			(u8)TopologyMode::Undefined,
+			(u8)FillMode::Undefined,
 			(u8)0,
 			(u8)0,
 
@@ -171,7 +171,7 @@ V0_0_1:
 
 		RMVBO *vbo = file.vbos.data();
 		std::vector<u8> *vbdat = file.vertices.data();
-		std::vector<u32> indices;
+		std::vector<u32> indices, indices0;
 
 		for (u32 i = 0; i < file.header.vertexBuffers; ++i) {
 
@@ -212,21 +212,32 @@ V0_0_1:
 
 					u32 perKey = (u32)std::ceil(std::log2((f64)keyset));
 
+					if (!read.read(keyset))
+						return Log::error("Couldn't read oiRM file; invalid keyCount");
+
 					Bitset bitset;
 
-					if (!read.read(bitset, file.header.vertices * channels * perKey))
+					if (!read.read(bitset, keyset * channels * perKey))
 						return Log::error("Couldn't read oiRM file; invalid bitset");
 
-					indices.resize(file.header.vertices * channels);
+					indices.resize(keyset * channels);
 					bitset.read(indices, perKey);
 
-					u32 uncompSiz = channels * bpc * file.header.vertices;
+					perKey = (u32)std::ceil(std::log2((f64)keyset));
+					keyset = file.header.vertices;
+
+					if (!read.read(bitset, keyset * perKey))
+						return Log::error("Couldn't read oiRM file; invalid bitset");
+
+					indices0.resize(keyset);
+					bitset.read(indices0, perKey);
 
 					u8 *dest = values.addr();
 					u32 *aindices = indices.data();
+					u32 *aindices0 = indices0.data();
 
 					for (u32 k = 0; k < channels * file.header.vertices; ++k)
-						memcpy(vbdata + k / channels * vbo->stride + offset + k % channels * bpc, dest + aindices[k] * bpc, bpc);
+						memcpy(vbdata + offset + k / channels * vbo->stride + k % channels * bpc, dest + aindices[aindices0[k / channels] * channels + k % channels] * bpc, bpc);
 
 					offset += channels * bpc;
 					++attrib;
@@ -434,24 +445,43 @@ RMFile oiRM::convert(MeshInfo info) {
 	};
 }
 
-template<typename T>
-void fillKeyset(CopyBuffer &buf, std::vector<u8> &vbo, T *loc, u32 m, std::vector<u32> &indices) {
+u32 findChannel(u8 *data, u32 totalSize, u8 *c, u32 bpc) {
 
-	T *beg = (T*) buf.addr();
-	T *end = (T*)(buf.addr() + buf.size());
-	T &val = *loc;
+	for (u32 i = 0; i < totalSize; i += bpc)
+		if (memcmp(data + i, c, bpc) == 0)
+			return i / bpc;
 
-	auto it = std::find(beg, end, val);
-
-	if (it == end) {
-		indices[m] = buf.size() / sizeof(T);
-		buf += CopyBuffer((u8*)loc, sizeof(T));
-	} else
-		indices[m] = (u32)(it - beg);
+	return totalSize / bpc;
 
 }
 
+u32 findAttribute(u32 *attributes, u32 totalSize, u32 *channels, u32 channelCount) {
+
+	u32 *ptr = attributes - 1; 
+	u32 *end = attributes + totalSize;
+
+	do {
+		ptr = std::search(ptr + 1, attributes + totalSize, channels, channels + channelCount);
+	} while(ptr != end && u32(ptr - attributes) % channelCount != 0);
+
+	return u32(ptr - attributes) / channelCount;
+}
+
+bool addChannel(CopyBuffer &buf, u32 bpc, u8 *addr, u32 *channel) {
+
+	*channel = findChannel(buf.addr(), buf.size(), addr, bpc);
+
+	if (*channel == buf.size() / bpc) {
+		buf += CopyBuffer(addr, bpc);
+		return true;
+	}
+
+	return false;
+}
+
 Buffer oiRM::write(RMFile &file, bool compression) {
+
+	Timer t;
 
 	RMHeader &header = file.header;
 
@@ -490,33 +520,65 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 				u32 channels = Graphics::getChannels(format);
 				u32 bpc = Graphics::getChannelSize(format);
 
-				std::vector<u32> indices(channels * file.header.vertices);
+				std::vector<u32> uniqueChannels;
+				uniqueChannels.reserve(channels * file.header.vertices);
+				u32 *auniqueChannels = uniqueChannels.data(), auniqueChannelC = 0;
 
-				CopyBuffer buf;
+				std::vector<u32> currentChannel(channels);
+				u32 *acurrentChannel = currentChannel.data();
+
+				std::vector<u32> attributes(file.header.vertices);
+				u32 *aattributes = attributes.data();
+
+				CopyBuffer chan;
 
 				for (u32 k = 0; k < file.header.vertices; ++k) {
 
+					u8 *ptr = avbo + offset + k * vb.stride;
+
+					bool modified = false;
+
+					//Add channels (if the channel is new, the attribute is)
 					for (u32 l = 0; l < channels; ++l)
-						if (bpc == 4)
-							fillKeyset(buf, vbo, (u32*)(avbo + offset + k * vb.stride + l * bpc), l + k * channels, indices);
-						else if (bpc == 2)
-							fillKeyset(buf, vbo, (u16*)(avbo + offset + k * vb.stride + l * bpc), l + k * channels, indices);
-						else if (bpc == 1)
-							fillKeyset(buf, vbo, avbo + offset + k * vb.stride + l * bpc, l + k * channels, indices);
-						else if (bpc == 8)
-							fillKeyset(buf, vbo, (u64*)(avbo + offset + k * vb.stride + l * bpc), l + k * channels, indices);
-						else
-							Log::throwError<oiRM, 0x0>("oiRM: Bytes per color (or attribute) is not supported");
+						modified = addChannel(chan, bpc, ptr + l * bpc, acurrentChannel + l) || modified;
+
+					u32 attrib = auniqueChannelC / channels;
+
+					//Check if the combinations of channels is new
+					if (!modified) {
+						attrib = findAttribute(auniqueChannels, auniqueChannelC, acurrentChannel, channels);
+						modified = attrib == auniqueChannelC / channels;
+					}
+
+					//Push attribute
+					if (modified) {
+						uniqueChannels.insert(uniqueChannels.end(), currentChannel.begin(), currentChannel.end());
+						auniqueChannelC = (u32)uniqueChannels.size();
+					}
+
+					aattributes[k] = attrib;
 
 				}
 
-				u32 keyset = buf.size() / bpc;
-				u32 perKey = (u32) std::ceil(std::log2(keyset));
+				u32 channelKey = chan.size() / bpc;
+				u32 perChannel = (u32)std::ceil(std::log2(channelKey));
+				u32 totalAttributes = (u32)uniqueChannels.size() / channels;
+				u32 perAttribute = (u32)std::ceil(std::log2(totalAttributes));
 
-				Bitset bitset(perKey * (u32) indices.size());
-				bitset.write(indices, perKey);
+				Bitset bitset(perChannel * (u32)uniqueChannels.size());
+				bitset.write(uniqueChannels, perChannel);
 
-				vertices += CopyBuffer((u8*)&keyset, 4) + buf + bitset.toBuffer();
+				vertices += CopyBuffer((u8*)&channelKey, 4) + chan + CopyBuffer((u8*)&totalAttributes, 4) + bitset.toBuffer();
+
+				//Don't export per attribute compression for 1 channel
+				if (channels != 1) {
+
+					Bitset bitset0(perAttribute * (u32) attributes.size());
+					bitset0.write(attributes, perAttribute);
+
+					vertices += bitset0.toBuffer();
+
+				}
 
 				offset += channels * bpc;
 
@@ -598,6 +660,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 	write.copy(b, b.size(), 0, 0);
 	write = write.offset(b.size());
 	b.deconstruct();
+
+	/*t.print();*/
 
 	return output;
 

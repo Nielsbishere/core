@@ -180,7 +180,7 @@ Buffer oiSL::write(SLFile &file) {
 	return toFile;
 }
 
-bool oiSL::write(String path, SLFile &file) {
+bool oiSL::write(SLFile &file, String path) {
 
 	Buffer buf = write(file);
 

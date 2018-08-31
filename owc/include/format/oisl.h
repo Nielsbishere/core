@@ -49,7 +49,7 @@ namespace oi {
 		static bool read(Buffer data, SLFile &file);
 
 		static Buffer write(SLFile &file);	//Creates new buffer
-		static bool write(String path, SLFile &file);
+		static bool write(SLFile &file, String path);
 	};
 
 }

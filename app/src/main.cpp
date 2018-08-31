@@ -139,7 +139,7 @@ float myNoise(Vec3 noise) {
 void MainInterface::initScene() {
 
 	//
-	genPlanet(myNoise);
+	//genPlanet(myNoise);
 
 	Log::println("Started main interface!");
 
@@ -165,6 +165,8 @@ void MainInterface::initScene() {
 
 	info.first.maxIndices = 300000;
 	info.first.maxVertices = 200000;
+	info.first.topologyMode = TopologyMode::Triangle;
+	info.first.fillMode = FillMode::Fill;
 	meshBuffer = g.create("Mesh buffer", info.first);
 	g.use(meshBuffer);
 	meshBuffer->open();
@@ -199,6 +201,8 @@ void MainInterface::initScene() {
 	//Setup our quad
 	oiRM::read("res/models/post_processing_quad.oiRM", file);
 	info = oiRM::convert(&g, file);
+	info.first.topologyMode = TopologyMode::Triangle;
+	info.first.fillMode = FillMode::Fill;
 
 	meshBuffer0 = g.create("Mesh buffer 1", info.first);
 	g.use(meshBuffer0);

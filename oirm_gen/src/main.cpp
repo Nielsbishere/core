@@ -1,6 +1,7 @@
 #include <graphics/format/obj.h>
 #include <graphics/format/fbx.h>
 #include <utils/log.h>
+#include <utils/timer.h>
 #include <fstream>
 using namespace oi::gc;
 using namespace oi;
@@ -51,6 +52,8 @@ int main(int argv, char *argc[]) {
 
 	if (argv < 2)
 		return (int) Log::error("Syntax: oirm_gen.exe \"modelPath\" (compression; y/n)");
+
+	Timer t;
 
 	String path = argc[1];
 	bool compression = argv < 3 ? true : (String(argc[2]) == "y");
@@ -104,6 +107,7 @@ int main(int argv, char *argc[]) {
 	}
 
 	buf.deconstruct();
+	t.print();
 
 	return res;
 }
