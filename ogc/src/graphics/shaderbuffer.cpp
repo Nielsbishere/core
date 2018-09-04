@@ -215,31 +215,30 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 	ShaderBufferObject *sbo = &info.self;
 	u32 offset = 0;
 
-	for (String str : path.split(".")) {
+	std::vector<u32> arr;
 
-		std::vector<String> strarr = str.split("[");
+	for (String str : path.split("/")) {
 
-		if (strarr.size() == 1) {
+		if (!str.isUint()) {
+
+			if (arr.size() != 0) {
+				//TODO: Calculate offset
+				arr.clear();
+			}
 
 			if ((sbo = sbo->find(str)) == nullptr)
 				Log::throwError<ShaderBufferVar, 0x3>(String("Couldn't find the path \"") + path + "\"");
 
 			offset += sbo->offset;
 
-		} else {
-
-			str = strarr[0];
-
-			//test[5][5][5][5].a
-			//test[5]
-			//test[][5]
-			//test[][][5]
-			//test[][][][5]
-			//test[][][][].a
-
-		}
-
+		} else 
+			arr.push_back((u32)str.toLong());
+		
 	}
 
-	return { *sbo, Buffer::construct(current.addr() + offset, sbo->length * sbo->arraySize), isOpen };
+	if (arr.size() != 0) {
+		//TODO: Calculate offset
+	}
+
+	return { *sbo, Buffer::construct(this->current.addr() + offset, sbo->length * sbo->arraySize), isOpen };
 }

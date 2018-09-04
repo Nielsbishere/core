@@ -1,8 +1,20 @@
 #include "utils/random.h"
+#include "utils/timer.h"
 using namespace oi;
 
 const u32 RMAX_min = 0x7FFF;
-u32 Random::off = 0;
+u32 Random::off = 0, Random::seed = 0;
+
+void Random::setSeed(u32 seed) {
+	off = Random::seed = seed;
+}
+
+void Random::seedRandom() {
+	setSeed(u32(Timer::getGlobalTimer().getTime().time_since_epoch().count() % u32_MAX));
+}
+
+u32 Random::getSeed() { return seed; }
+u32 Random::getOffset() { return off - seed; }
 
 u32 Random::randU32() {
 	u32 a = off;

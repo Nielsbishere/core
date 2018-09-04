@@ -2,6 +2,7 @@
 
 #include "api/rapidjson/document.h"
 #include "types/string.h"
+#include "types/matrix.h"
 #include "utils/log.h"
 
 namespace oi {
@@ -57,38 +58,25 @@ namespace oi {
 	//----------------------
 	class JSON {
 
+		template<typename T, bool b> friend struct JSONSerialize;
+
 	public:
 
-		String getString(String path, String def = "") const { get_inter(path, def, def); return def; }
-		i32 getInt(String path, i32 def = 0) const { get_inter(path, def, def); return def; }
-		i64 getLong(String path, i64 def = 0) const { get_inter(path, def, def); return def; }
-		u32 getUInt(String path, u32 def = 0U) const { get_inter(path, def, def); return def; }
-		u64 getULong(String path, u64 def = 0U) const { get_inter(path, def, def); return def; }
-		f32 getFloat(String path, f32 def = 0.f) const { get_inter(path, def, def); return def; }
-		f64 getDouble(String path, f64 def = 0.0) const { get_inter(path, def, def); return def; }
-		bool getBool(String path, bool def = false) const { get_inter(path, def, def); return def; }
-
-		bool setString(String path, String o, bool useLists = true) { return set_inter(path, o, useLists); }
-		bool setInt(String path, i32 o, bool useLists = true) { return set_inter(path, o, useLists); }
-		bool setLong(String path, i64 o, bool useLists = true) { return set_inter(path, o, useLists); }
-		bool setUInt(String path, u32 o, bool useLists = true) { return set_inter(path, o, useLists); }
-		bool setULong(String path, u64 o, bool useLists = true) { return set_inter(path, o, useLists); }
-		bool setFloat(String path, f32 o, bool useLists = true) { return set_inter(path, o, useLists); }
-		bool setDouble(String path, f64 o, bool useLists = true) { return set_inter(path, o, useLists); }
-		bool setBool(String path, bool o, bool useLists = true) { return set_inter(path, o, useLists); }
-
 		template<typename T>
-		bool getList(String path, std::vector<T> &value, std::vector<T> def = std::vector<T>()) const {
-			return get_inter(path, value, def);
+		void serialize(String path, T &val, bool save) {
+			JSONSerialize<T>::serialize(*this, path, val, save);
 		}
 
 		template<typename T>
-		bool setList(String path, std::vector<T> &o, bool useLists = true) {
+		void set(String path, const T value) {
+			JSONSerialize<T>::serialize(*this, path, (T&)value, true);
+		}
 
-			for (u32 i = 0; i < o.size(); ++i)
-				if (!set_inter(path + "/" + i, o[i], useLists)) return false;
-
-			return true;
+		template<typename T>
+		T get(String path) {
+			T val;
+			JSONSerialize<T>::serialize(*this, path, val, false);
+			return val;
 		}
 
 		u32 getMembers(String path = "") const;
@@ -102,9 +90,9 @@ namespace oi {
 		JSON(const String fromString);
 		JSON();
 
-		String toString() const;
+		String toString(bool pretty = true) const;
 
-	public:
+	protected:
 
 		template<typename T>
 		bool get_inter(String path, T &value, T def) const {
@@ -166,6 +154,88 @@ namespace oi {
 	private:
 
 		rapidjson::Document json;
+
+	};
+
+	//For any function
+	template<typename T, bool isDataType = std::is_arithmetic<T>::value>
+	struct JSONSerialize {
+
+		static void serialize(JSON &json, String path, T &val, bool save) {
+			val.serialize(json, path, save);
+		}
+
+	};
+
+	//For vectors
+	template<typename T>
+	struct JSONSerialize<std::vector<T>, false> {
+
+		static void serialize(JSON &json, String path, std::vector<T> &val, bool save) {
+
+			if (!save)
+				val.resize(json.getMembers(path));
+
+			for (u32 i = 0; i < (u32)val.size(); ++i)
+				JSONSerialize<T>::serialize(json, path + "/" + i, val[i], save);
+
+		}
+
+	};
+
+	template<typename T, u32 n>
+	struct JSONSerialize<oi::TVec<T, n>, false> {
+
+		static void serialize(JSON &json, String path, oi::TVec<T, n> &val, bool save) {
+			for (u32 i = 0; i < n; ++i)
+				JSONSerialize<T>::serialize(json, path + "/" + i, val[i], save);
+		}
+
+	};
+
+	template<typename T, u32 x, u32 y>
+	struct JSONSerialize<oi::TMatrix<T, x, y>, false> {
+		static void serialize(JSON &json, String path, oi::TMatrix<T, x, y> &val, bool save) {
+			for (u32 i = 0; i < x * y; ++i)
+				JSONSerialize<T>::serialize(json, path + "/" + (i % x) + "/" + (j / x), val[i], save);
+		}
+	};
+
+	//For data types
+	template<typename T>
+	struct JSONSerialize<T, true> {
+
+		static void serialize(JSON &json, String path, T &val, bool save) {
+			if (save)
+				json.set_inter(path, val, true);
+			else
+				json.get_inter(path, val, (T) 0);
+		}
+
+	};
+
+	//For strings
+	template<>
+	struct JSONSerialize<String, false> {
+
+		static void serialize(JSON &json, String path, String &val, bool save) {
+			if (save)
+				json.set_inter(path, val, true);
+			else
+				json.get_inter(path, val, {});
+		}
+
+	};
+
+	template<>
+	struct JSONSerialize<const char*, false> {
+
+		static void serialize(JSON &json, String path, const char* val, bool save) {
+			if (save)
+				json.set_inter(path, String(val), true);
+			else
+				Log::throwError<JSONSerialize<const char*, false>, 0x0>("JSONSerialize read not possible with a char*");
+		}
 
 	};
 

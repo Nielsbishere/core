@@ -24,6 +24,7 @@
 #include <graphics/sampler.h>
 #include <graphics/camera.h>
 #include <utils/random.h>
+#include <utils/json.h>
 
 #include <input/keyboard.h>
 #include <input/mouse.h>
@@ -45,29 +46,70 @@ void Application::instantiate(WindowHandleExt *param){
 
 //Set up the interface
 
-void genPlanet(f32 (*displace)(Vec3 loc)) {
+float NoiseLayer::sample(Vec3 pos) {
+	float value = SimplexNoise::noise(pos, offset, octaves, persistence, roughness) * scale * (mask == nullptr ? 1 : mask->sample(pos));
+	return value > minValue ? (value - minValue) / (scale - minValue) : 0;
+}
+
+float NoiseLayer::getScale() {
+	float val = scale * (mask == nullptr ? 1 : mask->getScale()) - minValue;
+	return val > 0 ? val : 0;
+}
+
+void NoiseLayer::serialize(JSON &json, String path, bool save) {
+	json.serialize(path + "/offset", offset, save);
+	json.serialize(path + "/octaves", octaves, save);
+	json.serialize(path + "/persistence", persistence, save);
+	json.serialize(path + "/roughness", roughness, save);
+	json.serialize(path + "/scale", scale, save);
+	json.serialize(path + "/minValue", minValue, save);
+	json.serialize(path + "/enabled", enabled, save);
+}
+
+//Returns 0-1 for a point on the planet
+float Planet::sample(Vec3 pos) {
+
+	float val = 0, scale = 0;
+
+	for (u32 i = 0; i < (u32)noiseLayer.size(); ++i)
+		if (noiseLayer[i].enabled) {
+			val += noiseLayer[i].sample(pos);
+			scale += noiseLayer[i].getScale();
+		}
+
+	return val / scale * (maxHeight - minHeight) + minHeight;
+
+}
+
+void Planet::serialize(JSON &json, String path, bool save) {
+	json.serialize(path + "/minHeight", minHeight, save);
+	json.serialize(path + "/maxHeight", maxHeight, save);
+	json.serialize(path + "/layer", noiseLayer, save);
+}
+
+void MainInterface::refreshPlanet(Planet planet) {
 
 	Timer t;
 
-	u32 resolution = 42;
+	u32 resolution = 32;
 
 	u32 resolutio = resolution - 1;
 	u32 vertices = 6 * resolution * resolution;
 	u32 indices = resolutio * resolutio * 36;
 
 	Vec3 norm[] = {
-		{ 0, 1, 0 },
-		{ 0, -1, 0 },
-		{ 1, 0, 0 },
-		{ -1, 0, 0 },
-		{ 0, 0, 1 },
-		{ 0, 0, -1 }
+		{ 0, 1, 0 },		//0 = up
+		{ 1, 0, 0 },		//1 = right
+		{ 0, -1, 0 },		//2 = down
+		{ -1, 0, 0 },		//3 = left
+		{ 0, 0, 1 },		//4 = front
+		{ 0, 0, -1 }		//5 = back
 	};
 
 	Vec3 tang[] = {
 		{ 1, 0, 0 },
-		{ -1, 0, 0 },
 		{ 0, 0, 1 },
+		{ -1, 0, 0 },
 		{ 0, 0, -1 },
 		{ 0, 1, 0 },
 		{ 0, -1, 0 }
@@ -100,46 +142,73 @@ void genPlanet(f32 (*displace)(Vec3 loc)) {
 		Vec2 uv = Vec2((f32)x, (f32)y) / Vec2((f32)resolutio);
 		Vec2 xy = uv * 2.f - 1.f;
 
-		Vec3 pos = (up + tangent * xy.x + bitangent * xy.y).normalize();
+		Vec3 cpos = (up + tangent * xy.x + bitangent * xy.y);
+		Vec3 spos = cpos.normalize();
 
-		*(Vec3*)(avertex + 8 * i) = pos * (1 + displace(pos));
+		*(Vec3*)(avertex + 8 * i) = spos * (1 + planet.sample(spos));
 		*(Vec2*)(avertex + 8 * i + 3) = uv;		//Temporary planar projection
-		*(Vec3*)(avertex + 8 * i + 5) = pos;	//Normal = position for a sphere; TODO: Use displacement for this
+		*(Vec3*)(avertex + 8 * i + 5) = spos;	//Normal = position for a sphere; TODO: Use displacement for this
 
 		if (x != resolutio && y != resolutio) {
 
 			u32 ind = (z * resolutio * resolutio + y * resolutio + x) * 6;
 
-			aindex[ind] = i;
-			aindex[ind + 1] = i + resolution + 1;
-			aindex[ind + 2] = i + resolution;
-			aindex[ind + 3] = i;
-			aindex[ind + 4] = i + 1;
-			aindex[ind + 5] = i + resolution + 1;
+			aindex[ind] = i + resolution;
+			aindex[ind + 1] = i + 1;
+			aindex[ind + 2] = i;
+			aindex[ind + 3] = i + resolution;
+			aindex[ind + 4] = i + resolution + 1;
+			aindex[ind + 5] = i + 1;
 
 		}
 
 	}
 
-	Buffer buf = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices, true);
+	//TODO: Load into MeshInfo directly
 
-	FileManager::get()->write("out/models/planet.oiRM", buf);
+	Buffer buf = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices, false);
+
+	FileManager::get()->write(String("out/models/") + planet.name + ".oiRM", buf);
 
 	buf.deconstruct();
+
+	if (mesh3 != nullptr)
+		g.destroy(mesh3);
+
+	meshBuffer->open();
+
+	RMFile file;
+	oiRM::read(String("out/models/") + planet.name + ".oiRM", file);
+	auto info = oiRM::convert(&g, file);
+
+	info.second.buffer = meshBuffer;
+	mesh3 = g.create(planet.name, info.second);
+	g.use(mesh3);
+
+	meshBuffer->close();
 
 	t.stop();
 	t.print();
 
 }
 
-float myNoise(Vec3 noise) {
-	return pow(SimplexNoise::noise(noise * ((SimplexNoise::noise(noise * 1.5f + 399) * 0.5f + 0.5f) * 20.f + 3.f), 4, 1.5f, 0.5f), 1.5f) * 0.8f + 0.1f;
+void MainInterface::writePlanet(Planet planet) {
+	JSON json;
+	json.serialize("", planet, true);
+	FileManager::get()->write(String("out/") + planet.name  +".json", json.toString());
+	RMFile file = oiRM::convert(mesh3->getInfo());
+	oiRM::write(file, String("out/models/") + planet.name + ".oiRM", false);
+}
+
+void MainInterface::readPlanet(Planet &planet, String name) {
+	String str;
+	FileManager::get()->read(String("out/") + name + ".json", str);
+	JSON json = str;
+	json.serialize(name, planet, false);
+	refreshPlanet(planet);
 }
 
 void MainInterface::initScene() {
-
-	//
-	//genPlanet(myNoise);
 
 	Log::println("Started main interface!");
 
@@ -155,7 +224,9 @@ void MainInterface::initScene() {
 	g.use(shader0);
 
 	//Setup our pipeline state (with default settings)
-	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
+	PipelineStateInfo psi;
+	psi.lineWidth = 3.f;
+	pipelineState = g.create("Default pipeline state", psi);
 	g.use(pipelineState);
 
 	//Setup our cube & sphere
@@ -166,7 +237,7 @@ void MainInterface::initScene() {
 	info.first.maxIndices = 300000;
 	info.first.maxVertices = 200000;
 	info.first.topologyMode = TopologyMode::Triangle;
-	info.first.fillMode = FillMode::Fill;
+	info.first.fillMode = FillMode::Line;
 	meshBuffer = g.create("Mesh buffer", info.first);
 	g.use(meshBuffer);
 	meshBuffer->open();
@@ -189,14 +260,9 @@ void MainInterface::initScene() {
 	mesh2 = g.create("Sphere", info.second);
 	g.use(mesh2);
 
-	oiRM::read("res/models/cube.oiRM", file);
-	info = oiRM::convert(&g, file);
-
-	info.second.buffer = meshBuffer;
-	mesh3 = g.create("Cube", info.second);
-	g.use(mesh3);
-
 	meshBuffer->close();
+
+	refreshPlanet(earth);
 
 	//Setup our quad
 	oiRM::read("res/models/post_processing_quad.oiRM", file);
@@ -240,7 +306,7 @@ void MainInterface::initScene() {
 	shader0->set("samp", sampler);
 
 	//Setup our camera
-	camera = g.create("Default camera", CameraInfo(45.f, Vec3(5, 5, 5), Vec4(0, 0, 0, 1)));
+	camera = g.create("Default camera", CameraInfo(45.f, Vec3(3, 3, 3), Vec4(0, 0, 0, 1)));
 	g.use(camera);
 
 	//Setup lighting
@@ -248,21 +314,21 @@ void MainInterface::initScene() {
 
 	lights->open();
 
-	lights->set("directional.dir", Vec3(-1, -1, -1));
-	lights->set("directional.intensity", 0.5f);
-	lights->set("directional.col", Vec3(1.f));
+	lights->set("directional/dir", Vec3(-1, -1, -1));
+	lights->set("directional/intensity", 0.5f);
+	lights->set("directional/col", Vec3(1.f));
 
-	lights->set("point.pos", Vec3());
-	lights->set("point.intensity", 2.f);
-	lights->set("point.radius", 4.f);
-	lights->set("point.col", Vec3(1.f));
+	lights->set("point/pos", Vec3());
+	lights->set("point/intensity", 2.f);
+	lights->set("point/radius", 4.f);
+	lights->set("point/col", Vec3(1.f));
 
-	lights->set("spot.pos", Vec3(0, 1, 0));
-	lights->set("spot.dir", Vec3(1, 1, 1));
-	lights->set("spot.intensity", 8.f);
-	lights->set("spot.angle", 40.f);
-	lights->set("spot.radius", 4.f);
-	lights->set("spot.col", Vec3(1.f));
+	lights->set("spot/pos", Vec3(0, 1, 0));
+	lights->set("spot/dir", Vec3(1, 1, 1));
+	lights->set("spot/intensity", 8.f);
+	lights->set("spot/angle", 40.f);
+	lights->set("spot/radius", 4.f);
+	lights->set("spot/col", Vec3(1.f));
 
 	lights->close();
 
@@ -354,7 +420,18 @@ void MainInterface::initSceneSurface(){
 }
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
+
 	Log::println(b.toString());
+
+	if (b.getBindingType() == BindingType::KEYBOARD) {
+
+		if (b.toKey() == Key::Volume_up || b.toKey() == Key::Up)
+			writePlanet(earth);
+		else if (b.toKey() == Key::Volume_down || b.toKey() == Key::Down)
+			readPlanet(earth, "earth");
+
+	}
+
 }
 
 void MainInterface::update(f32 dt) {
@@ -387,9 +464,12 @@ void MainInterface::update(f32 dt) {
 	camera->bind(getParent()->getInfo().getResolution());
 
 	for (u32 i = 0; i < totalObjects; ++i) {
-		objects[i].m = Matrix::makeModel(Vec3((f32)i / totalObjects * 10 - 5, 0, 0), Vec3(planetRotation, 0.f), Vec3(2.f) / (i + 1));
+		objects[i].m = Matrix::makeScale(Vec4(0, 0, 0, 1));// Matrix::makeModel(Vec3((f32)i / totalObjects * 6 - 3, 0, 0), Vec3(planetRotation, 0.f), Vec3(2.f) / (i + 1));
 		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
 	}
+
+	objects[totalObjects - 1].m = Matrix::makeModel(Vec3(0, 0, 0), Vec3(planetRotation, 0.f), Vec3(1.5f));
+	objects[totalObjects - 1].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[totalObjects - 1].m };
 
 	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
 

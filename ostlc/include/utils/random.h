@@ -9,6 +9,18 @@ namespace oi {
 
 	public:
 
+		//Set seed
+		static void setSeed(u32 seed);
+
+		//Set random
+		static void seedRandom();
+
+		//Get seed
+		static u32 getSeed();
+
+		//Get offset to seed
+		static u32 getOffset();
+
 		//Returns 0->u32_max
 		static u32 randU32();
 
@@ -29,7 +41,8 @@ namespace oi {
 
 	protected:
 
-		static u32 off;
+		static u32 off, seed;
+
 	};
 
 	template<u32 n>

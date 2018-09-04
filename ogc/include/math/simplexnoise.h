@@ -38,10 +38,10 @@ namespace oi {
 		static f32 noise(Vec4 p);
 		static f32 noise(f32 p);
 
-		static f32 noise(f32 p, i32 octaves, f32 persistance, f32 lacunarity);
-		static f32 noise(Vec2 p, i32 octaves, f32 persistance, f32 lacunarity);
-		static f32 noise(Vec3 p, i32 octaves, f32 persistance, f32 lacunarity);
-		static f32 noise(Vec4 p, i32 octaves, f32 persistance, f32 lacunarity);
+		static f32 noise(f32 p, f32 offset, u32 octaves, f32 persistence, f32 roughness);
+		static f32 noise(Vec2 p, Vec2 offset, u32 octaves, f32 persistence, f32 roughness);
+		static f32 noise(Vec3 p, Vec3 offset, u32 octaves, f32 persistence, f32 roughness);
+		static f32 noise(Vec4 p, Vec4 offset, u32 octaves, f32 persistence, f32 roughness);
 
 
 	private:

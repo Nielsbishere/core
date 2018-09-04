@@ -478,54 +478,48 @@ f32 SimplexNoise::noise(f32 p) {
 	return noise(Vec2((f32) p, (f32) 0.0));
 }
 
-f32 SimplexNoise::noise(f32 p, i32 octaves, f32 persistance, f32 lacunarity) {
-	f32 freq = 1, amp = 1;
-	f32 y = 0;
-	f32 max = 0;
-	for (i32 i = 0; i < octaves; i++) {
-		y += (noise(p * freq) + 1) / 2 * amp;
+f32 SimplexNoise::noise(f32 p, f32 offset, u32 octaves, f32 persistence, f32 roughness) {
+	f32 freq = 1, amp = 1, y = 0, max = 0;
+	for (u32 i = 0; i < octaves; i++) {
+		y += (noise(p * freq + offset) + 1) * 0.5f * amp;
 		max += amp;
-		amp *= persistance;
-		freq *= lacunarity;
+		amp *= persistence;
+		freq *= roughness;
 	}
 	return y / max;
 }
 
-f32 SimplexNoise::noise(Vec2 p, i32 octaves, f32 persistance, f32 lacunarity) {
-	f32 freq = 1, amp = 1;
-	f32 z = 0;
-	f32 max = 0;
-	for (i32 i = 0; i < octaves; i++) {
-		z += (noise(p * freq) + 1) / 2 * amp;
+f32 SimplexNoise::noise(Vec2 p, Vec2 offset, u32 octaves, f32 persistence, f32 roughness) {
+	f32 freq = 1, amp = 1, z = 0, max = 0;
+	for (u32 i = 0; i < octaves; i++) {
+		z += (noise(p * freq + offset) + 1) * 0.5f * amp;
 		max += amp;
-		amp *= persistance;
-		freq *= lacunarity;
+		amp *= persistence;
+		freq *= roughness;
 	}
 	return z / max;
 }
 
-f32 SimplexNoise::noise(Vec3 p, i32 octaves, f32 persistance, f32 lacunarity) {
-	f32 freq = 1, amp = 1;
-	f32 w = 0;
-	f32 max = 0;
-	for (i32 i = 0; i < octaves; i++) {
-		w += (noise(p * freq) + 1) / 2 * amp;
+f32 SimplexNoise::noise(Vec3 p, Vec3 offset, u32 octaves, f32 persistence, f32 roughness) {
+	f32 freq = 1, amp = 1, w = 0, max = 0;
+	for (u32 i = 0; i < octaves; i++) {
+		w += (noise(p * freq + offset) + 1) * 0.5f * amp;
 		max += amp;
-		amp *= persistance;
-		freq *= lacunarity;
+		amp *= persistence;
+		freq *= roughness;
 	}
 	return w / max;
 }
 
-f32 SimplexNoise::noise(Vec4 p, i32 octaves, f32 persistance, f32 lacunarity) {
-	f32 freq = 1, amp = 1;
-	f32 w = 0;
-	for (i32 i = 0; i < octaves; i++) {
-		w += (noise(p * freq) + 1) / 2 * amp;
-		amp *= persistance;
-		freq *= lacunarity;
+f32 SimplexNoise::noise(Vec4 p, Vec4 offset, u32 octaves, f32 persistence, f32 roughness) {
+	f32 freq = 1, amp = 1, u = 0, max = 0;
+	for (u32 i = 0; i < octaves; i++) {
+		u += (noise(p * freq + offset) + 1) * 0.5f * amp;
+		max += amp;
+		amp *= persistence;
+		freq *= roughness;
 	}
-	return w / octaves;
+	return u / max;
 }
 
 i32 SimplexNoise::fastfloor(f32 x) {

@@ -89,7 +89,7 @@ namespace oi {
 			static std::pair<MeshBufferInfo, MeshInfo> convert(Graphics *g, RMFile file);
 
 			static Buffer write(RMFile &file, bool compression = true);					//Creates new buffer
-			static bool write(String path, RMFile &file);
+			static bool write(RMFile &file, String path, bool compression = true);
 
 			//Generate a default oiRM file
 			//The layout is as follows:

@@ -1,6 +1,6 @@
 #include "utils/json.h"
 #include "api/rapidjson/stringbuffer.h"
-#include "api/rapidjson/writer.h"
+#include "api/rapidjson/prettywriter.h"
 using namespace oi;
 
 JSON::JSON(const String fromString) {
@@ -9,14 +9,19 @@ JSON::JSON(const String fromString) {
 
 JSON::JSON() : JSON("{}") {}
 
-String JSON::toString() const {
+String JSON::toString(bool pretty) const {
 
 	rapidjson::StringBuffer buffer;
 
 	buffer.Clear();
 
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-	json.Accept(writer);
+	if (!pretty) {
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		json.Accept(writer);
+	} else {
+		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+		json.Accept(writer);
+	}
 
 	return buffer.GetString();
 }

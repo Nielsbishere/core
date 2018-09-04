@@ -667,9 +667,9 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 }
 
-bool oiRM::write(String path, RMFile &file) {
+bool oiRM::write(RMFile &file, String path, bool compression) {
 
-	Buffer buf = write(file);
+	Buffer buf = write(file, compression);
 
 	if (!FileManager::get()->write(path, buf)) {
 		buf.deconstruct();

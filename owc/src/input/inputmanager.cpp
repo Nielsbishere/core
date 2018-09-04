@@ -108,7 +108,7 @@ bool InputManager::load(String path) {
 		for (String handle : json.getMemberIds("bindings"))
 			for (String id : json.getMemberIds(String("bindings/") + handle)) {
 
-				String bstr = json.getString(String("bindings/") + handle + "/" + id);
+				String bstr = json.get<String>(String("bindings/") + handle + "/" + id);
 				Binding b(bstr);
 
 				if (b.getCode() != 0)
@@ -124,7 +124,7 @@ bool InputManager::load(String path) {
 
 				String base = String("axes/") + handle + "/" + id;
 
-				String bstr = json.getString(base + "/binding");
+				String bstr = json.get<String>(base + "/binding");
 				Binding b(bstr);
 
 				if (b.getCode() == 0) {
@@ -132,7 +132,7 @@ bool InputManager::load(String path) {
 					continue;
 				}
 
-				String effect = json.getString(base + "/effect");
+				String effect = json.get<String>(base + "/effect");
 				InputAxis1D axis;
 
 				if (effect.equalsIgnoreCase("x")) axis = InputAxis1D::X;
@@ -143,7 +143,7 @@ bool InputManager::load(String path) {
 					continue;
 				}
 
-				f32 axisScale = json.getFloat(base + "/axisScale", 1.f);
+				f32 axisScale = json.get<f32>(base + "/axisScale");
 
 				bindAxis(handle, InputAxis(b, axis, axisScale));
 
@@ -164,7 +164,7 @@ String InputManager::write() const {
 		u32 j = 0;
 
 		for (auto &elem : st) {
-			json.setString(base + "/" + j, elem.toString());
+			json.set(base + "/" + j, elem.toString());
 			++j;
 		}
 
@@ -178,9 +178,9 @@ String InputManager::write() const {
 		u32 j = 0;
 
 		for (auto &elem : ax) {
-			json.setString(base + "/" + j + "/binding", elem.binding.toString());
-			json.setString(base + "/" + j + "/effect", elem.effect == InputAxis1D::X ? "x" : (elem.effect == InputAxis1D::Y ? "y" : "z"));
-			json.setFloat(base + "/" + j + "/axisScale", elem.axisScale);
+			json.set(base + "/" + j + "/binding", elem.binding.toString());
+			json.set(base + "/" + j + "/effect", elem.effect == InputAxis1D::X ? "x" : (elem.effect == InputAxis1D::Y ? "y" : "z"));
+			json.set(base + "/" + j + "/axisScale", elem.axisScale);
 			++j;
 		}
 
