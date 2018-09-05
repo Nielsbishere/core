@@ -189,83 +189,86 @@ The JSON above can be parsed by using file paths. JavaScript would use the follo
 ```
 However, using the JSON class, we use the following:
 ```cpp
-  i32 testJson_object_0_1 = json.getInt("testJson/object/0/1");
+  i32 testJson_object_0_1 = json["testJson"]["object"][0][1].get<i32>();
 ```
-This system provides more clarity and allows you to reference a JSON in a better way than by just passing the JSON Value around every time. It doesn't require you to know anything about the JSON you're parsing, as you can also retrieve all 'members' in one function call. This will list all paths that are available, but of course you can also just use the paths that are in the folder you're in (non-recursively). It also allows you to throw in the default value it returns on failure; so getInt can have the 2nd param that is returned when it can't find it, it is the incorrect type or anything else bad happened. By default, this is 0 for numbers, "" for strings and empty vectors for arrays. Setting is pretty much the same, only it takes a value instead of returning it.
+This system provides more clarity and allows you to reference a JSON in a better way than by just passing the JSON Value around every time. It doesn't require you to know anything about the JSON you're parsing, as you can also retrieve all 'members' in one function call. 
 ### Checking JSON structure
-To validate whether or not something is there; you can use 'exists' and 'mkdir'. Exists checks if the directories leading to an object (including the object itself) actually exist within the JSON. Mkdir tries to ensure the path you gave will be available, but it can fail (if you're referencing to a non-object/non-array), it returns true on success. Mkdir does do a few things by default; when you're in an array and reference an index it doesn't have, it will add elements until it does. If the object doesn't exist, it will set it to an empty object ("{ }"), however, this doesn't matter for how you access it or how you get/set it; an empty object is just seen as filler and can be overriden by anything. mkdir("testJson/object/2") would create an empty object behind the Vec3(4), you can set it to anything and getting things from it isn't possible. mkdir("testJson/object/2/3") after the first mkdir would result into the object turning into an array; `[{}, {}, {}, {}]` instead of '{ }'.
+To validate whether or not something is there; you can use 'exists' and 'mkdir'. Exists checks if the variable actually exist within the JSONNode. Mkdir makes a new 'directory'; an empty object, if possible; this empty object can take any type when used with set or when indexed into. Mkdir does do a few things by default; when you're in an array and reference an index it doesn't have, it will add elements until it does. If the object doesn't exist, it will set it to an empty object ("{ }"), however, this doesn't matter for how you access it or how you get/set it; an empty object is just seen as filler and can be overriden by anything. `json["testJson"]["object"].mkdir("2")` would create an empty object behind the Vec3(4), you can set it to anything and getting things from it isn't possible. `json["testJson"]["object"][2].mkdir("3")` after the first mkdir would result into the object turning into an array; `[{}, {}, {}, {}]` instead of '{ }'.
 ### Checking 'folders' aka members
-You can check the number of members by using 'getMembers'; this returns the fields / members that the object has. Any members inside those won't be counted. getMemberIds returns the relative paths to those members and getMemberNames returns the absolute paths to those members.
-Getting all members recursively can be done using getAllMembers and this returns absolute paths.
+You can check the number of members by using 'getMembers'; this returns the fields / members that the object has. Any members inside those won't be counted. You can then use an iterator to loop over all members (pair of const String & JSONNode&). This can also be done automatically by using the C++11 style foreach (for(auto x : json)).
 ### Example (Writing)
-The following example is from InputManager; it writes the input bindings & axes to a file:
+The following example is from InputManager; it writes the input bindings & axes to a string:
 ```cpp
 	JSON json;
 
-	for (u32 i = 0; i < (u32)bindings.size(); ++i) {
+	for (auto &state : states) {
 
-		String base = String("bindings/") + bindings[i].first;
-		u32 j = json.getMembers(base);					//Append our bindings at the end
+		auto &st = state.second.bindings;
+		JSONNode &base = json["bindings"][state.first];
 
-		json.set(base + "/" + j, bindings[i].second.toString());
-	}
+		u32 j = 0;
 
-	for (u32 i = 0; i < (u32) axes.size(); ++i) {
-
-		auto &ax = axes[i].second;
-
-		String base = String("axes/") + axes[i].first;
-		u32 j = json.getMembers(base);
-
-		json.set(base + "/" + j + "/binding", ax.binding.toString());
-		json.set(base + "/" + j + "/effect", ax.effect == InputAxis1D::X ? "x" : (ax.effect == InputAxis1D::Y ? "y" : "z"));
-		json.set(base + "/" + j + "/axisScale", ax.axisScale);
-	}
-
-	return json.toString().writeToFile(path);
-```
-### Example (reading)
-The following is from InputManager; it reads the input bindings & axes from a file:
-```cpp
-	JSON json = String::readFromFile(path);
-
-	if (json.exists("bindings")) {
-
-		for (String handle : json.getMemberIds("bindings")) {
-
-			for (String id : json.getMemberIds(String("bindings/") + handle)) {
-
-				String bstr = json.get<String>(String("bindings/") + handle + "/" + id);
-				Binding b(bstr);
-
-				if (b.getType() != BindingType::UNDEFINED && b.getCode() != 0) {
-					bind(handle, b);
-					Log::println(String("Binding event ") + b.toString());
-				}
-				else
-					Log::error("Couldn't read binding; invalid identifier");
-
-			}
-
+		for (auto &elem : st) {
+			base.set(j, elem.toString());
+			++j;
 		}
 
 	}
 
-	if (json.exists("axes")) {
-		for (String handle : json.getMemberIds("axes")) {
-			for (String id : json.getMemberIds(String("axes/") + handle)) {
+	for (auto &axis : axes) {
 
-				String base = String("axes/") + handle + "/" + id;
+		auto &ax = axis.second.bindings;
+		JSONNode &base = json["axes"][axis.first];
 
-				String bstr = json.get<String>(base + "/binding");
+		u32 j = 0;
+
+		for (auto &elem : ax) {
+			base[j].set("binding", elem.binding.toString());
+			base[j].set("effect", elem.effect == InputAxis1D::X ? "x" : (elem.effect == InputAxis1D::Y ? "y" : "z"));
+			base[j].set("axisScale", elem.axisScale);
+			++j;
+		}
+
+	}
+
+	return json.toString();
+```
+### Example (reading)
+The following is from InputManager; it reads the input bindings & axes from a string:
+```cpp
+	JSON json = str;
+
+	if (json.exists("bindings"))
+		for (auto &node : json["bindings"]) {
+
+			std::vector<String> strings;
+			node.second.serialize(strings, false);
+
+			for (String str : strings) {
+
+				Binding b(str);
+
+				if (b.getCode() != 0)
+					bindState(node.first, b);
+				else
+					Log::error("Couldn't read binding; invalid identifier");
+
+			}
+		}
+
+	if (json.exists("axes"))
+		for (auto &node : json["axes"])
+			for (auto &nnode : node.second) {
+
+				String bstr = nnode.second.get<String>("binding");
 				Binding b(bstr);
 
-				if (b.getType() == BindingType::UNDEFINED || b.getCode() == 0) {
+				if (b.getCode() == 0) {
 					Log::error("Couldn't read axis; invalid identifier");
 					continue;
 				}
 
-				String effect = json.get<String>(base + "/effect");
+				String effect = nnode.second.get<String>("effect");
 				InputAxis1D axis;
 
 				if (effect.equalsIgnoreCase("x")) axis = InputAxis1D::X;
@@ -276,21 +279,19 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 					continue;
 				}
 
-				f32 axisScale = json.get<f32>(base + "/axisScale");
+				f32 axisScale = nnode.second.get<f32>("axisScale");
 
-				bindAxis(handle, InputAxis(b, axis, axisScale));
-				Log::println(String("Binding axis ") + b.toString() + " with axis " + effect + " and scale " + axisScale);
+				bindAxis(node.first, InputAxis(b, axis, axisScale));
+
 			}
-		}
-	}
 
 	return true;
 ```
 ### Example (serialization)
 JSON provides the ability for you to serialize a struct/datatype/String/vector/TVec/TMatrix, allowing you to save it to or load it from JSON. This is done by passing it into the serialization function as follows:
 ```cpp
-myJson.serialize("test/myObject", myObject, true); //Save the object into test/myObject
-myJson.serialize("test/myObject", myObject, false); //Load the object from test/myObject into myObject
+json["test"]["myObject"].serialize(myObject, true); //Save the object into test/myObject
+json["test"]["myObject"].serialize(myObject, false); //Load the object from test/myObject into myObject
 ```
 The serialize function calls the struct's serialize function if it doesn't know how to serialize. This means that you have to implement a serialize function for a struct. In this serialize function, you're defining the names and the variables. Example:
 ```cpp
@@ -299,9 +300,9 @@ struct SerializationTest {
 	std::vector<oi::Vec3> positions;
 	oi::Matrix model;
 
-	void serialize(oi::JSON &json, oi::String path, bool save){
-	   json.serialize(path + "/positions", positions, save);
-	   json.serialize(path + "/model", model, save);
+	void serialize(JSONNode &json, bool save){
+	   json.serialize("positions", positions, save);
+	   json.serialize("model", model, save);
 	}
 
 };
