@@ -207,7 +207,7 @@ The following example is from InputManager; it writes the input bindings & axes 
 		String base = String("bindings/") + bindings[i].first;
 		u32 j = json.getMembers(base);					//Append our bindings at the end
 
-		json.setString(base + "/" + j, bindings[i].second.toString());
+		json.set(base + "/" + j, bindings[i].second.toString());
 	}
 
 	for (u32 i = 0; i < (u32) axes.size(); ++i) {
@@ -217,9 +217,9 @@ The following example is from InputManager; it writes the input bindings & axes 
 		String base = String("axes/") + axes[i].first;
 		u32 j = json.getMembers(base);
 
-		json.setString(base + "/" + j + "/binding", ax.binding.toString());
-		json.setString(base + "/" + j + "/effect", ax.effect == InputAxis1D::X ? "x" : (ax.effect == InputAxis1D::Y ? "y" : "z"));
-		json.setFloat(base + "/" + j + "/axisScale", ax.axisScale);
+		json.set(base + "/" + j + "/binding", ax.binding.toString());
+		json.set(base + "/" + j + "/effect", ax.effect == InputAxis1D::X ? "x" : (ax.effect == InputAxis1D::Y ? "y" : "z"));
+		json.set(base + "/" + j + "/axisScale", ax.axisScale);
 	}
 
 	return json.toString().writeToFile(path);
@@ -233,9 +233,9 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 
 		for (String handle : json.getMemberIds("bindings")) {
 
-			for (String id : json.getMemberIds(OString("bindings/") + handle)) {
+			for (String id : json.getMemberIds(String("bindings/") + handle)) {
 
-				String bstr = json.getString(String("bindings/") + handle + "/" + id);
+				String bstr = json.get<String>(String("bindings/") + handle + "/" + id);
 				Binding b(bstr);
 
 				if (b.getType() != BindingType::UNDEFINED && b.getCode() != 0) {
@@ -257,7 +257,7 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 
 				String base = String("axes/") + handle + "/" + id;
 
-				String bstr = json.getString(base + "/binding");
+				String bstr = json.get<String>(base + "/binding");
 				Binding b(bstr);
 
 				if (b.getType() == BindingType::UNDEFINED || b.getCode() == 0) {
@@ -265,7 +265,7 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 					continue;
 				}
 
-				String effect = json.getString(base + "/effect");
+				String effect = json.get<String>(base + "/effect");
 				InputAxis1D axis;
 
 				if (effect.equalsIgnoreCase("x")) axis = InputAxis1D::X;
@@ -276,7 +276,7 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 					continue;
 				}
 
-				f32 axisScale = json.getFloat(base + "/axisScale", 1.f);
+				f32 axisScale = json.get<f32>(base + "/axisScale");
 
 				bindAxis(handle, InputAxis(b, axis, axisScale));
 				Log::println(String("Binding axis ") + b.toString() + " with axis " + effect + " and scale " + axisScale);
@@ -286,6 +286,27 @@ The following is from InputManager; it reads the input bindings & axes from a fi
 
 	return true;
 ```
+### Example (serialization)
+JSON provides the ability for you to serialize a struct/datatype/String/vector/TVec/TMatrix, allowing you to save it to or load it from JSON. This is done by passing it into the serialization function as follows:
+```cpp
+myJson.serialize("test/myObject", myObject, true); //Save the object into test/myObject
+myJson.serialize("test/myObject", myObject, false); //Load the object from test/myObject into myObject
+```
+The serialize function calls the struct's serialize function if it doesn't know how to serialize. This means that you have to implement a serialize function for a struct. In this serialize function, you're defining the names and the variables. Example:
+```cpp
+struct SerializationTest {
+
+	std::vector<oi::Vec3> positions;
+	oi::Matrix model;
+
+	void serialize(oi::JSON &json, oi::String path, bool save){
+	   json.serialize(path + "/positions", positions, save);
+	   json.serialize(path + "/model", model, save);
+	}
+
+};
+```
+Now this object can be serialized. If the object doesn't have a serialize function, calling serialize directly or indirectly will cause the project to not compile. 
 ## Block allocator
 OSTLC also provides some memory management; (Virtual)BlockAllocator. A VirtualBlockAllocator simply handles storing multiple objects in one array; this can be bytes, render objects, particles, or whatever. However; VirtualBlockAllocator isn't for handling memory. BlockAllocator is for handling memory, VirtualBlockAllocator is about handling virtual blocks (objects without knowing their size for example). 
 ### Virtual
