@@ -183,7 +183,7 @@ It treats the JSON more like a file system; you access it by using /'s as sepera
 ```json
 { "testJson": { "object": [ [ 3, 3, 3 ], [ 4, 4, 4 ] ] } }
 ```
-The JSON above can be parsed by using file paths. JavaScript would use the following way of accessing the JSON array;
+The JSON above can be parsed by ostlc. JavaScript would use the following way of accessing the JSON array;
 ```js
   var testJson_object_0_1 = json["testJson"]["object"][0][1];
 ```
