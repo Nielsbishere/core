@@ -177,7 +177,7 @@ However, the regular method doesn't allow you to loop through those values, but 
 ```
 The code above gets the enum at i and gets the value, whereafter printing the abcd values for that enum.
 ## JSON
-Osomi Core (STL) wraps around rapidjson to make JSON parsing more intuitive and less of a pain to think about how you're copying stuff and if something already exists. The Utils/JSON.h provides you with a couple of utils, mainly, getting and setting things in the JSON file.  
+Osomi Core (STL) wraps around rapidjson to make JSON parsing more intuitive and less of a pain to think about how you're copying stuff and if something already exists. The utils/json.h header provides you with a couple of utils, mainly, getting and setting things in the JSON file.  
 It treats the JSON more like a file system; you access it by using /'s as seperators and while it does have lists and objects, you can access anything using paths.
 ### JSON Paths
 ```json
