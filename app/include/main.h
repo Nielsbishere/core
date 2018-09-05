@@ -5,6 +5,7 @@
 #include <types/matrix.h>
 #include <platforms/generic.h>
 #include <graphics/texture.h>
+#include <utils/json.h>
 
 struct Application {
 	static void instantiate(oi::wc::WindowHandleExt *param = nullptr);
@@ -15,30 +16,32 @@ struct NoiseLayer {
 
 	oi::Vec3 offset;
 	u32 octaves = 1;
-	f32 persistence = 1, roughness = 1, scale = 1, minValue = 0;
-	bool enabled = true, seeded = true;
+	f32 persistence = 1, roughness = 1, scale = 1, frequency = 1, minValue = 0;
+	bool enabled = true, seeded = true, maskLand = false;
 
-	NoiseLayer *mask = nullptr;
+	//Returns 0-scale
+	f32 sample(oi::Vec3 pos, f32 current);
 
-	//Returns 0-getScale()
-	float sample(oi::Vec3 pos);
-	float getScale();
-
-	void serialize(oi::JSON &json, oi::String path, bool save);
+	void serialize(oi::JSONNode &json, bool save);
 
 };
 
 struct Planet {
 
 	std::vector<NoiseLayer> noiseLayer = { {} };
-	float minHeight = -.5f, maxHeight = 0.5f;
 
+	f32 minHeight = -0.6f, scale = 1, coastSize = 0.1f;
+	bool randomize = true;
 	oi::String name = "earth";
 
-	//Returns 0-1 for a point on the planet
-	float sample(oi::Vec3 pos);
+	oi::Vec3 offset;
 
-	void serialize(oi::JSON &json, oi::String path, bool save);
+	//Returns 0-1 for a point on the planet
+	f32 sample(oi::Vec3 pos);
+
+	void seed();
+
+	void serialize(oi::JSONNode &node, bool save);
 
 };
 
@@ -58,7 +61,7 @@ public:
 	void initSceneSurface() override;
 
 	void refreshPlanet(Planet planet);
-	void readPlanet(Planet &planet, oi::String name);
+	void readPlanet(Planet &planet, oi::String name, bool fromResource = false);
 	void writePlanet(Planet planet);
 
 private:
@@ -66,13 +69,15 @@ private:
 	oi::gc::Shader *shader, *shader0;
 	oi::gc::Pipeline *pipeline, *pipeline0;
 	oi::gc::PipelineState *pipelineState;
-	oi::gc::Texture *osomi;
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
 	oi::gc::Mesh *mesh, *mesh0, *mesh1, *mesh2, *mesh3 = nullptr;
 	oi::gc::DrawList *drawList, *drawList0;
 	oi::gc::RenderTarget *renderTarget;
+
+	oi::gc::Texture *osomi, *water, *rock;
+	u32 hwater, hrock;
 
 	float exposure = .15f, gamma = .85f;
 	oi::Vec2 prevMouse;
@@ -81,6 +86,11 @@ private:
 
 		oi::Matrix m;
 		oi::Matrix mvp;
+
+		u32 diffuse;
+		u32 specular;
+		u32 ambient;
+		u32 padding;
 
 	};
 

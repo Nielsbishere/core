@@ -83,6 +83,9 @@ bool Pipeline::init() {
 		rasterizer.polygonMode = FillModeExt(info.meshBuffer->getInfo().fillMode.getName()).getValue();
 		assembler.topology = TopologyModeExt(info.meshBuffer->getInfo().topologyMode.getName()).getValue();
 
+		if (!g->getExtension().pfeatures.wideLines)
+			rasterizer.lineWidth = 1.f;
+
 		pipelineInfo.pInputAssemblyState = &assembler;
 		pipelineInfo.pRasterizationState = &rasterizer;
 		pipelineInfo.pMultisampleState = &psext.multiSample;

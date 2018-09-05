@@ -2,14 +2,18 @@ project(oic)
 
 cmake_minimum_required(VERSION 3.9.0)
 
+# User options
+
 set(APP_NAME Osomi\ Core)
 set(APP_PACKAGE Osomi_Core)
+set(IS_GAME true)
+set(APP_VERSION 1.0) 
+
+# Default options
 
 add_definitions(-D__PROJECT_NAME__="${APP_NAME}")
 
 set(HOME_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-# Default options
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

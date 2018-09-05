@@ -7,6 +7,11 @@ struct PerObject {
 	mat4 m;
 	mat4 mvp;
 
+	uint diffuse;
+	uint specular;
+	uint ambient;
+	uint padding;
+
 };
 
 layout(std430, binding = 0) buffer Objects {
@@ -18,6 +23,7 @@ layout(std430, binding = 0) buffer Objects {
 layout(location = 0) out vec3 pos;
 layout(location = 1) out vec2 uv;
 layout(location = 2) out vec3 normal;
+layout(location = 3) flat out uint diffuse;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec2 inUv;
@@ -36,5 +42,6 @@ void main() {
 	pos = (obj.m * vec4(inPosition, 1.0)).xyz;
 	uv = inUv;
 	normal = normalize(obj.m * vec4(normalize(inNormal), 0.0)).xyz;
+	diffuse = obj.diffuse;
 
 }

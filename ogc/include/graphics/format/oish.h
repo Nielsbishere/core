@@ -84,10 +84,10 @@ namespace oi {
 			u16 representation; //If type is buffer or sampler; represents which buffer to use, same with sampler.
 
 			u16 nameIndex;
-			u16 padding;
+			u16 size;			//If the type is an array (array of textures for example)
 
-			SHRegister(u8 type, u8 access, u16 representation, u16 nameIndex) : type(type), access(access), representation(representation), nameIndex(nameIndex), padding(0) {}
-			SHRegister() : SHRegister(0, 0, 0, 0) {}
+			SHRegister(u8 type, u8 access, u16 representation, u16 nameIndex, u16 size) : type(type), access(access), representation(representation), nameIndex(nameIndex), size(size) {}
+			SHRegister() : SHRegister(0, 0, 0, 0, 0) {}
 
 		};
 

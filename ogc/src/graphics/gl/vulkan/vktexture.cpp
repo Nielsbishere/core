@@ -137,7 +137,7 @@ bool Texture::init(bool isOwned) {
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.image = this->ext.resource;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.levelCount = info.mipLevels;
+		barrier.subresourceRange.levelCount = info.mipLevels == 0 ? 1 : info.mipLevels;
 		barrier.subresourceRange.layerCount = 1;
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -228,7 +228,7 @@ bool Texture::init(bool isOwned) {
 
 		VkImageMemoryBarrier barriers[] = { barrier, barrier0 };
 
-		vkCmdPipelineBarrier(cmd.cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 2U, barriers);
+		vkCmdPipelineBarrier(cmd.cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, info.mipLevels == 1 ? 1U : 2U, info.mipLevels == 1 ? barriers + 1 : barriers);
 
 		///Submit commands
 

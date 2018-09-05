@@ -102,6 +102,7 @@ vec3 calculateLighting(LightResult res, vec3 col, vec3 ambient){
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec2 uv;
 layout(location = 2) in vec3 normal;
+layout(location = 3) in flat uint diffuse;
 
 layout(location = 0) out vec4 outColor;
 
@@ -137,7 +138,7 @@ layout(binding = 2) uniform Camera {
 } cam;
 
 layout(binding = 3) uniform sampler samp;
-layout(binding = 4) uniform texture2D tex;
+layout(binding = 4) uniform texture2D tex[2];
 
 layout(std430, binding = 5) buffer Lights {
 
@@ -145,8 +146,8 @@ layout(std430, binding = 5) buffer Lights {
 
 } lights;
 
-vec4 sample2D(sampler s, texture2D t, vec2 uv){
-	return texture(sampler2D(t, s), uv);
+vec4 sample2D(sampler s, uint index, vec2 uv){
+	return texture(sampler2D(tex[index], s), uv);
 }
 
 void main() {
@@ -163,5 +164,5 @@ void main() {
 	lr.diffuse += slr.diffuse;
 	lr.specular += slr.specular;
 
-    outColor = vec4(calculateLighting(lr, sample2D(samp, tex, uv).rgb, exc.ambient), 1);
+    outColor = vec4(calculateLighting(lr, sample2D(samp, diffuse, uv).rgb, exc.ambient), 1);
 }

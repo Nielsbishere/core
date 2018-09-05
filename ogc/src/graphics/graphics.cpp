@@ -15,6 +15,7 @@
 #include "graphics/mesh.h"
 #include "graphics/drawlist.h"
 #include "graphics/versionedtexture.h"
+#include "graphics/texturelist.h"
 #include "api/stbi/stbi_load.h"
 
 #undef min
@@ -221,6 +222,10 @@ DrawList *Graphics::create(String name, DrawListInfo info) {
 
 VersionedTexture *Graphics::create(String name, VersionedTextureInfo info) {
 	return init<VersionedTexture>(name, info);
+}
+
+TextureList *Graphics::create(String name, TextureListInfo info) {
+	return init<TextureList>(name, info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

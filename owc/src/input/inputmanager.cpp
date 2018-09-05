@@ -105,26 +105,28 @@ bool InputManager::load(String path) {
 	JSON json = str;
 
 	if (json.exists("bindings"))
-		for (String handle : json.getMemberIds("bindings"))
-			for (String id : json.getMemberIds(String("bindings/") + handle)) {
+		for (auto &node : json["bindings"]) {
 
-				String bstr = json.get<String>(String("bindings/") + handle + "/" + id);
-				Binding b(bstr);
+			std::vector<String> strings;
+			node.second.serialize(strings, false);
+
+			for (String str : strings) {
+
+				Binding b(str);
 
 				if (b.getCode() != 0)
-					bindState(handle, b);
+					bindState(node.first, b);
 				else
 					Log::error("Couldn't read binding; invalid identifier");
 
 			}
+		}
 
 	if (json.exists("axes"))
-		for (String handle : json.getMemberIds("axes"))
-			for (String id : json.getMemberIds(String("axes/") + handle)) {
+		for (auto &node : json["axes"])
+			for (auto &nnode : node.second) {
 
-				String base = String("axes/") + handle + "/" + id;
-
-				String bstr = json.get<String>(base + "/binding");
+				String bstr = nnode.second.get<String>("binding");
 				Binding b(bstr);
 
 				if (b.getCode() == 0) {
@@ -132,7 +134,7 @@ bool InputManager::load(String path) {
 					continue;
 				}
 
-				String effect = json.get<String>(base + "/effect");
+				String effect = nnode.second.get<String>("effect");
 				InputAxis1D axis;
 
 				if (effect.equalsIgnoreCase("x")) axis = InputAxis1D::X;
@@ -143,9 +145,9 @@ bool InputManager::load(String path) {
 					continue;
 				}
 
-				f32 axisScale = json.get<f32>(base + "/axisScale");
+				f32 axisScale = nnode.second.get<f32>("axisScale");
 
-				bindAxis(handle, InputAxis(b, axis, axisScale));
+				bindAxis(node.first, InputAxis(b, axis, axisScale));
 
 			}
 
@@ -159,12 +161,12 @@ String InputManager::write() const {
 	for (auto &state : states) {
 
 		auto &st = state.second.bindings;
-		String base = String("bindings/") + state.first;
+		JSONNode &base = json["bindings"][state.first];
 
 		u32 j = 0;
 
 		for (auto &elem : st) {
-			json.set(base + "/" + j, elem.toString());
+			base.set(j, elem.toString());
 			++j;
 		}
 
@@ -173,14 +175,14 @@ String InputManager::write() const {
 	for (auto &axis : axes) {
 
 		auto &ax = axis.second.bindings;
-		String base = String("axes/") + axis.first;
+		JSONNode &base = json["axes"][axis.first];
 
 		u32 j = 0;
 
 		for (auto &elem : ax) {
-			json.set(base + "/" + j + "/binding", elem.binding.toString());
-			json.set(base + "/" + j + "/effect", elem.effect == InputAxis1D::X ? "x" : (elem.effect == InputAxis1D::Y ? "y" : "z"));
-			json.set(base + "/" + j + "/axisScale", elem.axisScale);
+			base[j].set("binding", elem.binding.toString());
+			base[j].set("effect", elem.effect == InputAxis1D::X ? "x" : (elem.effect == InputAxis1D::Y ? "y" : "z"));
+			base[j].set("axisScale", elem.axisScale);
 			++j;
 		}
 

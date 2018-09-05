@@ -7,6 +7,7 @@
 #include "graphics/graphics.h"
 #include "graphics/sampler.h"
 #include "graphics/versionedtexture.h"
+#include "graphics/texturelist.h"
 #include "graphics/rendertarget.h"
 using namespace oi::gc;
 using namespace oi;
@@ -44,7 +45,7 @@ void Shader::update() {
 
 		for (ShaderRegister &reg : info.registers) {
 			if (reg.type == ShaderRegisterType::Sampler) ++samplers;
-			else if (reg.type == ShaderRegisterType::Image || reg.type == ShaderRegisterType::Texture2D) ++images;
+			else if (reg.type == ShaderRegisterType::Image || reg.type == ShaderRegisterType::Texture2D) images += reg.size;
 		}
 
 		std::vector<VkDescriptorImageInfo> imageInfo(images * g->getBuffering());
@@ -64,7 +65,7 @@ void Shader::update() {
 			descriptor.dstBinding = i;
 			descriptor.dstArrayElement = 0U;
 			descriptor.descriptorType = ShaderRegisterTypeExt(reg.type.getName()).getValue();
-			descriptor.descriptorCount = 1U;
+			descriptor.descriptorCount = reg.size;
 
 			bool versioned = false;
 
@@ -106,8 +107,8 @@ void Shader::update() {
 
 			} else if(dynamic_cast<Texture*>(res) != nullptr) {
 
-				if (reg.type != ShaderRegisterType::Texture2D)
-					Log::throwError<Shader, 0x3>("A Texture has been placed on a register not meant for textures");
+				if (reg.type != ShaderRegisterType::Texture2D || reg.size != 1)
+					Log::throwError<Shader, 0x3>("A Texture has been placed on a register not meant for textures or it has to use a TextureList");
 
 				Texture *tex = (Texture*) res;
 
@@ -118,6 +119,27 @@ void Shader::update() {
 				image->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		//TODO: Change for Image
 
 				++l;
+
+			} else if (dynamic_cast<TextureList*>(res) != nullptr) {
+
+				if (reg.type != ShaderRegisterType::Texture2D || reg.size == 1)
+					Log::throwError<Shader, 0x4>("A TextureList has been placed on a register not meant for textures or it has to use a Texture");
+
+				TextureList *tex = (TextureList*)res;
+
+				if (tex->size() != reg.size)
+					Log::throwError<Shader, 0x5>("A TextureList had invalid size!");
+
+				VkDescriptorImageInfo *image = imageInfo.data() + l;
+				descriptor.pImageInfo = image;
+
+				for (u32 z = 0; z < reg.size; ++z) {
+					image->imageView = tex->get(z)->getExtension().view;
+					image->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		//TODO: Change for Image
+					++image;
+				}
+
+				l += reg.size;
 
 			} else if (dynamic_cast<VersionedTexture*>(res) != nullptr) {
 
@@ -192,7 +214,19 @@ bool Shader::init() {
 
 	std::vector<VkDescriptorSetLayoutBinding> descriptorSet(info.registers.size());
 
-	std::unordered_map<VkDescriptorType, std::vector<ShaderRegister>> orderedRegisters;
+	struct OrderedRegister {
+
+		std::vector<ShaderRegister> reg;
+		u32 count = 0;
+
+		void add(ShaderRegister reg) {
+			this->reg.push_back(reg);
+			count += reg.size;
+		}
+
+	};
+
+	std::unordered_map<VkDescriptorType, OrderedRegister> orderedRegisters;
 
 	u32 i = 0;
 	for (auto &reg : info.registers) {
@@ -201,14 +235,17 @@ bool Shader::init() {
 		memset(&descInfo, 0, sizeof(descInfo));
 
 		descInfo.binding = i;
-		descInfo.descriptorCount = 1U;
+		descInfo.descriptorCount = reg.size;
 		descInfo.descriptorType = ShaderRegisterTypeExt(info.registers[i].type.getName()).getValue();
 		descInfo.pImmutableSamplers = nullptr;
 		descInfo.stageFlags = ShaderRegisterAccessExt(info.registers[i].access.getName()).getValue();
 
-		orderedRegisters[ShaderRegisterTypeExt(reg.type.getName()).getValue()].push_back(reg);
+		orderedRegisters[ShaderRegisterTypeExt(reg.type.getName()).getValue()].add(reg);
 
-		info.shaderRegister[reg.name] = nullptr;
+		if (reg.type == ShaderRegisterType::Texture2D && reg.size > 1)
+			info.shaderRegister[reg.name] = g->create(getName() + " TextureList " + reg.name, TextureListInfo(reg.size));
+		else
+			info.shaderRegister[reg.name] = nullptr;
 
 		++i;
 	}
@@ -243,7 +280,7 @@ bool Shader::init() {
 		VkDescriptorPoolSize &desc = descriptorPool[i];
 		memset(&desc, 0, sizeof(desc));
 
-		desc.descriptorCount = (u32)reg.second.size() * g->getBuffering();
+		desc.descriptorCount = (u32)reg.second.count * g->getBuffering();
 		desc.type = reg.first;
 
 		++i;

@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
 			ShaderRegister &reg = info.registers[binding];
 
 			if (reg.name == "") 
-				reg = ShaderRegister(stype, stageAccess, r.name);
+				reg = ShaderRegister(stype, stageAccess, r.name, 1);
 			else {
 
 				reg.access = reg.access.getValue() | stageAccess.getValue();
@@ -298,13 +298,16 @@ int main(int argc, char *argv[]) {
 			u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
 			bool isWriteable = comp.get_decoration(r.id, spv::DecorationNonWritable) == 0U;
 
+			const std::vector<u32> &arr = comp.get_type(r.type_id).array;
+
 			if (info.registers.size() <= binding)
 				info.registers.resize(binding + 1U);
 
 			ShaderRegister &reg = info.registers[binding];
+			u32 size = arr.size() == 0 ? 1 : arr[0];
 
 			if(reg.name == "")
-				reg = ShaderRegister(isWriteable ? ShaderRegisterType::Image : ShaderRegisterType::Texture2D, stageAccess, r.name);
+				reg = ShaderRegister(isWriteable ? ShaderRegisterType::Image : ShaderRegisterType::Texture2D, stageAccess, r.name, size);
 			else {
 
 				reg.access = reg.access.getValue() | stageAccess.getValue();
@@ -325,7 +328,7 @@ int main(int argc, char *argv[]) {
 			ShaderRegister &reg = info.registers[binding];
 
 			if (reg.name == "")
-				reg = ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name);
+				reg = ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1);
 			else {
 
 				reg.access = reg.access.getValue() | stageAccess.getValue();

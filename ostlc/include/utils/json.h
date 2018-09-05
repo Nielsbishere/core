@@ -7,162 +7,164 @@
 
 namespace oi {
 
-	//JSON (rapid json wrapper):
-	//+=+=+=+=+=+
-	//Example JSON:
-	//The JSON below will be used as showcase for the funcs
-	//{ "testJson": { "object": [ [ 3, 3, 3 ], [ 4, 4, 4 ] ] } }
-	//+=+=+=+=+=+
-	//Funcs:
-	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-	//Getting members
-	//========================
-	//T getT(String path, T default)
-	//Get a value from the JSON; path works like a file path:
-	//get("testJson/object/1/0") will return 4
-	//T &value; where T is either String, u64/u32, i64/i32, f64/f32, bool or std::vector<T>
-	//@return bool success
-	//----------------------
-	//Querying folder structure:
-	//========================
-	//getMemberIds(String path) or getMemberNames(String path)
-	//Get the members at the path; also works with arrays but shows them as 0->len-1
-	//getMemberIds("testJson/object/1") will return [ "0", "1", "2" ]
-	//getMemberNames("testJson/object/1") will return the names after the path; so element 0 would be "testJson/object/1/0"
-	//getAllMembers is recursive and lists the names, not ids.
-	//getMembers returns the number of members
-	//----------------------
-	//'File' system:
-	//========================
-	//exists(String path)
-	//Returns whether or not a 'directory' or 'file' has been made yet
-	//----------------------
-	//mkdir(String path, bool useLists = true)
-	//Ensures that all objects are made so that the directory at 'path' exists
-	//mkdir steps into directories until it can't find the directory, then it will start creating.
-	//If it encounters an array, it will create enough empty space before the index to fill it up.
-	//A new array is only made when 'useLists' is true, otherwise it will assume new directories to always be a name
-	//"testJson/object/3/1" would reference to the 4th index in an array; which doesn't exist yet; it would make two empty objects
-	//Then it would turn the 4th object into an array (because '1' is a number); but only if 'useLists' is true.
-	//It returns false if it hit an object that doesn't have contents (so numbers & strings)
-	//this means that mkdir("testJson/object/3/id") will still jump into the object array and add an element (even if you turned off 'assumeNumberIsList')
-	//mkdir("testJson/object/3/0") will result in the following JSON:
-	//{ "testJson": { "object": [ [ 3, 3, 3 ], [ 4, 4, 4 ], {}, [ {} ] ] } }
-	//Empty objects can be replaced by any object.
-	//----------------------
-	//Setting members:
-	//========================
-	//bool setT(String path, T value, bool assumeNumberIsList = true)
-	//Set the member at the path; uses mkdir if the directory is not created yet
-	//'assumeNumberIsList' is used to check if uint's indicate an index in a list (see mkdir)
-	//----------------------
-	class JSON {
+	class JSON;
+
+	template<typename T, bool isNum = std::is_arithmetic<T>::value>
+	struct JSONTypeHelper {
+
+		static bool check(rapidjson::Type type) {
+			return type == rapidjson::Type::kStringType;
+		}
+
+	};
+
+	template<typename T>
+	struct JSONTypeHelper<T, true> {
+
+		static bool check(rapidjson::Type type) {
+			return type == rapidjson::Type::kNumberType;
+		}
+
+	};
+
+	template<>
+	struct JSONTypeHelper<bool, true> {
+
+		static bool check(rapidjson::Type type) {
+			return type == rapidjson::Type::kTrueType || type == rapidjson::Type::kFalseType;
+		}
+
+	};
+
+	template<typename T, bool b = std::is_arithmetic<T>::value> struct JSONSerialize;
+
+	class JSONNode {
 
 		template<typename T, bool b> friend struct JSONSerialize;
 
 	public:
 
+		JSONNode(rapidjson::Document *json, rapidjson::Value *value) : json(json), value(value) {}
+		JSONNode() : JSONNode(nullptr, nullptr) {}
+
 		template<typename T>
-		void serialize(String path, T &val, bool save) {
-			JSONSerialize<T>::serialize(*this, path, val, save);
+		void serialize(String var, T &val, bool save) {
+			JSONSerialize<T>::serialize(operator[](var), val, save);
 		}
 
 		template<typename T>
-		void set(String path, const T value) {
-			JSONSerialize<T>::serialize(*this, path, (T&)value, true);
+		void set(String var, const T value) {
+			JSONSerialize<T>::serialize(operator[](var), (T&)value, true);
 		}
 
 		template<typename T>
-		T get(String path) {
+		T get(String var) {
 			T val;
-			JSONSerialize<T>::serialize(*this, path, val, false);
+			JSONSerialize<T>::serialize(operator[](var), val, false);
 			return val;
 		}
 
-		u32 getMembers(String path = "") const;
-		std::vector<String> getMemberNames(String path) const;
-		std::vector<String> getMemberIds(String path) const;
-		bool exists(String path) const;
-		bool mkdir(String dir, bool useLists = true);
+		template<typename T>
+		void serialize(T &val, bool save) {
+			JSONSerialize<T>::serialize(*this, val, save);
+		}
 
-		void getAllMembers(String path, std::vector<String> &out) const;
+		template<typename T>
+		void set(const T value) {
+			JSONSerialize<T>::serialize(*this, (T&)value, true);
+		}
 
-		JSON(const String fromString);
-		JSON();
+		template<typename T>
+		T get() {
+			T val;
+			JSONSerialize<T>::serialize(*this, val, false);
+			return val;
+		}
+
+		JSONNode &operator[](String var);
+		const JSONNode &operator[](String var) const;
+
+		u32 getMembers() const;
+
+		bool exists(String var) const;
+		bool mkdir(String var);
+
+		auto begin() { return children.begin(); }
+		auto end() { return children.end(); }
 
 		String toString(bool pretty = true) const;
 
+		bool isEmpty();
+		bool canChangeType();
+
+		template<typename T>
+		bool isType() {
+			return JSONTypeHelper<T>::check(value == nullptr ? json->GetType() : value->GetType());
+		}
+
+		bool isObject() {
+			return value == nullptr || value->IsObject();
+		}
+
+		bool isList() {
+			return value == nullptr || value->IsArray();
+		}
+
 	protected:
 
-		template<typename T>
-		bool get_inter(String path, T &value, T def) const {
-			value = def;
-
-			const rapidjson::Value *val;
-			if (!getValue(path, val)) return false;
-
-			return isValid(val, value);
-		}
+		void reconstruct();
 
 		template<typename T>
-		bool set_inter(String path, T value, bool useLists) {
-
-			if (!mkdir(path, useLists)) return false;
-
-			rapidjson::Value *val;
-			if (!getValue(path, val)) return false;
-
-			if ((val->IsObject() && val->MemberCount() == 0) || (!val->IsObject() && !val->IsArray())) {
-				rapidjson::Value &valr = *val;
-				valr = rapidjson::Value(value);
+		void _serialize(T &t, bool save) {
+			if (save) {
+				if (isType<T>() || canChangeType())
+					_set(t);
 			}
-
-			return true;
+			else
+				if (isType<T>())
+					t = _get<T>();
 		}
-
-		bool set_inter(String path, String value, bool useLists);
-
-		bool getValue(String path, rapidjson::Value *&val);
-		bool getValue(String path, const rapidjson::Value *&val) const;
 
 		template<typename T>
-		bool isValid(const rapidjson::Value *val, std::vector<T> &res) const {
-			
-			if(!val->IsArray()) return false;
-
-			auto arr = val->GetArray();
-
-			std::vector<T> tres(arr.Size());
-
-			for (u32 i = 0; i < arr.Size(); ++i)
-				if (!isValid(&arr[i], tres[i])) return false;
-
-			res = std::move(tres);
-		
-			return true;
+		T _get() {
+			return value->Get<T>();
 		}
 
-		bool isValid(const rapidjson::Value *val, String &res) const;
-		bool isValid(const rapidjson::Value *val, bool &res) const;
-		bool isValid(const rapidjson::Value *val, f64 &res) const;
-		bool isValid(const rapidjson::Value *val, f32 &res) const;
-		bool isValid(const rapidjson::Value *val, i64 &res) const;
-		bool isValid(const rapidjson::Value *val, i32 &res) const;
-		bool isValid(const rapidjson::Value *val, u64 &res) const;
-		bool isValid(const rapidjson::Value *val, u32 &res) const;
+		template<typename T>
+		void _set(T &t) {
+			value->Set(t);
+		}
+
+		rapidjson::Document *json;
+		rapidjson::Value *value;
+
+		std::unordered_map<String, JSONNode> children;
+
+	};
+
+	class JSON : public JSONNode {
+
+	public:
+
+		JSON(const String fromString);
+		JSON();
+		~JSON();
+
+		JSON(const JSON &other) { copy(other); }
+		JSON &operator=(const JSON &other) { copy(other); return *this; }
 
 	private:
 
-		rapidjson::Document json;
+		void copy(const JSON &other);
 
 	};
 
 	//For any function
-	template<typename T, bool isDataType = std::is_arithmetic<T>::value>
+	template<typename T, bool isDataType>
 	struct JSONSerialize {
 
-		static void serialize(JSON &json, String path, T &val, bool save) {
-			val.serialize(json, path, save);
+		static void serialize(JSONNode &json, T &val, bool save) {
+			val.serialize(json, save);
 		}
 
 	};
@@ -171,13 +173,13 @@ namespace oi {
 	template<typename T>
 	struct JSONSerialize<std::vector<T>, false> {
 
-		static void serialize(JSON &json, String path, std::vector<T> &val, bool save) {
+		static void serialize(JSONNode &json, std::vector<T> &val, bool save) {
 
 			if (!save)
-				val.resize(json.getMembers(path));
+				val.resize(json.getMembers());
 
 			for (u32 i = 0; i < (u32)val.size(); ++i)
-				JSONSerialize<T>::serialize(json, path + "/" + i, val[i], save);
+				JSONSerialize<T>::serialize(json[i], val[i], save);
 
 		}
 
@@ -186,18 +188,18 @@ namespace oi {
 	template<typename T, u32 n>
 	struct JSONSerialize<oi::TVec<T, n>, false> {
 
-		static void serialize(JSON &json, String path, oi::TVec<T, n> &val, bool save) {
+		static void serialize(JSONNode &json, oi::TVec<T, n> &val, bool save) {
 			for (u32 i = 0; i < n; ++i)
-				JSONSerialize<T>::serialize(json, path + "/" + i, val[i], save);
+				JSONSerialize<T>::serialize(json[i], val[i], save);
 		}
 
 	};
 
 	template<typename T, u32 x, u32 y>
 	struct JSONSerialize<oi::TMatrix<T, x, y>, false> {
-		static void serialize(JSON &json, String path, oi::TMatrix<T, x, y> &val, bool save) {
+		static void serialize(JSONNode &json, oi::TMatrix<T, x, y> &val, bool save) {
 			for (u32 i = 0; i < x * y; ++i)
-				JSONSerialize<T>::serialize(json, path + "/" + (i % x) + "/" + (j / x), val[i], save);
+				JSONSerialize<T>::serialize(json[i % x][i / x], val[i], save);
 		}
 	};
 
@@ -205,11 +207,11 @@ namespace oi {
 	template<typename T>
 	struct JSONSerialize<T, true> {
 
-		static void serialize(JSON &json, String path, T &val, bool save) {
+		static void serialize(JSONNode &json, T &val, bool save) {
 			if (save)
-				json.set_inter(path, val, true);
+				json._set(val);
 			else
-				json.get_inter(path, val, (T) 0);
+				val = json._get<T>();
 		}
 
 	};
@@ -218,11 +220,11 @@ namespace oi {
 	template<>
 	struct JSONSerialize<String, false> {
 
-		static void serialize(JSON &json, String path, String &val, bool save) {
+		static void serialize(JSONNode &json, String &val, bool save) {
 			if (save)
-				json.set_inter(path, val, true);
+				json.value->SetString(val.toCString(), val.size());
 			else
-				json.get_inter(path, val, {});
+				val = json.value->GetString();
 		}
 
 	};
@@ -230,9 +232,9 @@ namespace oi {
 	template<>
 	struct JSONSerialize<const char*, false> {
 
-		static void serialize(JSON &json, String path, const char* val, bool save) {
+		static void serialize(JSONNode &json, const char* val, bool save) {
 			if (save)
-				json.set_inter(path, String(val), true);
+				json.value->SetString(val, (rapidjson::SizeType) strlen(val));
 			else
 				Log::throwError<JSONSerialize<const char*, false>, 0x0>("JSONSerialize read not possible with a char*");
 		}

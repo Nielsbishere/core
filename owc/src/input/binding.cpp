@@ -132,7 +132,7 @@ Binding::Binding(String ostr) {
 
 			controllerId = num;
 
-			end = end.fromLast(" ");
+			end = start.fromLast(" ");
 
 			if (end == "")
 				goto failed;
@@ -140,12 +140,12 @@ Binding::Binding(String ostr) {
 			if (end.equalsIgnoreCase("key")) {
 
 				bindingType = (u8)BindingType::CONTROLLER_BUTTON;
-				code = (u8)ControllerButton(end).getIndex();
+				code = (u8)ControllerButton(start.untilFirst(" ")).getIndex();
 
 			} else if (end.equalsIgnoreCase("axis")) {
 
 				bindingType = (u8)BindingType::CONTROLLER_AXIS;
-				code = (u8)ControllerAxis(end).getIndex();
+				code = (u8)ControllerAxis(start.untilFirst(" ")).getIndex();
 
 			} else goto failed;
 		}

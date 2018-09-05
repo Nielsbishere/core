@@ -1,0 +1,55 @@
+{
+    "earth": {
+		"minHeight": -0.55,
+		"scale": 1,
+		"randomize": true,
+		"coastSize": 0.05,
+        "layer": [
+            {
+                "offset": [
+                    14.0,
+                    12.0,
+                    11.0
+                ],
+                "octaves": 8,
+                "persistence": 0.95,
+                "roughness": 1.15,
+                "scale": 0.6,
+				"frequency": 0.55,
+                "minValue": 0.72,
+                "enabled": true,
+                "maskLand": false
+            },
+            {
+                "offset": [
+                    35.0,
+                    30.0,
+                    28.0
+                ],
+                "octaves": 8,
+                "persistence": 0.95,
+                "roughness": 1.1,
+                "scale": 0.55,
+				"frequency": 0.5,
+                "minValue": 0.72,
+                "enabled": true,
+                "maskLand": false
+            },
+            {
+                "offset": [
+                    55.0,
+                    33.0,
+                    25.0
+                ],
+                "octaves": 8,
+                "persistence": 0.6,
+                "roughness": 1.8,
+                "scale": 0.4,
+				"frequency": 3.0,
+                "minValue": 0.5,
+                "enabled": true,
+                "maskLand": true
+            }
+        ]
+    }
+}

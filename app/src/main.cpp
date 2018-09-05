@@ -21,6 +21,7 @@
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
 #include <graphics/versionedtexture.h>
+#include <graphics/texturelist.h>
 #include <graphics/sampler.h>
 #include <graphics/camera.h>
 #include <utils/random.h>
@@ -37,6 +38,7 @@ using namespace oi;
 
 //Set up a main window
 void Application::instantiate(WindowHandleExt *param){
+	Random::seedRandom();
 	FileManager fmanager(param);
 	WindowManager wmanager;
 	Window *w = wmanager.create(WindowInfo(__PROJECT_NAME__, 1, param));
@@ -46,52 +48,53 @@ void Application::instantiate(WindowHandleExt *param){
 
 //Set up the interface
 
-float NoiseLayer::sample(Vec3 pos) {
-	float value = SimplexNoise::noise(pos, offset, octaves, persistence, roughness) * scale * (mask == nullptr ? 1 : mask->sample(pos));
-	return value > minValue ? (value - minValue) / (scale - minValue) : 0;
+f32 NoiseLayer::sample(Vec3 pos, f32 mask) {
+	f32 value = SimplexNoise::noise(pos, offset, octaves, persistence, roughness, frequency);
+	return value > minValue ? (value - minValue) * scale * (maskLand ? mask : 1) : 0;
 }
 
-float NoiseLayer::getScale() {
-	float val = scale * (mask == nullptr ? 1 : mask->getScale()) - minValue;
-	return val > 0 ? val : 0;
-}
+f32 Planet::sample(Vec3 pos) {
 
-void NoiseLayer::serialize(JSON &json, String path, bool save) {
-	json.serialize(path + "/offset", offset, save);
-	json.serialize(path + "/octaves", octaves, save);
-	json.serialize(path + "/persistence", persistence, save);
-	json.serialize(path + "/roughness", roughness, save);
-	json.serialize(path + "/scale", scale, save);
-	json.serialize(path + "/minValue", minValue, save);
-	json.serialize(path + "/enabled", enabled, save);
-}
-
-//Returns 0-1 for a point on the planet
-float Planet::sample(Vec3 pos) {
-
-	float val = 0, scale = 0;
+	f32 val = minHeight;
 
 	for (u32 i = 0; i < (u32)noiseLayer.size(); ++i)
-		if (noiseLayer[i].enabled) {
-			val += noiseLayer[i].sample(pos);
-			scale += noiseLayer[i].getScale();
-		}
+		if (noiseLayer[i].enabled)
+			val += noiseLayer[i].sample(pos + offset, std::clamp((val + 0.5f) / coastSize, 0.f, 1.f));
 
-	return val / scale * (maxHeight - minHeight) + minHeight;
+	return val * scale;
 
 }
 
-void Planet::serialize(JSON &json, String path, bool save) {
-	json.serialize(path + "/minHeight", minHeight, save);
-	json.serialize(path + "/maxHeight", maxHeight, save);
-	json.serialize(path + "/layer", noiseLayer, save);
+void Planet::seed() {
+	if (randomize)
+		offset = Random::randomize<3>(-50000.f, 50000.f);
+}
+
+void NoiseLayer::serialize(oi::JSONNode &json, bool save) {
+	json.serialize("offset", offset, save);
+	json.serialize("octaves", octaves, save);
+	json.serialize("persistence", persistence, save);
+	json.serialize("roughness", roughness, save);
+	json.serialize("scale", scale, save);
+	json.serialize("minValue", minValue, save);
+	json.serialize("frequency", frequency, save);
+	json.serialize("enabled", enabled, save);
+	json.serialize("maskLand", maskLand, save);
+}
+
+void Planet::serialize(JSONNode &json, bool save) {
+	json.serialize("minHeight", minHeight, save);
+	json.serialize("scale", scale, save);
+	json.serialize("randomize", randomize, save);
+	json.serialize("coastSize", coastSize, save);
+	json.serialize("layer", noiseLayer, save);
 }
 
 void MainInterface::refreshPlanet(Planet planet) {
 
 	Timer t;
 
-	u32 resolution = 32;
+	u32 resolution = 40;
 
 	u32 resolutio = resolution - 1;
 	u32 vertices = 6 * resolution * resolution;
@@ -128,6 +131,8 @@ void MainInterface::refreshPlanet(Planet planet) {
 	std::vector<u32> index(indices);
 	f32 *avertex = vertex.data();
 	u32 *aindex = index.data();
+
+	planet.seed();
 
 	for (u32 i = 0; i < vertices; ++i) {
 
@@ -194,15 +199,15 @@ void MainInterface::refreshPlanet(Planet planet) {
 
 void MainInterface::writePlanet(Planet planet) {
 	JSON json;
-	json.serialize("", planet, true);
-	FileManager::get()->write(String("out/") + planet.name  +".json", json.toString());
+	json.serialize(planet.name, planet, true);
+	FileManager::get()->write(String("out/models/") + planet.name  +".json", json.toString());
 	RMFile file = oiRM::convert(mesh3->getInfo());
 	oiRM::write(file, String("out/models/") + planet.name + ".oiRM", false);
 }
 
-void MainInterface::readPlanet(Planet &planet, String name) {
+void MainInterface::readPlanet(Planet &planet, String name, bool fromResource) {
 	String str;
-	FileManager::get()->read(String("out/") + name + ".json", str);
+	FileManager::get()->read(String(fromResource ? "res/models/" : "out/models/") + name + ".json", str);
 	JSON json = str;
 	json.serialize(name, planet, false);
 	refreshPlanet(planet);
@@ -237,7 +242,7 @@ void MainInterface::initScene() {
 	info.first.maxIndices = 300000;
 	info.first.maxVertices = 200000;
 	info.first.topologyMode = TopologyMode::Triangle;
-	info.first.fillMode = FillMode::Line;
+	info.first.fillMode = FillMode::Fill;
 	meshBuffer = g.create("Mesh buffer", info.first);
 	g.use(meshBuffer);
 	meshBuffer->open();
@@ -262,7 +267,7 @@ void MainInterface::initScene() {
 
 	meshBuffer->close();
 
-	refreshPlanet(earth);
+	readPlanet(earth, "earth", true);
 
 	//Setup our quad
 	oiRM::read("res/models/post_processing_quad.oiRM", file);
@@ -290,17 +295,26 @@ void MainInterface::initScene() {
 	drawList0->draw(mesh1, 1);
 	drawList0->flush();
 
-	//Allocate a texture
+	//Allocate textures
 	osomi = g.create("osomi", TextureInfo("res/textures/osomi.png"));
 	g.use(osomi);
+
+	rock = g.create("rock", TextureInfo("res/textures/rock_dif.png"));
+	g.use(rock);
+
+	water = g.create("water", TextureInfo("res/textures/water_dif.png"));
+	g.use(water);
+
+	TextureList *tex = shader->get<TextureList>("tex");
+	hrock = tex->alloc(rock);
+	hwater = tex->alloc(water);
 
 	//Allocate sampler
 	sampler = g.create("Default sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
 	g.use(sampler);
 
-	//Set our shader sampler and texture
+	//Set our shader sampler
 	shader->set("samp", sampler);
-	shader->set("tex", osomi);
 
 	//Setup our post-process sampler
 	shader0->set("samp", sampler);
@@ -314,21 +328,9 @@ void MainInterface::initScene() {
 
 	lights->open();
 
-	lights->set("directional/dir", Vec3(-1, -1, -1));
-	lights->set("directional/intensity", 0.5f);
+	lights->set("directional/dir", Vec3(0, -1, 0));
+	lights->set("directional/intensity", 16.f);
 	lights->set("directional/col", Vec3(1.f));
-
-	lights->set("point/pos", Vec3());
-	lights->set("point/intensity", 2.f);
-	lights->set("point/radius", 4.f);
-	lights->set("point/col", Vec3(1.f));
-
-	lights->set("spot/pos", Vec3(0, 1, 0));
-	lights->set("spot/dir", Vec3(1, 1, 1));
-	lights->set("spot/intensity", 8.f);
-	lights->set("spot/angle", 40.f);
-	lights->set("spot/radius", 4.f);
-	lights->set("spot/col", Vec3(1.f));
 
 	lights->close();
 
@@ -468,8 +470,13 @@ void MainInterface::update(f32 dt) {
 		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
 	}
 
-	objects[totalObjects - 1].m = Matrix::makeModel(Vec3(0, 0, 0), Vec3(planetRotation, 0.f), Vec3(1.5f));
+	objects[2].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.5f));
+	objects[2].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[2].m };
+	objects[2].diffuse = hwater;
+
+	objects[totalObjects - 1].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(3.f));
 	objects[totalObjects - 1].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[totalObjects - 1].m };
+	objects[totalObjects - 1].diffuse = hrock;
 
 	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
 
@@ -479,6 +486,8 @@ MainInterface::~MainInterface(){
 	g.finish();
 	g.destroy(camera);
 	g.destroy(sampler);
+	g.destroy(rock);
+	g.destroy(water);
 	g.destroy(osomi);
 	g.destroy(mesh);
 	g.destroy(mesh0);
