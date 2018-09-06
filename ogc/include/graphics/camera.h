@@ -63,7 +63,7 @@ namespace oi {
 
 			const CameraInfo getInfo();
 
-			void bind(Vec2u res);
+			void bind(Vec2u res, f32 ratio);
 			CameraStruct getBound() const;
 
 			Matrix getBoundProjection() const;

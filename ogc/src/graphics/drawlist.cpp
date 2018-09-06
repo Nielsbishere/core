@@ -29,7 +29,7 @@ void DrawList::draw(Mesh *m, u32 instances) {
 		return;
 	}
 
-	auto it = info.objects.find(m);
+	auto it = std::find_if(info.objects.begin(), info.objects.end(), [m](const std::pair<Mesh*, u32> &m0) -> bool { return m0.first == m; });
 
 	if (it == info.objects.end()) {
 
@@ -38,10 +38,10 @@ void DrawList::draw(Mesh *m, u32 instances) {
 			return;
 		}
 
-		info.objects[m] = { instances };
+		info.objects.push_back({ m, instances });
 	}
 	else
-		info.objects[m].instances += instances;
+		it->second += instances;
 
 }
 

@@ -69,12 +69,14 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 
 		Vec2u prevSize = win.size;
-		win.size = win.resolution = size;
+		win.size = size;
 
 		win.minimized = IsIconic(hwnd);
 
-		if (size.x != 0 && size.y != 0 && wi != nullptr)
+		if (size.x != 0 && size.y != 0 && wi != nullptr) {
 			wi->onResize(size);
+			wi->onAspectChange(Vec2(size).getAspect());
+		}
 	}
 	break;
 
@@ -223,13 +225,16 @@ void Window::initPlatform() {
 	RECT rect;
 	GetClientRect(ext.window, &rect);
 
-	info.resolution = info.size = Vec2u((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top));
+	info.size = Vec2u((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top));
 
 	info.focus();
 	updatePlatform();
 	
 	initialized = true;
 	finalize();
+
+	if(wi != nullptr)
+		wi->onAspectChange(Vec2(info.size).getAspect());
 }
 
 u32 Window::getSurfaceSize(){ return (u32) sizeof(WWindow); }
@@ -272,10 +277,12 @@ void Window::updatePlatform() {
 
 		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 
-		info.size = info.resolution = size;
+		info.size = size;
 
-		if (wi != nullptr)
-			wi->onResize(info.resolution);
+		if (wi != nullptr) {
+			wi->onResize(size);
+			wi->onAspectChange(Vec2(size).getAspect());
+		}
 
 	}
 

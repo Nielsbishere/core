@@ -33,6 +33,7 @@ namespace oi {
 			u32 getSurfaceSize();
 
 			bool hasPreviousFrame();
+			void updateAspect();			//API dependent
 
 		protected:
 

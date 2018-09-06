@@ -7,7 +7,6 @@ WindowInfo::WindowInfo(String title, u32 version, WindowHandleExt *handle, bool 
 String WindowInfo::getTitle() const { return title; }
 Vec2i WindowInfo::getPosition() const { return position; }
 Vec2u WindowInfo::getSize() const { return size; }
-Vec2u WindowInfo::getResolution() const { return resolution; }
 Window *WindowInfo::getParent() const { return parent; }
 WindowHandleExt *WindowInfo::getParam() const { return handle; }
 bool WindowInfo::isFullScreen() const { return fullScreen; }

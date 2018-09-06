@@ -38,6 +38,7 @@ namespace oi {
 			virtual void destroySurface(){}
 
 			virtual void onResize(Vec2u size) {}
+			virtual void onAspectChange(f32 aspect) {}
 			virtual void onMove(Vec2i pos) {}
 			virtual void onInput(InputDevice *device, Binding b, bool isDown) {}
 

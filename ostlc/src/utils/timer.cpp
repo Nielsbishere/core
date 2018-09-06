@@ -22,11 +22,11 @@ void Timer::stop() {
 }
 
 void Timer::print() const {
-	if (isActive) Log::warn(String("Timer started ") + String(getDuration()) + " seconds ago and has " + String((i32)timePoints.size())  + " laps");
-	else  Log::warn(String("Timer started ") + String(getDuration()) + " seconds ago, has " + String((i32)timePoints.size()) + " laps and ended after " + String(duration(start, end)) + " seconds");
+	if (isActive) Log::println(String("Timer started ") + String(getDuration()) + " seconds ago and has " + String((i32)timePoints.size())  + " laps");
+	else  Log::println(String("Timer started ") + String(getDuration()) + " seconds ago, has " + String((i32)timePoints.size()) + " laps and ended after " + String(duration(start, end)) + " seconds");
 
 	for (u32 i = 0; i < timePoints.size(); ++i)
-		Log::warn(String("Lap ") + String((i32)(i + 1)) + ": " + timePoints[i].name + "; time since start " + String(duration(start, timePoints[i].point)) + "s, time since last time point: " + String(i == 0 ? duration(start, timePoints[i].point) : duration(timePoints[i - 1].point, timePoints[i].point)) + "s");
+		Log::println(String("Lap ") + String((i32)(i + 1)) + ": " + timePoints[i].name + "; time since start " + String(duration(start, timePoints[i].point)) + "s, time since last time point: " + String(i == 0 ? duration(start, timePoints[i].point) : duration(timePoints[i - 1].point, timePoints[i].point)) + "s");
 }
 
 f32 Timer::duration(CTP t0, CTP t1) { return std::chrono::duration<f32>(t1 - t0).count(); }

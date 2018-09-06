@@ -1,11 +1,13 @@
 {
     "earth": {
+		"structVersion": 0,
 		"minHeight": -0.55,
 		"scale": 1,
 		"randomize": true,
-		"coastSize": 0.05,
+		"coastSize": 0.04,
         "noiseLayer": [
             {
+				"structVersion": 0,
                 "offset": [
                     14.0,
                     12.0,
@@ -21,6 +23,7 @@
                 "maskLand": false
             },
             {
+				"structVersion": 0,
                 "offset": [
                     35.0,
                     30.0,
@@ -36,6 +39,7 @@
                 "maskLand": false
             },
             {
+				"structVersion": 0,
                 "offset": [
                     55.0,
                     33.0,
@@ -44,9 +48,9 @@
                 "octaves": 8,
                 "persistence": 0.6,
                 "roughness": 1.8,
-                "scale": 0.4,
+                "scale": 0.3,
 				"frequency": 3.0,
-                "minValue": 0.5,
+                "minValue": 0.4,
                 "enabled": true,
                 "maskLand": true
             }

@@ -11,7 +11,7 @@ using namespace oi;
 
 const CameraInfo Camera::getInfo() { return info; }
 
-void Camera::bind(Vec2u res) {
+void Camera::bind(Vec2u res, f32 aspect) {
 
 	Vec3 center;
 
@@ -26,8 +26,6 @@ void Camera::bind(Vec2u res) {
 		forward = forward.normalize();
 	else
 		Log::throwError<Camera, 0x2>("Camera requires valid forward");
-
-	f32 aspect = Vec2(res).getAspect();
 
 	bound = CameraStruct(Matrix::makePerspective(info.fov, aspect, info.near, info.far), Matrix::makeView(info.position, center, info.up), info.position, info.fov, info.up, aspect, forward, info.near, info.far, res);
 }

@@ -5,7 +5,7 @@
 #include <types/matrix.h>
 #include <platforms/generic.h>
 #include <graphics/texture.h>
-#include <utils/json.h>
+#include <utils/serialization.h>
 
 struct Application {
 	static void instantiate(oi::wc::WindowHandleExt *param = nullptr);
@@ -57,6 +57,7 @@ public:
 
 	void update(f32 dt) override;
 	void initSceneSurface() override;
+	void onAspectChange(float asp) override;
 
 	void refreshPlanet(Planet planet);
 	void readPlanets(bool fromResource = false);

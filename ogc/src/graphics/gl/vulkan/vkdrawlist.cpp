@@ -19,7 +19,7 @@ void DrawList::prepareDrawList() {
 		for (auto it : info.objects) {
 
 			ptr->firstInstance = instanceOffset;
-			ptr->instanceCount = it.second.instances;
+			ptr->instanceCount = it.second;
 			ptr->firstVertex = it.first->getInfo().allocation.baseVertex;
 			ptr->vertexCount = it.first->getInfo().allocation.vertices;
 
@@ -41,7 +41,7 @@ void DrawList::prepareDrawList() {
 		for (auto it : info.objects) {
 
 			ptr->firstInstance = instanceOffset;
-			ptr->instanceCount = it.second.instances;
+			ptr->instanceCount = it.second;
 			ptr->vertexOffset = it.first->getInfo().allocation.baseVertex;
 			ptr->firstIndex = it.first->getInfo().allocation.baseIndex;
 			ptr->indexCount = it.first->getInfo().allocation.indices;

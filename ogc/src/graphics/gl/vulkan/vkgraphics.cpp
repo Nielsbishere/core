@@ -4,6 +4,7 @@
 #include "graphics/versionedtexture.h"
 #include "graphics/rendertarget.h"
 #include "graphics/commandlist.h"
+#include "graphics/graphicsinterface.h"
 #include <window/window.h>
 
 #include <cstring>
@@ -401,10 +402,8 @@ void Graphics::initSurface(Window *w) {
 	if (size == Vec2u::max())
 		Log::throwError<Graphics, 0x7>("Size is undefined; this is not supported!");
 
-	if (size == w->getInfo().getResolution() || Vec2u(size.y, size.x) == w->getInfo().getResolution())			//If the device is rotated, rotate along
-		size = w->getInfo().getResolution();
-	else
-		Log::throwError<Graphics, 0x8>(String("Render resolution didn't match ") + size + " vs " + w->getInfo().getResolution());
+	if (size != w->getInfo().getSize())
+		Log::throwError<Graphics, 0x8>(String("Render size didn't match ") + size);
 
 	Log::println(String("Successfully created surface (") + size + ")");
 	
@@ -603,6 +602,27 @@ CommandList *Graphics::create(String name, CommandListInfo info) {
 
 	add(cl);
 	return cl;
+}
+
+void Window::updateAspect() {
+
+	GraphicsInterface *irf = dynamic_cast<GraphicsInterface*>(wi);
+
+	if (irf == nullptr)
+		return;
+
+	Graphics &g = irf->getGraphics();
+	GraphicsExt &ext = g.getExtension();
+
+	VkSurfaceCapabilitiesKHR capabilities;
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext.pdevice, ext.surface, &capabilities);
+	info.flipped = capabilities.currentTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+
+	if (wi != nullptr) {
+		f32 aspect = Vec2(info.size).getAspect();
+		wi->onAspectChange(info.flipped ? 1 / aspect : aspect);
+	}
+
 }
 
 #endif

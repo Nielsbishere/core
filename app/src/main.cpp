@@ -416,7 +416,7 @@ void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
 		if (b.toKey() == Key::Volume_up || b.toKey() == Key::Up)
 			writePlanets();
 		else if (b.toKey() == Key::Volume_down || b.toKey() == Key::Down)
-			readPlanets();
+			readPlanets(true);
 
 	}
 
@@ -449,8 +449,6 @@ void MainInterface::update(f32 dt) {
 
 	//Update planet rotation
 
-	camera->bind(getParent()->getInfo().getResolution());
-
 	for (u32 i = 0; i < totalObjects; ++i) {
 		objects[i].m = Matrix::makeScale(Vec4(0, 0, 0, 1));// Matrix::makeModel(Vec3((f32)i / totalObjects * 6 - 3, 0, 0), Vec3(planetRotation, 0.f), Vec3(2.f) / (i + 1));
 		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
@@ -466,6 +464,10 @@ void MainInterface::update(f32 dt) {
 
 	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
 
+}
+
+void MainInterface::onAspectChange(float asp) {
+	camera->bind(getParent()->getInfo().getSize(), asp);
 }
 
 MainInterface::~MainInterface(){

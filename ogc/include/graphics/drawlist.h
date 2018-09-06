@@ -11,10 +11,6 @@ namespace oi {
 		class MeshBuffer;
 		class Mesh;
 
-		struct DrawListObject {
-			u32 instances;
-		};
-
 		struct DrawListInfo {
 
 			u32 maxBatches;
@@ -23,7 +19,7 @@ namespace oi {
 			MeshBuffer *meshBuffer;
 			GBuffer *drawBuffer = nullptr;
 
-			std::unordered_map<Mesh*, DrawListObject> objects;
+			std::vector<std::pair<Mesh*, u32>> objects;
 
 			DrawListInfo(MeshBuffer *meshBuffer, u32 maxBatches, bool clearOnUse = true) : meshBuffer(meshBuffer), maxBatches(maxBatches), clearOnUse(clearOnUse) {}
 			DrawListInfo() : DrawListInfo(nullptr, 0) {}

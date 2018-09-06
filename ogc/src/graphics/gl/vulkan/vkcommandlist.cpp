@@ -161,7 +161,6 @@ void CommandList::bind(Pipeline *pipeline) {
 
 	if (pipeline->getInfo().camera != nullptr) {
 
-		pipeline->getInfo().camera->bind(pipeline->getInfo().renderTarget->getSize());
 		CameraStruct cs = pipeline->getInfo().camera->getBound();
 
 		ShaderBuffer *sb = pipeline->getInfo().shader->get<ShaderBuffer>("Camera");

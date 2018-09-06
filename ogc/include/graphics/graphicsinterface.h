@@ -20,11 +20,15 @@ namespace oi {
 			void render() override;
 			virtual void renderScene(){}
 
+			Graphics &getGraphics() { return g; }
 			
 		protected:
-		
+
 			Graphics g;
 			CommandList *cmdList;
+
+		private:
+
 			bool initialized = false;
 			
 		};
