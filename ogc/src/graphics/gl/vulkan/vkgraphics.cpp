@@ -616,11 +616,15 @@ void Window::updateAspect() {
 
 	VkSurfaceCapabilitiesKHR capabilities;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext.pdevice, ext.surface, &capabilities);
+
+	if (!initialized)
+		info.flippedOnStart = capabilities.currentTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+	
 	info.flipped = capabilities.currentTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 
 	if (wi != nullptr) {
 		f32 aspect = Vec2(info.size).getAspect();
-		wi->onAspectChange(info.flipped ? 1 / aspect : aspect);
+		wi->onAspectChange(info.flipped != info.flippedOnStart ? 1 / aspect : aspect);
 	}
 
 }

@@ -46,7 +46,7 @@ namespace oi {
 			Vec2i position = {};
 			Vec2u size = {};
 			WindowAction pending;
-			bool inFocus, fullScreen = false, minimized = false, flipped = false;
+			bool inFocus, fullScreen = false, minimized = false, flipped = false, flippedOnStart = false;
 
 			u32 version;
 			String title;

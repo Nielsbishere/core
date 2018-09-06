@@ -58,7 +58,7 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 
 			if (wi != nullptr) {
 				wi->onResize(w->getInfo().size);
-				wi->onAspectChange(Vec2(w->getInfo().size).getAspect());
+				w->updateAspect();
 			}
 
 		break;
@@ -126,9 +126,9 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 
 			w->getInfo().size = Vec2u((u32)ANativeWindow_getWidth(app->window), ANativeWindow_getHeight(app->window));
 			initDisplay(w);
-			
-			if(wi != nullptr)
-				wi->onAspectChange(Vec2(w->getInfo().size).getAspect());
+			w->initialized = false;
+			w->updateAspect();
+			w->initialized = true;
 
 			break;
 
