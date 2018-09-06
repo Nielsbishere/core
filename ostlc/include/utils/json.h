@@ -9,6 +9,35 @@ namespace oi {
 
 	class JSON;
 
+	#define ose(className, version, ...)												\
+																						\
+	static std::vector<oi::String> _initMembers() {										\
+																						\
+		std::vector<oi::String> members = oi::String(#__VA_ARGS__).split(",");			\
+		for (u32 i = 0; i < (u32)members.size(); ++i)									\
+			members[i] = members[i].trim();												\
+																						\
+		return members;																	\
+	}																					\
+																						\
+	static const std::vector<oi::String> &getMembers() {								\
+		static const std::vector<oi::String> members = _initMembers();					\
+		return members;																	\
+	}																					\
+																						\
+	static constexpr u32 getVersion() { return (u32)version; }							\
+																						\
+	static const oi::String &getClass() {												\
+		static const oi::String clsName = #className;									\
+		return clsName;																	\
+	}																					\
+																						\
+	template<typename T>																\
+	void serialize(T &t, bool save){													\
+		t.serializeAll(getMembers(), save, __VA_ARGS__);								\
+	}
+
+
 	template<typename T, bool isNum = std::is_arithmetic<T>::value>
 	struct JSONTypeHelper {
 
@@ -37,6 +66,8 @@ namespace oi {
 	};
 
 	template<typename T, bool b = std::is_arithmetic<T>::value> struct JSONSerialize;
+	template<typename T, typename ...args> struct JSONSerializeAll;
+	template<typename T> struct JSONSerializeAll<T>;
 
 	class JSONNode {
 
@@ -50,6 +81,11 @@ namespace oi {
 		template<typename T>
 		void serialize(String var, T &val, bool save) {
 			JSONSerialize<T>::serialize(operator[](var), val, save);
+		}
+
+		template<typename ...args>
+		void serializeAll(const std::vector<String> &members, bool save, args&... arg) {
+			JSONSerializeAll<args...>::serialize(this, members.data(), save, arg...);
 		}
 
 		template<typename T>
@@ -159,7 +195,7 @@ namespace oi {
 
 	};
 
-	//For any function
+	//For any struct
 	template<typename T, bool isDataType>
 	struct JSONSerialize {
 
@@ -203,6 +239,21 @@ namespace oi {
 		}
 	};
 
+	//For "named arrays" aka, T[] with names
+	template<typename T>
+	struct JSONSerialize<std::unordered_map<String, T>, false> {
+
+		static void serialize(JSONNode &json, std::unordered_map<String, T> &val, bool save) {
+			if (save)
+				for (auto &elem : val)
+					json[elem.first].serialize(elem.second, true);
+			else
+				for (auto type : json.children)
+					type.second.serialize(val[type.first], false);
+		}
+
+	};
+
 	//For data types
 	template<typename T>
 	struct JSONSerialize<T, true> {
@@ -237,6 +288,25 @@ namespace oi {
 				json.value->SetString(val, (rapidjson::SizeType) strlen(val));
 			else
 				Log::throwError<JSONSerialize<const char*, false>, 0x0>("JSONSerialize read not possible with a char*");
+		}
+
+	};
+
+	template<typename T, typename ...args>
+	struct JSONSerializeAll<T, args...> {
+
+		static void serialize(JSONNode *node, const String *member, bool save, T &t, args&... arg) {
+			node->serialize(*member, t, save);
+			JSONSerializeAll<args...>::serialize(node, member + 1, save, arg...);
+		}
+
+	};
+
+	template<typename T>
+	struct JSONSerializeAll<T> {
+
+		static void serialize(JSONNode *node, const String *member, bool save, T &t) {
+			node->serialize(*member, t, save);
 		}
 
 	};

@@ -17,31 +17,29 @@ struct NoiseLayer {
 	oi::Vec3 offset;
 	u32 octaves = 1;
 	f32 persistence = 1, roughness = 1, scale = 1, frequency = 1, minValue = 0;
-	bool enabled = true, seeded = true, maskLand = false;
+	bool enabled = true, maskLand = false;
 
 	//Returns 0-scale
 	f32 sample(oi::Vec3 pos, f32 current);
 
-	void serialize(oi::JSONNode &json, bool save);
+	ose(NoiseLayer, 0, offset, octaves, persistence, roughness, scale, frequency, minValue, enabled, maskLand);
 
 };
 
 struct Planet {
 
-	std::vector<NoiseLayer> noiseLayer = { {} };
-
+	oi::Vec3 offset;
 	f32 minHeight = -0.6f, scale = 1, coastSize = 0.1f;
 	bool randomize = true;
-	oi::String name = "earth";
 
-	oi::Vec3 offset;
+	std::vector<NoiseLayer> noiseLayer = { {} };
 
 	//Returns 0-1 for a point on the planet
 	f32 sample(oi::Vec3 pos);
 
 	void seed();
 
-	void serialize(oi::JSONNode &node, bool save);
+	ose(Planet, 0, minHeight, scale, coastSize, randomize, noiseLayer);
 
 };
 
@@ -61,8 +59,8 @@ public:
 	void initSceneSurface() override;
 
 	void refreshPlanet(Planet planet);
-	void readPlanet(Planet &planet, oi::String name, bool fromResource = false);
-	void writePlanet(Planet planet);
+	void readPlanets(bool fromResource = false);
+	void writePlanets();
 
 private:
 	
@@ -100,6 +98,6 @@ private:
 
 	oi::Vec3 planetRotation;
 
-	Planet earth;
+	std::unordered_map<oi::String, Planet> planets;
 
 };

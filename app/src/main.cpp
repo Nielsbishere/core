@@ -70,26 +70,6 @@ void Planet::seed() {
 		offset = Random::randomize<3>(-50000.f, 50000.f);
 }
 
-void NoiseLayer::serialize(oi::JSONNode &json, bool save) {
-	json.serialize("offset", offset, save);
-	json.serialize("octaves", octaves, save);
-	json.serialize("persistence", persistence, save);
-	json.serialize("roughness", roughness, save);
-	json.serialize("scale", scale, save);
-	json.serialize("minValue", minValue, save);
-	json.serialize("frequency", frequency, save);
-	json.serialize("enabled", enabled, save);
-	json.serialize("maskLand", maskLand, save);
-}
-
-void Planet::serialize(JSONNode &json, bool save) {
-	json.serialize("minHeight", minHeight, save);
-	json.serialize("scale", scale, save);
-	json.serialize("randomize", randomize, save);
-	json.serialize("coastSize", coastSize, save);
-	json.serialize("layer", noiseLayer, save);
-}
-
 void MainInterface::refreshPlanet(Planet planet) {
 
 	Timer t;
@@ -173,7 +153,7 @@ void MainInterface::refreshPlanet(Planet planet) {
 
 	Buffer buf = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices, false);
 
-	FileManager::get()->write(String("out/models/") + planet.name + ".oiRM", buf);
+	FileManager::get()->write("out/models/planet.oiRM", buf);
 
 	buf.deconstruct();
 
@@ -183,11 +163,11 @@ void MainInterface::refreshPlanet(Planet planet) {
 	meshBuffer->open();
 
 	RMFile file;
-	oiRM::read(String("out/models/") + planet.name + ".oiRM", file);
+	oiRM::read("out/models/planet.oiRM", file);
 	auto info = oiRM::convert(&g, file);
 
 	info.second.buffer = meshBuffer;
-	mesh3 = g.create(planet.name, info.second);
+	mesh3 = g.create("planet", info.second);
 	g.use(mesh3);
 
 	meshBuffer->close();
@@ -197,20 +177,26 @@ void MainInterface::refreshPlanet(Planet planet) {
 
 }
 
-void MainInterface::writePlanet(Planet planet) {
+void MainInterface::writePlanets() {
+
 	JSON json;
-	json.serialize(planet.name, planet, true);
-	FileManager::get()->write(String("out/models/") + planet.name  +".json", json.toString());
+	json.serialize(planets, true);
+	FileManager::get()->write("out/models/planets.json", json.toString());
+
 	RMFile file = oiRM::convert(mesh3->getInfo());
-	oiRM::write(file, String("out/models/") + planet.name + ".oiRM", false);
+	oiRM::write(file, String("out/models/") + mesh3->getName() + ".oiRM", false);
 }
 
-void MainInterface::readPlanet(Planet &planet, String name, bool fromResource) {
+void MainInterface::readPlanets(bool fromResource) {
+
 	String str;
-	FileManager::get()->read(String(fromResource ? "res/models/" : "out/models/") + name + ".json", str);
+	FileManager::get()->read(String(fromResource ? "res/models/planets.json" : "out/models/planets.json"), str);
 	JSON json = str;
-	json.serialize(name, planet, false);
-	refreshPlanet(planet);
+	json.serialize(planets, false);
+
+	for(auto &elem : planets)
+		refreshPlanet(elem.second);
+
 }
 
 void MainInterface::initScene() {
@@ -267,7 +253,7 @@ void MainInterface::initScene() {
 
 	meshBuffer->close();
 
-	readPlanet(earth, "earth", true);
+	readPlanets(true);
 
 	//Setup our quad
 	oiRM::read("res/models/post_processing_quad.oiRM", file);
@@ -428,9 +414,9 @@ void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
 	if (b.getBindingType() == BindingType::KEYBOARD) {
 
 		if (b.toKey() == Key::Volume_up || b.toKey() == Key::Up)
-			writePlanet(earth);
+			writePlanets();
 		else if (b.toKey() == Key::Volume_down || b.toKey() == Key::Down)
-			readPlanet(earth, "earth");
+			readPlanets();
 
 	}
 
