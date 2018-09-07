@@ -43,11 +43,13 @@ namespace oi {
 
 			u32 offset;
 
-			u32 arraySize;
+			u16 arraySize;
+			u8 flags;
+			u8 padding;
 
 			u32 length;
 
-			SBStruct(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u32 length);
+			SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arraySize, u8 flags, u32 length);
 			SBStruct();
 
 		};
