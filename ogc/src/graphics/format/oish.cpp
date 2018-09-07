@@ -205,7 +205,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 	for (u32 i = 0; i < (u32)stage.size(); ++i) {
 
 		Buffer b = codeBuffer.offset(file.stage[i].codeIndex);
-		b = Buffer(b.addr(), file.stage[i].codeLength);
+		b = Buffer::construct(b.addr(), file.stage[i].codeLength);
 
 		stage[i] = g->create(info.path + " " + ShaderStageType(file.stage[i].type).getName(), info.stages[i] = ShaderStageInfo(b, ShaderStageType(file.stage[i].type)));
 	}

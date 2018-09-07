@@ -5,8 +5,8 @@ using namespace oi;
 
 ///Shader buffer object
 
-ShaderBufferObject::ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, u32 arraySize, String name, TextureFormat format) : parent(parent), offset(offset), length(length), arraySize(arraySize), name(name), format(format) {}
-ShaderBufferObject::ShaderBufferObject() : ShaderBufferObject(nullptr, 0, 0, 0, "", 0) {}
+ShaderBufferObject::ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, u32 arraySize, String name, TextureFormat format, SBOFlag flags) : parent(parent), offset(offset), length(length), arraySize(arraySize), name(name), format(format), flags(flags) {}
+ShaderBufferObject::ShaderBufferObject() : ShaderBufferObject(nullptr, 0, 0, 0, "", 0, 0) {}
 
 void ShaderBufferObject::addChild(ShaderBufferObject *obj) { childs.push_back(obj); }
 
@@ -19,7 +19,7 @@ ShaderBufferObject *ShaderBufferObject::find(String name) {
 
 ///Shader buffer info
 
-ShaderBufferInfo::ShaderBufferInfo(ShaderRegisterType type, u32 size, u32 elements, bool allocate) : type(type), size(size), elements(elements), allocate(allocate), self(nullptr, 0, size, 1, "", TextureFormat::Undefined) {}
+ShaderBufferInfo::ShaderBufferInfo(ShaderRegisterType type, u32 size, u32 elements, bool allocate) : type(type), size(size), elements(elements), allocate(allocate), self(nullptr, 0, size, 1, "", TextureFormat::Undefined, SBOFlag::Value) {}
 ShaderBufferInfo::ShaderBufferInfo() : ShaderBufferInfo(ShaderRegisterType::Undefined, 0, 0, false) {}
 
 void ShaderBufferInfo::addRoot(ShaderBufferObject *obj) { self.childs.push_back(obj); }

@@ -13,7 +13,7 @@ using namespace oi;
 SBStruct::SBStruct(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u32 length) : nameIndex(nameIndex), parent(parent), offset(offset), arraySize(arraySize), length(length) {}
 SBStruct::SBStruct() {}
 
-SBVar::SBVar(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u8 type) : nameIndex(nameIndex), parent(parent), offset(offset), arraySize(arraySize), type(type) { memset(padding, 0, sizeof(padding)); }
+SBVar::SBVar(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u8 type, u8 flags) : nameIndex(nameIndex), parent(parent), offset(offset), arraySize(arraySize), type(type), flags(flags) { }
 SBVar::SBVar() {}
 
 SBFile::SBFile(std::vector<SBStruct> structs, std::vector<SBVar> vars) : structs(structs), vars(vars) {}
@@ -40,7 +40,8 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 				sbst.length,
 				sbst.arraySize,
 				names == nullptr ? sbst.nameIndex : names->names[sbst.nameIndex],
-				TextureFormat::Undefined
+				TextureFormat::Undefined,
+				SBOFlag::Value
 			};
 
 			if (parent != nullptr)
@@ -61,7 +62,8 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 				g->getFormatSize(TextureFormat(sbva.type)),
 				sbva.arraySize,
 				names == nullptr ? sbva.nameIndex : names->names[sbva.nameIndex],
-				TextureFormat(sbva.type)
+				TextureFormat(sbva.type),
+				sbva.flags
 			};
 
 			if (parent != nullptr)
@@ -157,7 +159,7 @@ SBFile oiSB::convert(ShaderBufferInfo &info, SLFile *names) {
 		auto &elem = info[i];
 
 		if (elem.format != TextureFormat::Undefined)
-			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, elem.arraySize, (u8) elem.format.getValue()));
+			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, elem.arraySize, (u8) elem.format.getValue(), (u8) elem.flags.getValue()));
 		else 
 			file.structs.push_back(SBStruct(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, elem.arraySize, elem.length));
 

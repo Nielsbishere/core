@@ -21,59 +21,6 @@ ShaderStageType pickExtension(String &s) {
 	return ShaderStageType::Undefined;
 }
 
-//Vec2u; u32 buffer id, bool isInstanced
-//This parses which buffer it belongs to;
-//i0_m or i_m for example would be seen as a per instance variable in instance buffer 0
-//a0_m or 0_m or a_m or m would be seen as an attribute in vertex buffer 0
-//a1_m or 1_m would be an attribute in vertex buffer 1 (for example, a tangent could be in a different buffer, or per triangle material data)
-//i1_m would be an attribute at instance buffer 1
-//Modifies 'varName' into the name that isn't prefixed
-Vec2u getBufferInfo(String &varName) {
-
-	std::vector<String> split = varName.split("_");
-
-	if (split.size() == 0) return Vec2u(0, 0);
-	
-	String &start = split[0];
-
-	if (start.startsWith("i")) {
-
-		if (start == "i") {
-			varName = varName.cutBegin(2);	//remove i_
-			return Vec2u(0, 1);
-		}
-
-		start = start.cutBegin(1);
-
-		if (start.isUint()) {
-			split.erase(split.begin());
-			varName = String::combine(split, "_");	//remove i<x>_
-			return Vec2u((u32)start.toLong(), 1U);
-		}
-
-	} 
-	else if(start.startsWith("a")){
-
-		if (start == "a") {
-			varName = varName.cutBegin(2);	//remove a_
-			return Vec2u(0, 0);
-		}
-
-		start = start.cutBegin(1);
-
-		if (start.isUint()) {
-			split.erase(split.begin());
-			varName = String::combine(split, "_");	//remove a<x>_
-			return Vec2u((u32)start.toLong(), 0U);
-		}
-
-	} 
-	else if(start.isUint())
-		return Vec2u((u32) start.toLong(), 0U);
-
-	return Vec2u(0, 0);
-}
-
 TextureFormat getFormat(SPIRType type) {
 
 	switch (type.basetype) {
@@ -123,6 +70,15 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 
 		u32 varId = var == &info.self ? 0U : (u32)(var - info.elements.data()) + 1U;
 
+		u32 flags = 0;
+
+		if (mem.array.size() != 0) {
+			flags |= (u32)SBVarFlag::IS_ARRAY;
+
+			if (mem.array[mem.array.size() - 1] == 0)
+				flags |= (u32)SBVarFlag::IS_DYNAMIC;
+		}
+
 		if (mem.basetype == SPIRType::Struct) {
 
 			u32 size = (u32)comp.get_declared_struct_member_size(type, i);
@@ -130,6 +86,8 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 			obj.length = size;
 			obj.arraySize = type.array.size() == 0 ? 1U : (u32) type.array[0];
 			obj.format = TextureFormat::Undefined;
+
+			obj.flags = flags;
 
 			u32 objoff = (u32) info.elements.size();
 
@@ -143,6 +101,11 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 			obj.format = getFormat(mem);
 			obj.arraySize = mem.columns;
 			obj.length = Graphics::getFormatSize(obj.format);
+			
+			if (mem.columns != 1)
+				flags |= (u32) SBVarFlag::IS_MATRIX;
+
+			obj.flags = flags;
 
 			info.push(obj, *var);
 			var = varId == 0 ? &info.self : info.elements.data() + varId - 1U;
@@ -212,8 +175,6 @@ int main(int argc, char *argv[]) {
 
 			//Convert the inputs from Resource (res.stage_inputs) to ShaderVBVar and ShaderVBSection
 			for (Resource &r : res.stage_inputs) {
-
-				Vec2u buf = getBufferInfo(vars[i].name = r.name);
 
 				SPIRType type = comp.get_type_from_variable(r.id);
 				vars[i].type = getFormat(type);

@@ -9,16 +9,26 @@ namespace oi {
 
 	namespace gc {
 
+		UEnum(SBOFlag,
+			Value = 0,
+			Row = 1,
+			Array = 2,
+			RowArray = 3,
+			DynamicArray = 6,
+			DynamicRowArray = 7
+		);
+
 		struct ShaderBufferObject {
 
 			ShaderBufferObject *parent;
 			u32 offset, length, arraySize;
 			String name;
 			TextureFormat format;
+			SBOFlag flags;
 
 			std::vector<ShaderBufferObject*> childs;
 
-			ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, u32 arraySize, String name, TextureFormat format);
+			ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, u32 arraySize, String name, TextureFormat format, SBOFlag flags);
 			ShaderBufferObject();
 
 			void addChild(ShaderBufferObject *obj);
@@ -136,6 +146,7 @@ namespace oi {
 			~ShaderBuffer();
 
 			bool init();
+
 
 		private:
 

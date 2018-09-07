@@ -52,6 +52,12 @@ namespace oi {
 
 		};
 
+		enum class SBVarFlag {
+			IS_MATRIX = 1,
+			IS_ARRAY = 2,
+			IS_DYNAMIC = 4
+		};
+
 		struct SBVar {
 
 			u16 nameIndex;
@@ -62,9 +68,10 @@ namespace oi {
 			u32 arraySize;
 
 			u8 type;		//TextureFormat
-			u8 padding[3];
+			u8 flags;		//SBVarFlag
+			u16 padding = 0;
 
-			SBVar(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u8 type);
+			SBVar(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u8 type, u8 flags);
 			SBVar();
 
 		};
