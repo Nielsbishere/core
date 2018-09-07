@@ -42,6 +42,19 @@ cd app
 "../bake_models.bat"
 cd ../
 ```
+# How to use ocore in a project
+If you want to use Osomi core for your project, you can go to your repo root directory. From there, you can add this repo as a dependency:
+```bat
+git submodule add https://github.com/osomilunar/ocore ocore
+```
+This will fetch ocore into your project dir. It contains CMake files you can add to your own, however, it is recommended that you use all of the ocore.
+Please do yourself and us a favor and don't push this directory onto your repo, but instead push the submodule, so everyone gets ocore using our repo.
+# How to create a new project using all of ocore
+If you want to use all of ocore, but you want to create your own app or library, you can use the following command:
+```bat
+"ocore/make_project"
+```
+Which will copy all required cmake files, project files, etc. to your project.
 # Getting started
 To understand how to use Osomi Graphics Core (ogc; rendering), Osomi Window Core (owc; window/app and input), Osomi STandard Library Core (ostlc; main data types and utils), you can look at the docs directory, which contains markdown files about every important feature of the library.
 # Viewing progress
