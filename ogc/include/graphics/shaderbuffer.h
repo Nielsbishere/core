@@ -21,14 +21,15 @@ namespace oi {
 		struct ShaderBufferObject {
 
 			ShaderBufferObject *parent;
-			u32 offset, length, arraySize;
+			u32 offset, length;
 			String name;
 			TextureFormat format;
 			SBOFlag flags;
 
 			std::vector<ShaderBufferObject*> childs;
+			std::vector<u32> arr;
 
-			ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, u32 arraySize, String name, TextureFormat format, SBOFlag flags);
+			ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, std::vector<u32> arr, String name, TextureFormat format, SBOFlag flags);
 			ShaderBufferObject();
 
 			void addChild(ShaderBufferObject *obj);
@@ -134,6 +135,18 @@ namespace oi {
 
 			void set(Buffer buf);			//Same as GBuffer::set; open(), copy(), close()
 
+			//Example:
+			//mat4 test[3][2]
+			//Fetching the last row in the last element is done like following:
+			//test/1/2/3
+			//Fetching the mat4:
+			//test/1/2
+			//Fetching the mat4[3]
+			//test/1
+			//Fetching the mat4[3][2]
+			//test
+			//So, while low level, the array is represented as vec4 test[4][3][2]
+			//You index into it with z(y)(x) instead of xyz; to allow getting sections of the buffer.
 			template<typename T>
 			T &get(String path);
 
@@ -147,6 +160,7 @@ namespace oi {
 
 			bool init();
 
+			void calculateArrayInfo(std::vector<u32> &off, std::vector<u32> &len, u32 stride, u32 &offset, u32 &count);
 
 		private:
 

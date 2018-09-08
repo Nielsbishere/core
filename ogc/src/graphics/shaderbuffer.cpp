@@ -5,8 +5,8 @@ using namespace oi;
 
 ///Shader buffer object
 
-ShaderBufferObject::ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, u32 arraySize, String name, TextureFormat format, SBOFlag flags) : parent(parent), offset(offset), length(length), arraySize(arraySize), name(name), format(format), flags(flags) {}
-ShaderBufferObject::ShaderBufferObject() : ShaderBufferObject(nullptr, 0, 0, 0, "", 0, 0) {}
+ShaderBufferObject::ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, std::vector<u32> arr, String name, TextureFormat format, SBOFlag flags) : parent(parent), offset(offset), length(length), arr(arr), name(name), format(format), flags(flags) {}
+ShaderBufferObject::ShaderBufferObject() : ShaderBufferObject(nullptr, 0, 0, {}, "", 0, 0) {}
 
 void ShaderBufferObject::addChild(ShaderBufferObject *obj) { childs.push_back(obj); }
 
@@ -19,7 +19,7 @@ ShaderBufferObject *ShaderBufferObject::find(String name) {
 
 ///Shader buffer info
 
-ShaderBufferInfo::ShaderBufferInfo(ShaderRegisterType type, u32 size, u32 elements, bool allocate) : type(type), size(size), elements(elements), allocate(allocate), self(nullptr, 0, size, 1, "", TextureFormat::Undefined, SBOFlag::Value) {}
+ShaderBufferInfo::ShaderBufferInfo(ShaderRegisterType type, u32 size, u32 elements, bool allocate) : type(type), size(size), elements(elements), allocate(allocate), self(nullptr, 0, size, {}, "", TextureFormat::Undefined, SBOFlag::Value) {}
 ShaderBufferInfo::ShaderBufferInfo() : ShaderBufferInfo(ShaderRegisterType::Undefined, 0, 0, false) {}
 
 void ShaderBufferInfo::addRoot(ShaderBufferObject *obj) { self.childs.push_back(obj); }
@@ -208,12 +208,30 @@ bool ShaderBuffer::init() {
 	return true;
 }
 
+void ShaderBuffer::calculateArrayInfo(std::vector<u32> &off, std::vector<u32> &len, u32 stride, u32 &offset, u32 &count) {
+
+	u32 totalOffset = 0;
+	count = 1;
+
+	for (u32 x : len)
+		count *= x;
+
+	for (u32 i = 0, j = (u32)off.size(), k = (u32)len.size(); i < j && i < k; ++i) {
+		u32 siz = len[k - 1 - i];
+		count /= siz;
+		totalOffset += (off[i] % siz) * count;
+	}
+
+	offset += totalOffset * stride;
+
+}
+
 ShaderBufferVar ShaderBuffer::get(String path) {
 
 	if (path == "") return get();
 
 	ShaderBufferObject *sbo = &info.self;
-	u32 offset = 0;
+	u32 offset = 0, count = 0;
 
 	std::vector<u32> arr;
 
@@ -222,7 +240,7 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 		if (!str.isUint()) {
 
 			if (arr.size() != 0) {
-				//TODO: Calculate offset
+				calculateArrayInfo(arr, sbo->arr, sbo->length, offset, count);
 				arr.clear();
 			}
 
@@ -236,9 +254,7 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 		
 	}
 
-	if (arr.size() != 0) {
-		//TODO: Calculate offset
-	}
+	calculateArrayInfo(arr, sbo->arr, sbo->length, offset, count);
 
-	return { *sbo, Buffer::construct(this->current.addr() + offset, sbo->length * sbo->arraySize), isOpen };
+	return { *sbo, Buffer::construct(this->current.addr() + offset, sbo->length * count), isOpen };
 }

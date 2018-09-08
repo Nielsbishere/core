@@ -417,7 +417,7 @@ Buffer oiSH::write(SHFile &file) {
 	write = write.offset(b.size());
 	b.deconstruct();
 
-	for (Buffer b : buffers) {
+	for (Buffer &b : buffers) {
 		write.copy(b, b.size(), 0, 0);
 		write = write.offset(b.size());
 		b.deconstruct();

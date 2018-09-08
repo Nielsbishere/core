@@ -84,7 +84,7 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 			u32 size = (u32)comp.get_declared_struct_member_size(type, i);
 
 			obj.length = size;
-			obj.arraySize = type.array.size() == 0 ? 1U : (u32) type.array[0];
+			obj.arr = mem.array;
 			obj.format = TextureFormat::Undefined;
 
 			obj.flags = flags;
@@ -99,11 +99,13 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 		} else {
 
 			obj.format = getFormat(mem);
-			obj.arraySize = mem.columns;
+			obj.arr = mem.array;
 			obj.length = Graphics::getFormatSize(obj.format);
 			
-			if (mem.columns != 1)
-				flags |= (u32) SBVarFlag::IS_MATRIX;
+			if (mem.columns != 1) {
+				obj.arr.insert(obj.arr.begin(), mem.columns);
+				flags |= (u32)SBVarFlag::IS_MATRIX;
+			}
 
 			obj.flags = flags;
 
@@ -241,7 +243,6 @@ int main(int argc, char *argv[]) {
 			dat.allocate = String(r.name).endsWithIgnoreCase("_ext");
 			dat.type = reg.type;
 
-			dat.self.arraySize = 1U;
 			dat.self.length = dat.size;
 			dat.self.format = TextureFormat::Undefined;
 			dat.self.name = name;

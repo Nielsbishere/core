@@ -27,7 +27,7 @@ namespace oi {
 
 			u8 version;		//SBHeaderVersion_s
 			u8 flags;		//SBHeaderFlag; & 0x3 = Buffer type
-			u16 padding = 0;
+			u16 arrays;
 
 			u16 structs;
 			u16 vars;
@@ -43,13 +43,13 @@ namespace oi {
 
 			u32 offset;
 
-			u16 arraySize;
-			u8 flags;
-			u8 padding;
+			u16 arrayIndex;
+			u8 flags = 0;
+			u8 padding = 0;
 
 			u32 length;
 
-			SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arraySize, u8 flags, u32 length);
+			SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 flags, u32 length);
 			SBStruct();
 
 		};
@@ -67,13 +67,11 @@ namespace oi {
 
 			u32 offset;
 
-			u32 arraySize;
-
 			u8 type;		//TextureFormat
 			u8 flags;		//SBVarFlag
-			u16 padding = 0;
+			u16 arrayIndex;
 
-			SBVar(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u8 type, u8 flags);
+			SBVar(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 type, u8 flags);
 			SBVar();
 
 		};
@@ -81,12 +79,13 @@ namespace oi {
 		struct SBFile {
 
 			SBHeader header;
+			std::vector<std::vector<u32>> arrays;
 			std::vector<SBStruct> structs;
 			std::vector<SBVar> vars;
 
 			u32 size;
 
-			SBFile(std::vector<SBStruct> structs, std::vector<SBVar> vars);
+			SBFile(std::vector<std::vector<u32>> arrays, std::vector<SBStruct> structs, std::vector<SBVar> vars);
 			SBFile();
 
 		};

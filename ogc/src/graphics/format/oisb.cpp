@@ -10,13 +10,13 @@ using namespace oi::wc;
 using namespace oi::gc;
 using namespace oi;
 
-SBStruct::SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arraySize, u8 flags, u32 length) : nameIndex(nameIndex), parent(parent), offset(offset), arraySize(arraySize), length(length) {}
+SBStruct::SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 flags, u32 length) : nameIndex(nameIndex), parent(parent), offset(offset), arrayIndex(arrayIndex), length(length) {}
 SBStruct::SBStruct() {}
 
-SBVar::SBVar(u16 nameIndex, u16 parent, u32 offset, u32 arraySize, u8 type, u8 flags) : nameIndex(nameIndex), parent(parent), offset(offset), arraySize(arraySize), type(type), flags(flags) { }
+SBVar::SBVar(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 type, u8 flags) : nameIndex(nameIndex), parent(parent), offset(offset), arrayIndex(arrayIndex), type(type), flags(flags) { }
 SBVar::SBVar() {}
 
-SBFile::SBFile(std::vector<SBStruct> structs, std::vector<SBVar> vars) : structs(structs), vars(vars) {}
+SBFile::SBFile(std::vector<std::vector<u32>> arrays, std::vector<SBStruct> structs, std::vector<SBVar> vars) : arrays(arrays), structs(structs), vars(vars) {}
 SBFile::SBFile() {}
 
 
@@ -38,7 +38,7 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 				parent,
 				sbst.offset,
 				sbst.length,
-				sbst.arraySize,
+				sbst.flags == 0 ? std::vector<u32>() : file.arrays[sbst.arrayIndex],
 				names == nullptr ? sbst.nameIndex : names->names[sbst.nameIndex],
 				TextureFormat::Undefined,
 				sbst.flags
@@ -60,7 +60,7 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 				parent,
 				sbva.offset,
 				g->getFormatSize(TextureFormat(sbva.type)),
-				sbva.arraySize,
+				sbva.flags == 0 ? std::vector<u32>() : file.arrays[sbva.arrayIndex],
 				names == nullptr ? sbva.nameIndex : names->names[sbva.nameIndex],
 				TextureFormat(sbva.type),
 				sbva.flags
@@ -121,6 +121,18 @@ bool oiSB::read(Buffer buf, SBFile &file) {
 v0_1:
 	{
 
+		file.arrays.resize(header.arrays);
+		for (u32 i = 0; i < header.arrays; ++i) {
+
+			u8 len;
+			if(!buf.read(len))
+				return Log::error("Invalid oiSB file; invalid arraySize");
+
+			if (!buf.read(file.arrays[i], len))
+				return Log::error("Invalid oiSB file; invalid array");
+
+		}
+
 		u32 structsiz = header.structs * (u32) sizeof(SBStruct);
 		u32 varsiz = header.vars * (u32) sizeof(SBVar);
 		u32 siz = structsiz + varsiz;
@@ -154,24 +166,43 @@ SBFile oiSB::convert(ShaderBufferInfo &info, SLFile *names) {
 
 	SBFile file;
 
+	std::vector<std::vector<u32>> arrays;
+	u32 arrsiz = 0;
+
 	for (u32 i = 0; i < info.elements.size(); ++i) {
 
 		auto &elem = info[i];
+		u16 arrayIndex = 0;
+
+		if (elem.arr.size() != 0) {
+
+			for (auto &arr : arrays)
+				if (arr == elem.arr)
+					break;
+				else
+					++arrayIndex;
+
+			if (arrayIndex == u16(arrays.size())) {
+				arrays.push_back(elem.arr);
+				arrsiz += u32(elem.arr.size()) * 4 + 1;
+			}
+		}
 
 		if (elem.format != TextureFormat::Undefined)
-			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, elem.arraySize, (u8) elem.format.getValue(), (u8) elem.flags.getValue()));
+			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.format.getValue(), (u8) elem.flags.getValue()));
 		else 
-			file.structs.push_back(SBStruct(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, (u16) elem.arraySize, (u8) elem.flags.getValue(), elem.length));
+			file.structs.push_back(SBStruct(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.flags.getValue(), elem.length));
 
 	}
 
-	file.size = (u32)(sizeof(SBHeader) + sizeof(SBStruct) * file.structs.size() + sizeof(SBVar) * file.vars.size());
+	file.arrays = arrays;
+	file.size = (u32)(sizeof(SBHeader) + arrsiz + sizeof(SBStruct) * file.structs.size() + sizeof(SBVar) * file.vars.size());
 
 	file.header = {
 		{ 'o', 'i', 'S', 'B' },
 		(u8)SBHeaderVersion::v0_1,
 		(u8)((info.type.getValue() - 1U) | (u32)SBHeaderFlag::IS_ALLOCATED),
-		(u16) 0U,
+		(u16) file.arrays.size(),
 
 		(u16) file.structs.size(),
 		(u16) file.vars.size(),
@@ -190,16 +221,26 @@ Buffer oiSB::write(SBFile file) {
 	u32 structc = (u32) structs.size();
 	u32 varc = (u32) vars.size();
 
-	u32 structsiz = (u32)(sizeof(SBStruct) * structc);
-	u32 varsiz = (u32)(sizeof(SBVar) * varc);
+	u32 structsiz = u32(sizeof(SBStruct) * structc);
+	u32 varsiz = u32(sizeof(SBVar) * varc);
+	u32 arrsiz = u32(file.arrays.size());
 
-	Buffer buf((u32)(sizeof(SBHeader) + structsiz + varsiz));
+	for (auto &arr : file.arrays)
+		arrsiz += u32(arr.size()) * 4;
+
+	Buffer buf(u32(sizeof(SBHeader) + arrsiz + structsiz + varsiz));
 	Buffer write = buf;
 
 	file.size = buf.size();
 
 	write.operator[]<SBHeader>(0) = file.header;
 	write = write.offset((u32)sizeof(SBHeader));
+
+	for (auto &arr : file.arrays) {
+		u32 siz = write[0] = u8(arr.size());
+		memcpy(write.addr() + 1, arr.data(), 4 * siz);
+		write = write.offset(siz * 4 + 1);
+	}
 
 	memcpy(write.addr(), structs.data(), structsiz);
 	write = write.offset(structsiz);
