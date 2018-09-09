@@ -123,4 +123,28 @@ This means that if you have 24 vertices (ex. a cube), you can use ceil(log2(24))
 The MiscBuffer is the buffer for every misc. Every misc can have up to 65535 bytes of data; right now this data doesn't have a use, or definition yet; however this feature will be further developed in the future (it is a task on the trello board).
 ## Names
 Like all other Osomi file formats, the names are stored in a oiSL file that is embedded at the end of the object. 
-# (TODO) API Usage
+# API Usage
+## Reading
+To read and use a oiRM file, you'd use the following code:
+```cpp
+RMFile file;
+if(!oiRM::read("res/models/myModel.oiRM", file))
+	; //Handle error
+std::pair<MeshBufferInfo, MeshInfo> info = oiRM::convert(file);
+```
+If the file is valid, it reads the MeshInfo and MeshBufferInfo from this oiRM file. The MeshInfo tells how many vertices and indices the file has and the decoded VBOs/IBO. The VBOs and IBO have to be deconstructed, if they aren't sent to a Mesh which takes care of that.  
+The MeshBufferInfo specifies what buffer the mesh wants to be allocated into; meaning the topology mode, fill mode and layout have to match (if they are defined). This should be checked against by the user; when selecting a proper MeshBuffer.
+## Writing
+To write a oiRM file, you have to convert a MeshInfo:
+```cpp
+RMFile converted = oiRM::convert(myModel->getInfo());
+if(!write(converted, "out/models/myModel.oiRM"))
+	; //Handle error
+```
+This means you have to have a VALID MODEL ALLOCATED which already has a MeshBuffer.
+## Generating
+If you don't want to load a model first, you can output the data directly into a oiRM file, using the following method:
+```cpp
+Buffer myoiRM = oiRM::generate(myVbo, myIbo, hasPos, hasUv, hasNrm, vertices, indices, useCompression);
+```
+Our VBO and IBO are just 1 buffer, since the generate function was created specifically for converting simple models (vec3 pos, vec2 uv, vec3 normal) to our own. the hasPos, hasUv and hasNrm bools specify if those attributes exist (they REQUIRE vec3 pos, vec2 uv, vec3 nrm). Then, you specify the vertices and indices (0 if none) and if it uses compression (which takes a lot longer to generate and load, but is smaller in space).
