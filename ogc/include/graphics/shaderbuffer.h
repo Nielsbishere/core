@@ -9,14 +9,14 @@ namespace oi {
 
 	namespace gc {
 
-		UEnum(SBOFlag,
+		enum class SBOFlag {
 			Value = 0,
 			Row = 1,
 			Array = 2,
 			RowArray = 3,
 			DynamicArray = 6,
 			DynamicRowArray = 7
-		);
+		};
 
 		struct ShaderBufferObject {
 
@@ -127,7 +127,10 @@ namespace oi {
 			u32 getSize();
 
 			GBuffer *getBuffer();
-			void setBuffer(GBuffer *buf);	//If info.allocate is false, you have to set the buffer yourself
+
+			//If info.allocate is false, you have to instantiate the buffer yourself
+			//This can be a dynamic object buffer, light buffer, etc.
+			ShaderBuffer *instantiate(u32 objects);	
 
 			void open();					//Call this if you start writing/reading
 			void copy(Buffer buf);			//Copy a buffer
@@ -135,18 +138,6 @@ namespace oi {
 
 			void set(Buffer buf);			//Same as GBuffer::set; open(), copy(), close()
 
-			//Example:
-			//mat4 test[3][2]
-			//Fetching the last row in the last element is done like following:
-			//test/1/2/3
-			//Fetching the mat4:
-			//test/1/2
-			//Fetching the mat4[3]
-			//test/1
-			//Fetching the mat4[3][2]
-			//test
-			//So, while low level, the array is represented as vec4 test[4][3][2]
-			//You index into it with z(y)(x) instead of xyz; to allow getting sections of the buffer.
 			template<typename T>
 			T &get(String path);
 

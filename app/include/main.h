@@ -93,7 +93,7 @@ private:
 
 	};
 
-	static constexpr u32 totalObjects = 4U;
+	static constexpr u32 totalObjects = 2U;
 
 	PerObject objects[totalObjects];
 

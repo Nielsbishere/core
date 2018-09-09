@@ -16,7 +16,7 @@ struct PerObject {
 
 layout(std430, binding = 0) buffer Objects {
 
-	PerObject arr[4];
+	PerObject arr[];
 	
 } obj;
 

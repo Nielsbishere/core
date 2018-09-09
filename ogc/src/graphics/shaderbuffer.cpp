@@ -6,7 +6,7 @@ using namespace oi;
 ///Shader buffer object
 
 ShaderBufferObject::ShaderBufferObject(ShaderBufferObject *parent, u32 offset, u32 length, std::vector<u32> arr, String name, TextureFormat format, SBOFlag flags) : parent(parent), offset(offset), length(length), arr(arr), name(name), format(format), flags(flags) {}
-ShaderBufferObject::ShaderBufferObject() : ShaderBufferObject(nullptr, 0, 0, {}, "", 0, 0) {}
+ShaderBufferObject::ShaderBufferObject() : ShaderBufferObject(nullptr, 0, 0, {}, "", 0, (SBOFlag)0) {}
 
 void ShaderBufferObject::addChild(ShaderBufferObject *obj) { childs.push_back(obj); }
 
@@ -137,11 +137,34 @@ ShaderBufferVar ShaderBuffer::get() {
 u32 ShaderBuffer::getElements(){ return (u32) info.self.childs.size(); }
 u32 ShaderBuffer::getSize() { return (u32) info.size; }
 
-void ShaderBuffer::setBuffer(GBuffer *buf) {
-	if (buffer == nullptr)
-		buffer = buf;
-	else
+ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
+
+	if (buffer == nullptr) {
+
+		for (ShaderBufferObject &obj : info.elements) {
+			auto &arr = obj.arr;
+
+			if (arr.size() != 0 && arr[arr.size() - 1] == 0) {
+
+				arr[arr.size() - 1] = objects;
+				u32 siz = 1;
+
+				for (u32 i : arr)
+					siz *= i;
+
+				info.size += siz * obj.length;
+				break;
+			}
+		}
+
+		buffer = g->create(getName() + " buffer", GBufferInfo(info.type.getValue() - 1, info.size));
+		g->use(buffer);
+
+	} else
 		Log::throwError<ShaderBuffer, 0x0>("Can't set the buffer when it's already set");
+
+	return this;
+
 }
 
 GBuffer *ShaderBuffer::getBuffer() {
@@ -234,8 +257,9 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 	u32 offset = 0, count = 0;
 
 	std::vector<u32> arr;
+	std::vector<String> paths = path.split("/");
 
-	for (String str : path.split("/")) {
+	for (String str : paths) {
 
 		if (!str.isUint()) {
 

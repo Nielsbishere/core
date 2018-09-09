@@ -15,12 +15,18 @@ exit /b
 rem Cut the string in half and compare which date is bigger
 rem compareDates(a, b) = a > b = result
 :compareDates
-set t0=%1
-set t1=%2
-set /a target0=%t0:~0,8%
-set /a target1=%t1:~0,8%
-set /a target2=%t0:~8%
-set /a target3=%t1:~8%
+set t=%1
+set tt=%2
+
+set /a target0=1%t:~0,8%
+set /a target1=1%tt:~0,8%
+set /a target2=1%t:~8%
+set /a target3=1%tt:~8%
+
+set /a target0=%target0% %% 100000000
+set /a target1=%target1% %% 100000000
+set /a target2=%target2% %% 1000000
+set /a target3=%target3% %% 1000000
 
 if %target0% equ %target1% (
 	if %target2% gtr %target3% (

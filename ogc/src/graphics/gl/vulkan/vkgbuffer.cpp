@@ -47,13 +47,14 @@ bool GBuffer::init() {
 
 	u8 *ptr = info.ptr;
 
-	if (info.persistent || ptr != nullptr)
-		vkCheck<0x1, GBuffer>(vkMapMemory(graphics.device, ext.memory, 0, info.size, 0, (void**) &info.ptr), "Couldn't map memory");
+	vkCheck<0x1, GBuffer>(vkMapMemory(graphics.device, ext.memory, 0, info.size, 0, (void**) &info.ptr), "Couldn't map memory");
 
-	if(ptr != nullptr)
+	if (ptr != nullptr)
 		memcpy(info.ptr, ptr, info.size);
+	else
+		memset(info.ptr, 0, info.size);
 
-	if (ptr != nullptr && !info.persistent) {
+	if (!info.persistent) {
 		info.ptr = nullptr;
 		vkUnmapMemory(graphics.device, ext.memory);
 	}

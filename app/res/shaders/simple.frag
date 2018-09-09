@@ -140,11 +140,23 @@ layout(binding = 2) uniform Camera {
 layout(binding = 3) uniform sampler samp;
 layout(binding = 4) uniform texture2D tex[2];
 
-layout(std430, binding = 5) buffer Lights {
+layout(std430, binding = 5) buffer DirectionalLights {
 
-	Light directional, point, spot;
+	Light light[];
 
-} lights;
+} dir;
+
+layout(std430, binding = 6) buffer PointLights {
+
+	Light light[];
+
+} point;
+
+layout(std430, binding = 7) buffer SpotLights {
+
+	Light light[];
+
+} spot;
 
 vec4 sample2D(sampler s, uint index, vec2 uv){
 	return texture(sampler2D(tex[index], s), uv);
@@ -154,15 +166,25 @@ void main() {
 
 	vec3 cpos = normalize(cam.position - pos);
 
-	LightResult lr = calculateDirectional(lights.directional, pos, normal, cpos, exc.power);
-
-	LightResult plr = calculatePoint(lights.point, pos, normal, cpos, exc.power);
-	lr.diffuse += plr.diffuse;
-	lr.specular += plr.specular;
-
-	LightResult slr = calculateSpot(lights.spot, pos, normal, cpos, exc.power);
-	lr.diffuse += slr.diffuse;
-	lr.specular += slr.specular;
+	LightResult lr = { vec3(0, 0, 0), 0, vec3(0, 0, 0), 0 };
+	
+	for(int i = 0; i < dir.light.length(); i++){
+		LightResult res = calculateDirectional(dir.light[i], pos, normal, cpos, exc.power);
+		lr.diffuse += res.diffuse;
+		lr.specular += res.specular;
+	}
+	
+	for(int j = 0; j < point.light.length(); j++){
+		LightResult res = calculatePoint(point.light[j], pos, normal, cpos, exc.power);
+		lr.diffuse += res.diffuse;
+		lr.specular += res.specular;
+	}
+	
+	for(int k = 0; k < spot.light.length(); k++){
+		LightResult res = calculateSpot(spot.light[k], pos, normal, cpos, exc.power);
+		lr.diffuse += res.diffuse;
+		lr.specular += res.specular;
+	}
 
     outColor = vec4(calculateLighting(lr, sample2D(samp, diffuse, uv).rgb, exc.ambient), 1);
 }

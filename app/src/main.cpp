@@ -310,22 +310,24 @@ void MainInterface::initScene() {
 	g.use(camera);
 
 	//Setup lighting
-	ShaderBuffer *lights = shader->get<ShaderBuffer>("Lights");
+	shader->get<ShaderBuffer>("PointLights")->instantiate(1);
+	shader->get<ShaderBuffer>("SpotLights")->instantiate(1);
 
-	lights->open();
+	ShaderBuffer *directionalLights = shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
 
-	lights->set("directional/dir", Vec3(0, -1, 0));
-	lights->set("directional/intensity", 16.f);
-	lights->set("directional/col", Vec3(1.f));
+	directionalLights->open();
+	directionalLights->set("light/dir", Vec3(0, -1, 0));
+	directionalLights->set("light/intensity", 16.f);
+	directionalLights->set("light/col", Vec3(1.f));
+	directionalLights->close();
 
-	lights->close();
+	//Setup the Objects buffer with our size
+	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
 
 	//Setup drawcalls  (reserve objects for meshes)
 
-	drawList->draw(mesh0, totalObjects / 4);		//Reserve 0 until (not including) totalObjects/4
-	drawList->draw(mesh, totalObjects / 4);			//Reserve 1/4 until 2/4
-	drawList->draw(mesh2, totalObjects / 4);		//Reserve 2/4 until 3/4
-	drawList->draw(mesh3, totalObjects / 4);		//Reserve 3/4 until 4/4
+	drawList->draw(mesh2, 1);		//Reserve index 0 for the sphere
+	drawList->draw(mesh3, 1);		//Reserve index 1 for the planet
 	drawList->flush();
 
 }
@@ -449,18 +451,13 @@ void MainInterface::update(f32 dt) {
 
 	//Update planet rotation
 
-	for (u32 i = 0; i < totalObjects; ++i) {
-		objects[i].m = Matrix::makeScale(Vec4(0, 0, 0, 1));// Matrix::makeModel(Vec3((f32)i / totalObjects * 6 - 3, 0, 0), Vec3(planetRotation, 0.f), Vec3(2.f) / (i + 1));
-		objects[i].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[i].m };
-	}
+	objects[0].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.5f));
+	objects[0].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[0].m };
+	objects[0].diffuse = hwater;
 
-	objects[2].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.5f));
-	objects[2].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[2].m };
-	objects[2].diffuse = hwater;
-
-	objects[totalObjects - 1].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(3.f));
-	objects[totalObjects - 1].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[totalObjects - 1].m };
-	objects[totalObjects - 1].diffuse = hrock;
+	objects[1].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(3.f));
+	objects[1].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[1].m };
+	objects[1].diffuse = hrock;
 
 	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
 

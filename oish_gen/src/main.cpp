@@ -75,19 +75,41 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 		if (mem.array.size() != 0) {
 			flags |= (u32)SBVarFlag::IS_ARRAY;
 
-			if (mem.array[mem.array.size() - 1] == 0)
+			if (mem.array[mem.array.size() - 1] == 0) {
 				flags |= (u32)SBVarFlag::IS_DYNAMIC;
+				info.allocate = false;
+			}
 		}
 
 		if (mem.basetype == SPIRType::Struct) {
 
 			u32 size = (u32)comp.get_declared_struct_member_size(type, i);
 
+			if (size == 0 && (flags & (u32)SBVarFlag::IS_DYNAMIC) != 0) {	//Go through each member and calculate size
+
+				for (u32 j = 0; j < (u32)mem.member_types.size(); ++j) {
+
+					const SPIRType &mmem = comp.get_type(mem.member_types[j]);
+
+					u32 count = mmem.columns;
+
+					for (u32 k : mmem.array)
+						count *= k;
+
+					if(mmem.basetype == SPIRType::Struct)
+						size += count * (u32) comp.get_declared_struct_member_size(mem, j);
+					else
+						size += count * Graphics::getFormatSize(getFormat(mmem));
+
+				}
+
+			}
+
 			obj.length = size;
 			obj.arr = mem.array;
 			obj.format = TextureFormat::Undefined;
 
-			obj.flags = flags;
+			obj.flags = (SBOFlag)flags;
 
 			u32 objoff = (u32) info.elements.size();
 
@@ -107,7 +129,7 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 				flags |= (u32)SBVarFlag::IS_MATRIX;
 			}
 
-			obj.flags = flags;
+			obj.flags = (SBOFlag)flags;
 
 			info.push(obj, *var);
 			var = varId == 0 ? &info.self : info.elements.data() + varId - 1U;
@@ -232,20 +254,18 @@ int main(int argc, char *argv[]) {
 					return (int)Log::error("Invalid register access");
 			}
 
-			String name = String(r.name).replaceLast("_ext", "");
-
-			info.bufferIds[k] = name;
-			ShaderBufferInfo &dat = info.buffer[name];
+			info.bufferIds[k] = r.name;
+			ShaderBufferInfo &dat = info.buffer[r.name];
 
 			const SPIRType &btype = comp.get_type(r.base_type_id);
 
 			dat.size = (u32) comp.get_declared_struct_size(btype);
-			dat.allocate = String(r.name).endsWithIgnoreCase("_ext");
+			dat.allocate = true;
 			dat.type = reg.type;
 
 			dat.self.length = dat.size;
 			dat.self.format = TextureFormat::Undefined;
-			dat.self.name = name;
+			dat.self.name = r.name;
 			dat.self.offset = 0U;
 			dat.self.parent = nullptr;
 

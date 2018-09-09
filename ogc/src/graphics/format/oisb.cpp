@@ -10,7 +10,7 @@ using namespace oi::wc;
 using namespace oi::gc;
 using namespace oi;
 
-SBStruct::SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 flags, u32 length) : nameIndex(nameIndex), parent(parent), offset(offset), arrayIndex(arrayIndex), length(length) {}
+SBStruct::SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 flags, u32 length) : nameIndex(nameIndex), parent(parent), offset(offset), arrayIndex(arrayIndex), flags(flags), length(length) {}
 SBStruct::SBStruct() {}
 
 SBVar::SBVar(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 type, u8 flags) : nameIndex(nameIndex), parent(parent), offset(offset), arrayIndex(arrayIndex), type(type), flags(flags) { }
@@ -41,7 +41,7 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 				sbst.flags == 0 ? std::vector<u32>() : file.arrays[sbst.arrayIndex],
 				names == nullptr ? sbst.nameIndex : names->names[sbst.nameIndex],
 				TextureFormat::Undefined,
-				sbst.flags
+				(SBOFlag) sbst.flags
 			};
 
 			if (parent != nullptr)
@@ -63,7 +63,7 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 				sbva.flags == 0 ? std::vector<u32>() : file.arrays[sbva.arrayIndex],
 				names == nullptr ? sbva.nameIndex : names->names[sbva.nameIndex],
 				TextureFormat(sbva.type),
-				sbva.flags
+				(SBOFlag) sbva.flags
 			};
 
 			if (parent != nullptr)
@@ -189,9 +189,9 @@ SBFile oiSB::convert(ShaderBufferInfo &info, SLFile *names) {
 		}
 
 		if (elem.format != TextureFormat::Undefined)
-			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.format.getValue(), (u8) elem.flags.getValue()));
+			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.format.getValue(), (u8) elem.flags));
 		else 
-			file.structs.push_back(SBStruct(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.flags.getValue(), elem.length));
+			file.structs.push_back(SBStruct(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.flags, elem.length));
 
 	}
 
@@ -201,7 +201,7 @@ SBFile oiSB::convert(ShaderBufferInfo &info, SLFile *names) {
 	file.header = {
 		{ 'o', 'i', 'S', 'B' },
 		(u8)SBHeaderVersion::v0_1,
-		(u8)((info.type.getValue() - 1U) | (u32)SBHeaderFlag::IS_ALLOCATED),
+		(u8)((info.type.getValue() - 1U) | (info.allocate ? u32(SBHeaderFlag::IS_ALLOCATED) : 0)),
 		(u16) file.arrays.size(),
 
 		(u16) file.structs.size(),
