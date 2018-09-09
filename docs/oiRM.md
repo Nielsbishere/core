@@ -97,15 +97,20 @@ Second buffer
 ```
 The second buffer would be appended to the first buffer, giving us a float array `[0,0,0, 0,0, 0,1,0, 1,0,0]`, which is represented as a buffer. This means that the (relative) offset of the second buffer can be calculated by using RMVBO::stride * vertices and the index buffer (in this case; if there is no other buffer and if indices is not 0) is located at offset buf0.stride * vertices + buf1.stride * vertices.
 ### Compression
-Vertex compression is a more complex concept than index compression; this is because a TextureFormat has the concept of channels (RGBA for example). Every channel uses the same data type; allowing the optimization of sharing a value. For example; you have a texture with just red, blue, green, white and black; these values are either 0 or 1, allowing you to represent the texture as a bitset; turning it from 4 bytes per pixel to 3/8 bytes per pixel (10.67x as efficient). This can be done by utilizing a keyset with the data types and storing the actual data in a bitset that references the keyset.  
+Vertex compression is a more complex concept than index compression; this is because a TextureFormat has the concept of channels (RGB for example). Every channel uses the same data type; allowing the optimization of sharing a value. For example; you have a texture with just red, blue, green and white; these values (R G or B) are either 0 or 1, allowing you to represent the texture as a bitset. This can be done by utilizing a keyset with the data types and storing the actual data in a bitset that references the keyset. This can also be used by having a list of all colors made up of that keyset; meaning that if we had red, blue, green, white and black, we'd have 4 options for every pixel (2 bits instead of 4 bytes). Then, we'd have a keyset of 2 ubytes (2 bytes + 4 bytes uint), 4 colors (3 bits per color = 12 bits (padded = 2 bytes) + 4 bytes uint). This will result into a 64x64 image with those 4 colors to go from 16384 bytes to 1036 bytes (6% of orignal bytes).  
 This way of compression can significantly decrease required storage, but of course has to be decompressed. The data is compressed as follows:
 ```cpp
 u32 keys;								//Different data values (stored in binary)
-u8 buffer[keys * Graphics::getChannelSize(format)];			//All values (stored in binary)
+u8 key[keys * Graphics::getChannelSize(format)];			//All values (stored in binary)
 u32 keyBits = std::ceil(std::log2(keys));				//Bits required to point to a key (not stored, but calculated)
-Bitset bitset(vertices * Graphics::getChannels(format) * keyBits];	//All references to keys (stored in binary)
+u32 values;								//How many values that channels can have (stored in binary)
+Bitset value(values * channels * keyBits);				//All values that channels can have (stored in binary)
+u32 valueBits = std::ceil(std::log2(value));				//Bits required to point to a value (not stored, but calculated)
+Bitset data(vertices * valueBits];					//All references to keys (stored in binary)
 ```
-For decompression; the vertex data's order has to be changed, so all attributes are placed next to each other for every vertex.
+For decompression; the vertex data's order has to be changed, so all attributes are placed next to each other for every vertex.  
+In a short diagram:  
+![VBO Attributes compression](vbo%20compression.png)
 ## IBO
 The index buffer is located after the vertex buffers and the size can be determined by first determing the format. If there's at max 256 vertices, it means that you can use a u8 to represent an index to it, if there's at max 65536, it means you can use a u16 and otherwise you have to use a u32. This means that the index buffer can be the size of vertices, 2 * vertices or 4 * vertices, depending on the vertexCount. On the GPU, this IBO is expanded to 4 * vertices, because of cache improvements that come with uints (it can fetch it with 1 operation instead of multiple).
 ### Compression
