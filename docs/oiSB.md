@@ -82,7 +82,7 @@ SLFile outputNames(String::getDefaultCharset(), {});
 SBFile file = oiSB::convert(bufferInfo, outputNames);
 Buffer toBuffer = oiSB::write(file);
 ```
-You can also directly write it to file by inserting the output path as the second argument for the write function. Remember that a oiSB file doesn't store its own names, which is why you pass a SLFile it stores data into. In an oiSH file, it is stored next to all other names, to optimize string storage. (For more info check out ogc.md)
+You can also directly write it to file by inserting the output path as the second argument for the write function. Remember that an oiSB file doesn't store its own names, which is why you pass a SLFile it stores data into. In an oiSH file, it is stored next to all other names, to optimize string storage. (For more info check out ogc.md)
 ## Reading
 Reading can be done using the following code:
 ```cpp
