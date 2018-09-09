@@ -286,27 +286,6 @@ The following is from InputManager; it reads the input bindings & axes from a st
 
 	return true;
 ```
-### Example (serialization)
-JSON provides the ability for you to serialize a struct/datatype/String/vector/TVec/TMatrix, allowing you to save it to or load it from JSON. This is done by passing it into the serialization function as follows:
-```cpp
-json["test"]["myObject"].serialize(myObject, true); //Save the object into test/myObject
-json["test"]["myObject"].serialize(myObject, false); //Load the object from test/myObject into myObject
-```
-The serialize function calls the struct's serialize function if it doesn't know how to serialize. This means that you have to implement a serialize function for a struct. In this serialize function, you're defining the names and the variables. Example:
-```cpp
-struct SerializationTest {
-
-	std::vector<oi::Vec3> positions;
-	oi::Matrix model;
-
-	void serialize(JSONNode &json, bool save){
-	   json.serialize("positions", positions, save);
-	   json.serialize("model", model, save);
-	}
-
-};
-```
-Now this object can be serialized. If the object doesn't have a serialize function, calling serialize directly or indirectly will cause the project to not compile. 
 ## Block allocator
 OSTLC also provides some memory management; (Virtual)BlockAllocator. A VirtualBlockAllocator simply handles storing multiple objects in one array; this can be bytes, render objects, particles, or whatever. However; VirtualBlockAllocator isn't for handling memory. BlockAllocator is for handling memory, VirtualBlockAllocator is about handling virtual blocks (objects without knowing their size for example). 
 ### Virtual
@@ -339,3 +318,18 @@ void myFunc(String str){
  //Do whatever; log into some database, display to user, etc.
 }
 ```
+## Serialization
+ostlc includes a way for you to expose your struct to be serialized. You can do this by the ose macro (Osomi SErialization), which is included in the utils/serialization.h header.
+```cpp
+struct Test {
+	
+	u32 a, b, c;
+	f32 d, e, f;
+	
+	ose(Test, 0, a, b, c, d, e, f);
+	
+};
+```
+Now, Test's variables are exposed to the serializer. You can obtain the members by using the 'getMembers' function, it returns the names of all member variables.  
+The ose function also includes a member variable called 'structVersion', which is the current version of the struct (uint/u32). You can get the current version by using 'getCurrentVersion'.   
+It also adds in toString/fromString/toJSON/fromJSON functions for easy automatic serialization.
