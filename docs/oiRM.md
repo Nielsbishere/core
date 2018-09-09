@@ -147,4 +147,4 @@ If you don't want to load a model first, you can output the data directly into a
 ```cpp
 Buffer myoiRM = oiRM::generate(myVbo, myIbo, hasPos, hasUv, hasNrm, vertices, indices, useCompression);
 ```
-Our VBO and IBO are just 1 buffer, since the generate function was created specifically for converting simple models (vec3 pos, vec2 uv, vec3 normal) to our own. the hasPos, hasUv and hasNrm bools specify if those attributes exist (they REQUIRE vec3 pos, vec2 uv, vec3 nrm). Then, you specify the vertices and indices (0 if none) and if it uses compression (which takes a lot longer to generate and load, but is smaller in space).
+Our VBO and IBO are just 1 buffer, since the generate function was created specifically for converting simple models (vec3 pos, vec2 uv, vec3 normal) to our own. the hasPos, hasUv and hasNrm bools specify if those attributes exist (they REQUIRE the formats to be vec3 pos, vec2 uv, vec3 nrm). Then, you specify the vertices and indices (0 if none) and if it uses compression (which takes a lot longer to generate and load, but is smaller in space).
