@@ -36,6 +36,12 @@ namespace oi {
 
 		};
 
+		enum class SBVarFlag {
+			IS_MATRIX = 1,
+			IS_ARRAY = 2,
+			IS_DYNAMIC = 4
+		};
+
 		struct SBStruct {
 
 			u16 nameIndex;
@@ -52,12 +58,6 @@ namespace oi {
 			SBStruct(u16 nameIndex, u16 parent, u32 offset, u16 arrayIndex, u8 flags, u32 length);
 			SBStruct();
 
-		};
-
-		enum class SBVarFlag {
-			IS_MATRIX = 1,
-			IS_ARRAY = 2,
-			IS_DYNAMIC = 4
 		};
 
 		struct SBVar {
@@ -96,10 +96,10 @@ namespace oi {
 			static bool read(Buffer data, SBFile &file);
 			
 			static SBFile convert(ShaderBufferInfo &info, SLFile *names = nullptr);
-			static ShaderBufferInfo convert(Graphics *g, SBFile file, SLFile *names = nullptr);
+			static ShaderBufferInfo convert(SBFile file, SLFile *names = nullptr);
 
 			static Buffer write(SBFile file);					//Creates new buffer
-			static bool write(String path, SBFile file);
+			static bool write(SBFile file, String path);
 		};
 
 	}

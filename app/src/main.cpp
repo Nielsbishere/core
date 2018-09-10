@@ -164,7 +164,7 @@ void MainInterface::refreshPlanet(Planet planet) {
 
 	RMFile file;
 	oiRM::read("out/models/planet.oiRM", file);
-	auto info = oiRM::convert(&g, file);
+	auto info = oiRM::convert(file);
 
 	info.second.buffer = meshBuffer;
 	mesh3 = g.create("planet", info.second);
@@ -223,7 +223,7 @@ void MainInterface::initScene() {
 	//Setup our cube & sphere
 	RMFile file;
 	oiRM::read("res/models/anvil.oiRM", file);
-	auto info = oiRM::convert(&g, file);
+	auto info = oiRM::convert(file);
 
 	info.first.maxIndices = 300000;
 	info.first.maxVertices = 200000;
@@ -238,14 +238,14 @@ void MainInterface::initScene() {
 	g.use(mesh);
 
 	oiRM::read("res/models/sword.oiRM", file);
-	info = oiRM::convert(&g, file);
+	info = oiRM::convert(file);
 
 	info.second.buffer = meshBuffer;
 	mesh0 = g.create("Sword", info.second);
 	g.use(mesh0);
 
 	oiRM::read("res/models/sphere.oiRM", file);
-	info = oiRM::convert(&g, file);
+	info = oiRM::convert(file);
 
 	info.second.buffer = meshBuffer;
 	mesh2 = g.create("Sphere", info.second);
@@ -257,7 +257,7 @@ void MainInterface::initScene() {
 
 	//Setup our quad
 	oiRM::read("res/models/post_processing_quad.oiRM", file);
-	info = oiRM::convert(&g, file);
+	info = oiRM::convert(file);
 	info.first.topologyMode = TopologyMode::Triangle;
 	info.first.fillMode = FillMode::Fill;
 

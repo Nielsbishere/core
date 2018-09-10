@@ -86,7 +86,7 @@ namespace oi {
 			//And create one if it doesn't exist yet (with a certain number of vertices/indices).
 			//But you can just create a MeshBuffer and allocate it in there; but not recommended (because of batching).
 			//It does allocate memory for vertices and indices, so clean that up.
-			static std::pair<MeshBufferInfo, MeshInfo> convert(Graphics *g, RMFile file);
+			static std::pair<MeshBufferInfo, MeshInfo> convert(RMFile file);
 
 			static Buffer write(RMFile &file, bool compression = true);					//Creates new buffer
 			static bool write(RMFile &file, String path, bool compression = true);
@@ -97,7 +97,7 @@ namespace oi {
 			//Vec2 inUv (if hasUv)
 			//Vec3 inNormal (if hasNrm)
 			//Meaning that vbo should be stride * vertices
-			//Ibo should be u32[indices]
+			//Ibo should be u8[indices], u16[indices] or u32[indices], depending on how many vertices are present.
 			static Buffer generate(Buffer vbo, Buffer ibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression);
 
 		};

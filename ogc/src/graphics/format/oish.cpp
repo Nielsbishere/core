@@ -271,7 +271,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 			String name = file.stringlist.names[r.nameIndex];
 
-			buffers[name] = oiSB::convert(g, file.buffers[buf], &file.stringlist);
+			buffers[name] = oiSB::convert(file.buffers[buf], &file.stringlist);
 			info.bufferIds[bufId] = name;
 			++bufId;
 		}

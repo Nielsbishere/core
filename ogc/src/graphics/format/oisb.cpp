@@ -20,7 +20,7 @@ SBFile::SBFile(std::vector<std::vector<u32>> arrays, std::vector<SBStruct> struc
 SBFile::SBFile() {}
 
 
-ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
+ShaderBufferInfo oiSB::convert(SBFile file, SLFile *names) {
 
 	u32 structc = (u32)file.structs.size();
 
@@ -59,7 +59,7 @@ ShaderBufferInfo oiSB::convert(Graphics *g, SBFile file, SLFile *names) {
 			shaderBuffer[i] = {
 				parent,
 				sbva.offset,
-				g->getFormatSize(TextureFormat(sbva.type)),
+				Graphics::getFormatSize(TextureFormat(sbva.type)),
 				sbva.flags == 0 ? std::vector<u32>() : file.arrays[sbva.arrayIndex],
 				names == nullptr ? sbva.nameIndex : names->names[sbva.nameIndex],
 				TextureFormat(sbva.type),
@@ -251,7 +251,7 @@ Buffer oiSB::write(SBFile file) {
 	return buf;
 }
 
-bool oiSB::write(String path, SBFile file) {
+bool oiSB::write(SBFile file, String path) {
 
 	Buffer buf = write(file);
 

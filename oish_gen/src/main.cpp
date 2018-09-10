@@ -85,25 +85,8 @@ void fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObje
 
 			u32 size = (u32)comp.get_declared_struct_member_size(type, i);
 
-			if (size == 0 && (flags & (u32)SBVarFlag::IS_DYNAMIC) != 0) {	//Go through each member and calculate size
-
-				for (u32 j = 0; j < (u32)mem.member_types.size(); ++j) {
-
-					const SPIRType &mmem = comp.get_type(mem.member_types[j]);
-
-					u32 count = mmem.columns;
-
-					for (u32 k : mmem.array)
-						count *= k;
-
-					if(mmem.basetype == SPIRType::Struct)
-						size += count * (u32) comp.get_declared_struct_member_size(mem, j);
-					else
-						size += count * Graphics::getFormatSize(getFormat(mmem));
-
-				}
-
-			}
+			if (size == 0)	//Fetch size if it can't be found (dynamically sized array)
+				size = (u32) comp.get_declared_struct_size(comp.get_type(mem.self));
 
 			obj.length = size;
 			obj.arr = mem.array;

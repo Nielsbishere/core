@@ -329,12 +329,9 @@ end:
 	return true;
 }
 
-std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(Graphics *g, RMFile file) {
+std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 
 	std::pair<MeshBufferInfo, MeshInfo> result;
-
-	if (g == nullptr)
-		return result;
 
 	std::vector<std::vector<std::pair<String, TextureFormat>>> vbos(file.vbos.size());
 	std::vector<Buffer> vb(vbos.size());
@@ -570,15 +567,15 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 				vertices += CopyBuffer((u8*)&channelKey, 4) + chan + CopyBuffer((u8*)&totalAttributes, 4) + bitset.toBuffer();
 
-				//Don't export per attribute compression for 1 channel
-				if (channels != 1) {
+				//TODO: Don't export per attribute compression for 1 channel
+				//if (channels != 1) {
 
 					Bitset bitset0(perAttribute * (u32) attributes.size());
 					bitset0.write(attributes, perAttribute);
 
 					vertices += bitset0.toBuffer();
 
-				}
+				//}
 
 				offset += channels * bpc;
 
