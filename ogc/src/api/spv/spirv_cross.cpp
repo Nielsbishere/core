@@ -14,9 +14,9 @@
 * limitations under the License.
 */
 
-#include "spirv_cross.h"
-#include "GLSL.std.450.h"
-#include "spirv_cfg.h"
+#include "api/spv/spirv_cross.h"
+#include "api/spv/GLSL.std.450.h"
+#include "api/spv/spirv_cfg.h"
 #include <algorithm>
 #include <cstring>
 #include <utility>

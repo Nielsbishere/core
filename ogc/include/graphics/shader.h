@@ -22,7 +22,6 @@ namespace oi {
 			std::vector<ShaderOutput> output;
 			std::vector<ShaderRegister> registers;
 			std::unordered_map<String, ShaderBufferInfo> buffer;
-			std::unordered_map<u32, String> bufferIds;
 
 			std::unordered_map<String, GraphicsResource*> shaderRegister;
 

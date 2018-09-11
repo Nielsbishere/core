@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format/oisl.h>
+#include <types/buffer.h>
 #include "oisb.h"
 
 namespace oi {
@@ -69,17 +70,13 @@ namespace oi {
 			SHInputVar() : SHInputVar(0, 0) {}
 		};
 
-		enum class SHRegisterType : u8 {
-			UNDEFINED = 0, UBO = 1, UBO_WRITE = 2, SSBO = 3, SSBO_WRITE = 4, TEXTURE = 5, IMAGE = 6, SAMPLER = 7
-		};
-
 		enum class SHRegisterAccess { 
 			COMPUTE = 1, VERTEX = 2, GEOMETRY = 4, FRAGMENT = 8 
 		};
 
 		struct SHRegister {
 
-			u8 type;			//SHRegisterType
+			u8 type;			//ShaderRegisterType
 			u8 access;			//SHRegisterAccess
 			u16 representation; //If type is buffer or sampler; represents which buffer to use, same with sampler.
 
@@ -121,6 +118,48 @@ namespace oi {
 
 		};
 
+		enum class ShaderSourceType {
+			GLSL,
+			HLSL,
+			SPV
+		};
+
+		class ShaderSource {
+
+		private:
+
+			std::unordered_map<String, String> src;
+			std::unordered_map<String, CopyBuffer> spv;
+
+			ShaderSourceType type;
+			String name;
+
+		public:
+
+			//ShaderSource from GLSL/HLSL to oiSH
+			//src["vert"] = /* Vertex code */;
+			//src["geom"] = /* Geometry code */;
+			//src["frag"] = /* Fragment code */;
+			//Or
+			//src["comp"] = /* Compute code */;
+			ShaderSource(String name, ShaderSourceType type, std::unordered_map<String, String> src) : name(name), type(type), src(src) { if (type == ShaderSourceType::SPV) Log::throwError<ShaderSource, 0x0>("Invalid constructor used; SPV isn't text but binary"); }
+
+			//ShaderSource from SPV to oiSH
+			//src["vert"] = /* Vertex code */;
+			//src["geom"] = /* Geometry code */;
+			//src["frag"] = /* Fragment code */;
+			//Or
+			//src["comp"] = /* Compute code */;
+			ShaderSource(String name, std::unordered_map<String, CopyBuffer> spv) : name(name), type(ShaderSourceType::SPV), spv(spv) {}
+
+			String getName() { return name; }
+			ShaderSourceType getType() { return type; }
+			
+			const auto getSources() { return src; }
+			const auto getSpv() { return spv; }
+
+		};
+
 		struct oiSH {
 
 			static bool read(String path, SHFile &file);
@@ -128,6 +167,9 @@ namespace oi {
 
 			static SHFile convert(ShaderInfo info);
 			static ShaderInfo convert(Graphics *g, SHFile info);
+
+			static SHFile convert(ShaderSource source);
+			static ShaderInfo compile(ShaderSource source);
 
 			static bool write(String path, SHFile &file);
 			static Buffer write(SHFile &file);

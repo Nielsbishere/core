@@ -14,9 +14,9 @@
 * limitations under the License.
 */
 
-#include "spirv_glsl.h"
-#include "GLSL.std.450.h"
-#include "spirv_common.h"
+#include "api/spv/spirv_glsl.h"
+#include "api/spv/GLSL.std.450.h"
+#include "api/spv/spirv_common.h"
 #include <algorithm>
 #include <assert.h>
 #include <cmath>

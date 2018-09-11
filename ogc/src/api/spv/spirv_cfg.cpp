@@ -14,8 +14,8 @@
 * limitations under the License.
 */
 
-#include "spirv_cfg.h"
-#include "spirv_cross.h"
+#include "api/spv/spirv_cfg.h"
+#include "api/spv/spirv_cross.h"
 #include <algorithm>
 #include <assert.h>
 

@@ -97,11 +97,9 @@ SHFile oiSH::convert(ShaderInfo info) {
 			(u8)reg.access.getValue(),
 			(u16)0,
 
-			(u16)output.stringlist.names.size(),
+			(u16)output.stringlist.add(reg.name),
 			(u16)reg.size
 		};
-
-		output.stringlist.add(reg.name);
 
 	}
 
@@ -147,21 +145,12 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 		u32 id = 0U;
 
-		for (auto &elem2 : info.bufferIds)
-			if (elem2.second == elem.first) {
-				id = elem2.first;
-				break;
-			}
-
 		for (auto &rep : output.registers)
 			if (output.stringlist.names[rep.nameIndex] == elem.first) {
-
-				if (rep.representation != 0)
-					Log::throwError<oiSH, 0x6>("ShaderBuffer had multiple representations; this is illegal");
-
 				rep.representation = id + 1;
-
-			}
+				break;
+			} else if (rep.type <= u32(ShaderRegisterType::SSBO))
+				++id;
 
 		output.buffers[id] = oiSB::convert(elem.second, &output.stringlist);
 	}
@@ -272,7 +261,6 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 			String name = file.stringlist.names[r.nameIndex];
 
 			buffers[name] = oiSB::convert(file.buffers[buf], &file.stringlist);
-			info.bufferIds[bufId] = name;
 			++bufId;
 		}
 	}
