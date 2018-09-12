@@ -38,7 +38,6 @@ SHFile oiSH::convert(ShaderInfo info) {
 		if (istage.code.size() == 0)
 			Log::throwError<oiSH, 0x4>("oiSH::convert couldn't be executed; no bytecode");
 
-
 		SHStage &ostage = output.stage[0];
 
 		ostage.codeIndex = (u16) 0U;

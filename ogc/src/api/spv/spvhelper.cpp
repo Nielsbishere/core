@@ -5,7 +5,7 @@ using namespace oi::gc;
 using namespace oi;
 using namespace spirv_cross;
 
-ShaderStageType SpvHelper::pickType(String &s) {
+ShaderStageType SpvHelper::pickType(const String &s) {
 	if (s == ".vert") return ShaderStageType::Vertex_shader;
 	if (s == ".frag") return ShaderStageType::Fragment_shader;
 	if (s == ".geom") return ShaderStageType::Geometry_shader;
@@ -199,4 +199,110 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 
 	return true;
 
+}
+
+bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess stageAccess) {
+
+	for (Resource &r : res.separate_images) {
+
+		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
+		bool isWriteable = comp.get_decoration(r.id, spv::DecorationNonWritable) == 0U;
+
+		const std::vector<u32> &arr = comp.get_type(r.type_id).array;
+
+		if (info.registers.size() <= binding)
+			info.registers.resize(binding + 1U);
+
+		ShaderRegister &reg = info.registers[binding];
+		u32 size = arr.size() == 0 ? 1 : arr[0];
+
+		if (reg.name == "")
+			reg = ShaderRegister(isWriteable ? ShaderRegisterType::Image : ShaderRegisterType::Texture2D, stageAccess, r.name, size);
+		else {
+
+			reg.access = reg.access.getValue() | stageAccess.getValue();
+
+			if (reg.access == ShaderRegisterAccess::Undefined)
+				return Log::error("Invalid register access");
+		}
+
+	}
+
+	return true;
+
+}
+
+bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess stageAccess) {
+
+	for (Resource &r : res.separate_samplers) {
+
+		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
+
+		if (info.registers.size() <= binding)
+			info.registers.resize(binding + 1U);
+
+		ShaderRegister &reg = info.registers[binding];
+
+		if (reg.name == "")
+			reg = ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1);
+		else {
+
+			reg.access = reg.access.getValue() | stageAccess.getValue();
+
+			if (reg.access == ShaderRegisterAccess::Undefined)
+				return Log::error("Invalid register access");
+		}
+
+	}
+
+	return true;
+
+}
+
+bool SpvHelper::addResources(spirv_cross::Compiler &comp, ShaderStageType type, ShaderInfo &info) {
+
+	ShaderResources res = comp.get_shader_resources();
+	ShaderRegisterAccess stageAccess = type.getName().replace("_shader", "");
+
+	//Get the inputs
+	if (type == ShaderStageType::Vertex_shader)
+		SpvHelper::getStageInputs(comp, res, info.var);
+
+	//Get the outputs
+	if (type == ShaderStageType::Fragment_shader)
+		SpvHelper::getStageOutputs(comp, res, info.output);
+
+	//Get the registers
+
+	if (!SpvHelper::addBuffers(comp, res, info, stageAccess))
+		return Log::error("Couldn't add buffers");
+
+	if (!SpvHelper::addTextures(comp, res, info, stageAccess))
+		return Log::error("Couldn't add textures");
+
+	if (!SpvHelper::addSamplers(comp, res, info, stageAccess))
+		return Log::error("Couldn't add textures");
+
+	return true;
+
+}
+
+bool SpvHelper::addStage(const CopyBuffer &b, ShaderStageType type, ShaderInfo &info) {
+
+	if (b.size() % 4 != 0 || b.size() == 0)
+		return Log::error("SPIR-V Bytecode invalid");
+
+	std::vector<uint32_t> bytecode((u32*)b.addr(), (u32*)(b.addr() + b.size()));
+	Compiler comp(move(bytecode));
+
+	if (!SpvHelper::addResources(comp, type, info))
+		return Log::error("Couldn't add stage resources to shader");
+
+	#ifndef __DEBUG__
+	//TODO: Optimize
+	#endif
+
+	info.stages.push_back(ShaderStageInfo(b, type));
+
+	return true;
 }

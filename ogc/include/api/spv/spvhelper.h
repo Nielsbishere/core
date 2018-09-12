@@ -10,7 +10,7 @@ namespace oi {
 		struct SpvHelper {
 
 			//Get a shader stage type from an extension
-			static ShaderStageType pickType(String &extension);
+			static ShaderStageType pickType(const String &extension);
 
 			//Get texture format from type
 			static TextureFormat getFormat(spirv_cross::SPIRType type);
@@ -27,8 +27,20 @@ namespace oi {
 			//Convert buffer to ShaderBufferInfo
 			static void getBuffer(spirv_cross::Compiler &compiler, spirv_cross::Resource &buffer, ShaderRegister &reg, ShaderBufferInfo &info);
 
-			//Add buffers to oiSH file
+			//Add buffers to shader
 			static bool addBuffers(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess access);
+
+			//Add textures to shader
+			static bool addTextures(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess access);
+
+			//Add samples to shader
+			static bool addSamplers(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess access);
+
+			//Add resources to shader
+			static bool addResources(spirv_cross::Compiler &compiler, ShaderStageType type, ShaderInfo &info);
+
+			//Add stage to shader
+			static bool addStage(const CopyBuffer &buf, ShaderStageType type, ShaderInfo &info);
 
 		};
 

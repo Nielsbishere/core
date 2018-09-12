@@ -15,11 +15,11 @@ namespace oi {
 
 		struct ShaderStageInfo {
 
-			Buffer code;
+			CopyBuffer code;
 			ShaderStageType type;
 
-			ShaderStageInfo(Buffer code, ShaderStageType type) : code(code), type(type) {}
-			ShaderStageInfo() : code(), type() {}
+			ShaderStageInfo(CopyBuffer code, ShaderStageType type) : code(code), type(type) {}
+			ShaderStageInfo() {}
 		};
 
 		class ShaderStage : public GraphicsObject {
