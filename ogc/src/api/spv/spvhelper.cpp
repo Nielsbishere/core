@@ -171,19 +171,19 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 
 		ShaderRegisterType stype = !isUBO ? ShaderRegisterType::SSBO : ShaderRegisterType::UBO;
 
-		if (info.registers.size() <= binding)
-			info.registers.resize(binding + 1U);
+		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
-		ShaderRegister &reg = info.registers[binding];
+		if (itt == info.registers.end()) {
+			info.registers.push_back(ShaderRegister(stype, stageAccess, r.name, 1, binding));
+			itt = info.registers.end() - 1;
+		} else {
 
-		if (reg.name == "")
-			reg = ShaderRegister(stype, stageAccess, r.name, 1);
-		else {
+			ShaderRegisterAccess access = itt->access.getValue() | stageAccess.getValue();
 
-			reg.access = reg.access.getValue() | stageAccess.getValue();
-
-			if (reg.access == ShaderRegisterAccess::Undefined)
+			if (access == ShaderRegisterAccess::Undefined)
 				return Log::error("Invalid register access");
+
+			itt->access = access;
 
 		}
 		
@@ -191,7 +191,7 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 
 		if (it == info.buffer.end()) {
 			ShaderBufferInfo &dat = info.buffer[r.name];
-			SpvHelper::getBuffer(comp, r, reg, dat);
+			SpvHelper::getBuffer(comp, r, *itt, dat);
 		}
 
 		++i;
@@ -209,21 +209,22 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		bool isWriteable = comp.get_decoration(r.id, spv::DecorationNonWritable) == 0U;
 
 		const std::vector<u32> &arr = comp.get_type(r.type_id).array;
-
-		if (info.registers.size() <= binding)
-			info.registers.resize(binding + 1U);
-
-		ShaderRegister &reg = info.registers[binding];
 		u32 size = arr.size() == 0 ? 1 : arr[0];
 
-		if (reg.name == "")
-			reg = ShaderRegister(isWriteable ? ShaderRegisterType::Image : ShaderRegisterType::Texture2D, stageAccess, r.name, size);
-		else {
+		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
-			reg.access = reg.access.getValue() | stageAccess.getValue();
+		if (itt == info.registers.end()) {
+			info.registers.push_back(ShaderRegister(ShaderRegisterType::Texture2D, stageAccess, r.name, size, binding));
+			itt = info.registers.end() - 1;
+		} else {
 
-			if (reg.access == ShaderRegisterAccess::Undefined)
+			ShaderRegisterAccess access = itt->access.getValue() | stageAccess.getValue();
+
+			if (access == ShaderRegisterAccess::Undefined)
 				return Log::error("Invalid register access");
+
+			itt->access = access;
+
 		}
 
 	}
@@ -238,19 +239,20 @@ bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &in
 
 		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
 
-		if (info.registers.size() <= binding)
-			info.registers.resize(binding + 1U);
+		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
-		ShaderRegister &reg = info.registers[binding];
+		if (itt == info.registers.end()) {
+			info.registers.push_back(ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1, binding));
+			itt = info.registers.end() - 1;
+		} else {
 
-		if (reg.name == "")
-			reg = ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1);
-		else {
+			ShaderRegisterAccess access = itt->access.getValue() | stageAccess.getValue();
 
-			reg.access = reg.access.getValue() | stageAccess.getValue();
-
-			if (reg.access == ShaderRegisterAccess::Undefined)
+			if (access == ShaderRegisterAccess::Undefined)
 				return Log::error("Invalid register access");
+
+			itt->access = access;
+
 		}
 
 	}

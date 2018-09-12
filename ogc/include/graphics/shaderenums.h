@@ -60,10 +60,10 @@ namespace oi {
 			ShaderRegisterType type;
 			ShaderRegisterAccess access;
 			String name;
-			u32 size;
+			u32 size, id;
 
-			ShaderRegister(ShaderRegisterType type, ShaderRegisterAccess access, String name, u32 size) : type(type), access(access), name(name), size(size) {}
-			ShaderRegister() : ShaderRegister(0, 0, "", 0) { }
+			ShaderRegister(ShaderRegisterType type, ShaderRegisterAccess access, String name, u32 size, u32 id) : type(type), access(access), name(name), size(size), id(id) {}
+			ShaderRegister() : ShaderRegister(0, 0, "", 0, 0) { }
 
 		};
 

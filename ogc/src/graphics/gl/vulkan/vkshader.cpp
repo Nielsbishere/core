@@ -62,7 +62,7 @@ void Shader::update() {
 
 			descriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptor.dstSet = ext.descriptorSet[0];
-			descriptor.dstBinding = i;
+			descriptor.dstBinding = reg.id;
 			descriptor.dstArrayElement = 0U;
 			descriptor.descriptorType = ShaderRegisterTypeExt(reg.type.getName()).getValue();
 			descriptor.descriptorCount = reg.size;
@@ -234,7 +234,7 @@ bool Shader::init() {
 		VkDescriptorSetLayoutBinding &descInfo = descriptorSet[i];
 		memset(&descInfo, 0, sizeof(descInfo));
 
-		descInfo.binding = i;
+		descInfo.binding = reg.id;
 		descInfo.descriptorCount = reg.size;
 		descInfo.descriptorType = ShaderRegisterTypeExt(info.registers[i].type.getName()).getValue();
 		descInfo.pImmutableSamplers = nullptr;

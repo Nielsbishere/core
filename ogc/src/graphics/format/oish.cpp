@@ -94,6 +94,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 			(u8)reg.type.getValue(),
 			(u8)reg.access.getValue(),
+			(u8)reg.id,
 			(u16)0,
 
 			(u16)output.stringlist.add(reg.name),
@@ -148,7 +149,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 			if (output.stringlist.names[rep.nameIndex] == elem.first) {
 				rep.representation = id + 1;
 				break;
-			} else if (rep.type <= u32(ShaderRegisterType::SSBO))
+			} else if (rep.getType() <= u32(ShaderRegisterType::SSBO))
 				++id;
 
 		output.buffers[id] = oiSB::convert(elem.second, &output.stringlist);
@@ -218,7 +219,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 	for (u32 i = 0; i < (u32)file.registers.size(); ++i) {
 		SHRegister &r = file.registers[i];
 
-		ShaderRegister &reg = registers[i] = ShaderRegister(r.type, r.access, file.stringlist.names[r.nameIndex], (u32) r.size);
+		ShaderRegister &reg = registers[i] = ShaderRegister(r.getType(), r.getAccess(), file.stringlist.names[r.nameIndex], (u32) r.size, r.id);
 
 		if (reg.type.getValue() == 0 || reg.access.getValue() == 0)
 			Log::throwError<oiSH, 0x0>(String("ShaderRegister ") + reg.name + " is invalid");
@@ -248,7 +249,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 		SHRegister &r = file.registers[i];
 
-		if (r.type <= ShaderRegisterType::SSBO && r.type != ShaderRegisterType::Undefined) {
+		if (r.getType() <= ShaderRegisterType::SSBO && r.getType() != ShaderRegisterType::Undefined) {
 
 			u32 buf = r.representation;
 

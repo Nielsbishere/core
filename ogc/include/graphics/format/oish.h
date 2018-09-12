@@ -76,15 +76,18 @@ namespace oi {
 
 		struct SHRegister {
 
-			u8 type;			//ShaderRegisterType
-			u8 access;			//SHRegisterAccess
-			u16 representation; //If type is buffer or sampler; represents which buffer to use, same with sampler.
+			u8 typeAccess;			//ShaderRegisterType << 4 | SHRegisterAccess
+			u8 id;					//Register id
+			u16 representation;		//If type is buffer or sampler; represents which buffer to use, same with sampler.
 
 			u16 nameIndex;
-			u16 size;			//If the type is an array (array of textures for example)
+			u16 size;				//If the type is an array (array of textures for example)
 
-			SHRegister(u8 type, u8 access, u16 representation, u16 nameIndex, u16 size) : type(type), access(access), representation(representation), nameIndex(nameIndex), size(size) {}
-			SHRegister() : SHRegister(0, 0, 0, 0, 0) {}
+			SHRegister(u8 type, u8 access, u8 id, u16 representation, u16 nameIndex, u16 size) : typeAccess(((type & 0xF) << 4) | (access & 0xF)), id(id), representation(representation), nameIndex(nameIndex), size(size) {}
+			SHRegister() : SHRegister(0, 0, 0, 0, 0, 0) {}
+
+			u8 getType() { return typeAccess >> 4; }
+			u8 getAccess() { return typeAccess & 0xF; }
 
 		};
 
