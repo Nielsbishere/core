@@ -86,7 +86,7 @@ if(Vulkan)
 	message("-- Vulkan - enabled")
 
 	if(WIN32)
-		if(DEFINED ENV{VULKAN_SDK})
+		if(DEFINED ENV{VK_SDK_PATH})
 
 			set(VULKAN_LIB vulkan-1)
 			
