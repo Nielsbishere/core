@@ -86,21 +86,18 @@ if(Vulkan)
 	message("-- Vulkan - enabled")
 
 	if(WIN32)
-		message("Windows")
-	
 		if(DEFINED ENV{VULKAN_SDK})
-			message("Vulkan")
 
 			set(VULKAN_LIB vulkan-1)
+			
+			message($ENV{VULKAN_SDK})
 			
 			include_directories($ENV{VULKAN_SDK}/Include)
 
 			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 				link_directories($ENV{VULKAN_SDK}/Lib)
-				message("x64")
 			else()
 				link_directories($ENV{VULKAN_SDK}/Lib32)
-				message("x86")
 			endif()
 
 		else()
