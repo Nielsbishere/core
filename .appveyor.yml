@@ -14,9 +14,7 @@ install:
     curl -L https://vulkan.lunarg.com/sdk/download/1.1.82.1/windows/VulkanSDK-1.1.82.1-Installer.exe -o VulkanSDK.exe
 
     .\VulkanSDK.exe /S
-
-    set
-
+    
     make_pc.bat
 build:
   project: builds/Visual Studio 15 2017 Win64/oic.sln
