@@ -90,12 +90,12 @@ if(Vulkan)
 
 			set(VULKAN_LIB vulkan-1)
 			
-			include_directories($ENV{VULKAN_SDK}/Include)
+			include_directories($ENV{VK_SDK_PATH}/Include)
 
 			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-				link_directories($ENV{VULKAN_SDK}/Lib)
+				link_directories($ENV{VK_SDK_PATH}/Lib)
 			else()
-				link_directories($ENV{VULKAN_SDK}/Lib32)
+				link_directories($ENV{VK_SDK_PATH}/Lib32)
 			endif()
 
 		else()
