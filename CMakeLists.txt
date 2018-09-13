@@ -90,8 +90,6 @@ if(Vulkan)
 
 			set(VULKAN_LIB vulkan-1)
 			
-			message($ENV{VULKAN_SDK})
-			
 			include_directories($ENV{VULKAN_SDK}/Include)
 
 			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
