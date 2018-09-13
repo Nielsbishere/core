@@ -1,5 +1,5 @@
 # OCore (Osomi Core)
-Osomi Core - A basic framework for engines
+Osomi Core - A basic framework for engines  
 [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore)
 # Building using CMake
 This project uses CMake and a few tools to help the user setup their environment.
