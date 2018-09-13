@@ -22,10 +22,9 @@ build:
   project: builds/Visual Studio 15 2017 Win64/oic.sln
   parallel: true
   verbosity: minimal
-notifications:
-- provider: Webhook
-  url: https://discordapp.com/api/webhooks/489782698265804805/AOF5sNneNK2VKPDqT7tvHW5nWQW9XkaN55KAv2YMMDdtrgbOsAE94-pjvQw-D3UplDe8
-  method: POST
-  on_build_success: true
-  on_build_failure: true
-  on_build_status_changed: false
+on_success:
+  - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
+  - ps: ./send.ps1 success $env:WEBHOOK_URL
+on_failure:
+  - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
+  - ps: ./send.ps1 failure $env:WEBHOOK_URL
