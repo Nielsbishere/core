@@ -1,7 +1,6 @@
 version: 0.0.0.{build}
 image: Visual Studio 2017
 configuration:
-- Debug
 - Release
 platform: x64
 init:
