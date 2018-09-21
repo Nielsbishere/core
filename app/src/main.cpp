@@ -334,23 +334,6 @@ void MainInterface::initScene() {
 
 void MainInterface::renderScene(){
 
-	//Update per execution shader buffer
-	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
-
-	perExecution->open();
-	perExecution->set("ambient", Vec3(1));
-	perExecution->set("time", (f32) getRuntime());
-	perExecution->set("power", 1.f);
-	perExecution->close();
-
-	//Setup post processing settings
-	ShaderBuffer *postProcessing = shader0->get<ShaderBuffer>("PostProcessingSettings");
-
-	postProcessing->open();
-	postProcessing->set("exposure", exposure);
-	postProcessing->set("gamma", gamma);
-	postProcessing->close();
-
 	//Start 'rendering'
 	cmdList->begin();
 
@@ -411,8 +394,6 @@ void MainInterface::initSceneSurface(){
 	
 void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
 
-	Log::println(b.toString());
-
 	if (b.getBindingType() == BindingType::KEYBOARD) {
 
 		if (b.toKey() == Key::Volume_up || b.toKey() == Key::Up)
@@ -460,6 +441,23 @@ void MainInterface::update(f32 dt) {
 	objects[1].diffuse = hrock;
 
 	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
+
+	//Update per execution shader buffer
+	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
+
+	perExecution->open();
+	perExecution->set("ambient", Vec3(1));
+	perExecution->set("time", (f32)getRuntime());
+	perExecution->set("power", 1.f);
+	perExecution->close();
+
+	//Setup post processing settings
+	ShaderBuffer *postProcessing = shader0->get<ShaderBuffer>("PostProcessingSettings");
+
+	postProcessing->open();
+	postProcessing->set("exposure", exposure);
+	postProcessing->set("gamma", gamma);
+	postProcessing->close();
 
 }
 
