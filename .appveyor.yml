@@ -4,7 +4,10 @@ configuration: Release
 platform: x64
 init:
 - cmd: >-
-    if exist "C:\VulkanSDK" ( goto :eof )
+    if exist "C:\VulkanSDK" ( 
+    set VULKAN_SDK=C:\VulkanSDK\1.1.82.1
+    goto :eof 
+    )
 
     curl -L https://vulkan.lunarg.com/sdk/download/1.1.82.1/windows/VulkanSDK-1.1.82.1-Installer.exe -o VulkanSDK.exe
 
