@@ -3,7 +3,7 @@ Osomi Core - A basic framework for engines
 # Build status
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |
-| Windows      | x86_64, x64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore) |
+| Windows      |  x86, x86_64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore) |
 | Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   no ||
 | Linux | none      |    no |
 | Mac OS | none      |    no |  
