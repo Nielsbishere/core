@@ -11,8 +11,11 @@ environment:
 install:
 - cmd: >-
     set VULKAN_SDK=C:\VulkanSDK\%VULKAN_VERSION%
+    
     if not exist "%VULKAN_SDK%" curl -L https://vulkan.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/VulkanSDK-%VULKAN_VERSION%-Installer.exe -o VulkanSDK.exe
+    
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
+    
     make_pc.bat
     
 cache: C:\VulkanSDK\%VULKAN_VERSION%
