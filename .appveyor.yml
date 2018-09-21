@@ -7,15 +7,15 @@ init:
 environment:
   WEBHOOK_URL:
     secure: muMZwldprBMRzGkLajQJgtatA5VKNxVtMaQ88cc1rkncBjS2diFQzJaRotAZSIQoAb5gbFw391raBujyxrVZe7iJxzB0vOC/Cx2eXx+Mct6zs3sMZq5tF7fUpbJhtrHi7Uz0byhaBMmH+XD++xdiAJ6+ihuDlv8MQp3E53p5ZfQ=
+  VULKAN_VERSION: 1.1.82.1
 install:
 - cmd: >-
-    setlocal enabledelayedexpansion
-    if not exist "C:\VulkanSDK" curl -L https://vulkan.lunarg.com/sdk/download/1.1.82.1/windows/VulkanSDK-1.1.82.1-Installer.exe -o VulkanSDK.exe
-    if not exist "C:\VulkanSDK" .\VulkanSDK.exe /S
-    set VULKAN_SDK=C:\VulkanSDK\1.1.82.1
+    set VULKAN_SDK=C:\VulkanSDK\%VULKAN_VERSION%
+    if not exist "%VULKAN_SDK%" curl -L https://vulkan.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/VulkanSDK-%VULKAN_VERSION%-Installer.exe -o VulkanSDK.exe
+    if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
     make_pc.bat
     
-cache: C:\VulkanSDK
+cache: C:\VulkanSDK\%VULKAN_VERSION%
 build:
   project: builds/Visual Studio 15 2017 Win64/oic.sln
   parallel: true
