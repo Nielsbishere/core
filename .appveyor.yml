@@ -9,7 +9,7 @@ environment:
     secure: muMZwldprBMRzGkLajQJgtatA5VKNxVtMaQ88cc1rkncBjS2diFQzJaRotAZSIQoAb5gbFw391raBujyxrVZe7iJxzB0vOC/Cx2eXx+Mct6zs3sMZq5tF7fUpbJhtrHi7Uz0byhaBMmH+XD++xdiAJ6+ihuDlv8MQp3E53p5ZfQ=
 install:
 - cmd: >-
-    if exist "C:\VulkanSDK" goto :vulkanInstalled
+    if exist "C:\VulkanSDK" goto :ree
     
     curl -L https://vulkan.lunarg.com/sdk/download/1.1.82.1/windows/VulkanSDK-1.1.82.1-Installer.exe -o VulkanSDK.exe
     .\VulkanSDK.exe /S
@@ -18,7 +18,7 @@ install:
     make_pc.bat
     goto :eof
     
-    :vulkanInstalled
+    :ree
     set VULKAN_SDK=C:\VulkanSDK\1.1.82.1
     make_pc.bat
     
