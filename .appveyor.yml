@@ -3,9 +3,15 @@ image: Visual Studio 2017
 configuration: Release
 platform: x64
 init:
+- cmd: ''
+environment:
+  WEBHOOK_URL:
+    secure: muMZwldprBMRzGkLajQJgtatA5VKNxVtMaQ88cc1rkncBjS2diFQzJaRotAZSIQoAb5gbFw391raBujyxrVZe7iJxzB0vOC/Cx2eXx+Mct6zs3sMZq5tF7fUpbJhtrHi7Uz0byhaBMmH+XD++xdiAJ6+ihuDlv8MQp3E53p5ZfQ=
+install:
 - cmd: >-
     if exist "C:\VulkanSDK" ( 
     set VULKAN_SDK=C:\VulkanSDK\1.1.82.1
+    make_pc.bat
     goto :eof 
     )
 
@@ -16,11 +22,8 @@ init:
     set VULKAN_SDK=C:\VulkanSDK\1.1.82.1
 
     del VulkanSDK.exe
-environment:
-  WEBHOOK_URL:
-    secure: muMZwldprBMRzGkLajQJgtatA5VKNxVtMaQ88cc1rkncBjS2diFQzJaRotAZSIQoAb5gbFw391raBujyxrVZe7iJxzB0vOC/Cx2eXx+Mct6zs3sMZq5tF7fUpbJhtrHi7Uz0byhaBMmH+XD++xdiAJ6+ihuDlv8MQp3E53p5ZfQ=
-install:
-- cmd: make_pc.bat
+    
+    make_pc.bat
 cache: C:\VulkanSDK
 build:
   project: builds/Visual Studio 15 2017 Win64/oic.sln
