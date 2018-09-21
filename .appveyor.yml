@@ -6,6 +6,8 @@ init:
 - cmd: >-
     curl -L https://vulkan.lunarg.com/sdk/download/1.1.82.1/windows/VulkanSDK-1.1.82.1-Installer.exe -o VulkanSDK.exe
 
+    set
+
     .\VulkanSDK.exe /S
 
     set VULKAN_SDK=C:\VulkanSDK\1.1.82.1
