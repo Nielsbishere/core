@@ -1,5 +1,5 @@
 # Introduction
-![OCore architecture](docs/Osomi%20Core%20architecture.png)  
+![OCore architecture](Osomi%20Core%20architecture.png)  
 As shown above, the platforms could be expanded by just adding an entrypoint and implementing the platform-dependent code in owc.  
 The required libraries (ostlc; Osomi STandard Library Core and owc; Osomi Window Core) are required for window creation and things like logging, error handling, input, etc.  
 The optional libraries use owc (and ostlc) to add functionality that could also be created by the end-user, but are convenient to have. This includes rendering (ogc; Osomi Graphics Core), besides future implementations, such as sockets.  
