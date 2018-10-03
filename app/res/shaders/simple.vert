@@ -1,16 +1,17 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shader_draw_parameters : require
+#extension GL_GOOGLE_include_directive : require
+
+#include "lighting.glsl"
 
 struct PerObject {
 
-	mat4 m;
-	mat4 mvp;
+	Matrix m;
+	Matrix mvp;
 
-	uint diffuse;
-	uint specular;
-	uint ambient;
-	uint padding;
+	Vec3u padding;
+	MaterialHandle material;
 
 };
 
@@ -20,28 +21,28 @@ layout(std430, binding = 0) buffer Objects {
 	
 } obj;
 
-layout(location = 0) out vec3 pos;
-layout(location = 1) out vec2 uv;
-layout(location = 2) out vec3 normal;
-layout(location = 3) flat out uint diffuse;
+layout(location = 0) out Vec3 pos;
+layout(location = 1) out Vec2 uv;
+layout(location = 2) out Vec3 normal;
+layout(location = 3) flat out MaterialHandle material;
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec2 inUv;
-layout(location = 2) in vec3 inNormal;
+layout(location = 0) in Vec3 inPosition;
+layout(location = 1) in Vec2 inUv;
+layout(location = 2) in Vec3 inNormal;
 
 out gl_PerVertex {
-    vec4 gl_Position;
+    Vec4 gl_Position;
 };
 
 void main() {
 
 	PerObject obj = obj.arr[gl_InstanceIndex];
 
-    gl_Position = obj.mvp * vec4(inPosition, 1.0);
+    gl_Position = obj.mvp * Vec4(inPosition, 1);
 
-	pos = (obj.m * vec4(inPosition, 1.0)).xyz;
+	pos = (obj.m * Vec4(inPosition, 1)).xyz;
 	uv = inUv;
-	normal = normalize(obj.m * vec4(normalize(inNormal), 0.0)).xyz;
-	diffuse = obj.diffuse;
+	normal = normalize(obj.m * Vec4(normalize(inNormal), 0)).xyz;
+	material = obj.material;
 
 }

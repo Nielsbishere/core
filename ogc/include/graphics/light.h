@@ -1,4 +1,5 @@
 #pragma once
+#include <types/vector.h>
 
 namespace oi {
 

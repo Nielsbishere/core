@@ -17,16 +17,18 @@ namespace oi {
 
 		};
 
+		typedef u32 TextureHandle;
+
 		class TextureList : public GraphicsResource {
 
 			friend class Graphics;
 
 		public:
 
-			Texture *get(u32 i);
-			void set(u32 i, Texture *tex);
+			Texture *get(TextureHandle i);
+			void set(TextureHandle i, Texture *tex);
 
-			u32 alloc(Texture *tex);
+			TextureHandle alloc(Texture *tex);
 			void dealloc(Texture *tex);
 
 			u32 size();

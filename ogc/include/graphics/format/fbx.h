@@ -1,5 +1,6 @@
 #pragma once
 #include <types/buffer.h>
+#include <types/vector.h>
 #include <template/enum.h>
 
 namespace oi {
@@ -686,6 +687,11 @@ namespace oi {
 
 			static std::unordered_map<String, Buffer> convertMeshes(String fbxPath, bool compression);
 			static bool convertMeshes(String fbxPath, String outPath, bool compression);
+
+		private:
+
+			static Vec3 getMaterialCol(FbxNode *nod);
+			static f32 getMaterialNum(FbxNode *nod);
 
 		};
 

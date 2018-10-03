@@ -132,6 +132,11 @@ namespace oi {
 			//This can be a dynamic object buffer, light buffer, etc.
 			ShaderBuffer *instantiate(u32 objects);	
 
+			//If info.allocate is false, you can allocate a buffer yourself
+			//This can be a dynamic object buffer, light buffer, etc.
+			//The length of the GBuffer should match the ShaderBuffer's length
+			void setBuffer(u32 objects, GBuffer *g);
+
 			void open();					//Call this if you start writing/reading
 			void copy(Buffer buf);			//Copy a buffer
 			void close();					//Call this if you end writing
@@ -152,6 +157,7 @@ namespace oi {
 			bool init();
 
 			void calculateArrayInfo(std::vector<u32> &off, std::vector<u32> &len, u32 stride, u32 &offset, u32 &count);
+			void setObjectCount(u32 count);
 
 		private:
 

@@ -140,30 +140,47 @@ u32 ShaderBuffer::getSize() { return (u32) info.size; }
 ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
 
 	if (buffer == nullptr) {
-
-		for (ShaderBufferObject &obj : info.elements) {
-			auto &arr = obj.arr;
-
-			if (arr.size() != 0 && arr[arr.size() - 1] == 0) {
-
-				arr[arr.size() - 1] = objects;
-				u32 siz = 1;
-
-				for (u32 i : arr)
-					siz *= i;
-
-				info.size += siz * obj.length;
-				break;
-			}
-		}
-
+		setObjectCount(objects);
 		buffer = g->create(getName() + " buffer", GBufferInfo(info.type.getValue() - 1, info.size));
 		g->use(buffer);
-
 	} else
 		Log::throwError<ShaderBuffer, 0x0>("Can't set the buffer when it's already set");
 
 	return this;
+
+}
+
+void ShaderBuffer::setBuffer(u32 objects, GBuffer *g) {
+
+	if (buffer != nullptr)
+		Log::throwError<ShaderBuffer, 0x1>("Can't set the buffer when it's already set");
+
+	setObjectCount(objects);
+
+	if(g == nullptr || g->getSize() != info.size)
+		Log::throwError<ShaderBuffer, 0x1>("GBuffer size should match ShaderBuffer size");
+
+	buffer = g;
+
+}
+
+void ShaderBuffer::setObjectCount(u32 count) {
+
+	for (ShaderBufferObject &obj : info.elements) {
+		auto &arr = obj.arr;
+
+		if (arr.size() != 0 && arr[arr.size() - 1] == 0) {
+
+			arr[arr.size() - 1] = count;
+			u32 siz = 1;
+
+			for (u32 i : arr)
+				siz *= i;
+
+			info.size += siz * obj.length;
+			break;
+		}
+	}
 
 }
 

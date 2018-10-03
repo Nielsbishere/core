@@ -4,7 +4,8 @@
 #include <types/vector.h>
 #include <types/matrix.h>
 #include <platforms/generic.h>
-#include <graphics/texture.h>
+#include <graphics/texturelist.h>
+#include <graphics/materiallist.h>
 #include <utils/serialization.h>
 
 struct Application {
@@ -74,9 +75,11 @@ private:
 	oi::gc::Mesh *mesh, *mesh0, *mesh1, *mesh2, *mesh3 = nullptr;
 	oi::gc::DrawList *drawList, *drawList0;
 	oi::gc::RenderTarget *renderTarget;
+	oi::gc::MaterialList *materialList;
 
 	oi::gc::Texture *osomi, *water, *rock;
-	u32 hwater, hrock;
+	oi::gc::TextureHandle hwater, hrock;
+	oi::gc::MaterialHandle hwaterMat, hrockMat;
 
 	float exposure = .15f, gamma = .85f;
 	oi::Vec2 prevMouse;
@@ -86,10 +89,8 @@ private:
 		oi::Matrix m;
 		oi::Matrix mvp;
 
-		u32 diffuse;
-		u32 specular;
-		u32 ambient;
-		u32 padding;
+		oi::Vec3u padding;
+		oi::gc::MaterialHandle diffuse;
 
 	};
 

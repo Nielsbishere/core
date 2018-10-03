@@ -16,6 +16,7 @@
 #include "graphics/drawlist.h"
 #include "graphics/versionedtexture.h"
 #include "graphics/texturelist.h"
+#include "graphics/materiallist.h"
 #include "api/stbi/stbi_load.h"
 
 #undef min
@@ -226,6 +227,10 @@ VersionedTexture *Graphics::create(String name, VersionedTextureInfo info) {
 
 TextureList *Graphics::create(String name, TextureListInfo info) {
 	return init<TextureList>(name, info);
+}
+
+MaterialList *Graphics::create(String name, MaterialListInfo info) {
+	return init<MaterialList>(name, info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

@@ -1,32 +1,35 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_GOOGLE_include_directive : require
 
-layout(location = 0) in vec2 uv;
+#include "types.glsl"
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) in Vec2 uv;
+
+layout(location = 0) out Vec4 outColor;
 
 layout(binding = 0) uniform sampler samp;
 layout(binding = 1) uniform texture2D tex;
 
 layout(binding = 2) uniform PostProcessingSettings {
 
-	float exposure;
-	float gamma;
-	vec2 padding;
+	Vec2 padding;
+	f32 exposure;
+	f32 gamma;
 
 } settings;
 
-vec4 sample2D(sampler s, texture2D t, vec2 uv){
+Vec4 sample2D(sampler s, texture2D t, Vec2 uv){
 	return texture(sampler2D(t, s), uv);
 }
 
 void main() {
 	
-	vec3 col = sample2D(samp, tex, uv).rgb;
+	Vec3 col = sample2D(samp, tex, uv).rgb;
 	
     //Exposure with gamma correction 
 	
-    col = pow(vec3(1) - exp(-col * settings.exposure), vec3(1.0 / settings.gamma));
+    col = pow(Vec3(1) - exp(-col * settings.exposure), Vec3(1.0f / settings.gamma));
 	
-    outColor = vec4(col, 1);
+    outColor = Vec4(col, 1);
 }

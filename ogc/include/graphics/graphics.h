@@ -29,6 +29,7 @@ namespace oi {
 		class DrawList;
 		class VersionedTexture;
 		class TextureList;
+		class MaterialList;
 
 		class GraphicsObject;
 
@@ -48,6 +49,7 @@ namespace oi {
 		struct DrawListInfo;
 		struct VersionedTextureInfo;
 		struct TextureListInfo;
+		struct MaterialListInfo;
 
 		enum class TextureFormatStorage;
 
@@ -95,6 +97,7 @@ namespace oi {
 			DrawList *create(String name, DrawListInfo info);
 			VersionedTexture *create(String name, VersionedTextureInfo info);
 			TextureList *create(String name, TextureListInfo info);
+			MaterialList *create(String name, MaterialListInfo info);
 
 			GraphicsExt &getExtension();
 

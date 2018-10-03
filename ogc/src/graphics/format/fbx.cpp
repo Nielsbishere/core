@@ -223,11 +223,60 @@ FbxFile *FbxFile::read(String fbxPath) {
 
 }
 
+Vec3 Fbx::getMaterialCol(FbxNode *nod) {
+
+	if (nod == nullptr || nod->getProperties() < 7)
+		return {};
+
+	return Vec3((f32)nod->getProperty(4)->cast<FbxDouble>()->get(), (f32)nod->getProperty(5)->cast<FbxDouble>()->get(), (f32)nod->getProperty(6)->cast<FbxDouble>()->get());
+
+}
+
+f32 Fbx::getMaterialNum(FbxNode *nod) {
+
+	if (nod == nullptr || nod->getProperties() < 5)
+		return 0.f;
+
+	return (f32)nod->getProperty(4)->cast<FbxDouble>()->get();
+
+}
+
 std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compression) {
 
 	Timer t;
 
 	FbxFile *file = FbxFile::read(buf);
+
+	const char *zeroNe = "\0\x1";
+	String zerone = String((char*)zeroNe, 2);
+
+	for (FbxNode *node : file->get()->findNodes("Objects/Material")) {
+
+		String name = node->getProperty(1)->cast<FbxString>()->get().untilFirst(zerone);
+
+		std::unordered_map<String, FbxNode*> types;
+
+		for (FbxNode *mat : node->findNodes("Properties70/P")) {
+			String prop = mat->getProperty(0)->cast<FbxString>()->get().untilFirst(zerone);
+			types[prop] = mat;
+		}
+
+		Vec3 emissive = getMaterialCol(types["EmissiveColor"]);
+		emissive *= getMaterialNum(types["EmissiveFactor"]);
+		Vec3 ambient = getMaterialCol(types["AmbientColor"]);
+		ambient *= getMaterialNum(types["AmbientFactor"]);
+		Vec3 diffuse = getMaterialCol(types["DiffuseColor"]);
+		f32 transparent = getMaterialCol(types["TransparentColor"]).x;
+		Vec3 specular = getMaterialCol(types["SpecularColor"]);
+		specular *= getMaterialNum(types["SpecularFactor"]);
+		f32 shininess = getMaterialNum(types["Shininess"]);
+		f32 shininessExponent = getMaterialNum(types["ShininessExponent"]);
+		Vec3 reflection = getMaterialCol(types["ReflectionColor"]);
+		reflection *= getMaterialNum(types["ReflectionFactor"]);
+
+		//TODO: Save materials
+
+	}
 
 	std::unordered_map<String, Buffer> meshes;
 
@@ -243,10 +292,8 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 			lastError = "Couldn't convert geometry object; there was no string object for name";
 			goto failed;
 		}
-
-		const char *zeroNe = "\0\x1";
 		
-		String name = namep->cast<FbxString>()->get().untilFirst(String((char*) zeroNe, 2));
+		String name = namep->cast<FbxString>()->get().untilFirst(zerone);
 
 		FbxNodes vertices = node->findNodes("Vertices");						//Vec3d[]
 		FbxNodes vertexOrder = node->findNodes("PolygonVertexIndex");			//i32[]
@@ -390,7 +437,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 			goto failed;
 		}
 
-		meshes[name.untilFirst(String((char*) zeroNe, 2))] = obuf;
+		meshes[name.untilFirst(zerone)] = obuf;
 
 	}
 

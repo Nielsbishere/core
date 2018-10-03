@@ -21,7 +21,6 @@
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
 #include <graphics/versionedtexture.h>
-#include <graphics/texturelist.h>
 #include <graphics/sampler.h>
 #include <graphics/camera.h>
 #include <utils/random.h>
@@ -203,6 +202,8 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
+	Fbx::convertMeshes("res/models/cube.fbx", "out/models/cube.oiRM", true);
+
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
 
@@ -295,6 +296,18 @@ void MainInterface::initScene() {
 	hrock = tex->alloc(rock);
 	hwater = tex->alloc(water);
 
+	materialList = g.create("Materials", MaterialListInfo(tex, 2));
+
+	MaterialStruct rockMat;
+	rockMat.t_diffuse = hrock;
+
+	MaterialStruct waterMat;
+	waterMat.t_diffuse = hwater;
+
+	hrockMat = materialList->alloc(rockMat);
+	hwaterMat = materialList->alloc(waterMat);
+	materialList->update();
+
 	//Allocate sampler
 	sampler = g.create("Default sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
 	g.use(sampler);
@@ -312,6 +325,8 @@ void MainInterface::initScene() {
 	//Setup lighting
 	shader->get<ShaderBuffer>("PointLights")->instantiate(1);
 	shader->get<ShaderBuffer>("SpotLights")->instantiate(1);
+
+	shader->get<ShaderBuffer>("Materials")->setBuffer(materialList->getSize(), materialList->getBuffer());
 
 	ShaderBuffer *directionalLights = shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
 
@@ -467,6 +482,7 @@ void MainInterface::onAspectChange(float asp) {
 
 MainInterface::~MainInterface(){
 	g.finish();
+	g.destroy(materialList);
 	g.destroy(camera);
 	g.destroy(sampler);
 	g.destroy(rock);
