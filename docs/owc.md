@@ -3,7 +3,10 @@
 Files are written though the FileManager; not std::ifstream or std::ofstream. This is because low-level, there might be different ways of reading/writing. This is especially true when using Android; because resources packed inside the APK are read-only and can't be read by std::ifstream. FileManager has the read and write function that take a path and buffer or string.  
 The FileManager can be acquired by using the FileManager::get() function (if set up correctly).
 ### File paths
-Because of the resource model on Android, we use an indicator before our file path. "out/" is when you want the file to be written and you want to read what you've written; it is an actual file on Android in the program's directory. "res/" is when you just want to read a file and writing to it can only work on PC (it's prevented by default; so please use out/ instead).
+Because of the resource model on Android, we use an indicator before our file path.  
+"out/" is when you want the file to be written and you want to read what you've written; it is an actual **out**put file (on Android in the program's directory).  
+"res/" is when you just want to read a file; it's basically an asset, or a **res**ource that you can only modify offline.  
+"mod/" is access to a "res/" folder and wanting to **mod**ify it. This should only be used for tools targeted at desktop platforms. On devices that use roms/apks, this is impossible and you should only use it when you're sure you want to replace the resource. You can check FileManager's canModifyAssets to check if you can use this.
 ### Checking directories/files
 If you want a directory path to exist, you can use the 'mkdir' function in FileManager. The fileExists, dirExists and exists functions are used to determine if something is already on the disk.
 ## Osomi String List (.oiSL)
