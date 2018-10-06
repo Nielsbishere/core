@@ -22,7 +22,7 @@ namespace oi {
 			static void getStageOutputs(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, std::vector<ShaderOutput> &output);
 
 			//Get shader stage inputs into the ShaderInputs
-			static void getStageInputs(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, std::vector<ShaderVBVar> &output);
+			static void getStageInputs(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, std::vector<ShaderInput> &output);
 
 			//Convert buffer to ShaderBufferInfo
 			static void getBuffer(spirv_cross::Compiler &compiler, spirv_cross::Resource &buffer, ShaderRegister &reg, ShaderBufferInfo &info);
@@ -37,7 +37,7 @@ namespace oi {
 			static bool addSamplers(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess access);
 
 			//Add resources to shader
-			static bool addResources(spirv_cross::Compiler &compiler, ShaderStageType type, ShaderInfo &info);
+			static bool addResources(spirv_cross::Compiler &compiler, ShaderStageType type, ShaderInfo &info, std::vector<ShaderInput> &input, std::vector<ShaderOutput> &output);
 
 			//Add stage to shader
 			static bool addStage(const CopyBuffer &buf, ShaderStageType type, ShaderInfo &info);

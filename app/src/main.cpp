@@ -331,7 +331,7 @@ void MainInterface::initScene() {
 	ShaderBuffer *directionalLights = shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
 
 	directionalLights->open();
-	directionalLights->set("light/dir", Vec3(0, -1, 0));
+	directionalLights->set("light/dir", Vec3(-1, 0, -1));
 	directionalLights->set("light/intensity", 16.f);
 	directionalLights->set("light/col", Vec3(1.f));
 	directionalLights->close();

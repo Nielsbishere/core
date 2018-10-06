@@ -125,8 +125,8 @@ LightResult calculateSpot(Light sli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power
 
 }
 
-Vec3 calculateLighting(LightResult res, Vec3 col, Vec3 ambient){
-	return (res.diffuse + res.specular + ambient) * col;
+Vec3 calculateLighting(LightResult res, Vec3 col, Vec3 ambient, MaterialStruct mat){
+	return (res.diffuse * mat.diffuse + res.specular * mat.specular * mat.shininess + ambient * mat.ambient) * col;
 }
 
 //Camera

@@ -127,13 +127,13 @@ void SpvHelper::getStageOutputs(spirv_cross::Compiler &comp, spirv_cross::Shader
 
 }
 
-void SpvHelper::getStageInputs(spirv_cross::Compiler &comp, spirv_cross::ShaderResources &res, std::vector<ShaderVBVar> &output) {
+void SpvHelper::getStageInputs(spirv_cross::Compiler &comp, spirv_cross::ShaderResources &res, std::vector<ShaderInput> &output) {
 
 	output.resize(res.stage_inputs.size());
 
 	u32 i = 0;
 	for (Resource &r : res.stage_inputs) {
-		output[i] = ShaderVBVar(SpvHelper::getFormat(comp.get_type_from_variable(r.id)), r.name);
+		output[i] = ShaderInput(SpvHelper::getFormat(comp.get_type_from_variable(r.id)), r.name);
 		++i;
 	}
 
@@ -261,18 +261,16 @@ bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &in
 
 }
 
-bool SpvHelper::addResources(spirv_cross::Compiler &comp, ShaderStageType type, ShaderInfo &info) {
+bool SpvHelper::addResources(spirv_cross::Compiler &comp, ShaderStageType type, ShaderInfo &info, std::vector<ShaderInput> &input, std::vector<ShaderOutput> &output) {
 
 	ShaderResources res = comp.get_shader_resources();
 	ShaderRegisterAccess stageAccess = type.getName().replace("_shader", "");
 
 	//Get the inputs
-	if (type == ShaderStageType::Vertex_shader)
-		SpvHelper::getStageInputs(comp, res, info.var);
+	SpvHelper::getStageInputs(comp, res, input);
 
 	//Get the outputs
-	if (type == ShaderStageType::Fragment_shader)
-		SpvHelper::getStageOutputs(comp, res, info.output);
+	SpvHelper::getStageOutputs(comp, res, output);
 
 	//Get the registers
 
@@ -297,14 +295,17 @@ bool SpvHelper::addStage(const CopyBuffer &b, ShaderStageType type, ShaderInfo &
 	std::vector<uint32_t> bytecode((u32*)b.addr(), (u32*)(b.addr() + b.size()));
 	Compiler comp(move(bytecode));
 
-	if (!SpvHelper::addResources(comp, type, info))
+	std::vector<ShaderInput> input;
+	std::vector<ShaderOutput> output;
+
+	if (!SpvHelper::addResources(comp, type, info, input, output))
 		return Log::error("Couldn't add stage resources to shader");
 
 	#ifndef __DEBUG__
 	//TODO: Optimize
 	#endif
 
-	info.stages.push_back(ShaderStageInfo(b, type));
+	info.stages.push_back(ShaderStageInfo(b, type, input, output));
 
 	return true;
 }

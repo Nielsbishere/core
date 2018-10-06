@@ -18,8 +18,9 @@ namespace oi {
 			std::vector<ShaderStage*> stage;
 			std::vector<ShaderStageInfo> stages;
 
-			std::vector<ShaderVBVar> var;
-			std::vector<ShaderOutput> output;
+			std::vector<ShaderInput> inputs;
+			std::vector<ShaderOutput> outputs;
+
 			std::vector<ShaderRegister> registers;
 			std::unordered_map<String, ShaderBufferInfo> buffer;
 

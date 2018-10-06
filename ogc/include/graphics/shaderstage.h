@@ -4,6 +4,7 @@
 #include <template/enum.h>
 #include <types/buffer.h>
 #include "graphics/graphicsobject.h"
+#include "graphics/shaderenums.h"
 
 namespace oi {
 
@@ -18,7 +19,10 @@ namespace oi {
 			CopyBuffer code;
 			ShaderStageType type;
 
-			ShaderStageInfo(CopyBuffer code, ShaderStageType type) : code(code), type(type) {}
+			std::vector<ShaderInput> input;
+			std::vector<ShaderOutput> output;
+
+			ShaderStageInfo(CopyBuffer code, ShaderStageType type, std::vector<ShaderInput> input, std::vector<ShaderOutput> output) : code(code), type(type), input(input), output(output) {}
 			ShaderStageInfo() {}
 		};
 

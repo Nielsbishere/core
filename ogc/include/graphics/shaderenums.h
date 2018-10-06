@@ -12,13 +12,13 @@ namespace oi {
 		class ShaderStage;
 		class GBuffer;
 
-		struct ShaderVBVar {
+		struct ShaderInput {
 
 			TextureFormat type;
 			String name;
 
-			ShaderVBVar(TextureFormat type, String name) : type(type), name(name) {}
-			ShaderVBVar() : ShaderVBVar(0, "") {}
+			ShaderInput(TextureFormat type, String name) : type(type), name(name) {}
+			ShaderInput() : ShaderInput(0, "") {}
 
 		};
 

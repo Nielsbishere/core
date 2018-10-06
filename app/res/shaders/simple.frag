@@ -80,6 +80,8 @@ void main() {
 		lr.specular += res.specular;
 	}
 
-    outColor = Vec4(calculateLighting(lr, sample2D(samp, mat[material].t_diffuse, uv).rgb, exc.ambient), 1);
+	MaterialStruct m = mat[material];
+
+    outColor = Vec4(calculateLighting(lr, sample2D(samp, m.t_diffuse, uv).rgb, exc.ambient, m), m.shininessExponent);
 
 }

@@ -126,7 +126,7 @@ bool Pipeline::init() {
 
 				u32 j = 0;
 
-				for (ShaderVBVar var : shinfo.var)
+				for (ShaderInput var : shinfo.inputs)
 					if (var.name == name) {
 
 						if (!Graphics::isCompatible(var.type, format))
@@ -136,7 +136,7 @@ bool Pipeline::init() {
 					}
 					else ++j;
 
-				if(j == (u32) shinfo.var.size())
+				if(j == (u32) shinfo.inputs.size())
 					return Log::throwError<PipelineExt, 0x0>(String("Couldn't create pipeline; no match found in shader input from vertex input; ") + name);
 
 				if(attribute[j].format != 0)
@@ -168,7 +168,7 @@ bool Pipeline::init() {
 
 		//Validate pipeline
 
-		for (const ShaderOutput so : info.shader->getInfo().output) {
+		for (const ShaderOutput so : info.shader->getInfo().outputs) {
 
 			if (so.id >= rt->getTargets())
 				Log::throwError<Pipeline, 0x4>("Invalid pipeline; Shader referenced a shader output to an unknown output");
