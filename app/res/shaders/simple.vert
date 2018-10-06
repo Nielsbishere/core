@@ -1,9 +1,5 @@
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shader_draw_parameters : require
-#extension GL_GOOGLE_include_directive : require
-
-#include "lighting.glsl"
+#include <lighting.glsl>
 
 struct PerObject {
 

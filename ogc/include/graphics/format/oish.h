@@ -129,10 +129,13 @@ namespace oi {
 
 		class ShaderSource {
 
+			friend struct oiSH;
+
 		private:
 
 			std::unordered_map<String, String> src;
 			std::unordered_map<String, CopyBuffer> spv;
+			std::vector<String> files;
 
 			ShaderSourceType type;
 			String name;
@@ -155,11 +158,15 @@ namespace oi {
 			//src["comp"] = /* Compute code */;
 			ShaderSource(String name, std::unordered_map<String, CopyBuffer> spv) : name(name), type(ShaderSourceType::SPV), spv(spv) {}
 
+			//ShaderSource from files to oiSH
+			ShaderSource(String name, std::vector<String> files, ShaderSourceType type) : name(name), type(type), files(files) {}
+
 			String getName() { return name; }
 			ShaderSourceType getType() { return type; }
 			
-			const auto getSources() { return src; }
-			const auto getSpv() { return spv; }
+			const auto &getSources() { return src; }
+			const auto &getSpv() { return spv; }
+			const auto &getFiles() { return files; }
 
 		};
 
@@ -176,6 +183,10 @@ namespace oi {
 
 			static bool write(String path, SHFile &file);
 			static Buffer write(SHFile &file);
+
+		private:
+
+			static bool compileSource(ShaderSource &source, bool useFile);	//Internal for compiling shader source files (GLSL/HLSL) to SPV
 
 		};
 

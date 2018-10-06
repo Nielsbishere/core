@@ -1,0 +1,6 @@
+[submodule "deps/glslang"]
+	path = deps/glslang
+	url = https://github.com/KhronosGroup/glslang
+[submodule "deps/SPIRV-Cross"]
+	path = deps/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross

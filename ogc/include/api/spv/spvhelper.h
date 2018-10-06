@@ -1,5 +1,5 @@
 #pragma once
-#include "spirv_cross.h"
+#include "SPIRV-Cross/spirv_cross.hpp"
 #include "graphics/texture.h"
 #include "graphics/shader.h"
 

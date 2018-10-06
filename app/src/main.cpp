@@ -17,6 +17,7 @@
 #include <graphics/drawlist.h>
 
 #include <graphics/format/fbx.h>
+#include <graphics/format/oish.h>
 
 #include <types/matrix.h>
 #include <graphics/rendertarget.h>
@@ -202,13 +203,20 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
-	Fbx::convertMeshes("res/models/cube.fbx", "out/models/cube.oiRM", true);
+	//Fbx::convertMeshes("res/models/cube.fbx", "out/models/cube.oiRM", true);
+
+	//ShaderInfo simpleInfo = oiSH::compile(ShaderSource("simple", { "res/shaders/simple.frag", "res/shaders/simple.vert" }, ShaderSourceType::GLSL));
+
+	ShaderSource simple("simple", { "res/shaders/simple.frag", "res/shaders/simple.vert" }, ShaderSourceType::GLSL);
+	ShaderInfo simpleInfo = oiSH::compile(simple);
+	SHFile simpleFile = oiSH::convert(simpleInfo);
+	oiSH::write("out/shaders/simple.oiSH", simpleFile);
 
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
 
 	//Setup our shader
-	shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
+	shader = g.create("Simple", ShaderInfo("out/shaders/simple.oiSH"));
 	g.use(shader);
 
 	//Setup our post process shader

@@ -100,14 +100,18 @@ void Graphics::printObjects() {
 
 Shader *Graphics::create(String name, ShaderInfo info) {
 
-	SHFile file;
+	if (info.stages.size() == 0) {
 
-	if (!oiSH::read(info.path, file))
-		return (Shader*)Log::throwError<Graphics, 0x1A>("Couldn't read shader");
+		SHFile file;
 
-	String path = info.path;
+		if (!oiSH::read(info.path, file))
+			return (Shader*)Log::throwError<Graphics, 0x1A>("Couldn't read shader");
 
-	info = oiSH::convert(this, file);
+		String path = info.path;
+
+		info = oiSH::convert(this, file);
+
+	}
 
 	Shader *s = init<Shader>(name, info);
 

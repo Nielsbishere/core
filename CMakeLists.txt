@@ -26,6 +26,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+if(MSVC)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+endif()
+
 # No console/log option
 
 option(No_log "No_log" OFF)
@@ -80,6 +85,8 @@ else()
 
 endif()
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps)
+
 if(Vulkan)
 
 	add_definitions(-D__VULKAN__)
@@ -131,6 +138,8 @@ endif()
 
 add_subdirectory(ostlc)
 add_subdirectory(owc)
+
+add_subdirectory(deps/glslang)
 add_subdirectory(ogc)
 
 # Desktop conversion tools

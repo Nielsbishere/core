@@ -6,11 +6,10 @@ using namespace oi;
 using namespace spirv_cross;
 
 ShaderStageType SpvHelper::pickType(const String &s) {
-	if (s == ".vert") return ShaderStageType::Vertex_shader;
-	if (s == ".frag") return ShaderStageType::Fragment_shader;
-	if (s == ".geom") return ShaderStageType::Geometry_shader;
-	if (s == ".comp") return ShaderStageType::Compute_shader;
-	Log::throwError<ShaderStageType, 0x0>("Couldn't pick a shader stage type from string; so extension is invalid");
+	if (s == ".vert" || s == "vert") return ShaderStageType::Vertex_shader;
+	if (s == ".frag" || s == "frag") return ShaderStageType::Fragment_shader;
+	if (s == ".geom" || s == "geom") return ShaderStageType::Geometry_shader;
+	if (s == ".comp" || s == "comp") return ShaderStageType::Compute_shader;
 	return ShaderStageType::Undefined;
 }
 

@@ -12,6 +12,8 @@ file(GLOB_RECURSE app_SRC
 	"res/shaders/*.geom"
 	"res/shaders/*.vert"
 	"res/shaders/*.comp"
+	"res/shaders/*.glsl"
+	"res/shaders/*.hlsl"
 )
 
 add_library(
@@ -26,7 +28,5 @@ target_link_libraries(app ogc)
 add_custom_command(TARGET app COMMAND "${HOME_DIR}/prepare_resources")
 
 if(MSVC)
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 	set_target_properties(app PROPERTIES VS_GLOBAL_DisableFastUpToDateCheck true)
 endif()
