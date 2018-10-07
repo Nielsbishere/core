@@ -9,6 +9,22 @@ Because of the resource model on Android, we use an indicator before our file pa
 "mod/" is access to a "res/" folder and wanting to **mod**ify it. This should only be used for tools targeted at desktop platforms. On devices that use roms/apks, this is impossible and you should only use it when you're sure you want to replace the resource. You can check FileManager's canModifyAssets to check if you can use this.
 ### Checking directories/files
 If you want a directory path to exist, you can use the 'mkdir' function in FileManager. The fileExists, dirExists and exists functions are used to determine if something is already on the disk.
+### Getting file info
+You can get file info by using the 'getFile' function. This returns a FileInfo struct that contains the following fields;
+```cpp
+bool isFolder;
+String name;
+u64 fileSize;
+time_t modificationTime;
+```
+The name is the fully qualified file name (path in owc-style). fileSize is only available for files (!isFolder). modificationTime can be 0 (on Android, the res folder is in the APK file and files can't be modified in the APK).
+### Looping through directories
+The typedef 'FileCallback' is used when a file can be given to a function; an example of this is 'foreachFile' and 'foreachFileRecurse'. foreachFile loops through all files & folders in the current directory and throws them through the callback; while foreachFileRecurse loops through all subdirectories as well (recursively). 
+```cpp
+FileManager::get()->foreachFileRecurse("out", [](FileInfo info) -> bool { Log::println(info.name + " " + info.fileSize); return false; });
+```
+The code above shows a simple recursive loop through the out directory. It prints the name and size of every file.  
+The return value of the function is whether the for loop should stop; however with recursive loops the inner loop is only stopped (so you should pass a variable to the lambda to handle it instead).
 ## Osomi String List (.oiSL)
 oiSL is a file format that stores strings in an efficient way; it stores a keyset next to names (if it isn't the default keyset). By default; there is no keyset and it uses the default keyset of " 0-9A-Za-z.", which results into 6 bits per character. This might not be a big deal, since it only saves 2 bits per character, but it also helps to obfuscate/encode strings and keep them safe from modification. For information on implementation and file structures, go to docs/oiSL.md.
 ## Binding
