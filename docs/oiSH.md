@@ -119,8 +119,8 @@ Now you can create a Shader object with it and use it.
 ## Compiling a shader file
 For runtime compilation, you can use the compile and convert functions. These take in the ShaderSource. ShaderSource can be created like following:
 ```cpp
-ShaderSource simpleShader = ShaderSource("simple", ShaderSourceType::GLSL, 
-    { "res/shaders/simple.frag", "res/shaders/simple.vert" });  //Create from files (SPIRV/GLSL/HLSL)
+ShaderSource simpleShader = ShaderSource("simple", 
+    { "res/shaders/simple.frag", "res/shaders/simple.vert" }, ShaderSourceType::GLSL);  //Create from files (SPIRV/GLSL/HLSL)
 ShaderSource embeddedShader = ShaderSource("embedded", ShaderSourceType::GLSL, 
     { { "vert", myVertCode }, { "frag", myFragCode } });        //Create from source (no relative includes)
 ShaderSource spvShader = ShaderSource("spv", 
