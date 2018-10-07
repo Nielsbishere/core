@@ -1,7 +1,13 @@
 #pragma once
-#include "SPIRV-Cross/spirv_cross.hpp"
 #include "graphics/texture.h"
 #include "graphics/shader.h"
+
+namespace spirv_cross {
+	struct SPIRType;
+	struct ShaderResources;
+	class Compiler;
+	struct Resource;
+}
 
 namespace oi {
 

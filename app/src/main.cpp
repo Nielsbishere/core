@@ -207,6 +207,9 @@ void MainInterface::initScene() {
 
 	//ShaderInfo simpleInfo = oiSH::compile(ShaderSource("simple", { "res/shaders/simple.frag", "res/shaders/simple.vert" }, ShaderSourceType::GLSL));
 
+	FileManager::get()->foreachFileRecurse("res", [](FileInfo info) -> bool { Log::println(info.name + " " + info.fileSize); return false; });	//Print all files in res/
+	FileManager::get()->foreachFileRecurse("out", [](FileInfo info) -> bool { Log::println(info.name + " " + info.fileSize); return false; });	//Print all files in out/
+
 	ShaderSource simple("simple", { "res/shaders/simple.frag", "res/shaders/simple.vert" }, ShaderSourceType::GLSL);
 	ShaderInfo simpleInfo = oiSH::compile(simple);
 	SHFile simpleFile = oiSH::convert(simpleInfo);

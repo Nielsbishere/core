@@ -1,5 +1,5 @@
 @echo off
 cd "%~dp0app"
-cmd /c "%~dp0compile_shaders"
-cmd /c "%~dp0bake_models"
+cmd /c "%~dp0oish_gen"
+cmd /c "%~dp0oirm_gen"
 cd "%~dp0"

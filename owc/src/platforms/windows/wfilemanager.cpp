@@ -12,11 +12,7 @@ using namespace oi;
 
 bool openFile(String file, std::ifstream &in) {
 
-	if (file.contains("../"))
-		return Log::error("Couldn't open file; please use direct paths only");
-
-	if (!file.startsWith("res/") && !file.startsWith("out/"))
-		return Log::error("Couldn't open file; path has to start with res/ or out/");
+	file = FileManager::get()->getAbsolutePath(file);
 
 	in = std::ifstream(file.toCString(), std::ios::binary);
 
@@ -28,11 +24,7 @@ bool openFile(String file, std::ifstream &in) {
 
 bool openFile(String file, std::ofstream &in) {
 
-	if (file.contains("../"))
-		return Log::error("Couldn't open file; please use direct paths only");
-
-	if (!file.startsWith("out/"))
-		return Log::error("Couldn't open file; path has to start with out/");
+	file = FileManager::get()->getAbsolutePath(file);
 
 	in = std::ofstream(file.toCString(), std::ios::binary);
 
@@ -44,6 +36,8 @@ bool openFile(String file, std::ofstream &in) {
 
 bool FileManager::mkdir(String path) const {
 
+	if (!validate(path, FileAccess::WRITE)) return Log::error("Mkdir requires write access");
+
 	std::vector<String> split = path.split("/");
 	String current;
 
@@ -52,7 +46,7 @@ bool FileManager::mkdir(String path) const {
 		if (current == "") current = s;
 		else current = current + "/" + s;
 
-		if (current != "" && CreateDirectory(getAbsolutePath(current).toCString(), NULL) == 0) {
+		if (current != "" && CreateDirectoryA(getAbsolutePath(current).toCString(), NULL) == 0) {
 
 			DWORD error = GetLastError();
 			if (error == ERROR_ALREADY_EXISTS) continue;
@@ -65,21 +59,27 @@ bool FileManager::mkdir(String path) const {
 }
 
 String FileManager::getAbsolutePath(String path) const {
-	return (path == "" ? "" : String("./") + path);
+	return (path == "" ? "" : (path.startsWith("mod/") ? String("./res/") + path.cutBegin(4) : String("./") + path));
 
 }
 
 bool FileManager::dirExists(String path) const {
-	return GetFileAttributes(path.toCString()) == FILE_ATTRIBUTE_DIRECTORY;
+	if (!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open folder for query");
+	return GetFileAttributesA(getAbsolutePath(path).toCString()) & FILE_ATTRIBUTE_DIRECTORY;
 }
 
+bool FileManager::canModifyAssets() const { return true; }
+
 bool FileManager::fileExists(String path) const {
-	FILE *file = fopen(path.toCString(), "r");
+	if (!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open file for query");
+	FILE *file = fopen(getAbsolutePath(path).toCString(), "r");
 	if (file != nullptr) fclose(file);
 	return file != nullptr;
 }
 
 bool FileManager::read(String file, String &s) const {
+
+	if (!validate(file, FileAccess::READ)) return Log::error("Couldn't open file for read");
 
 	std::ifstream in;
 	if (!openFile(file, in)) return Log::error("Couldn't open file for read");
@@ -91,6 +91,8 @@ bool FileManager::read(String file, String &s) const {
 
 bool FileManager::read(String file, Buffer &b) const {
 
+	if (!validate(file, FileAccess::READ)) return Log::error("Couldn't open file for read");
+
 	std::ifstream in;
 	if (!openFile(file, in)) return Log::error("Couldn't open file for read");
 
@@ -101,12 +103,12 @@ bool FileManager::read(String file, Buffer &b) const {
 	memset(b.addr(), 0, b.size());
 	in.read((char*)b.addr(), b.size());
 	in.close();
-
 	return true;
 }
 
 bool FileManager::write(String file, String &s) const {
 
+	if (!validate(file, FileAccess::WRITE)) return Log::error("Couldn't open file for write");
 	if (!mkdir(file.getPath())) return Log::error("Can't write to file; mkdir failed");
 
 	std::ofstream out;
@@ -119,6 +121,7 @@ bool FileManager::write(String file, String &s) const {
 
 bool FileManager::write(String file, Buffer b) const {
 
+	if (!validate(file, FileAccess::WRITE)) return Log::error("Couldn't open file for write");
 	if (!mkdir(file.getPath())) return Log::error("Can't write to file; mkdir failed");
 
 	std::ofstream out;
@@ -127,6 +130,65 @@ bool FileManager::write(String file, Buffer b) const {
 	out.write((const char*) b.addr(), b.size());
 	out.close();
 	return true;
+}
+
+bool FileManager::foreachFile(String path, FileCallback callback) const {
+
+	if(!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open folder for query");
+	if (!dirExists(path)) return Log::error("Couldn't find the specified folder");
+
+	String startPath = path + "/";
+	path = getAbsolutePath(path) + "/*";
+
+	WIN32_FIND_DATA data;
+	HANDLE file = FindFirstFileA(path.toCString(), &data);
+	bool first = true;
+
+	while (first || FindNextFileA(file, &data)) {
+
+		first = false;
+
+		bool isDir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+
+		u64 fileSize = isDir ? 0 : ((u64)data.nFileSizeHigh << 32) | data.nFileSizeLow;
+
+		ULARGE_INTEGER ull;
+		ull.LowPart = data.ftLastWriteTime.dwLowDateTime;
+		ull.HighPart = data.ftLastWriteTime.dwHighDateTime;
+
+		time_t modificationTime = ull.QuadPart / 10000000ULL - 11644473600ULL;	//Convert to time_t
+
+		String fileName = data.cFileName;
+
+		if (fileName == "." || fileName == "..")
+			continue;
+
+		FileInfo info = FileInfo(isDir, startPath + fileName, modificationTime, fileSize);
+
+		if (callback(info))
+			break;
+
+	}
+
+	return true;
+
+}
+
+FileInfo FileManager::getFile(String path) const {
+
+	if (!validate(path, FileAccess::QUERY)) { Log::error("Couldn't open file for query"); return {}; }
+	
+	bool isFolder = dirExists(path);
+	
+	if (!isFolder && !fileExists(path)) { Log::error("Couldn't find the specified file"); return {}; }
+
+	String apath = getAbsolutePath(path);
+
+	struct _stat64 attr;
+	_stat64(apath.toCString(), &attr);
+
+	return FileInfo(isFolder, path, attr.st_mtime, attr.st_size);
+
 }
 
 #endif

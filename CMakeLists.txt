@@ -85,8 +85,6 @@ else()
 
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps)
-
 if(Vulkan)
 
 	add_definitions(-D__VULKAN__)
@@ -139,18 +137,40 @@ endif()
 add_subdirectory(ostlc)
 add_subdirectory(owc)
 
+# ogc dependencies
+
+set(BUILD_TESTING OFF)
 add_subdirectory(deps/glslang)
+set_property(TARGET HLSL PROPERTY FOLDER glslang)
+
+# ogc
+
 add_subdirectory(ogc)
+
+# ocore
+
+set_property(TARGET ostlc PROPERTY FOLDER ocore)
+set_property(TARGET owc PROPERTY FOLDER ocore)
+set_property(TARGET ogc PROPERTY FOLDER ocore)
 
 # Desktop conversion tools
 add_subdirectory(oirm_gen)
 add_subdirectory(oish_gen)
 
+set_property(TARGET oirm_gen PROPERTY FOLDER tools)
+set_property(TARGET oish_gen PROPERTY FOLDER tools)
+
 # App projects
 if(Android)
 	add_subdirectory(app)
 	add_subdirectory(app_android)
+	
+	set_property(TARGET app_android PROPERTY FOLDER application)
 else()
 	add_subdirectory(app)
 	add_subdirectory(app_pc)
+	
+	set_property(TARGET app_pc PROPERTY FOLDER application)
 endif()
+
+set_property(TARGET app PROPERTY FOLDER application)

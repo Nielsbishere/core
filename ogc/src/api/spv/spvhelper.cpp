@@ -1,6 +1,7 @@
 #include "api/spv/spvhelper.h"
 #include "graphics/format/oish.h"
 #include "graphics/graphics.h"
+#include "SPIRV-Cross/spirv_cross.hpp"
 using namespace oi::gc;
 using namespace oi;
 using namespace spirv_cross;

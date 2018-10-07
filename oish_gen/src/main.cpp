@@ -1,63 +1,84 @@
-#include <api/spv/spvhelper.h>
 #include <graphics/format/oish.h>
-
-#include <fstream>
+#include <api/spv/spvhelper.h>
+#include <file/filemanager.h>
 
 using namespace oi;
 using namespace oi::gc;
+using namespace oi::wc;
 
-int main(int argc, char *argv[]) {
+int main() {
 
-	String path, shaderName;
-	std::vector<String> extensions;
+	FileManager fm(nullptr);
 
-	if (argc < 4) return (int) Log::error("Incorrect usage: oish_gen.exe <pathToShader> <shaderName> [shaderStage extensions]");
+	std::unordered_map<String, std::vector<String>> shaders;
 
-	path = argv[1];
-	shaderName = argv[2];
-	
-	for (int i = 3; i < argc; ++i)
-		extensions.push_back(argv[i]);
+	fm.foreachFileRecurse("mod/shaders", [&](FileInfo info) -> bool { 
 
-	std::unordered_map<String, CopyBuffer> spv;
+		String ext = info.name.getExtension();
+		String file = info.name.getFilePath();
 
-	//Open the extensions' spirv and parse their data
-	for (String &s : extensions) {
+		if (ext == "hlsl" || ext == "glsl") {
 
-		std::ifstream str((path + s + ".spv").toCString(), std::ios::binary);
+			ext = file.fromLast(".");
 
-		if (!str.good()) return (int) Log::error("Couldn't open that file");
+			if (ext == file)						//It isn't a source file, it is just an include file
+				return false;
 
-		u32 length = (u32)str.rdbuf()->pubseekoff(0, std::ios_base::end);
+			file = file.untilLast(".");
 
-		CopyBuffer &b = spv[s] = CopyBuffer(length);
-		str.seekg(0, std::ios::beg);
-		str.read((char*)b.addr(), b.size());
-		str.close();
+		}
+
+		ShaderStageType type = SpvHelper::pickType(ext);
+
+		if (type == ShaderStageType::Undefined)		//It isn't a shader type
+			return false;
+
+		shaders[file].push_back(info.name);
+		return false; 
+	});
+
+	for (auto &elem : shaders) {
+
+		String target = elem.first + ".oiSH";
+		FileInfo targ;
+
+		bool shouldModify = false;
+
+		if (fm.fileExists(target)) targ = fm.getFile(target);
+		else shouldModify = true;
+
+		ShaderSourceType sourceType = elem.second[0].endsWith(".hlsl") ? ShaderSourceType::HLSL : ShaderSourceType::GLSL;
+
+		for (String &str : elem.second) {
+
+			if (str.endsWith(".hlsl") && sourceType != ShaderSourceType::HLSL)
+				return 1 + (int)Log::error("Invalid shader; please don't mix HLSL and GLSL shaders");
+
+			if (!shouldModify) {
+				FileInfo temp = fm.getFile(str);
+				shouldModify = targ.modificationTime < temp.modificationTime;
+			}
+
+		}
+
+		if (!shouldModify) {
+			Log::println(target + " is already up-to-date");
+			continue;
+		}
+
+		ShaderSource source(elem.first.getFile(), elem.second, sourceType);
+
+		SHFile info = oiSH::convert(source);
+		if (info.bytecode.size() == 0) 
+			return 1 + (int) Log::error("Couldn't compile shaders");
+
+		if(!oiSH::write(target, info))
+			return 1 + (int)Log::error("Couldn't write oiSH file");
+
+		Log::println(target + " has been updated successfully");
 
 	}
 
-	//Convert to oiSH file
-	SHFile shFile = oiSH::convert(ShaderSource(shaderName, spv));
+	return 0;
 
-	if(shFile.stringlist.names.size() == 0)
-		return (int)Log::error("Couldn't convert to oiSH");
-
-	Buffer b = oiSH::write(shFile);
-
-	if(b.size() == 0)
-		return (int) Log::error("Couldn't write oiSH");
-
-	std::ofstream oish((path + ".oiSH").toCString(), std::ios::binary);
-
-	if (!oish.good()) return (int)Log::error("Couldn't open that file");
-	
-	oish.write((char*)b.addr(), b.size());
-	oish.close();
-
-	b.deconstruct();
-
-	Log::println(String("Successfully converted to ") + path + ".oiSH");
-
-	return 1U;
 }

@@ -101,7 +101,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile) {
 
 	glslang::InitializeProcess();
 
-	u32 len = useFile ? source.files.size() : source.src.size();
+	u32 len = (u32)(useFile ? source.files.size() : source.src.size());
 	auto it = source.src.begin();
 
 	for (u32 i = 0; i < len; ++i){
