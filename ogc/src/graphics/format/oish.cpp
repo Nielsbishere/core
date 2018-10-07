@@ -27,7 +27,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 	//Convert stages
 
 	output.stage.resize((u32) info.stages.size());
-	std::vector<SHInputVar> inputs;
+	std::vector<SHInput> inputs;
 	std::vector<SHOutput> outputs;
 
 	if (info.stages.size() == 1) { //Compute
@@ -222,11 +222,11 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 		inputs.resize(st.inputs);
 		outputs.resize(st.outputs);
 
-		std::vector<SHInputVar> &var = file.stageInputs[st.type];
+		std::vector<SHInput> &var = file.stageInputs[st.type];
 		std::vector<SHOutput> &output = file.stageOutputs[st.type];
 
 		for (u32 i = 0; i < (u32)var.size(); ++i) {
-			SHInputVar &v = var[i];
+			SHInput &v = var[i];
 			TextureFormat format = TextureFormat(v.type);
 			inputs[i] = ShaderInput(format, file.stringlist.names[v.nameIndex]);
 		}
@@ -346,16 +346,16 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 
 			SHStage &stage = file.stage[i];
 
-			u32 ivars = (u32)(stage.inputs * sizeof(SHInputVar));
+			u32 ivars = (u32)(stage.inputs * sizeof(SHInput));
 			u32 outputs = (u32)(stage.outputs * sizeof(SHOutput));
 
 			if(buf.size() < registers + ivars + outputs)
 				return Log::error("Invalid oiSH file; too small");
 
-			std::vector<SHInputVar> &input = file.stageInputs[stage.type];
+			std::vector<SHInput> &input = file.stageInputs[stage.type];
 			std::vector<SHOutput> &output = file.stageOutputs[stage.type];
 
-			input.assign((SHInputVar*)buf.addr(), (SHInputVar*)(buf.addr() + ivars));
+			input.assign((SHInput*)buf.addr(), (SHInput*)(buf.addr() + ivars));
 			buf = buf.offset(ivars);
 
 			output.assign((SHOutput*)buf.addr(), (SHOutput*)(buf.addr() + outputs));
@@ -408,7 +408,7 @@ Buffer oiSH::write(SHFile &file) {
 
 	for (u32 i = 0, j = header.shaders; i < j; ++i) {
 		SHStage &stage = file.stage[i];
-		stageInOut += stage.inputs * (u32)sizeof(SHInputVar) + stage.outputs * (u32)sizeof(SHOutput);
+		stageInOut += stage.inputs * (u32)sizeof(SHInput) + stage.outputs * (u32)sizeof(SHOutput);
 	}
 
 	Buffer b = oiSL::write(file.stringlist);
@@ -436,7 +436,7 @@ Buffer oiSH::write(SHFile &file) {
 
 		SHStage &stage = file.stage[i];
 
-		u32 ivars = stage.inputs * (u32)sizeof(SHInputVar), outputs = stage.outputs * (u32)sizeof(SHOutput);
+		u32 ivars = stage.inputs * (u32)sizeof(SHInput), outputs = stage.outputs * (u32)sizeof(SHOutput);
 
 		memcpy(write.addr(), file.stageInputs[stage.type].data(), ivars);
 		write = write.offset(ivars);

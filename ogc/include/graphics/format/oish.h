@@ -29,7 +29,7 @@ namespace oi {
 			u8 version;			//SHHeaderVersion_s
 			u8 type;			//SHStageTypeFlag
 			u8 shaders;
-			u8 p0;
+			u8 padding = 0;
 
 			u8 buffers;
 			u8 registers;
@@ -55,19 +55,25 @@ namespace oi {
 
 		};
 
-		enum class SHInputBufferType {
-			VERTEX = 0,
-			INSTANCE = 1
-		};
-
-		struct SHInputVar {
+		struct SHInput {
 
 			u16 nameIndex;
 			u8 padding = 0;
 			u8 type;			//TextureFormat
 
-			SHInputVar(u8 type, u16 nameIndex) : type(type), nameIndex(nameIndex) {}
-			SHInputVar() : SHInputVar(0, 0) {}
+			SHInput(u8 type, u16 nameIndex) : type(type), nameIndex(nameIndex) {}
+			SHInput() : SHInput(0, 0) {}
+		};
+
+		struct SHOutput {
+
+			u8 type;			//TextureFormat
+			u8 id;
+			u16 nameIndex;
+
+			SHOutput(u8 type, u8 id, u16 nameIndex) : type(type), id(id), nameIndex(nameIndex) {}
+			SHOutput() : SHOutput(0, 0, 0) {}
+
 		};
 
 		enum class SHRegisterAccess { 
@@ -91,32 +97,21 @@ namespace oi {
 
 		};
 
-		struct SHOutput {
-
-			u8 type;			//TextureFormat
-			u8 id;
-			u16 nameIndex;
-
-			SHOutput(u8 type, u8 id, u16 nameIndex) : type(type), id(id), nameIndex(nameIndex) {}
-			SHOutput() : SHOutput(0, 0, 0) {}
-
-		};
-
 		//The contents of an SH file
 		struct SHFile {
 
 			SHHeader header;
 			std::vector<SHStage> stage;
+			std::unordered_map<u32, std::vector<SHInput>> stageInputs;			//[SHRegisterAccess] = SHInput
+			std::unordered_map<u32, std::vector<SHOutput>> stageOutputs;		//[SHRegisterAccess] = SHOutput
 			std::vector<SHRegister> registers;
-			std::unordered_map<u32, std::vector<SHInputVar>> stageInputs;	//[SHRegisterAccess] = SHInputVar
-			std::unordered_map<u32, std::vector<SHOutput>> stageOutputs;	//[SHRegisterAccess] = SHOutput
 			SLFile stringlist;
 			std::vector<SBFile> buffers;
 			std::vector<u8> bytecode;
 
 			u32 size;
 
-			SHFile(std::vector<SHStage> stage, std::unordered_map<u32, std::vector<SHInputVar>> inputs, std::vector<SHRegister> registers, std::unordered_map<u32, std::vector<SHOutput>> outputs, SLFile stringlist, std::vector<SBFile> buffers, std::vector<u8> bytecode) : stage(stage), stageInputs(inputs), registers(registers), stageOutputs(outputs), stringlist(stringlist), buffers(buffers), bytecode(bytecode) {}
+			SHFile(std::vector<SHStage> stage, std::unordered_map<u32, std::vector<SHInput>> inputs, std::vector<SHRegister> registers, std::unordered_map<u32, std::vector<SHOutput>> outputs, SLFile stringlist, std::vector<SBFile> buffers, std::vector<u8> bytecode) : stage(stage), stageInputs(inputs), registers(registers), stageOutputs(outputs), stringlist(stringlist), buffers(buffers), bytecode(bytecode) {}
 			SHFile() : SHFile({}, {}, {}, {}, {}, {}, {}) {}
 
 		};

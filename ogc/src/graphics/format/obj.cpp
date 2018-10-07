@@ -155,7 +155,8 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 	t.stop();
 	t.print();
 
-	return oiRM::generate(Buffer::construct((u8*) avertices, vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size(), compression);
+	RMFile file = oiRM::generate(Buffer::construct((u8*) avertices, vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size(), compression);
+	return oiRM::write(file);
 }
 
 bool Obj::convert(Buffer objBuffer, String outPath, bool compression) {

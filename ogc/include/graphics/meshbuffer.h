@@ -33,7 +33,7 @@ namespace oi {
 			GBuffer *ibo = nullptr;
 
 			MeshBufferInfo(u32 maxVertices, u32 maxIndices, std::vector<std::vector<std::pair<String, TextureFormat>>> vbos, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : maxVertices(maxVertices), maxIndices(maxIndices), buffers(vbos), topologyMode(topologyMode), fillMode(fillMode) { }
-			MeshBufferInfo() : MeshBufferInfo(0, 0, {}, TopologyMode::Triangle) {}
+			MeshBufferInfo() : MeshBufferInfo(0, 0, {}) {}
 
 		};
 

@@ -430,7 +430,8 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 
 		/*t.print();*/
 
-		Buffer obuf = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices, compression);
+		RMFile file = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices, compression);
+		Buffer obuf = oiRM::write(file);
 
 		if (obuf.size() == 0) {
 			lastError = String("The geometry object \"") + name + "\" couldn't be converted to oiRM.";

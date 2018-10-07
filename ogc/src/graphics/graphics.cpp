@@ -111,6 +111,24 @@ Shader *Graphics::create(String name, ShaderInfo info) {
 
 		info = oiSH::convert(this, file);
 
+	} else {
+	
+		for (ShaderStageInfo &inf : info.stages) {
+			if (inf.type == ShaderStageType::Vertex_shader)
+				info.inputs = inf.input;
+			else if (inf.type == ShaderStageType::Fragment_shader)
+				info.outputs = inf.output;
+		}
+
+		if (info.stage.size() == 0) {
+
+			info.stage.resize(info.stages.size());
+
+			for (u32 i = 0, j = (u32)info.stages.size(); i < j; ++i)
+				info.stage[i] = create(info.path + " " + info.stages[i].type.getName(), info.stages[i]);
+
+		}
+	
 	}
 
 	Shader *s = init<Shader>(name, info);

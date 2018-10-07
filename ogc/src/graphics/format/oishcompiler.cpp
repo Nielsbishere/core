@@ -56,10 +56,15 @@ struct FileIncluder : glslang::TShader::Includer {
 		if (inclusionDepth >= 32)
 			return (IncludeResult*) Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 32 nested includes");
 
-		if (base == "")
+		String includePath = String(includerName).getPath();
+
+		if (includePath == "")
+			includePath = base;
+
+		if (includePath == "")
 			return (IncludeResult*) Log::error("Please supply a valid include base path");
 
-		currentFile = base.toStdString() + "/" + headerName;
+		currentFile = includePath.toStdString() + "/" + headerName;
 
 		Buffer buf;
 

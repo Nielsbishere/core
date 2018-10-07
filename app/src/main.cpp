@@ -130,9 +130,9 @@ void MainInterface::refreshPlanet(Planet planet) {
 		Vec3 cpos = (up + tangent * xy.x + bitangent * xy.y);
 		Vec3 spos = cpos.normalize();
 
-		*(Vec3*)(avertex + 8 * i) = spos * (1 + planet.sample(spos));
-		*(Vec2*)(avertex + 8 * i + 3) = uv;		//Temporary planar projection
-		*(Vec3*)(avertex + 8 * i + 5) = spos;	//Normal = position for a sphere; TODO: Use displacement for this
+		*(Vec3*)(avertex + 8 * i) = spos * (1 + planet.sample(spos));		//Displacement on sphere
+		*(Vec2*)(avertex + 8 * i + 3) = uv;									//Temporary planar projection
+		*(Vec3*)(avertex + 8 * i + 5) = spos;								//Normal = position for a sphere
 
 		if (x != resolutio && y != resolutio) {
 
@@ -149,20 +149,14 @@ void MainInterface::refreshPlanet(Planet planet) {
 
 	}
 
-	//TODO: Load into MeshInfo directly
-
-	Buffer buf = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices, false);
-
-	FileManager::get()->write("out/models/planet.oiRM", buf);
-
-	buf.deconstruct();
+	RMFile file = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices, false);
+	oiRM::write(file, "out/models/planet.oiRM");
 
 	if (mesh3 != nullptr)
 		g.destroy(mesh3);
 
 	meshBuffer->open();
 
-	RMFile file;
 	oiRM::read("out/models/planet.oiRM", file);
 	auto info = oiRM::convert(file);
 
@@ -205,21 +199,11 @@ void MainInterface::initScene() {
 
 	//Fbx::convertMeshes("res/models/cube.fbx", "out/models/cube.oiRM", true);
 
-	//ShaderInfo simpleInfo = oiSH::compile(ShaderSource("simple", { "res/shaders/simple.frag", "res/shaders/simple.vert" }, ShaderSourceType::GLSL));
-
-	FileManager::get()->foreachFileRecurse("res", [](FileInfo info) -> bool { Log::println(info.name + " " + info.fileSize); return false; });	//Print all files in res/
-	FileManager::get()->foreachFileRecurse("out", [](FileInfo info) -> bool { Log::println(info.name + " " + info.fileSize); return false; });	//Print all files in out/
-
-	ShaderSource simple("simple", { "res/shaders/simple.frag", "res/shaders/simple.vert" }, ShaderSourceType::GLSL);
-	ShaderInfo simpleInfo = oiSH::compile(simple);
-	SHFile simpleFile = oiSH::convert(simpleInfo);
-	oiSH::write("out/shaders/simple.oiSH", simpleFile);
-
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
 
 	//Setup our shader
-	shader = g.create("Simple", ShaderInfo("out/shaders/simple.oiSH"));
+	shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
 	g.use(shader);
 
 	//Setup our post process shader

@@ -7,7 +7,7 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression) {
+RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression) {
 
 	u32 stride = (hasPos ? 12 : 0) + (hasUv ? 8 : 0) + (hasNrm ? 12 : 0);
 
@@ -59,7 +59,7 @@ Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 		attributes.push_back({ (u8)0, (u8)TextureFormat::RGB32f, (u16)attributes.size() });
 	}
 
-	RMFile file = {
+	return {
 
 		//Header
 		{
@@ -95,8 +95,6 @@ Buffer oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 		SLFile(String::getDefaultCharset(), names),
 
 	};
-
-	return oiRM::write(file, compression);
 }
 
 bool oiRM::read(String path, RMFile &file) {

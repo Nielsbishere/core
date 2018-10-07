@@ -98,8 +98,9 @@ namespace oi {
 			//Vec3 inNormal (if hasNrm)
 			//Meaning that vbo should be stride * vertices
 			//Ibo should be u8[indices], u16[indices] or u32[indices], depending on how many vertices are present.
-			static Buffer generate(Buffer vbo, Buffer ibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression);
+			static RMFile generate(Buffer vbo, Buffer ibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression);
 
+			//static std::pair<MeshBufferInfo, MeshInfo> generate(Buffer vbo, Buffer ibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression);
 		};
 
 
