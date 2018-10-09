@@ -28,7 +28,7 @@ struct FileIncluder : glslang::TShader::Includer {
 	String base;
 	std::string currentFile;
 
-	FileIncluder(String base) : base(base) {}
+	explicit FileIncluder(String base) : base(base) {}
 	~FileIncluder() {}
 
 	//#include <x>

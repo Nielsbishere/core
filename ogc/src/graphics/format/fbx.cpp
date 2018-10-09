@@ -70,9 +70,10 @@ FbxNode *FbxNode::read(Buffer &buf, u32 &offset, bool is64bit) {
 	offset += node->header.nameLen;
 
 	u32 i = 0;
-	FbxProperty *prop;
 
 	while (i < node->header.numProperties) {
+
+		FbxProperty *prop;
 
 		if((prop = FbxProperty::readProperty(buf, offset)) != nullptr)
 			node->properties.push_back(prop);
@@ -82,9 +83,9 @@ FbxNode *FbxNode::read(Buffer &buf, u32 &offset, bool is64bit) {
 		++i;
 	}
 
-	FbxNode *subnode;
-
 	while (offset < node->header.endOffset) {
+
+	FbxNode *subnode;
 
 		if ((subnode = FbxNode::read(buf, offset, is64bit)) == nullptr)
 			return (FbxNode*) Log::error(String("Couldn't read FbxNode's child nodes (") + node->name + ")");

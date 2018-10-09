@@ -43,7 +43,7 @@ void Controller::update(Window *w, f32 dt) {
 	}
 
 	bool connected = false;
-	if (connected = XInputGetState(getId(), &state) == ERROR_SUCCESS) {
+	if ((connected = XInputGetState(getId(), &state)) == ERROR_SUCCESS) {
 
 		axes[ControllerAxis::Lx - 1U] = state.Gamepad.sThumbLX / 32767.f;
 		axes[ControllerAxis::Ly - 1U] = state.Gamepad.sThumbLY / 32767.f;

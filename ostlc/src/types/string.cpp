@@ -93,7 +93,7 @@ std::vector<u32> String::find(const String s) const {
 
 std::vector<Vec2u> String::find(const String s, const String end, u32 offset) const {
 
-	std::vector<u32> sit = find(s), endit = find(end);
+	std::vector<u32> sit = find(s);
 	std::vector<Vec2u> strings(sit.size());
 
 	u32 j = 0;
