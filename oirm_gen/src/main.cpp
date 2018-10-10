@@ -12,7 +12,7 @@ int main() {
 
 	fm.foreachFileRecurse("mod/models", [&](FileInfo info) -> bool {
 
-		if (!info.name.endsWith(".obj") && !info.name.endsWith(".fbx"))
+		if (!info.name.endsWithIgnoreCase(".obj") && !info.name.endsWithIgnoreCase(".fbx"))
 			return false;
 
 		String target = info.name.getFilePath() + ".oiRM";
@@ -28,7 +28,7 @@ int main() {
 			}
 		}
 
-		if(info.name.endsWith(".obj")){
+		if(info.name.endsWithIgnoreCase(".obj")){
 
 			if (!Obj::convert(info.name, target, true)) {
 				res = 1;
@@ -37,7 +37,7 @@ int main() {
 
 			Log::println(target + " has been updated successfully");
 
-		} else if (info.name.endsWith(".fbx")) {
+		} else if (info.name.endsWithIgnoreCase(".fbx")) {
 
 			if (!Fbx::convertMeshes(info.name, target, true)) {
 				res = 1;

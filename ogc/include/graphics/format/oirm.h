@@ -59,6 +59,54 @@ namespace oi {
 			
 		};
 
+		struct RMMaterial {
+
+			u16 name;
+			u16 t_diffuse;
+
+			u16 t_opacitySpecular;
+			u16 t_emissive;
+
+			u16 t_rahm;
+			u16 t_normal;
+
+			u16 roughness;			// / 65535.f
+			u16 metallic;			//^
+
+			//----
+
+			u16 transparency;		//^
+			u16 clearCoat;			//^
+
+			u16 clearCoatGloss;		//^
+			u16 reflectiveness;		//^
+
+			u16 sheen;				//^
+			u16 shininess;			//^
+
+			f32 shininessExponent;
+
+			//----
+
+			Vec3 emissive;
+
+			f32 diffuseScale;
+
+			//----
+
+			u16 specularScale;		//( - 32766.f) / 32765 (starting at 1)
+			u16 ambientScale;		//^
+
+			TVec3<u8> diffuse;
+			TVec3<u8> specular;
+			TVec3<u8> ambient;
+
+			TVec3<u8> p0;
+
+			//----
+
+		};
+
 		struct RMFile {
 
 			RMHeader header;

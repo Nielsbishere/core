@@ -28,8 +28,9 @@ namespace oi {
 		String(TVec<T, n> t);
 
 		String(i32 i);
+		explicit String(i64 i);
 		String(u32 u);
-		String(u64 u);
+		explicit String(u64 u);
 		String(f32 f);
 		String(char c);
 		explicit String(void *v);

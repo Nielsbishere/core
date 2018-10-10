@@ -223,19 +223,19 @@ FbxFile *FbxFile::read(String fbxPath) {
 
 }
 
-Vec3 Fbx::getMaterialCol(FbxNode *nod) {
+Vec3 Fbx::getMaterialCol(FbxNode *nod, Vec3 def) {
 
 	if (nod == nullptr || nod->getProperties() < 7)
-		return {};
+		return def;
 
 	return Vec3((f32)nod->getProperty(4)->cast<FbxDouble>()->get(), (f32)nod->getProperty(5)->cast<FbxDouble>()->get(), (f32)nod->getProperty(6)->cast<FbxDouble>()->get());
 
 }
 
-f32 Fbx::getMaterialNum(FbxNode *nod) {
+f32 Fbx::getMaterialNum(FbxNode *nod, f32 def) {
 
 	if (nod == nullptr || nod->getProperties() < 5)
-		return 0.f;
+		return def;
 
 	return (f32)nod->getProperty(4)->cast<FbxDouble>()->get();
 
@@ -250,7 +250,9 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 	const char *zeroNe = "\0\x1";
 	String zerone = String((char*)zeroNe, 2);
 
-	for (FbxNode *node : file->get()->findNodes("Objects/Material")) {
+	FbxNodes materials = file->get()->findNodes("Objects/Material");
+
+	for (FbxNode *node : materials) {
 
 		String name = node->getProperty(1)->cast<FbxString>()->get().untilFirst(zerone);
 
@@ -261,18 +263,14 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 			types[prop] = mat;
 		}
 
-		Vec3 emissive = getMaterialCol(types["EmissiveColor"]);
-		emissive *= getMaterialNum(types["EmissiveFactor"]);
-		Vec3 ambient = getMaterialCol(types["AmbientColor"]);
-		ambient *= getMaterialNum(types["AmbientFactor"]);
-		Vec3 diffuse = getMaterialCol(types["DiffuseColor"]);
-		f32 transparent = getMaterialCol(types["TransparentColor"]).x;
-		Vec3 specular = getMaterialCol(types["SpecularColor"]);
-		specular *= getMaterialNum(types["SpecularFactor"]);
+		Vec3 emissive = getMaterialCol(types["EmissiveColor"]) * getMaterialNum(types["EmissiveFactor"], 1);
+		Vec3 ambient = getMaterialCol(types["AmbientColor"]) *  getMaterialNum(types["AmbientFactor"], 1);
+		Vec3 diffuse = getMaterialCol(types["DiffuseColor"], Vec3(1));
+		Vec3 transparency = getMaterialCol(types["TransparentColor"], Vec3(1)) * getMaterialNum(types["TransparencyFactor"], 1) * getMaterialNum(types["Opacity"], 1);
+		Vec3 specular = getMaterialCol(types["SpecularColor"]) * getMaterialNum(types["SpecularFactor"], 1);
 		f32 shininess = getMaterialNum(types["Shininess"]);
 		f32 shininessExponent = getMaterialNum(types["ShininessExponent"]);
-		Vec3 reflection = getMaterialCol(types["ReflectionColor"]);
-		reflection *= getMaterialNum(types["ReflectionFactor"]);
+		Vec3 reflection = getMaterialCol(types["ReflectionColor"]) * getMaterialNum(types["ReflectionFactor"], 1);
 
 		//TODO: Save materials
 
@@ -284,6 +282,8 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 
 	String lastError;
 
+	u32 id = 0;
+
 	for (FbxNode *node : geometry) {
 
 		FbxProperty *namep = node->getProperty(1);
@@ -294,6 +294,9 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 		}
 		
 		String name = namep->cast<FbxString>()->get().untilFirst(zerone);
+
+		if (name == "") name = id;
+		if (geometry.size() == 1) name = "";
 
 		FbxNodes vertices = node->findNodes("Vertices");						//Vec3d[]
 		FbxNodes vertexOrder = node->findNodes("PolygonVertexIndex");			//i32[]
@@ -440,6 +443,8 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 
 		meshes[name.untilFirst(zerone)] = obuf;
 
+		++id;
+
 	}
 
 	goto success;
@@ -472,7 +477,7 @@ bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath, bool compression) {
 		return Log::error("Fbx conversion failed (or it didn't contain any meshes)");
 
 	for (auto &elem : buf)
-		if (elem.first.equalsIgnoreCase(fileName)) {
+		if (elem.first.equalsIgnoreCase(fileName) || elem.first == "") {
 			if (!FileManager::get()->write(outPath, elem.second)) {
 
 				for (auto &elem : buf)

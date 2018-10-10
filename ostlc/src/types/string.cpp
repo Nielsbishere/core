@@ -12,6 +12,7 @@ String::String(const char *source): source(source) { }
 String::String(char *source, u32 len) : source(source, len) {}
 String::String(u32 len, char filler) : source(len, filler) {}
 String::String(i32 i) { *this = fromNumber<i32>(i); }
+String::String(i64 i) { *this = fromNumber<i64>(i); }
 String::String(u64 i) { *this = fromNumber<u64>(i); }
 String::String(u32 i) { *this = fromNumber<u32>(i); }
 String::String(f32 f) { *this = fromNumber<f32>(f); }

@@ -690,8 +690,8 @@ namespace oi {
 
 		private:
 
-			static Vec3 getMaterialCol(FbxNode *nod);
-			static f32 getMaterialNum(FbxNode *nod);
+			static Vec3 getMaterialCol(FbxNode *nod, Vec3 def = {});
+			static f32 getMaterialNum(FbxNode *nod, f32 def = 0.f);
 
 		};
 

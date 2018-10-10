@@ -51,7 +51,7 @@ bool FileManager::mkdir(String path) const {
 			DWORD error = GetLastError();
 			if (error == ERROR_ALREADY_EXISTS) continue;
 
-			return Log::error(String("Couldn't mkdir ") + current + "(" + (u64)error + ")");
+			return Log::error(String("Couldn't mkdir ") + current + "(" + (u32) error + ")");
 		}
 	}
 
