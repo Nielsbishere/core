@@ -206,7 +206,7 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 	for (Resource &r : res.separate_images) {
 
 		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
-		bool isWriteable = comp.get_decoration(r.id, spv::DecorationNonWritable) == 0U;
+		//bool isWriteable = comp.get_decoration(r.id, spv::DecorationNonWritable) == 0U;
 
 		const std::vector<u32> &arr = comp.get_type(r.type_id).array;
 		u32 size = arr.size() == 0 ? 1 : arr[0];

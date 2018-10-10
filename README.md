@@ -1,5 +1,6 @@
 # OCore (Osomi Core)
 Osomi Core - A basic framework for engines  
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc530b2832e64edc8b2f320e0f38bf50)](https://www.codacy.com/app/niels_3/ocore?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=OsomiLunar/ocore&amp;utm_campaign=Badge_Grade)
 # Build status
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |

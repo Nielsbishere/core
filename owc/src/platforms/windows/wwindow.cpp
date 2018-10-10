@@ -44,7 +44,7 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 		Keyboard *keyboard = w->getInputHandler().getKeyboard();
 		bool isDown = message == WM_KEYDOWN;
 
-		if (wi != nullptr && b.getCode() != 0 && (!isDown || (isDown && keyboard->isUp(b))))
+		if (wi != nullptr && b.getCode() != 0 && (!isDown || keyboard->isUp(b)))
 			wi->onInput(keyboard, b, isDown);
 
 		if (b.getCode() != 0)
