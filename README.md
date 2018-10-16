@@ -1,6 +1,5 @@
 # OCore (Osomi Core)
 Osomi Core - A basic framework for engines  
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc530b2832e64edc8b2f320e0f38bf50)](https://www.codacy.com/app/niels_3/ocore?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=OsomiLunar/ocore&amp;utm_campaign=Badge_Grade)
 # Build status
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |
@@ -8,6 +7,8 @@ Osomi Core - A basic framework for engines
 | Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   no ||
 | Linux | none      |    no |
 | Mac OS | none      |    no |  
+# Code quality
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc530b2832e64edc8b2f320e0f38bf50)](https://www.codacy.com/app/niels_3/ocore?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=OsomiLunar/ocore&amp;utm_campaign=Badge_Grade)
 # Building using CMake
 This project uses CMake and a few tools to help the user setup their environment.
 ## Cleaning & Reloading project
@@ -28,7 +29,7 @@ make_android.bat
 # Setup an Android CMake project; specified for the ABI (if you leave it out, it will create 4 different ABI directories)
 make_android.bat windows-x86_64 24 arm64-v8a
 # Run android (requires connected device with developer settings)
-"builds/Android %abi% %lvl%/run_android.bat"
+"builds/Android/%abi%/run_android.bat"
 ```
 ## Building for Windows
 'make_pc.bat' creates a Visual Studio project, which means you need Visual Studio. If you don't want to use Visual Studio, you can specify a different generator.
@@ -41,22 +42,24 @@ make_pc.bat "Visual Studio 15 2017 Win64"
 ## Compiling shaders
 Normally, this is done automatically when you compile your project. However, if you don't want to recompile or can't, you can still convert the shaders to oiSH (Osomi SHader) file format.
 ```bat
-compile_shaders.bat
+cd app
+"../oish_gen.exe"
+cd ../
 ```
 ## Baking models
 Using oiRM (Osomi Raw Model) files is way easier & faster than using fbx/obj files. This is why you have to convert models to this format; to avoid long load times. This can be done by going into the app directory and running bake_models. Just like compile_shaders, this is run automatically by the build system.
 ```bat
 cd app
-"../bake_models.bat"
+"../oirm_gen.exe"
 cd ../
 ```
 # How to use ocore in a project
-If you want to use Osomi core for your project, you can go to your repo root directory. From there, you can add this repo as a dependency:
+If you want to use Osomi core for your project, you can go to your repo root directory. From there, you can add this repo as a dependency (don't forget to fetch the submodules!):
 ```bat
 git submodule add https://github.com/osomilunar/ocore ocore
 ```
 This will fetch ocore into your project dir. It contains CMake files you can add to your own, however, it is recommended that you use all of the ocore.
-Please do yourself and us a favor and don't push this directory onto your repo, but instead push the submodule, so everyone gets ocore using our repo.
+Please do yourself and us a favor and don't push this directory onto your repo, but instead use the submodule, so everyone gets ocore using our repo.
 # How to create a new project using all of ocore
 If you want to use all of ocore, but you want to create your own app or library, you can use the following command:
 ```bat
