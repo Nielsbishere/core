@@ -1,9 +1,9 @@
 #ifdef __VULKAN__
 
-#include "graphics/drawlist.h"
 #include "graphics/graphics.h"
-#include "graphics/gbuffer.h"
-#include "graphics/mesh.h"
+#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/render/drawlist.h"
+#include "graphics/objects/model/mesh.h"
 using namespace oi::gc;
 using namespace oi;
 

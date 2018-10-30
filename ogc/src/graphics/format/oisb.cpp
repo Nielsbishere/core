@@ -1,11 +1,11 @@
-#include "graphics/format/oisb.h"
-#include "graphics/graphics.h"
-#include "graphics/texture.h"
-#include "graphics/shaderbuffer.h"
-#include <format/oisl.h>
-#include <types/buffer.h>
-#include <file/filemanager.h>
 #include <cmath>
+#include "format/oisl.h"
+#include "types/buffer.h"
+#include "file/filemanager.h"
+#include "graphics/graphics.h"
+#include "graphics/format/oisb.h"
+#include "graphics/objects/texture/texture.h"
+#include "graphics/objects/shader/shaderbuffer.h"
 using namespace oi::wc;
 using namespace oi::gc;
 using namespace oi;

@@ -1,8 +1,8 @@
 #ifdef __VULKAN__
 
-#include "graphics/shaderstage.h"
-#include "graphics/gl/vulkan.h"
 #include "graphics/graphics.h"
+#include "graphics/gl/vulkan.h"
+#include "graphics/objects/shader/shaderstage.h"
 using namespace oi::gc;
 using namespace oi;
 

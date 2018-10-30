@@ -1,17 +1,32 @@
 #pragma once
+#include "types/vector.h"
+#include "utils/serialization.h"
+#include "window/window.h"
+#include "graphics/interface/basicgraphicsinterface.h"
 
-#include <graphics/graphicsinterface.h>
-#include <types/vector.h>
-#include <types/matrix.h>
-#include <platforms/generic.h>
-#include <graphics/texturelist.h>
-#include <graphics/materiallist.h>
-#include <utils/serialization.h>
+namespace oi {
+
+	namespace gc {
+		
+		class Shader;
+		class Pipeline;
+		class MeshBuffer;
+		class Mesh;
+		class DrawList;
+		class RenderTarget;
+		class MaterialList;
+		
+		class Texture;
+		typedef u32 TextureHandle;
+		typedef u32 MaterialHandle;
+
+	}
+
+}
 
 struct Application {
 	static void instantiate(oi::wc::WindowHandleExt *param = nullptr);
 };
-
 
 struct NoiseLayer {
 
@@ -44,28 +59,7 @@ struct Planet {
 
 };
 
-namespace oi {
-
-	namespace gc {
-
-		class Shader;
-		class Pipeline;
-		class PipelineState;
-		class Sampler;
-		class Camera;
-		class CameraFrustum;
-		class View;
-		class ViewBuffer;
-		class MeshBuffer;
-		class Mesh;
-		class DrawList;
-		class RenderTarget;
-
-	}
-
-}
-
-class MainInterface : public oi::gc::GraphicsInterface {
+class MainInterface : public oi::gc::BasicGraphicsInterface {
 
 public:
 
@@ -79,7 +73,6 @@ public:
 
 	void update(f32 dt) override;
 	void initSceneSurface() override;
-	void onAspectChange(float asp) override;
 
 	void refreshPlanet(Planet planet);
 	void readPlanets(bool fromResource = false);
@@ -89,12 +82,6 @@ private:
 	
 	oi::gc::Shader *shader, *shader0;
 	oi::gc::Pipeline *pipeline, *pipeline0;
-	oi::gc::PipelineState *pipelineState;
-	oi::gc::Sampler *sampler;
-	oi::gc::Camera *camera;
-	oi::gc::CameraFrustum *cameraFrustum;
-	oi::gc::ViewBuffer *viewBuffer;
-	oi::gc::View *view;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
 	oi::gc::Mesh *mesh, *mesh0, *mesh1, *mesh2, *mesh3 = nullptr;
 	oi::gc::DrawList *drawList, *drawList0;

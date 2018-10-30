@@ -1,9 +1,9 @@
-#include "graphics/format/oish.h"
-#include "graphics/shader.h"
-#include "graphics/shaderstage.h"
+#include "file/filemanager.h"
+#include "format/oisl.h"
 #include "graphics/graphics.h"
-#include <format/oisl.h>
-#include <file/filemanager.h>
+#include "graphics/format/oish.h"
+#include "graphics/objects/shader/shader.h"
+#include "graphics/objects/shader/shaderstage.h"
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;

@@ -1,13 +1,13 @@
 #ifdef __VULKAN__
 
-#include "graphics/graphics.h"
-#include "graphics/versionedtexture.h"
-#include "graphics/rendertarget.h"
-#include "graphics/commandlist.h"
-#include "graphics/graphicsinterface.h"
-#include <window/window.h>
-
 #include <cstring>
+#include "window/window.h"
+#include "graphics/graphics.h"
+#include "graphics/interface/graphicsinterface.h"
+#include "graphics/objects/texture/versionedtexture.h"
+#include "graphics/objects/render/rendertarget.h"
+#include "graphics/objects/render/commandlist.h"
+
 
 #undef min
 #undef max

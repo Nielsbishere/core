@@ -1,7 +1,7 @@
 #pragma once
-#include <template/enum.h>
-#include <format/oisl.h>
-#include "../texture.h"
+#include "template/enum.h"
+#include "format/oisl.h"
+#include "graphics/objects/texture/texture.h"
 
 namespace oi {
 

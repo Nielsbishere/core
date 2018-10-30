@@ -1,5 +1,5 @@
-#include "graphics/sampler.h"
 #include "graphics/graphics.h"
+#include "graphics/objects/texture/sampler.h"
 using namespace oi::gc;
 using namespace oi;
 

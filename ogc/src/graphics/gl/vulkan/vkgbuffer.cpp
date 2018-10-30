@@ -1,5 +1,5 @@
-#include "graphics/gbuffer.h"
 #include "graphics/graphics.h"
+#include "graphics/objects/gbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 

@@ -1,15 +1,14 @@
 #ifdef __VULKAN__
 
-#include "graphics/commandlist.h"
-#include "graphics/rendertarget.h"
-#include "graphics/pipeline.h"
-#include "graphics/shader.h"
 #include "graphics/graphics.h"
-#include "graphics/gbuffer.h"
-#include "graphics/camera.h"
-#include "graphics/drawlist.h"
-#include "graphics/meshbuffer.h"
-#include "graphics/versionedtexture.h"
+#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/render/commandlist.h"
+#include "graphics/objects/render/rendertarget.h"
+#include "graphics/objects/render/drawlist.h"
+#include "graphics/objects/shader/pipeline.h"
+#include "graphics/objects/shader/shader.h"
+#include "graphics/objects/texture/versionedtexture.h"
+#include "graphics/objects/model/mesh.h"
 using namespace oi::gc;
 using namespace oi;
 

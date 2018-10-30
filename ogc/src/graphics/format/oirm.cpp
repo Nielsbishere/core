@@ -1,8 +1,8 @@
-#include <file/filemanager.h>
-#include <types/bitset.h>
-#include <utils/timer.h>
+#include "file/filemanager.h"
+#include "types/bitset.h"
+#include "utils/timer.h"
 #include "graphics/format/oirm.h"
-#include "graphics/mesh.h"
+#include "graphics/objects/model/mesh.h"
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;

@@ -1,6 +1,6 @@
-#include "math/simplexnoise.h"
-#include "template/common.h"
 #include <math.h>
+#include "template/common.h"
+#include "math/simplexnoise.h"
 using namespace oi;
 
 Grad::Grad(f32 x, f32 y, f32 z, f32 w) : x(x), y(y), z(z), w(w) { }

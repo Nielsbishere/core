@@ -1,10 +1,10 @@
-#include "graphics/pipeline.h"
-#include "graphics/pipelinestate.h"
-#include "graphics/shader.h"
-#include "graphics/shaderstage.h"
-#include "graphics/rendertarget.h"
-#include "graphics/versionedtexture.h"
-#include "graphics/meshbuffer.h"
+#include "graphics/objects/render/rendertarget.h"
+#include "graphics/objects/texture/versionedtexture.h"
+#include "graphics/objects/model/meshbuffer.h"
+#include "graphics/objects/shader/pipeline.h"
+#include "graphics/objects/shader/pipelinestate.h"
+#include "graphics/objects/shader/shader.h"
+#include "graphics/objects/shader/shaderstage.h"
 using namespace oi::gc;
 using namespace oi;
 

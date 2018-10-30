@@ -1,14 +1,13 @@
 #ifdef __VULKAN__
 
-#include "graphics/shader.h"
-#include "graphics/shaderstage.h"
 #include "graphics/graphics.h"
-#include "graphics/gbuffer.h"
-#include "graphics/graphics.h"
-#include "graphics/sampler.h"
-#include "graphics/versionedtexture.h"
-#include "graphics/texturelist.h"
-#include "graphics/rendertarget.h"
+#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/shader/shader.h"
+#include "graphics/objects/shader/shaderstage.h"
+#include "graphics/objects/texture/sampler.h"
+#include "graphics/objects/texture/versionedtexture.h"
+#include "graphics/objects/texture/texturelist.h"
+#include "graphics/objects/render/rendertarget.h"
 using namespace oi::gc;
 using namespace oi;
 

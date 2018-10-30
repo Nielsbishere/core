@@ -1,10 +1,11 @@
 #include "file/filemanager.h"
-#include "graphics/format/oish.h"
-#include "graphics/shader.h"
-#include "api/spv/spvhelper.h"
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/StandAlone/ResourceLimits.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
+#include "api/spv/spvhelper.h"
+#include "graphics/format/oish.h"
+#include "graphics/objects/shader/shader.h"
+#undef ERROR
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;

@@ -1,36 +1,24 @@
 #include "main.h"
-#include <window/windowmanager.h>
-#include <file/filemanager.h>
-
-#include <graphics/commandlist.h>
-#include <graphics/shader.h>
-#include <graphics/pipeline.h>
-#include <graphics/pipelinestate.h>
-#include <graphics/gbuffer.h>
-
-#include <graphics/format/oisb.h>
-#include <format/oisl.h>
-#include <graphics/format/oirm.h>
-#include <graphics/format/obj.h>
-#include <graphics/shaderbuffer.h>
-#include <graphics/mesh.h>
-#include <graphics/drawlist.h>
-
-#include <graphics/format/fbx.h>
-#include <graphics/format/oish.h>
-
-#include <types/matrix.h>
-#include <graphics/rendertarget.h>
-#include <graphics/versionedtexture.h>
-#include <graphics/sampler.h>
-#include <graphics/viewbuffer.h>
-#include <utils/random.h>
-#include <utils/json.h>
-
-#include <input/keyboard.h>
-#include <input/mouse.h>
-
-#include <math/simplexnoise.h>
+#include "utils/random.h"
+#include "file/filemanager.h"
+#include "math/simplexnoise.h"
+#include "window/windowmanager.h"
+#include "input/inputhandler.h"
+#include "input/mouse.h"
+#include "input/keyboard.h"
+#include "graphics/format/oirm.h"
+#include "graphics/format/fbx.h"
+#include "graphics/objects/model/meshbuffer.h"
+#include "graphics/objects/model/mesh.h"
+#include "graphics/objects/model/materiallist.h"
+#include "graphics/objects/render/drawlist.h"
+#include "graphics/objects/render/rendertarget.h"
+#include "graphics/objects/render/commandlist.h"
+#include "graphics/objects/view/viewbuffer.h"
+#include "graphics/objects/shader/pipeline.h"
+#include "graphics/objects/shader/shader.h"
+#include "graphics/objects/texture/sampler.h"
+#include "graphics/objects/texture/versionedtexture.h"
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -195,6 +183,8 @@ void MainInterface::readPlanets(bool fromResource) {
 
 void MainInterface::initScene() {
 
+	BasicGraphicsInterface::initScene();
+
 	Log::println("Started main interface!");
 
 	Fbx::convertMeshes("res/models/SM_Rock_1.fbx", "mod/models/SM_Rock_1.oiRM", true);
@@ -209,12 +199,6 @@ void MainInterface::initScene() {
 	//Setup our post process shader
 	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.oiSH"));
 	g.use(shader0);
-
-	//Setup our pipeline state (with default settings)
-	PipelineStateInfo psi;
-	psi.lineWidth = 3.f;
-	pipelineState = g.create("Default pipeline state", psi);
-	g.use(pipelineState);
 
 	//Setup our cube & sphere
 	RMFile file;
@@ -292,6 +276,7 @@ void MainInterface::initScene() {
 	hwater = tex->alloc(water);
 
 	materialList = g.create("Materials", MaterialListInfo(tex, 2));
+	g.use(materialList);
 
 	MaterialStruct rockMat;
 	rockMat.t_diffuse = hrock;
@@ -303,34 +288,14 @@ void MainInterface::initScene() {
 	hwaterMat = materialList->alloc(waterMat);
 	materialList->update();
 
-	//Allocate sampler
-	sampler = g.create("Default sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
-	g.use(sampler);
-
 	//Set our shader sampler
 	shader->set("samp", sampler);
 
 	//Setup our post-process sampler
 	shader0->set("samp", sampler);
 
-	//Setup our view buffer
-	viewBuffer = g.create("Default view buffer", ViewBufferInfo());
-	g.use(viewBuffer);
-
-	//Setup our camera
-	camera = g.create("Default camera", CameraInfo(viewBuffer, Vec3(3, 3, 3), Vec4(0, 0, 0, 1)));
-	g.use(camera);
-
-	//Setup our viewport
-	cameraFrustum = g.create("Default viewport", CameraFrustumInfo(viewBuffer, Vec2u(1, 1), 1.f, 40.f, 0.1f, 100.f));
-	g.use(cameraFrustum);
-
 	//Set our view data
-	shader->get<ShaderBuffer>("Views")->setBuffer(0, viewBuffer->getBuffer());
-
-	//Setup our view
-	view = g.create("Default view", ViewInfo(viewBuffer, camera, cameraFrustum));
-	g.use(view);
+	shader->get<ShaderBuffer>("Views")->setBuffer(0, views->getBuffer());
 
 	//Setup lighting
 	shader->get<ShaderBuffer>("PointLights")->instantiate(1);
@@ -456,7 +421,7 @@ void MainInterface::update(f32 dt) {
 	planetRotation += Vec3(30, 50) * dt;
 
 	//Force view buffer to update matrices of cameras, viewports and views
-	viewBuffer->update();
+	views->update();
 
 	//Update planet rotation
 
@@ -489,18 +454,9 @@ void MainInterface::update(f32 dt) {
 
 }
 
-void MainInterface::onAspectChange(float asp) {
-	cameraFrustum->resize(getParent()->getInfo().getSize(), asp);
-}
-
 MainInterface::~MainInterface(){
 	g.finish();
 	g.destroy(materialList);
-	g.destroy(view);
-	g.destroy(cameraFrustum);
-	g.destroy(camera);
-	g.destroy(viewBuffer);
-	g.destroy(sampler);
 	g.destroy(rock);
 	g.destroy(water);
 	g.destroy(osomi);
@@ -516,8 +472,6 @@ MainInterface::~MainInterface(){
 	g.destroy(renderTarget);
 	g.destroy(pipeline);
 	g.destroy(pipeline0);
-	g.destroy(pipelineState);
 	g.destroy(shader);
 	g.destroy(shader0);
-	g.destroy(cmdList);
 }

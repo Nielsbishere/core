@@ -1,9 +1,9 @@
 #ifdef __VULKAN__
 
-#include "graphics/gl/vulkan.h"
-#include "graphics/texture.h"
 #include "graphics/graphics.h"
-#include "graphics/commandlist.h"
+#include "graphics/gl/vulkan.h"
+#include "graphics/objects/texture/texture.h"
+#include "graphics/objects/render/commandlist.h"
 using namespace oi::gc;
 using namespace oi;
 

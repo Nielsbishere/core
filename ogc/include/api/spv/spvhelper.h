@@ -1,6 +1,6 @@
 #pragma once
-#include "graphics/texture.h"
-#include "graphics/shader.h"
+#include "graphics/objects/texture/texture.h"
+#include "graphics/objects/shader/shader.h"
 
 namespace spirv_cross {
 	struct SPIRType;
