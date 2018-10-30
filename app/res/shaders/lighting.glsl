@@ -1,5 +1,11 @@
 #include <types.glsl>
 
+//Handle to a texture
+#define TextureHandle uint
+
+//Handle to a material
+#define MaterialHandle uint
+
 //Material
 //112 bytes; ~9362 material (structs) per MiB
 struct MaterialStruct {
@@ -35,6 +41,10 @@ struct MaterialStruct {
 
 //Lighting
 
+//A handle to a light
+#define LightHandle uint
+
+//Point, spot or directional light; 48 bytes
 struct Light {
 
 	Vec3 pos;
@@ -48,6 +58,7 @@ struct Light {
 
 };
 
+//Result of lighting
 struct LightResult {
 
 	Vec3 diffuse;
@@ -129,24 +140,74 @@ Vec3 calculateLighting(LightResult res, Vec3 col, Vec3 ambient, MaterialStruct m
 	return (res.diffuse * mat.diffuse + res.specular * mat.specular * mat.shininess + ambient * mat.ambient) * col;
 }
 
-//Camera
-struct CameraStruct {
+//Handle to a camera (0 - 127) (MAX_CAMERAS)
+#define CameraHandle uint
 
-	Matrix p;
+//Camera (positional / orientation data)
+//length: 7x16 = 112 bytes
+struct Camera {
 
-	Matrix v;
+	Matrix v;			//View matrix
 
-	Vec3 position;
-	f32 fov;
+	Vec3 position;		//Camera 'eye'
+	f32 p0;
 
-	Vec3 up;
-	f32 aspect;
+	Vec3 up;			//Normal / camera up direction
+	f32 p1;
 
-	Vec3 forward;
-	f32 padding;
-	
-	Vec2u resolution;
-	f32 near;
-	f32 far;
+	Vec4 forward;		//Forward / camera direction or center (if .w == 1)
+
+};
+
+//Handle to a camera frustum (0 - 127) (MAX_CAMERA_FRUSTA)
+#define CameraFrustumHandle uint
+
+//CameraFrustum (projection data)
+//length: 6x16 = 96
+struct CameraFrustum {
+
+	Matrix p;			//Projection matrix
+
+	f32 near;			//Near clipping plane (depth = 0)
+	f32 far;			//Far clipping plane (depth = 1)
+	f32 aspect;			//Aspect ratio (resolution.x / resolution.y)
+	f32 fov;			//FOV in degrees
+
+	Vec2u resolution;	//Resolution (w, h) in pixels
+	u32 p0;
+	u32 p1;
+
+};
+
+//Handle to a view (0 - 255) (MAX_VIEWS)
+#define ViewHandle uint
+
+//View (projection and orientation data)
+//It only includes handles to cameras and viewports
+//cameras[camera] is the view's camera
+//frusta[cameraFrustum] is the view's frustum
+//views[view] is the view
+//80 bytes per view (camera and camera frustum data is re-used)
+struct View {
+
+	CameraHandle camera;
+	CameraFrustumHandle cameraFrustum;
+	uint p0, p1;
+
+	Matrix vp;
+
+};
+
+#define MAX_CAMERAS 128
+#define MAX_CAMERA_FRUSTA 128
+#define MAX_VIEWS 256
+
+//ViewData (contains all cameras, frusta and viewports)
+//128 * (112 + 96) + 256 * 80 = 128 * 208 + 256 * 80 = 46 KiB = 64 KiB (min UBO max length) - 18 KiB
+struct ViewBuffer {
+
+	Camera cameras[MAX_CAMERAS];
+	CameraFrustum frusta[MAX_CAMERA_FRUSTA];
+	View views[MAX_VIEWS];
 
 };

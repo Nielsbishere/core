@@ -23,7 +23,7 @@
 #include <graphics/rendertarget.h>
 #include <graphics/versionedtexture.h>
 #include <graphics/sampler.h>
-#include <graphics/camera.h>
+#include <graphics/viewbuffer.h>
 #include <utils/random.h>
 #include <utils/json.h>
 
@@ -197,7 +197,7 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
-	//Fbx::convertMeshes("res/models/cube.fbx", "out/models/cube.oiRM", true);
+	Fbx::convertMeshes("res/models/SM_Rock_1.fbx", "mod/models/SM_Rock_1.oiRM", true);
 
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
@@ -313,9 +313,24 @@ void MainInterface::initScene() {
 	//Setup our post-process sampler
 	shader0->set("samp", sampler);
 
+	//Setup our view buffer
+	viewBuffer = g.create("Default view buffer", ViewBufferInfo());
+	g.use(viewBuffer);
+
 	//Setup our camera
-	camera = g.create("Default camera", CameraInfo(45.f, Vec3(3, 3, 3), Vec4(0, 0, 0, 1)));
+	camera = g.create("Default camera", CameraInfo(viewBuffer, Vec3(3, 3, 3), Vec4(0, 0, 0, 1)));
 	g.use(camera);
+
+	//Setup our viewport
+	cameraFrustum = g.create("Default viewport", CameraFrustumInfo(viewBuffer, Vec2u(1, 1), 1.f, 40.f, 0.1f, 100.f));
+	g.use(cameraFrustum);
+
+	//Set our view data
+	shader->get<ShaderBuffer>("Views")->setBuffer(0, viewBuffer->getBuffer());
+
+	//Setup our view
+	view = g.create("Default view", ViewInfo(viewBuffer, camera, cameraFrustum));
+	g.use(view);
 
 	//Setup lighting
 	shader->get<ShaderBuffer>("PointLights")->instantiate(1);
@@ -334,7 +349,7 @@ void MainInterface::initScene() {
 	//Setup the Objects buffer with our size
 	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
 
-	//Setup drawcalls  (reserve objects for meshes)
+	//Setup drawcalls (reserve objects for meshes)
 
 	drawList->draw(mesh2, 1);		//Reserve index 0 for the sphere
 	drawList->draw(mesh3, 1);		//Reserve index 1 for the planet
@@ -344,7 +359,7 @@ void MainInterface::initScene() {
 
 void MainInterface::renderScene(){
 
-	//Start 'rendering'
+	//Start rendering
 	cmdList->begin();
 
 	//Render to renderTarget
@@ -440,14 +455,17 @@ void MainInterface::update(f32 dt) {
 	prevMouse = nextMouse;
 	planetRotation += Vec3(30, 50) * dt;
 
+	//Force view buffer to update matrices of cameras, viewports and views
+	viewBuffer->update();
+
 	//Update planet rotation
 
 	objects[0].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.5f));
-	objects[0].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[0].m };
+	objects[0].mvp = view->getStruct().vp * objects[0].m;
 	objects[0].diffuse = hwater;
 
 	objects[1].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(3.f));
-	objects[1].mvp = { camera->getBoundProjection() * camera->getBoundView() * objects[1].m };
+	objects[1].mvp = view->getStruct().vp * objects[1].m;
 	objects[1].diffuse = hrock;
 
 	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
@@ -472,13 +490,16 @@ void MainInterface::update(f32 dt) {
 }
 
 void MainInterface::onAspectChange(float asp) {
-	camera->bind(getParent()->getInfo().getSize(), asp);
+	cameraFrustum->resize(getParent()->getInfo().getSize(), asp);
 }
 
 MainInterface::~MainInterface(){
 	g.finish();
 	g.destroy(materialList);
+	g.destroy(view);
+	g.destroy(cameraFrustum);
 	g.destroy(camera);
+	g.destroy(viewBuffer);
 	g.destroy(sampler);
 	g.destroy(rock);
 	g.destroy(water);

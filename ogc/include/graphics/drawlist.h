@@ -11,7 +11,11 @@ namespace oi {
 		class MeshBuffer;
 		class Mesh;
 
+		class DrawList;
+
 		struct DrawListInfo {
+
+			typedef DrawList ResourceType;
 
 			u32 maxBatches;
 			bool clearOnUse = true;

@@ -6,7 +6,11 @@ namespace oi {
 
 	namespace gc {
 
+		class Mesh;
+
 		struct MeshInfo {
+
+			typedef Mesh ResourceType;
 
 			u32 vertices, indices;
 

@@ -30,6 +30,3 @@
 #define Matrix4i imat4
 #define Matrix3i imat3
 #define Matrix2i imat2
-
-#define TextureHandle uint
-#define MaterialHandle uint

@@ -12,6 +12,7 @@ int main() {
 
 	std::unordered_map<String, std::vector<String>> shaders;
 
+	
 	fm.foreachFileRecurse("mod/shaders", [&](FileInfo info) -> bool { 
 
 		String ext = info.name.getExtension();

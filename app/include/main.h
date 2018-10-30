@@ -44,6 +44,27 @@ struct Planet {
 
 };
 
+namespace oi {
+
+	namespace gc {
+
+		class Shader;
+		class Pipeline;
+		class PipelineState;
+		class Sampler;
+		class Camera;
+		class CameraFrustum;
+		class View;
+		class ViewBuffer;
+		class MeshBuffer;
+		class Mesh;
+		class DrawList;
+		class RenderTarget;
+
+	}
+
+}
+
 class MainInterface : public oi::gc::GraphicsInterface {
 
 public:
@@ -71,6 +92,9 @@ private:
 	oi::gc::PipelineState *pipelineState;
 	oi::gc::Sampler *sampler;
 	oi::gc::Camera *camera;
+	oi::gc::CameraFrustum *cameraFrustum;
+	oi::gc::ViewBuffer *viewBuffer;
+	oi::gc::View *view;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
 	oi::gc::Mesh *mesh, *mesh0, *mesh1, *mesh2, *mesh3 = nullptr;
 	oi::gc::DrawList *drawList, *drawList0;

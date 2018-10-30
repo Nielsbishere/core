@@ -5,7 +5,11 @@ namespace oi {
 
 	namespace gc {
 
+		class VersionedTexture;
+
 		struct VersionedTextureInfo {
+
+			typedef VersionedTexture ResourceType;
 
 			u32 versions = 0;
 			std::vector<Texture*> version;

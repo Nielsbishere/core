@@ -37,7 +37,11 @@ namespace oi {
 
 		};
 
+		class ShaderBuffer;
+
 		struct ShaderBufferInfo {
+
+			typedef ShaderBuffer ResourceType;
 
 			ShaderRegisterType type;
 			u32 size;

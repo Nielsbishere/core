@@ -59,7 +59,7 @@ bool FileManager::mkdir(String path) const {
 }
 
 String FileManager::getAbsolutePath(String path) const {
-	return (path == "" ? "" : (path.startsWith("mod/") ? String("./res/") + path.cutBegin(4) : String("./") + path));
+	return (path == "" ? "" : (path.startsWith("mod") ? String("./res") + path.cutBegin(3) : String("./") + path));
 
 }
 
@@ -143,6 +143,8 @@ bool FileManager::foreachFile(String path, FileCallback callback) const {
 	WIN32_FIND_DATA data;
 	HANDLE file = FindFirstFileA(path.toCString(), &data);
 	bool first = true;
+
+	if (file == INVALID_HANDLE_VALUE) return Log::error("Couldn't find directory");
 
 	while (first || FindNextFileA(file, &data)) {
 

@@ -48,7 +48,9 @@ TextureFormat SpvHelper::getFormat(SPIRType type) {
 
 }
 
-void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, ShaderBufferObject *var) {
+void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, u32 varId) {
+
+	//ShaderBufferObject* becomes invalid. Use id instead!
 
 	auto &type = comp.get_type(id);
 
@@ -60,8 +62,6 @@ void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, Shade
 
 		obj.offset = (u32)comp.type_struct_member_offset(type, i);
 		obj.name = comp.get_member_name(type.parent_type == 0 ? id : type.parent_type, i);
-
-		u32 varId = var == &info.self ? 0U : (u32)(var - info.elements.data()) + 1U;
 
 		u32 flags = 0;
 
@@ -76,10 +76,7 @@ void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, Shade
 
 		if (mem.basetype == SPIRType::Struct) {
 
-			u32 size = (u32)comp.get_declared_struct_member_size(type, i);
-
-			if (size == 0)	//Fetch size if it can't be found (dynamically sized array)
-				size = (u32)comp.get_declared_struct_size(comp.get_type(mem.self));
+			u32 size = (u32)comp.get_declared_struct_size(comp.get_type(mem.self));
 
 			obj.length = size;
 			obj.arr = mem.array;
@@ -89,13 +86,11 @@ void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, Shade
 
 			u32 objoff = (u32)info.elements.size();
 
-			info.push(obj, *var);
-			var = varId == 0 ? &info.self : info.elements.data() + varId - 1U;
+			info.push(obj, varId == 0 ? info.self : info.elements[varId - 1]);
 
-			fillStruct(comp, type.member_types[i], info, info.elements.data() + objoff);
+			fillStruct(comp, type.member_types[i], info, (u32) info.elements.size());	//info.elements.data() gets moved after first element in fillStruct. Use uint offset instead.
 
-		}
-		else {
+		} else {
 
 			obj.format = getFormat(mem);
 			obj.arr = mem.array;
@@ -108,8 +103,8 @@ void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, Shade
 
 			obj.flags = (SBOFlag)flags;
 
-			info.push(obj, *var);
-			var = varId == 0 ? &info.self : info.elements.data() + varId - 1U;
+			info.push(obj, varId == 0 ? info.self : info.elements[varId - 1]);
+
 		}
 	}
 
@@ -139,21 +134,21 @@ void SpvHelper::getStageInputs(spirv_cross::Compiler &comp, spirv_cross::ShaderR
 
 }
 
-void SpvHelper::getBuffer(spirv_cross::Compiler &comp, Resource &r, ShaderRegister &reg, ShaderBufferInfo &dat) {
+void SpvHelper::getBuffer(spirv_cross::Compiler &comp, Resource &r, ShaderRegister &reg, ShaderBufferInfo &dat, String name, bool allocatable) {
 
 	const SPIRType &btype = comp.get_type(r.base_type_id);
 
 	dat.size = (u32)comp.get_declared_struct_size(btype);
-	dat.allocate = true;
+	dat.allocate = allocatable;
 	dat.type = reg.type;
 
 	dat.self.length = dat.size;
 	dat.self.format = TextureFormat::Undefined;
-	dat.self.name = r.name;
+	dat.self.name = name;
 	dat.self.offset = 0U;
 	dat.self.parent = nullptr;
 
-	SpvHelper::fillStruct(comp, r.base_type_id, dat, &dat.self);
+	SpvHelper::fillStruct(comp, r.base_type_id, dat, 0);
 
 }
 
@@ -165,6 +160,9 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 	u32 i = 0;
 	for (Resource &r : buf) {
 
+		String name = String(r.name).replaceLast("_noalloc", "");
+		bool allocatable = !String(r.name).endsWith("_noalloc");
+
 		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
 
 		bool isUBO = i < res.uniform_buffers.size();
@@ -174,7 +172,7 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
 		if (itt == info.registers.end()) {
-			info.registers.push_back(ShaderRegister(stype, stageAccess, r.name, 1, binding));
+			info.registers.push_back(ShaderRegister(stype, stageAccess, name, 1, binding));
 			itt = info.registers.end() - 1;
 		} else {
 
@@ -187,11 +185,11 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 
 		}
 		
-		auto it = info.buffer.find(r.name);
+		auto it = info.buffer.find(name);
 
 		if (it == info.buffer.end()) {
-			ShaderBufferInfo &dat = info.buffer[r.name];
-			SpvHelper::getBuffer(comp, r, *itt, dat);
+			ShaderBufferInfo &dat = info.buffer[name];
+			SpvHelper::getBuffer(comp, r, *itt, dat, name, allocatable);
 		}
 
 		++i;

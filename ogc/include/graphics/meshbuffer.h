@@ -19,7 +19,11 @@ namespace oi {
 
 		};
 
+		class MeshBuffer;
+
 		struct MeshBufferInfo {
+
+			typedef MeshBuffer ResourceType;
 
 			u32 maxVertices, maxIndices;
 			std::vector<std::vector<std::pair<String, TextureFormat>>> buffers;

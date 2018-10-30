@@ -12,44 +12,21 @@ namespace oi {
 	namespace gc {
 
 		class Texture;
-		class TextureFormat;
-		class TextureUsage;
-		class RenderTarget;
-		class CommandList;
+		class Pipeline;
 		class Shader;
 		class ShaderStage;
-		class Pipeline;
-		class PipelineState;
-		class GBuffer;
-		class ShaderBuffer;
-		class Sampler;
-		class Camera;
-		class MeshBuffer;
-		class Mesh;
-		class DrawList;
-		class VersionedTexture;
-		class TextureList;
-		class MaterialList;
-
-		class GraphicsObject;
+		class RenderTarget;
+		class CommandList;
+		class TextureFormat;
 
 		struct TextureInfo;
-		struct RenderTargetInfo;
-		struct CommandListInfo;
+		struct PipelineInfo;
 		struct ShaderInfo;
 		struct ShaderStageInfo;
-		struct PipelineInfo;
-		struct PipelineStateInfo;
-		struct GBufferInfo;
-		struct ShaderBufferInfo;
-		struct SamplerInfo;
-		struct CameraInfo;
-		struct MeshBufferInfo;
-		struct MeshInfo;
-		struct DrawListInfo;
-		struct VersionedTextureInfo;
-		struct TextureListInfo;
-		struct MaterialListInfo;
+		struct RenderTargetInfo;
+		struct CommandListInfo;
+
+		class GraphicsObject;
 
 		enum class TextureFormatStorage;
 
@@ -87,17 +64,11 @@ namespace oi {
 			Shader *create(String name, ShaderInfo info);
 			ShaderStage *create(String name, ShaderStageInfo info);
 			Pipeline *create(String name, PipelineInfo info);
-			PipelineState *create(String name, PipelineStateInfo info);
-			GBuffer *create(String name, GBufferInfo info);
-			ShaderBuffer *create(String name, ShaderBufferInfo info);
-			Sampler *create(String name, SamplerInfo info);
-			Camera *create(String name, CameraInfo info);
-			MeshBuffer *create(String name, MeshBufferInfo info);
-			Mesh *create(String name, MeshInfo info);
-			DrawList *create(String name, DrawListInfo info);
-			VersionedTexture *create(String name, VersionedTextureInfo info);
-			TextureList *create(String name, TextureListInfo info);
-			MaterialList *create(String name, MaterialListInfo info);
+
+			template<typename T2>
+			typename T2::ResourceType *create(String name, T2 info) {
+				return init<typename T2::ResourceType, T2>(name, info);
+			}
 
 			GraphicsExt &getExtension();
 

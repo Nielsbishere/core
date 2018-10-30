@@ -15,7 +15,7 @@ namespace oi {
 			
 			void initSurface() override;
 			void destroySurface() override;
-			virtual void onResize(Vec2u res) override;
+			void onResize(Vec2u res) override;
 			
 			void render() override;
 			virtual void renderScene(){}

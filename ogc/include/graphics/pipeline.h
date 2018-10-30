@@ -12,8 +12,11 @@ namespace oi {
 		class RenderTarget;
 		class Camera;
 		class MeshBuffer;
+		class Pipeline;
 
 		struct PipelineInfo {
+
+			typedef Pipeline ResourceType;
 
 			Shader *shader;
 			PipelineState *pipelineState;

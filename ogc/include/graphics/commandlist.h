@@ -16,7 +16,7 @@ namespace oi {
 		class Mesh;
 		class DrawList;
 
-		struct CommandListInfo { };
+		struct CommandListInfo { typedef CommandList ResourceType; };
 
 		struct RenderTargetClear {
 

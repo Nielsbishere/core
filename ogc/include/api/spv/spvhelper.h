@@ -22,7 +22,7 @@ namespace oi {
 			static TextureFormat getFormat(spirv_cross::SPIRType type);
 
 			//Insert the member functions of the type into the info buffer
-			static void fillStruct(spirv_cross::Compiler &compiler, u32 typeId, ShaderBufferInfo &buffer, ShaderBufferObject *parent);
+			static void fillStruct(spirv_cross::Compiler &compiler, u32 typeId, ShaderBufferInfo &buffer, u32 parent);
 
 			//Get shader stage outputs into the ShaderOutputs
 			static void getStageOutputs(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, std::vector<ShaderOutput> &output);
@@ -31,7 +31,7 @@ namespace oi {
 			static void getStageInputs(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, std::vector<ShaderInput> &output);
 
 			//Convert buffer to ShaderBufferInfo
-			static void getBuffer(spirv_cross::Compiler &compiler, spirv_cross::Resource &buffer, ShaderRegister &reg, ShaderBufferInfo &info);
+			static void getBuffer(spirv_cross::Compiler &compiler, spirv_cross::Resource &buffer, ShaderRegister &reg, ShaderBufferInfo &info, String name, bool allocatable);
 
 			//Add buffers to shader
 			static bool addBuffers(spirv_cross::Compiler &compiler, spirv_cross::ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess access);

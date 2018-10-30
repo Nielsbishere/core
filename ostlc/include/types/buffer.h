@@ -64,6 +64,11 @@ namespace oi {
 		}
 
 		template<typename T = u8>
+		const T &operator[](u32 where) const {
+			return *(const T*)&data[where];
+		}
+
+		template<typename T = u8>
 		T get(u32 where) const {									//Gets data at location (no reference)
 			return *(T*)&data[where];
 		}
@@ -95,6 +100,7 @@ namespace oi {
 		bool setString(u32 where, String str);
 
 		u32 size() const;
+		void clear();
 
 		u8 *addr() const;
 

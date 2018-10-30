@@ -9,7 +9,11 @@ namespace oi {
 
 		DEnum(GBufferType, u32, UBO = 0, SSBO = 1, IBO = 2, VBO = 3, CBO = 4);
 
+		class GBuffer;
+
 		struct GBufferInfo {
+
+			typedef GBuffer ResourceType;
 
 			GBufferType type;
 			u32 size;

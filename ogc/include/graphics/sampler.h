@@ -12,7 +12,11 @@ namespace oi {
 		UEnum(SamplerMin, Linear_mip = 0, Nearest_mip = 1, Linear = 2, Nearest = 3, Linear_mip_nearest = 4, Nearest_mip_linear = 5);
 		UEnum(SamplerMag, Linear = 0, Nearest = 1);
 
+		class Sampler;
+
 		struct SamplerInfo {
+
+			typedef Sampler ResourceType;
 
 			SamplerWrapping s, r, t;
 			SamplerMin minFilter;

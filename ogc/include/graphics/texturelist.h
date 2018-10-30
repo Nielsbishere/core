@@ -5,7 +5,11 @@ namespace oi {
 
 	namespace gc {
 
+		class TextureList;
+
 		struct TextureListInfo {
+
+			typedef TextureList ResourceType;
 
 			std::vector<Texture*> textures;
 

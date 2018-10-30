@@ -26,8 +26,7 @@ bool RenderTarget::init(bool isOwned) {
 
 	owned = isOwned;
 
-	if (info.buffering == 0)
-		info.buffering = g->getBuffering();
+	u32 buffering = g->getBuffering();
 
 	VkGraphics &gext = g->getExtension();
 
@@ -43,18 +42,17 @@ bool RenderTarget::init(bool isOwned) {
 		TextureFormat format = i == 0 ? getDepth()->getFormat() : getTarget(i - 1)->getFormat();
 		bool isDepth = i == 0;
 
-		VkImageLayout layout;
+		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		if (isDepth) layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;							//Depth buffer
-		else if (getTarget(i - 1)->isOwned()) layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;			//Regular texture
-		else layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;													//Back buffer
+		if (!(isDepth || getTarget(i - 1)->isOwned()))
+			finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;									//Back buffer
 
 		desc.format = (VkFormat) VkTextureFormat(format.getName()).getValue().value;
 		desc.samples = VK_SAMPLE_COUNT_1_BIT;
 		desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		desc.finalLayout = layout;
+		desc.finalLayout = finalLayout;
 
 		if (isDepth) {
 			desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -102,9 +100,9 @@ bool RenderTarget::init(bool isOwned) {
 
 	//Create framebuffers
 
-	ext.frameBuffer.resize(info.buffering);
+	ext.frameBuffer.resize(buffering);
 
-	for (u32 i = 0; i < info.buffering; ++i) {
+	for (u32 i = 0; i < buffering; ++i) {
 
 		VkFramebuffer *fb = ext.frameBuffer.data() + i;
 

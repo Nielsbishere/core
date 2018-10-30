@@ -498,7 +498,7 @@ void Graphics::initSurface(Window *w) {
 
 	//Turn it into a RenderTarget aka 'Render pass'
 
-	RenderTargetInfo info(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() }, buffering);
+	RenderTargetInfo info(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() });
 	info.depth = depthBuffer;
 	info.textures = { vt };
 

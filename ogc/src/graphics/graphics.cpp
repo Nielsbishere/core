@@ -211,50 +211,6 @@ Pipeline *Graphics::create(String name, PipelineInfo info) {
 	return init<Pipeline>(name, info);
 }
 
-PipelineState *Graphics::create(String name, PipelineStateInfo info) {
-	return init<PipelineState>(name, info);
-}
-
-GBuffer *Graphics::create(String name, GBufferInfo info) {
-	return init<GBuffer>(name, info);
-}
-
-ShaderBuffer *Graphics::create(String name, ShaderBufferInfo info) {
-	return init<ShaderBuffer>(name, info);
-}
-
-Sampler *Graphics::create(String name, SamplerInfo info) {
-	return init<Sampler>(name, info);
-}
-
-Camera *Graphics::create(String name, CameraInfo info) {
-	return init<Camera>(name, info);
-}
-
-MeshBuffer *Graphics::create(String name, MeshBufferInfo info) {
-	return init<MeshBuffer>(name, info);
-}
-
-Mesh *Graphics::create(String name, MeshInfo info) {
-	return init<Mesh>(name, info);
-}
-
-DrawList *Graphics::create(String name, DrawListInfo info) {
-	return init<DrawList>(name, info);
-}
-
-VersionedTexture *Graphics::create(String name, VersionedTextureInfo info) {
-	return init<VersionedTexture>(name, info);
-}
-
-TextureList *Graphics::create(String name, TextureListInfo info) {
-	return init<TextureList>(name, info);
-}
-
-MaterialList *Graphics::create(String name, MaterialListInfo info) {
-	return init<MaterialList>(name, info);
-}
-
 bool Graphics::remove(GraphicsObject *go) {
 
 	size_t id = go->getHash();

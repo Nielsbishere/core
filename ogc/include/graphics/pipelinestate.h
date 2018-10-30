@@ -7,7 +7,11 @@ namespace oi {
 
 	namespace gc {
 
+		class PipelineState;
+
 		struct PipelineStateInfo {
+
+			typedef PipelineState ResourceType;
 
 			f32 lineWidth = 1.f;
 			CullMode cullMode = CullMode::Back;

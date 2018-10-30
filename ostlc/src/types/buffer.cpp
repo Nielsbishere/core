@@ -110,6 +110,10 @@ bool Buffer::setString(u32 where, String str) {
 	return true;
 }
 
+void Buffer::clear() {
+	memset(data, 0, length);
+}
+
 bool Buffer::read(Bitset &bitset, u32 bits) {
 
 	u32 bytes = (u32) std::ceil(bits / 8.f);

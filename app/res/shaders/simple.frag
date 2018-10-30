@@ -19,7 +19,7 @@ layout(binding = 1) uniform PerExecution {
 	
 } exc;
 
-layout(binding = 2) uniform Camera { CameraStruct cam; };
+layout(binding = 2) uniform Views_noalloc { ViewBuffer viewData; };
 
 layout(binding = 3) uniform sampler samp;
 layout(binding = 4) uniform texture2D tex[2];
@@ -53,6 +53,9 @@ Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 }
 
 void main() {
+
+	//TODO: views[0] for now; but prevent hardcoding.
+	Camera cam = viewData.cameras[viewData.views[0].camera];
 
 	Vec3 cpos = normalize(cam.position - pos);
 

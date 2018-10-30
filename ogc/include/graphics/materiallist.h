@@ -44,8 +44,12 @@ namespace oi {
 
 		};
 
+		class MaterialList;
+
 		//The data for a material buffer
 		struct MaterialListInfo {
+
+			typedef MaterialList ResourceType;
 
 			TextureList *textures;
 			std::vector<MaterialStruct> materials;

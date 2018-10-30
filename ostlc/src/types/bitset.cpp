@@ -5,7 +5,8 @@ using namespace oi;
 /* BitsetRef */
 
 BitsetRef::BitsetRef(Bitset *bitset, size_t bit) : bitset(bitset), bit(bit) {}
-BitsetRef::BitsetRef() : BitsetRef(nullptr, 0) {}
+BitsetRef::BitsetRef(const Bitset *bitset, size_t bit) : bitset((Bitset*)bitset), bit(bit) {}
+BitsetRef::BitsetRef() : BitsetRef((Bitset*)nullptr, 0) {}
 
 BitsetRef::operator bool() const {
 	return bitset->fetch((u32) bit);
@@ -24,90 +25,6 @@ BitsetRef &BitsetRef::operator=(bool other) {
 	return *this;
 }
 
-bool BitsetRef::operator!=(bool other) const {
-	return operator bool() != other;
-}
-
-bool BitsetRef::operator==(bool other) const {
-	return operator bool() == other;
-}
-
-bool BitsetRef::operator!=(const BitsetRef &other) const {
-	return operator bool() != other.operator bool();
-}
-
-bool BitsetRef::operator==(const BitsetRef &other) const {
-	return operator bool() == other.operator bool();
-}
-
-BitsetRef &BitsetRef::flip() {
-	return (*this) = !operator bool();
-}
-
-BitsetRef &BitsetRef::operator^=(const BitsetRef &other) {
-	return (*this) = operator bool() != other.operator bool();
-}
-
-BitsetRef &BitsetRef::operator|=(const BitsetRef &other) {
-	return (*this) = operator bool() || other.operator bool();
-}
-
-BitsetRef &BitsetRef::operator&=(const BitsetRef &other) {
-	return (*this) = operator bool() && other.operator bool();
-}
-
-BitsetRef &BitsetRef::operator^=(bool other) {
-	return (*this) = operator bool() != other;
-}
-
-BitsetRef &BitsetRef::operator|=(bool other) {
-	return (*this) = operator bool() || other;
-}
-
-BitsetRef &BitsetRef::operator&=(bool other) {
-	return (*this) = operator bool() && other;
-}
-
-bool BitsetRef::operator^(const BitsetRef &other) const {
-	return operator bool() != other.operator bool();
-}
-
-bool BitsetRef::operator|(const BitsetRef &other) const {
-	return operator bool() || other.operator bool();
-}
-
-bool BitsetRef::operator&(const BitsetRef &other) const {
-	return operator bool() && other.operator bool();
-}
-
-bool BitsetRef::operator||(const BitsetRef &other) const {
-	return operator bool() || other.operator bool();
-}
-
-bool BitsetRef::operator&&(const BitsetRef &other) const {
-	return operator bool() && other.operator bool();
-}
-
-bool BitsetRef::operator^(bool other) const {
-	return operator bool() != other;
-}
-
-bool BitsetRef::operator|(bool other) const {
-	return operator bool() || other;
-}
-
-bool BitsetRef::operator&(bool other) const {
-	return operator bool() && other;
-}
-
-bool BitsetRef::operator||(bool other) const {
-	return operator bool() || other;
-}
-
-bool BitsetRef::operator&&(bool other) const {
-	return operator bool() && other;
-}
-
 /* Bitset */
 
 Bitset::Bitset() : data(nullptr), bits(0), bytes(0) {}
@@ -123,16 +40,20 @@ Bitset::Bitset(u32 size, bool def): Bitset(size) {
 }
 
 u8 *Bitset::addr() { return data; }
-CopyBuffer Bitset::toBuffer() { return CopyBuffer(data, (u32) std::ceil(bits / 8.f)); }
+CopyBuffer Bitset::toBuffer() const { return CopyBuffer(data, (u32) std::ceil(bits / 8.f)); }
 
-u32 Bitset::getBits() { return bits; }
-u32 Bitset::getBytes() { return bytes; }
+u32 Bitset::getBits() const { return bits; }
+u32 Bitset::getBytes() const { return bytes; }
 
 BitsetRef Bitset::operator[](u32 i) {
 
 	if (i >= bits)
 		return {};
 
+	return BitsetRef(this, i);
+}
+
+bool Bitset::operator[](u32 i) const {
 	return BitsetRef(this, i);
 }
 
@@ -148,33 +69,63 @@ Bitset &Bitset::operator=(const Bitset &other) {
 }
 
 Bitset &Bitset::flip() {
+
 	u32 *uarr = (u32*)data;
+
 	for (u32 i = 0; i < bytes / 4; ++i)
 		uarr[i] = ~uarr[i];
+
+	for (u32 i = 0; i < bytes % 4; ++i)
+		data[bytes / 4 * 4 + i] = ~data[bytes / 4 * 4 + i];
+
 	return *this;
 }
 
 Bitset &Bitset::operator^=(bool other) {
+
 	u32 *uarr = (u32*)data;
+
 	u32 c = other ? 0xFFFFFFFFU : 0;
+	u8 c0 = other ? 0xFFU : 0;
+
 	for (u32 i = 0; i < bytes / 4; ++i)
 		uarr[i] ^= c;
+
+	for (u32 i = 0; i < bytes % 4; ++i)
+		data[bytes / 4 * 4 + i] ^= c0;
+
 	return *this;
 }
 
 Bitset &Bitset::operator|=(bool other) {
+
 	u32 *uarr = (u32*)data;
+
 	u32 c = other ? 0xFFFFFFFFU : 0;
+	u8 c0 = other ? 0xFFU : 0;
+
 	for (u32 i = 0; i < bytes / 4; ++i)
 		uarr[i] |= c;
+
+	for (u32 i = 0; i < bytes % 4; ++i)
+		data[bytes / 4 * 4 + i] |= c0;
+
 	return *this;
 }
 
 Bitset &Bitset::operator&=(bool other) {
+
 	u32 *uarr = (u32*)data;
+
 	u32 c = other ? 0xFFFFFFFFU : 0;
+	u8 c0 = other ? 0xFFU : 0;
+
 	for (u32 i = 0; i < bytes / 4; ++i)
 		uarr[i] &= c;
+
+	for (u32 i = 0; i < bytes % 4; ++i)
+		data[bytes / 4 * 4 + i] &= c0;
+
 	return *this;
 }
 
@@ -320,11 +271,15 @@ void Bitset::read(std::vector<u32> &values, u32 bitsPerVal) {
 
 }
 
-String Bitset::toString() {
+String Bitset::toString() const {
 	return Buffer::construct(data, bytes).toHex();
 }
 
 u8 &Bitset::at(u32 bit) { return data[bit / 8]; }
+
+void Bitset::clear() {
+	memset(data, 0, bytes);
+}
 
 void Bitset::copy(const Bitset &other) {
 	if (other.data == nullptr) {

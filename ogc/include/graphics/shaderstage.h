@@ -14,7 +14,11 @@ namespace oi {
 
 		DEnum(ShaderStageType, u32, Undefined = 0, Vertex_shader = 1, Fragment_shader = 2, Geometry_shader = 3, Compute_shader = 4);
 
+		class ShaderStage;
+
 		struct ShaderStageInfo {
+
+			typedef ShaderStage ResourceType;
 
 			CopyBuffer code;
 			ShaderStageType type;

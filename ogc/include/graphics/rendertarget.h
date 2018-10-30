@@ -8,18 +8,21 @@ namespace oi {
 	namespace gc {
 
 		class VersionedTexture;
+		class RenderTarget;
 
 		struct RenderTargetInfo {
 
+			typedef RenderTarget ResourceType;
+
 			Vec2u res;
-			u32 buffering, targets;
+			u32 targets;
 			TextureFormat depthFormat;
 			std::vector<TextureFormat> formats;
 
-			Texture *depth;
+			Texture *depth = nullptr;
 			std::vector<VersionedTexture*> textures;
 
-			RenderTargetInfo(Vec2u res, TextureFormat depth, std::vector<TextureFormat> formats, u32 buffering = 0) : res(res), depthFormat(depth), formats(formats), buffering(buffering), targets((u32) formats.size()) {}
+			RenderTargetInfo(Vec2u res, TextureFormat depth, std::vector<TextureFormat> formats) : res(res), depthFormat(depth), formats(formats), targets((u32) formats.size()) {}
 
 		};
 

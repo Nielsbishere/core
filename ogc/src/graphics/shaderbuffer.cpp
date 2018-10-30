@@ -158,7 +158,7 @@ void ShaderBuffer::setBuffer(u32 objects, GBuffer *g) {
 	setObjectCount(objects);
 
 	if(g == nullptr || g->getSize() != info.size)
-		Log::throwError<ShaderBuffer, 0x1>("GBuffer size should match ShaderBuffer size");
+		Log::throwError<ShaderBuffer, 0x2>("GBuffer size should match ShaderBuffer size");
 
 	buffer = g;
 
@@ -197,7 +197,7 @@ void ShaderBuffer::open() {
 		this->current = Buffer::construct(buffer->getAddress(), buffer->getSize());
 	}
 	else
-		Log::throwError<ShaderBuffer, 0x1>("Can't update a non-existent buffer");
+		Log::throwError<ShaderBuffer, 0x3>("Can't update a non-existent buffer");
 
 }
 
@@ -226,7 +226,7 @@ void ShaderBuffer::close() {
 	if (buffer != nullptr)
 		buffer->close();
 	else
-		Log::throwError<ShaderBuffer, 0x2>("Can't update a non-existent buffer");
+		Log::throwError<ShaderBuffer, 0x6>("Can't update a non-existent buffer");
 
 }
 
@@ -286,7 +286,7 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 			}
 
 			if ((sbo = sbo->find(str)) == nullptr)
-				Log::throwError<ShaderBufferVar, 0x3>(String("Couldn't find the path \"") + path + "\"");
+				Log::throwError<ShaderBufferVar, 0x7>(String("Couldn't find the path \"") + path + "\"");
 
 			offset += sbo->offset;
 

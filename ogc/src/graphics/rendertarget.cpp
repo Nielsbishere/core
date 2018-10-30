@@ -1,10 +1,11 @@
 #include "graphics/rendertarget.h"
+#include "graphics/graphics.h"
 #include <utils/log.h>
 using namespace oi::gc;
 using namespace oi;
 
 
-u32 RenderTarget::getVersions() { return info.buffering; }
+u32 RenderTarget::getVersions() { return g->getBuffering(); }
 u32 RenderTarget::getTargets() { return info.targets; }
 
 Texture *RenderTarget::getDepth() { return info.depth; }

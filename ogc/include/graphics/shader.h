@@ -10,8 +10,11 @@ namespace oi {
 	namespace gc {
 
 		class GraphicsResource;
+		class Shader;
 
 		struct ShaderInfo {
+
+			typedef Shader ResourceType;
 
 			String path;
 

@@ -71,7 +71,11 @@ namespace oi {
 			sRGBA8 = 8
 		);
 
+		class Texture;
+
 		struct TextureInfo {
+
+			typedef Texture ResourceType;
 
 			Vec2u res;
 			TextureFormat format;
