@@ -22,7 +22,10 @@ install:
     
     make_pc.bat
     
-cache: C:\VulkanSDK\%VULKAN_VERSION%
+cache: >-
+    C:\VulkanSDK\%VULKAN_VERSION%
+    
+    deps
 build:
   project: builds/Visual Studio 15 2017 Win64/oic.sln
   parallel: true
