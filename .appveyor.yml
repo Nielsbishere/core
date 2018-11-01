@@ -25,7 +25,9 @@ install:
 cache: >-
     C:\VulkanSDK\%VULKAN_VERSION%
     
-    deps
+    C:/projects/ocore/deps
+    
+    C:/projects/ocore/builds
 build:
   project: builds/Visual Studio 15 2017 Win64/oic.sln
   parallel: true
