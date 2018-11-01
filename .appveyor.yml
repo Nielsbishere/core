@@ -7,7 +7,7 @@ init:
 environment:
   WEBHOOK_URL:
     secure: muMZwldprBMRzGkLajQJgtatA5VKNxVtMaQ88cc1rkncBjS2diFQzJaRotAZSIQoAb5gbFw391raBujyxrVZe7iJxzB0vOC/Cx2eXx+Mct6zs3sMZq5tF7fUpbJhtrHi7Uz0byhaBMmH+XD++xdiAJ6+ihuDlv8MQp3E53p5ZfQ=
-  VULKAN_VERSION: 1.1.82.1
+  VULKAN_VERSION: 1.1.85.0
 install:
 - cmd: >-
     git submodule init 
