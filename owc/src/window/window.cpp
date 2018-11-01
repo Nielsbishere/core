@@ -15,12 +15,12 @@ WindowInterface *Window::getInterface() { return wi; }
 WindowManager *Window::getParent() { return parent; }
 WindowExt &Window::getExtension() { return ext; }
 
-void Window::setInterface(WindowInterface *wi) {
+void Window::setInterface(WindowInterface *wif) {
 
-	if (this->wi != nullptr)
-		delete this->wi;
+	if (wi != nullptr)
+		delete wi;
 
-	this->wi = wi; 
+	wi = wif;
 
 	if (wi != nullptr)
 		wi->parent = this;
@@ -40,10 +40,10 @@ void Window::finalize(){
 	if(wi != nullptr){
 		if(finalizeCount == 0){
 			wi->init();
-			wi->initSurface();
+			wi->initSurface(info.size);
 		}
 		else
-			wi->initSurface();
+			wi->initSurface(info.size);
 	}
 	
 	++finalizeCount;

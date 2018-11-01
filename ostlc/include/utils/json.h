@@ -1,9 +1,47 @@
 #pragma once
 
-#include "api/rapidjson/document.h"
 #include "types/matrix.h"
 #include "utils/log.h"
 
+//Avoid linking for all ostlc's dependencies by forward declaration
+#ifndef RAPIDJSON
+namespace rapidjson {
+
+	class CrtAllocator;
+
+	template <typename BaseAllocator = CrtAllocator>
+	class MemoryPoolAllocator;
+
+	template <typename Encoding, typename Allocator = MemoryPoolAllocator<> >
+	class GenericValue;
+
+	template<typename CharType = char>
+	struct UTF8;
+
+	typedef GenericValue<UTF8<> > Value;
+
+	template <typename Encoding, typename Allocator = MemoryPoolAllocator<>, typename StackAllocator = CrtAllocator>
+	class GenericDocument;
+
+	typedef GenericDocument<UTF8<> > Document;
+
+	enum Type {
+		kNullType = 0,      //!< null
+		kFalseType = 1,     //!< false
+		kTrueType = 2,      //!< true
+		kObjectType = 3,    //!< object
+		kArrayType = 4,     //!< array 
+		kStringType = 5,    //!< string
+		kNumberType = 6     //!< number
+	};
+
+	typedef unsigned SizeType;
+
+}
+#define RAPIDJSON
+#endif
+
+//Wrappers around rapidjson
 namespace oi {
 
 	class JSON;
@@ -13,9 +51,62 @@ namespace oi {
 	template<typename T, typename ...args> struct JSONSerializeAll;
 	template<typename T> struct JSONSerializeAll<T>;
 
+	struct JSONNodeUtils {
+
+		static u64 getUInt(rapidjson::Value *node);
+		static i64 getInt(rapidjson::Value *node);
+		static f64 getFloat(rapidjson::Value *node);
+		static bool getBool(rapidjson::Value *node);
+
+		static void setUInt(rapidjson::Value *node, u64 val);
+		static void setInt(rapidjson::Value *node, i64 val);
+		static void setFloat(rapidjson::Value *node, f64 val);
+		static void setBool(rapidjson::Value *node, bool val);
+
+	};
+
+	template<typename T, bool isInt = std::is_integral<T>::value, bool isUInt = std::is_unsigned<T>::value, bool isFloat = std::is_floating_point<T>::value>
+	struct JSONNodeObj {
+
+		static T get(rapidjson::Value *node) {
+			static_assert(false, "JSONNodeObj<T> not valid");
+			return T{};
+		}
+
+		static void set(rapidjson::Value *node, T &t) {
+			static_assert(false, "JSONNodeObj<T> not valid");
+		}
+
+	};
+
+	template<typename T>
+	struct JSONNodeObj<T, true, false, false> {
+		static T get(rapidjson::Value *node) { return (T)JSONNodeUtils::getInt(node); }
+		static void set(rapidjson::Value *node, T &t) { JSONNodeUtils::setInt(node, (i64)t); }
+	};
+
+	template<typename T>
+	struct JSONNodeObj<T, true, true, false> {
+		static T get(rapidjson::Value *node) { return (T)JSONNodeUtils::getUInt(node); }
+		static void set(rapidjson::Value *node, T &t) { JSONNodeUtils::setUInt(node, (u64)t); }
+	};
+
+	template<typename T>
+	struct JSONNodeObj<T, false, false, true> {
+		static T get(rapidjson::Value *node) { return (T)JSONNodeUtils::getFloat(node); }
+		static void set(rapidjson::Value *node, T &t) { JSONNodeUtils::setFloat(node, (f64)t); }
+	};
+
+	template<>
+	struct JSONNodeObj<bool, true, true, false> {
+		static bool get(rapidjson::Value *node) { return JSONNodeUtils::getBool(node); }
+		static void set(rapidjson::Value *node, bool &t) { JSONNodeUtils::setBool(node, t); }
+	};
+
 	class JSONNode {
 
 		template<typename T, bool b> friend struct JSONSerialize;
+		template<typename T, bool, bool, bool> friend struct JSONNodeObj;
 
 	public:
 
@@ -77,18 +168,15 @@ namespace oi {
 		bool isEmpty();
 		bool canChangeType();
 
+		rapidjson::Type getType();
+
 		template<typename T>
 		bool isType() {
-			return JSONTypeHelper<T>::check(value == nullptr ? json->GetType() : value->GetType());
+			return JSONTypeHelper<T>::check(getType());
 		}
 
-		bool isObject() {
-			return value == nullptr || value->IsObject();
-		}
-
-		bool isList() {
-			return value == nullptr || value->IsArray();
-		}
+		bool isObject();
+		bool isList();
 
 	protected:
 
@@ -107,13 +195,16 @@ namespace oi {
 
 		template<typename T>
 		T _get() {
-			return value->Get<T>();
+			return JSONNodeObj<T>::get(value);
 		}
 
 		template<typename T>
 		void _set(T &t) {
-			value->Set(t);
+			JSONNodeObj<T>::set(value, t);
 		}
+
+		void setString(String str);
+		String getString();
 
 		rapidjson::Document *json;
 		rapidjson::Value *value;

@@ -40,7 +40,7 @@ namespace oi {
 
 			virtual f32 getAxis(Binding b) const = 0;
 			virtual void update(Window *w, f32 dt) = 0;
-			virtual void update(Binding b, bool down) {}
+			virtual void update(Binding, bool) {}
 
 			const InputType getType() const;
 			u32 getId() const;

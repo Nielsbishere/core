@@ -1,6 +1,8 @@
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/prettywriter.h"
+#define RAPIDJSON
 #include "utils/json.h"
-#include "api/rapidjson/stringbuffer.h"
-#include "api/rapidjson/prettywriter.h"
 using namespace oi;
 
 JSON::JSON(const String fromString): JSON() {
@@ -16,6 +18,23 @@ void JSON::copy(const JSON &other) {
 	json->CopyFrom(*other.json, json->GetAllocator(), true);
 	value = nullptr;
 	reconstruct();
+}
+
+u64 JSONNodeUtils::getUInt(rapidjson::Value *node) { return node->GetUint64(); }
+i64 JSONNodeUtils::getInt(rapidjson::Value *node) { return node->GetInt64(); }
+f64 JSONNodeUtils::getFloat(rapidjson::Value *node) { return node->GetDouble(); }
+bool JSONNodeUtils::getBool(rapidjson::Value *node) { return node->GetBool(); }
+void JSONNodeUtils::setUInt(rapidjson::Value *node, u64 val) { node->SetUint64(val); }
+void JSONNodeUtils::setInt(rapidjson::Value *node, i64 val) { node->SetInt64(val); }
+void JSONNodeUtils::setFloat(rapidjson::Value *node, f64 val) { node->SetDouble(val); }
+void JSONNodeUtils::setBool(rapidjson::Value *node, bool val) { node->SetBool(val); }
+
+void JSONNode::setString(String str) {
+	value->SetString(str.toCString(), str.size());
+}
+
+String JSONNode::getString() {
+	return value->GetString();
 }
 
 void JSONNode::reconstruct() {
@@ -161,6 +180,18 @@ bool JSONNode::isEmpty() {
 	return value->IsObject() && value->MemberCount() == 0;
 }
 
+rapidjson::Type JSONNode::getType() {
+	return value == nullptr ? json->GetType() : value->GetType();
+}
+
 bool JSONNode::canChangeType() {
 	return value != nullptr && isEmpty();
+}
+
+bool JSONNode::isObject() {
+	return value == nullptr || value->IsObject();
+}
+
+bool JSONNode::isList() {
+	return value == nullptr || value->IsArray();
 }

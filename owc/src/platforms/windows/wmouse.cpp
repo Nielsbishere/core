@@ -5,7 +5,7 @@
 #include "window/window.h"
 using namespace oi::wc;
 
-void Mouse::update(Window *w, f32 dt) {
+void Mouse::update(Window*, f32) {
 	prev = next;
 }
 

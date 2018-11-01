@@ -137,8 +137,8 @@ void MainInterface::refreshPlanet(Planet planet) {
 
 	}
 
-	RMFile file = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices, false);
-	oiRM::write(file, "out/models/planet.oiRM");
+	RMFile file = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices);
+	oiRM::write(file, "out/models/planet.oiRM", false);
 
 	if (mesh3 != nullptr)
 		g.destroy(mesh3);
@@ -187,7 +187,7 @@ void MainInterface::initScene() {
 
 	Log::println("Started main interface!");
 
-	Fbx::convertMeshes("res/models/SM_Rock_1.fbx", "mod/models/SM_Rock_1.oiRM", true);
+	//Fbx::convertMeshes("res/models/cube.fbx", "mod/models/cube.oiRM", true);
 
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
@@ -347,24 +347,15 @@ void MainInterface::renderScene(){
 
 }
 
-void MainInterface::initSceneSurface(){
+void MainInterface::initSceneSurface(Vec2u res){
 
 	//Reconstruct pipeline
 
 	if (pipeline != nullptr) {
-
 		g.destroy(renderTarget);
-		renderTarget = nullptr;
-
 		g.destroy(pipeline);
-		pipeline = nullptr;
-
 		g.destroy(pipeline0);
-		pipeline = nullptr;
-
 	}
-
-	Vec2u res = g.getBackBuffer()->getSize();
 
 	if (res.x == 0 || res.y == 0)
 		return;
@@ -382,9 +373,9 @@ void MainInterface::initSceneSurface(){
 
 }
 	
-void MainInterface::onInput(InputDevice *device, Binding b, bool down) {
+void MainInterface::onInput(InputDevice*, Binding b, bool down) {
 
-	if (b.getBindingType() == BindingType::KEYBOARD) {
+	if (b.getBindingType() == BindingType::KEYBOARD && down) {
 
 		if (b.toKey() == Key::Volume_up || b.toKey() == Key::Up)
 			writePlanets();

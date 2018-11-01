@@ -1,6 +1,6 @@
-#include "api/spv/spvhelper.h"
-#include "graphics/format/oish.h"
 #include "graphics/graphics.h"
+#include "graphics/format/oish.h"
+#include "graphics/helper/spvhelper.h"
 #include "SPIRV-Cross/spirv_cross.hpp"
 using namespace oi::gc;
 using namespace oi;
@@ -83,8 +83,6 @@ void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, u32 v
 			obj.format = TextureFormat::Undefined;
 
 			obj.flags = (SBOFlag)flags;
-
-			u32 objoff = (u32)info.elements.size();
 
 			info.push(obj, varId == 0 ? info.self : info.elements[varId - 1]);
 

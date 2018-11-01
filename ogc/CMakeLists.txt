@@ -9,10 +9,7 @@ file(GLOB_RECURSE ogc_SRC
 	"src/*.c"
 	"include/*.hpp"
 	"src/*.cpp"
-	"../deps/SPIRV-Cross/spirv_cross.cpp"
-    "../deps/SPIRV-Cross/spirv_cfg.cpp"
-    "../deps/SPIRV-Cross/spirv_glsl.cpp"
-    "../deps/SPIRV-Cross/spirv_hlsl.cpp"
+    "../deps/glslang/StandAlone/ResourceLimits.cpp"
 )
 
 add_library(
@@ -20,9 +17,8 @@ add_library(
 	${ogc_SRC}
 )
 
-target_link_libraries(ogc ostlc)
-target_link_libraries(ogc owc)
-target_link_libraries(ogc glslang OGLCompiler OSDependent SPIRV SPVRemapper glslang-default-resource-limits)
+target_link_libraries(ogc ostlc owc)
+target_link_libraries(ogc glslang OGLCompiler OSDependent SPIRV SPVRemapper spirv-cross-core)
 
 if(Vulkan)
 	target_link_libraries(ogc ${VULKAN_LIB})

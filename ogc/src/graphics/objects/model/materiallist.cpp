@@ -4,12 +4,12 @@
 using namespace oi;
 using namespace gc;
 
-MaterialHandle MaterialList::alloc(MaterialStruct info) {
+MaterialHandle MaterialList::alloc(MaterialStruct minfo) {
 
 	for (MaterialHandle i = 0; i < getSize(); ++i)
 		if (operator[](i).id == u32_MAX) {
-			info.id = i;
-			operator[](i) = info;
+			minfo.id = i;
+			operator[](i) = minfo;
 			return i;
 		}
 

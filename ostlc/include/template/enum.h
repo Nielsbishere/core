@@ -22,7 +22,7 @@ namespace oi {
 	struct name##_s {																				\
 	structInfo																						\
 																									\
-	constexpr name##_s operator=(name##_s other) const { return *this; }							\
+	constexpr name##_s operator=(name##_s) const { return *this; }									\
 	};																								\
 																									\
 	class name {																					\

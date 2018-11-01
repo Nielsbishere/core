@@ -104,8 +104,6 @@ bool RenderTarget::init(bool isOwned) {
 
 	for (u32 i = 0; i < buffering; ++i) {
 
-		VkFramebuffer *fb = ext.frameBuffer.data() + i;
-
 		VkFramebufferCreateInfo fbInfo;
 		memset(&fbInfo, 0, sizeof(fbInfo));
 

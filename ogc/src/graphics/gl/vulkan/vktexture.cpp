@@ -41,7 +41,6 @@ bool Texture::init(bool isOwned) {
 	VkFormat format_inter = (VkFormat) format.getValue().value;
 
 	VkTextureUsage usage = info.usage.getName();
-	VkImageLayout usage_inter = (VkImageLayout) usage.getValue().value;
 
 	if(isOwned){
 	
@@ -50,7 +49,7 @@ bool Texture::init(bool isOwned) {
 		VkImageCreateInfo imageInfo;
 		memset(&imageInfo, 0, sizeof(imageInfo));
 
-		bool useDepth = info.format.getValue() >= TextureFormat::D16 && info.format.getValue() <= TextureFormat::D32S8;
+		useDepth = info.format.getValue() >= TextureFormat::D16 && info.format.getValue() <= TextureFormat::D32S8;
 
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -67,7 +66,7 @@ bool Texture::init(bool isOwned) {
 		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
 
 		//Allocate memory
-		vkAllocate(Image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		vkAllocate(Image, ext, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	}
 	
 	//Create image view
@@ -94,7 +93,7 @@ bool Texture::init(bool isOwned) {
 
 		//Construct staging buffer with data
 
-		GBufferExt ext;
+		GBufferExt gbext;
 
 		VkBufferCreateInfo stagingInfo;
 		memset(&stagingInfo, 0, sizeof(stagingInfo));
@@ -106,24 +105,24 @@ bool Texture::init(bool isOwned) {
 		stagingInfo.queueFamilyIndexCount = 1;
 		stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-		vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, &ext.resource), "Couldn't send texture data to GPU");
+		vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, &gbext.resource), "Couldn't send texture data to GPU");
 
-		vkAllocate(Buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		vkAllocate(Buffer, gbext, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 		void *stagingData;
 
-		vkCheck<0x5, Texture>(vkMapMemory(graphics.device, ext.memory, 0, info.dat.size(), 0, &stagingData), "Couldn't map texture staging buffer");
+		vkCheck<0x5, Texture>(vkMapMemory(graphics.device, gbext.memory, 0, info.dat.size(), 0, &stagingData), "Couldn't map texture staging buffer");
 		memcpy(stagingData, info.dat.addr(), info.dat.size());
-		vkUnmapMemory(graphics.device, ext.memory);
+		vkUnmapMemory(graphics.device, gbext.memory);
 
 		//Push that into the texture
 
-		if ((this->ext.cmdList = g->create(getName() + " stage command", CommandListInfo())) == nullptr)
+		if ((ext.cmdList = g->create(getName() + " stage command", CommandListInfo())) == nullptr)
 			return Log::throwError<Texture, 0x6>("Couldn't send texture data; it requires a cmdList");
 
-		CommandListExt &cmd = this->ext.cmdList->getExtension();
+		CommandListExt &cmd = ext.cmdList->getExtension();
 
-		this->ext.cmdList->begin();
+		ext.cmdList->begin();
 
 		///Transition to write
 
@@ -135,7 +134,7 @@ bool Texture::init(bool isOwned) {
 		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = this->ext.resource;
+		barrier.image = ext.resource;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.levelCount = info.mipLevels == 0 ? 1 : info.mipLevels;
 		barrier.subresourceRange.layerCount = 1;
@@ -152,14 +151,14 @@ bool Texture::init(bool isOwned) {
 		region.imageSubresource.layerCount = 1U;
 		region.imageExtent = { info.res.x, info.res.y, 1 };
 
-		vkCmdCopyBufferToImage(cmd.cmd, ext.resource, this->ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+		vkCmdCopyBufferToImage(cmd.cmd, gbext.resource, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 		///Now generate mipmaps
 
 		memset(&barrier, 0, sizeof(barrier));
 
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.image = this->ext.resource;
+		barrier.image = ext.resource;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -195,7 +194,7 @@ bool Texture::init(bool isOwned) {
 			blit.dstSubresource.mipLevel = i;
 			blit.dstSubresource.layerCount = 1U;
 
-			vkCmdBlitImage(cmd.cmd, this->ext.resource, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, this->ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+			vkCmdBlitImage(cmd.cmd, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
 
 			if (mipWidth > 1) mipWidth >>= 1U;
 			if (mipHeight > 1) mipHeight >>= 1U;
@@ -213,7 +212,7 @@ bool Texture::init(bool isOwned) {
 		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = this->ext.resource;
+		barrier.image = ext.resource;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.levelCount = info.mipLevels - 1U;
 		barrier.subresourceRange.layerCount = 1;
@@ -232,13 +231,13 @@ bool Texture::init(bool isOwned) {
 
 		///Submit commands
 
-		this->ext.cmdList->flush();
-		g->destroy(this->ext.cmdList);
+		ext.cmdList->flush();
+		g->destroy(ext.cmdList);
 
 		//Now clean it up
 
-		vkFreeMemory(graphics.device, ext.memory, vkAllocator);
-		vkDestroyBuffer(graphics.device, ext.resource, vkAllocator);
+		vkFreeMemory(graphics.device, gbext.memory, vkAllocator);
+		vkDestroyBuffer(graphics.device, gbext.resource, vkAllocator);
 
 		free(info.dat.addr());
 	}

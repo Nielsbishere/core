@@ -7,7 +7,7 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices, bool compression) {
+RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices) {
 
 	u32 stride = (hasPos ? 12 : 0) + (hasUv ? 8 : 0) + (hasNrm ? 12 : 0);
 
@@ -287,10 +287,10 @@ V0_0_1:
 					memcpy(aindices, read.addr(), indexRes);
 				else if (perIndex == 2)
 					for (u32 i = 0; i < file.header.indices; ++i)
-						*(u16*)(aindices + i * 2) = ind[i];
+						*(u16*)(aindices + i * 2) = (u16) ind[i];
 				else
 					for (u32 i = 0; i < file.header.indices; ++i)
-						*(aindices + i) = ind[i];
+						*(aindices + i) = (u8) ind[i];
 
 			}
 		}
@@ -356,10 +356,10 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 
 		if (perIndex == 4) ib.copy(Buffer::construct(file.indices.data(), (u32) file.indices.size()));
 		else if (perIndex == 2)
-			for (u32 i = 0; i < (u32) file.indices.size() / 2; ++i)
+			for (i = 0; i < (u32) file.indices.size() / 2; ++i)
 				ib.operator[]<u32>(i * 4) = *(u16*)(file.indices.data() + i * 2);
 		else if (perIndex == 1)
-			for (u32 i = 0; i < (u32)file.indices.size(); ++i)
+			for (i = 0; i < (u32)file.indices.size(); ++i)
 				ib.operator[]<u32>(i * 4) = (u32) file.indices[i];
 
 	}
@@ -509,8 +509,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 			for (u32 i = layoutOff; i < layoutOff + vb.layouts; ++i) {
 
-				RMAttribute &attrib = file.vbo[i];
-				TextureFormat format = attrib.format;
+				RMAttribute &attr = file.vbo[i];
+				TextureFormat format = attr.format;
 
 				u32 channels = Graphics::getChannels(format);
 				u32 bpc = Graphics::getChannelSize(format);

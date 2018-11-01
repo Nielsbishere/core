@@ -130,9 +130,9 @@ f32 SimplexNoise::F3 = (f32) 1.0 / (f32) 3.0;
 f32 SimplexNoise::G3 = (f32) 1.0 / (f32) 6.0;
 
 // 2D simplex noise
-f32 SimplexNoise::noise(Vec2 p) {
-	f32 xin = p.x;
-	f32 yin = p.y;
+f32 SimplexNoise::noise(Vec2 pos) {
+	f32 xin = pos.x;
+	f32 yin = pos.y;
 
 	f32 n0, n1, n2; // Noise contributions from the three corners
 					// Skew the input space to determine which simplex cell we're in
@@ -196,10 +196,10 @@ f32 SimplexNoise::noise(Vec2 p) {
 }
 
 // 3D simplex noise
-f32 SimplexNoise::noise(Vec3 p) {
-	f32 xin = p.x;
-	f32 yin = p.y;
-	f32 zin = p.z;
+f32 SimplexNoise::noise(Vec3 pos) {
+	f32 xin = pos.x;
+	f32 yin = pos.y;
+	f32 zin = pos.z;
 
 	f32 n0, n1, n2, n3; // Noise contributions from the four corners
 						// Skew the input space to determine which simplex cell we're in
@@ -326,11 +326,11 @@ f32 SimplexNoise::noise(Vec3 p) {
 }
 
 // 4D simplex noise, better simplex rank ordering method 2012-03-09
-f32 SimplexNoise::noise(Vec4 p) {
-	f32 x = p.x;
-	f32 y = p.y;
-	f32 z = p.z;
-	f32 w = p.w;
+f32 SimplexNoise::noise(Vec4 pos) {
+	f32 x = pos.x;
+	f32 y = pos.y;
+	f32 z = pos.z;
+	f32 w = pos.w;
 
 	f32 n0, n1, n2, n3, n4; // Noise contributions from the five corners
 							// Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
@@ -474,14 +474,14 @@ f32 SimplexNoise::noise(Vec4 p) {
 	return ((f32) 27.0 * (n0 + n1 + n2 + n3 + n4) + 1) / 2;
 }
 
-f32 SimplexNoise::noise(f32 p) {
-	return noise(Vec2((f32) p, (f32) 0.0));
+f32 SimplexNoise::noise(f32 pos) {
+	return noise(Vec2((f32) pos, (f32) 0.0));
 }
 
-f32 SimplexNoise::noise(f32 p, f32 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
+f32 SimplexNoise::noise(f32 pos, f32 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
 	f32 amp = 1, y = 0, max = 0;
 	for (u32 i = 0; i < octaves; i++) {
-		y += (noise(p * freq + offset) + 1) * 0.5f * amp;
+		y += (noise(pos * freq + offset) + 1) * 0.5f * amp;
 		max += amp;
 		amp *= persistence;
 		freq *= roughness;
@@ -489,10 +489,10 @@ f32 SimplexNoise::noise(f32 p, f32 offset, u32 octaves, f32 persistence, f32 rou
 	return y / max;
 }
 
-f32 SimplexNoise::noise(Vec2 p, Vec2 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
+f32 SimplexNoise::noise(Vec2 pos, Vec2 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
 	f32 amp = 1, z = 0, max = 0;
 	for (u32 i = 0; i < octaves; i++) {
-		z += (noise(p * freq + offset) + 1) * 0.5f * amp;
+		z += (noise(pos * freq + offset) + 1) * 0.5f * amp;
 		max += amp;
 		amp *= persistence;
 		freq *= roughness;
@@ -500,10 +500,10 @@ f32 SimplexNoise::noise(Vec2 p, Vec2 offset, u32 octaves, f32 persistence, f32 r
 	return z / max;
 }
 
-f32 SimplexNoise::noise(Vec3 p, Vec3 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
+f32 SimplexNoise::noise(Vec3 pos, Vec3 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
 	f32 amp = 1, w = 0, max = 0;
 	for (u32 i = 0; i < octaves; i++) {
-		w += (noise(p * freq + offset) + 1) * 0.5f * amp;
+		w += (noise(pos * freq + offset) + 1) * 0.5f * amp;
 		max += amp;
 		amp *= persistence;
 		freq *= roughness;
@@ -511,10 +511,10 @@ f32 SimplexNoise::noise(Vec3 p, Vec3 offset, u32 octaves, f32 persistence, f32 r
 	return w / max;
 }
 
-f32 SimplexNoise::noise(Vec4 p, Vec4 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
+f32 SimplexNoise::noise(Vec4 pos, Vec4 offset, u32 octaves, f32 persistence, f32 roughness, f32 freq) {
 	f32 amp = 1, u = 0, max = 0;
 	for (u32 i = 0; i < octaves; i++) {
-		u += (noise(p * freq + offset) + 1) * 0.5f * amp;
+		u += (noise(pos * freq + offset) + 1) * 0.5f * amp;
 		max += amp;
 		amp *= persistence;
 		freq *= roughness;

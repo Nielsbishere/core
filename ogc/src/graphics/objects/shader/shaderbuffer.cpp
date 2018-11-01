@@ -10,9 +10,9 @@ ShaderBufferObject::ShaderBufferObject() : ShaderBufferObject(nullptr, 0, 0, {},
 
 void ShaderBufferObject::addChild(ShaderBufferObject *obj) { childs.push_back(obj); }
 
-ShaderBufferObject *ShaderBufferObject::find(String name) {
+ShaderBufferObject *ShaderBufferObject::find(String oname) {
 	for (ShaderBufferObject *child : childs)
-		if (child->name == name)
+		if (child->name == oname)
 			return child;
 	return nullptr;
 }
@@ -150,17 +150,17 @@ ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
 
 }
 
-void ShaderBuffer::setBuffer(u32 objects, GBuffer *g) {
+void ShaderBuffer::setBuffer(u32 objects, GBuffer *gb) {
 
 	if (buffer != nullptr)
 		Log::throwError<ShaderBuffer, 0x1>("Can't set the buffer when it's already set");
 
 	setObjectCount(objects);
 
-	if(g == nullptr || g->getSize() != info.size)
+	if(gb == nullptr || gb->getSize() != info.size)
 		Log::throwError<ShaderBuffer, 0x2>("GBuffer size should match ShaderBuffer size");
 
-	buffer = g;
+	buffer = gb;
 
 }
 

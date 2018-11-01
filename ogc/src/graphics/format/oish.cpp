@@ -47,8 +47,8 @@ SHFile oiSH::convert(ShaderInfo info) {
 		ostage.type = (u8) ShaderStageType::Compute_shader;
 		ostage.flags = (u8) 0U;
 		ostage.nameIndex = 0U;
-		ostage.inputs = (u32)istage.input.size();
-		ostage.outputs = (u32)istage.output.size();
+		ostage.inputs = (u8)istage.input.size();
+		ostage.outputs = (u8)istage.output.size();
 
 		inputs.resize(istage.input.size());
 		outputs.resize(istage.output.size());
@@ -94,8 +94,8 @@ SHFile oiSH::convert(ShaderInfo info) {
 			ostage.type = (u8) istage.type.getValue();
 			ostage.flags = (u8)0U;
 			ostage.nameIndex = 0U;
-			ostage.inputs = (u32) istage.input.size();
-			ostage.outputs = (u32) istage.output.size();
+			ostage.inputs = (u8) istage.input.size();
+			ostage.outputs = (u8) istage.output.size();
 
 			output.bytecode.resize(byteIndex + ostage.codeLength);
 			memcpy(output.bytecode.data() + byteIndex, istage.code.addr(), istage.code.size());
@@ -105,17 +105,17 @@ SHFile oiSH::convert(ShaderInfo info) {
 			inputs.resize(istage.input.size());
 			outputs.resize(istage.output.size());
 
-			for (u32 i = 0; i < (u32)istage.input.size(); ++i) {
-				ShaderInput &var = istage.input[i];
-				inputs[i] = {
+			for (u32 j = 0; j < (u32)istage.input.size(); ++j) {
+				ShaderInput &var = istage.input[j];
+				inputs[j] = {
 					(u8)var.type.getValue(),
 					(u16)output.stringlist.add(var.name)
 				};
 			}
 
-			for (u32 i = 0; i < (u32)istage.output.size(); ++i) {
-				ShaderOutput &out = istage.output[i];
-				outputs[i] = {
+			for (u32 j = 0; j < (u32)istage.output.size(); ++j) {
+				ShaderOutput &out = istage.output[j];
+				outputs[j] = {
 					(u8)out.type.getValue(),
 					(u8)out.id,
 					(u16)output.stringlist.add(out.name)
@@ -168,7 +168,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 		for (auto &rep : output.registers)
 			if (output.stringlist.names[rep.nameIndex] == elem.first) {
-				rep.representation = id + 1;
+				rep.representation = (u16)(id + 1);
 				break;
 			} else if (rep.getType() <= u32(ShaderRegisterType::SSBO))
 				++id;
@@ -225,16 +225,16 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 		std::vector<SHInput> &var = file.stageInputs[st.type];
 		std::vector<SHOutput> &output = file.stageOutputs[st.type];
 
-		for (u32 i = 0; i < (u32)var.size(); ++i) {
-			SHInput &v = var[i];
+		for (u32 j = 0; j < (u32)var.size(); ++j) {
+			SHInput &v = var[j];
 			TextureFormat format = TextureFormat(v.type);
-			inputs[i] = ShaderInput(format, file.stringlist.names[v.nameIndex]);
+			inputs[j] = ShaderInput(format, file.stringlist.names[v.nameIndex]);
 		}
 
-		for (u32 i = 0; i < (u32) output.size(); ++i) {
+		for (u32 j = 0; j < (u32) output.size(); ++j) {
 
-			SHOutput &o = output[i];
-			ShaderOutput &out = outputs[i] = ShaderOutput(o.type, file.stringlist.names[o.nameIndex], o.id);
+			SHOutput &o = output[j];
+			ShaderOutput &out = outputs[j] = ShaderOutput(o.type, file.stringlist.names[o.nameIndex], o.id);
 
 			if (out.type.getValue() == 0)
 				Log::throwError<oiSH, 0x1>("Invalid shader output");
@@ -453,10 +453,10 @@ Buffer oiSH::write(SHFile &file) {
 	write = write.offset(b.size());
 	b.deconstruct();
 
-	for (Buffer &b : buffers) {
-		write.copy(b, b.size(), 0, 0);
-		write = write.offset(b.size());
-		b.deconstruct();
+	for (Buffer &buffer : buffers) {
+		write.copy(buffer, buffer.size(), 0, 0);
+		write = write.offset(buffer.size());
+		buffer.deconstruct();
 	}
 
 	write.copy(Buffer::construct(file.bytecode.data(), (u32)file.bytecode.size()), (u32)file.bytecode.size(), 0, 0);

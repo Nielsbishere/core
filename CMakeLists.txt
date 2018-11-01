@@ -17,6 +17,7 @@ set(HOME_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -26,9 +27,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Enable multi processor compilation. Use C++ standard and enable all warnings (except nameless structs)
 if(MSVC)
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /MP")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /MP")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /MP /W4 /permissive- /wd4201")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /MP /W4 /permissive- /wd4201")
 endif()
 
 # No console/log option
@@ -132,45 +134,29 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 	add_definitions(-D__DEBUG__)
 endif()
 
-# Projects
-
-add_subdirectory(ostlc)
-add_subdirectory(owc)
-
-# ogc dependencies
-
-set(BUILD_TESTING OFF)
-add_subdirectory(deps/glslang)
-set_property(TARGET HLSL PROPERTY FOLDER glslang)
-
-# ogc
-
-add_subdirectory(ogc)
+# dependencies
+add_subdirectory(deps)
 
 # ocore
+add_subdirectory(ostlc)
+add_subdirectory(owc)
+add_subdirectory(ogc)
+set_property(TARGET ostlc owc ogc PROPERTY FOLDER ocore)
 
-set_property(TARGET ostlc PROPERTY FOLDER ocore)
-set_property(TARGET owc PROPERTY FOLDER ocore)
-set_property(TARGET ogc PROPERTY FOLDER ocore)
-
-# Desktop conversion tools
+# desktop conversion tools
 add_subdirectory(oirm_gen)
 add_subdirectory(oish_gen)
 
-set_property(TARGET oirm_gen PROPERTY FOLDER tools)
-set_property(TARGET oish_gen PROPERTY FOLDER tools)
+set_property(TARGET oirm_gen oish_gen PROPERTY FOLDER tools)
 
-# App projects
-if(Android)
-	add_subdirectory(app)
-	add_subdirectory(app_android)
+# app projects
+add_subdirectory(app)
+set_property(TARGET app PROPERTY FOLDER application)
 	
+if(Android)
+	add_subdirectory(app_android)
 	set_property(TARGET app_android PROPERTY FOLDER application)
 else()
-	add_subdirectory(app)
 	add_subdirectory(app_pc)
-	
 	set_property(TARGET app_pc PROPERTY FOLDER application)
 endif()
-
-set_property(TARGET app PROPERTY FOLDER application)

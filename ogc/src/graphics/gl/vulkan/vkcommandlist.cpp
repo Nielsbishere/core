@@ -74,7 +74,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
 }
 
-void CommandList::end(RenderTarget *target) {
+void CommandList::end(RenderTarget*) {
 	vkCmdEndRenderPass(ext.cmd);
 }
 

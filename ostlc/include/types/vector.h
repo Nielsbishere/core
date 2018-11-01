@@ -93,8 +93,6 @@ namespace oi {
 			for (u32 i = 0; i < n2 && i < n; ++i)
 				this->arr[i] = (T) other.arr[i];
 
-			u32 start = n2;
-
 			FillArray::run_s(this->arr, n2 < n ? n2 : n, arg...);
 		}
 

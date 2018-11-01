@@ -1,4 +1,10 @@
-#include "api/stbi/stbi_load.h"
+
+#pragma warning(push)
+#pragma warning(disable: 4100)
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+#pragma warning(pop)
+
 #include "file/filemanager.h"
 #include "graphics/graphics.h"
 #include "graphics/format/oish.h"
@@ -63,8 +69,6 @@ bool Graphics::isCompatible(TextureFormat a, TextureFormat b) {
 Vec4d Graphics::convertColor(Vec4d cl, TextureFormat format) {
 
 	Vec4d color = Vec4d(0.0);
-
-	u32 bits = getChannelSize(format);
 	u32 colors = getChannels(format);
 
 	if (colors == 0U) return color;
@@ -236,9 +240,7 @@ bool Graphics::destroy(GraphicsObject *go) {
 
 	if (go == nullptr) return false;
 
-	size_t id = go->getHash();
-
-	auto it = objects.find(id);
+	auto it = objects.find(go->hash);
 	if (it == objects.end()) return false;
 
 	auto &vec = it->second;
@@ -246,10 +248,12 @@ bool Graphics::destroy(GraphicsObject *go) {
 	auto itt = std::find(vec.begin(), vec.end(), go);
 	if (itt == vec.end()) return false;
 
-	if(--go->refCount <= 0)
+	if (--go->refCount <= 0)
 		delete go;
-	
+
+	go = nullptr;
 	return true;
+
 }
 
 void Graphics::use(GraphicsObject *go) {

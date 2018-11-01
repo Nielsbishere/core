@@ -23,7 +23,7 @@ namespace oi {
 			u32 p0 = 0, p1 = 0;
 
 			CameraFrustumStruct() { memset(this, 0, sizeof(CameraFrustumStruct)); }
-			CameraFrustumStruct(f32 near, f32 far, f32 aspect, Vec2u res, f32 fov) : far(far), near(near), aspect(aspect), resolution(resolution), fov(fov) { }
+			CameraFrustumStruct(f32 near, f32 far, f32 aspect, Vec2u res, f32 fov) : far(far), near(near), aspect(aspect), resolution(res), fov(fov) { }
 
 			void makeProjection() { p = Matrix::makePerspective(fov, aspect, near, far); }
 

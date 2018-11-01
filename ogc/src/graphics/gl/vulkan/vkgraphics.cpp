@@ -17,8 +17,7 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, u64 object, 
-	size_t location, i32 messageCode, const char *pLayerPrefix, const char *pMessage, void *pUserData) {
+VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT, u64, size_t, i32, const char*, const char *pMessage, void*) {
 	
 	String prefix;
 	LogLevel level = LogLevel::PRINT;
@@ -94,16 +93,17 @@ void Graphics::init(Window *w){
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 
 	#ifdef __DEBUG__
-	
+
+	Log::println("Starting graphics...");
 	Log::println("Supported layers:");
 	
 	for(u32 i = 0; i < layerCount; ++i)
-		Log::println(layers[i].layerName);
+		Log::println(String("\t") + layers[i].layerName);
 	
 	Log::println("Supported extensions:");
 	
 	for(u32 i = 0; i < extensionCount; ++i)
-		Log::println(extensions[i].extensionName);
+		Log::println(String("\t") + extensions[i].extensionName);
 	
 	#endif
 	
@@ -162,11 +162,15 @@ void Graphics::init(Window *w){
 	
 	Log::println(String("Creating Vulkan instance with ") + (u32) cextensions.size() + " extensions & " + (u32) clayers.size() + " layers:");
 
+	Log::println("\tExtensions:");
+
 	for (auto exten : cextensions)
-		Log::println(String("Extension ") + exten);
+		Log::println(String("\t\t") + exten);
+
+	Log::println("\tLayers:");
 
 	for (auto lay : clayers)
-		Log::println(String("Layer ") + lay);
+		Log::println(String("\t\t") + lay);
 
 	vkCheck<0x1>(vkCreateInstance(&instanceInfo, vkAllocator, &ext.instance), "Couldn't obtain Vulkan instance");
 	initialized = true;
@@ -191,24 +195,6 @@ void Graphics::init(Window *w){
 
 	Log::println("Successfully created debug report callback");
 
-	#endif
-
-	//Show all layers and extensions
-	
-	#ifdef __DEBUG__
-	
-	Log::println(String("Layers: ") + layerCount);
-	for(u32 i = 0; i < layerCount; ++i){
-		VkLayerProperties &l = layers[i];
-		Log::println(String("Layer #") + i + ": " + l.layerName + " v" + l.specVersion + "-" + l.implementationVersion + ": " + l.description);
-	}
-	
-	Log::println(String("Extensions: ") + extensionCount);
-	for(u32 i = 0; i < extensionCount; ++i){
-		VkExtensionProperties &e = extensions[i];
-		Log::println(String("Extension #") + i + ": " + e.extensionName + " v" + e.specVersion);
-	}
-	
 	#endif
 
 	delete[] layers;
@@ -612,10 +598,10 @@ void Window::updateAspect() {
 		return;
 
 	Graphics &g = irf->getGraphics();
-	GraphicsExt &ext = g.getExtension();
+	GraphicsExt &gext = g.getExtension();
 
 	VkSurfaceCapabilitiesKHR capabilities;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext.pdevice, ext.surface, &capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gext.pdevice, gext.surface, &capabilities);
 
 	if (!initialized)
 		info.flippedOnStart = capabilities.currentTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;

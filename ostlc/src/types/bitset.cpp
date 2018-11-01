@@ -1,3 +1,4 @@
+#include <cmath>
 #include "types/bitset.h"
 #include "utils/log.h"
 using namespace oi;
@@ -32,11 +33,11 @@ Bitset::Bitset() : data(nullptr), bits(0), bytes(0) {}
 //Allocate in blocks of 4, so bitwise operators can be executed using uint
 Bitset::Bitset(u32 size) : bytes((u32)std::ceil(size / 32.f) * 4), data(nullptr), bits(size) {
 	data = new u8[bytes];
-	memset(data, 0, bytes);
+	std::memset((char*)data, 0, bytes);
 }
 
 Bitset::Bitset(u32 size, bool def): Bitset(size) {
-	memset(data, def ? 0xFF : 0, size);
+	std::memset((char*)data, def ? 0xFF : 0, size);
 }
 
 u8 *Bitset::addr() { return data; }

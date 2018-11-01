@@ -4,3 +4,12 @@
 [submodule "deps/SPIRV-Cross"]
 	path = deps/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross
+[submodule "deps/stb"]
+	path = deps/stb
+	url = https://github.com/nothings/stb
+[submodule "deps/rapidjson"]
+	path = deps/rapidjson
+	url = https://github.com/Tencent/rapidjson
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/madler/zlib

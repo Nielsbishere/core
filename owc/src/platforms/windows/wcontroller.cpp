@@ -31,8 +31,8 @@ void Controller::update(Window *w, f32 dt) {
 
 	WindowInterface *wi = w->getInterface();
 
-	XINPUT_STATE state;
-	ZeroMemory(&state, sizeof(XINPUT_STATE));
+	XINPUT_STATE xinput;
+	ZeroMemory(&xinput, sizeof(XINPUT_STATE));
 
 	if (vibrationTime > 0) {
 		vibrationTime -= dt;
@@ -43,41 +43,41 @@ void Controller::update(Window *w, f32 dt) {
 	}
 
 	bool connected = false;
-	if ((connected = XInputGetState(getId(), &state)) == ERROR_SUCCESS) {
+	if ((connected = XInputGetState(getId(), &xinput)) == ERROR_SUCCESS) {
 
-		axes[ControllerAxis::Lx - 1U] = state.Gamepad.sThumbLX / 32767.f;
-		axes[ControllerAxis::Ly - 1U] = state.Gamepad.sThumbLY / 32767.f;
+		axes[ControllerAxis::Lx - 1U] = xinput.Gamepad.sThumbLX / 32767.f;
+		axes[ControllerAxis::Ly - 1U] = xinput.Gamepad.sThumbLY / 32767.f;
 
-		axes[ControllerAxis::Rx - 1U] = state.Gamepad.sThumbRX / 32767.f;
-		axes[ControllerAxis::Ry - 1U] = state.Gamepad.sThumbRY / 32767.f;
+		axes[ControllerAxis::Rx - 1U] = xinput.Gamepad.sThumbRX / 32767.f;
+		axes[ControllerAxis::Ry - 1U] = xinput.Gamepad.sThumbRY / 32767.f;
 
-		axes[ControllerAxis::L2 - 1U] = state.Gamepad.bLeftTrigger / 255.f;
-		axes[ControllerAxis::R2 - 1U] = state.Gamepad.bRightTrigger / 255.f;
+		axes[ControllerAxis::L2 - 1U] = xinput.Gamepad.bLeftTrigger / 255.f;
+		axes[ControllerAxis::R2 - 1U] = xinput.Gamepad.bRightTrigger / 255.f;
 
-		next[ControllerButton::Cross - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
-		next[ControllerButton::Square - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
-		next[ControllerButton::Triangle - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
-		next[ControllerButton::Circle - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
+		next[ControllerButton::Cross - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+		next[ControllerButton::Square - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
+		next[ControllerButton::Triangle - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
+		next[ControllerButton::Circle - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
 
-		next[ControllerButton::Down - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
-		next[ControllerButton::Left - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
-		next[ControllerButton::Up - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
-		next[ControllerButton::Right - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
+		next[ControllerButton::Down - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
+		next[ControllerButton::Left - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
+		next[ControllerButton::Up - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
+		next[ControllerButton::Right - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
 
-		next[ControllerButton::L1 - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
-		next[ControllerButton::R1 - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
-		next[ControllerButton::L3 - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
-		next[ControllerButton::R3 - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
+		next[ControllerButton::L1 - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
+		next[ControllerButton::R1 - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
+		next[ControllerButton::L3 - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
+		next[ControllerButton::R3 - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
 
-		next[ControllerButton::Options - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
-		next[ControllerButton::Share - 1U] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
+		next[ControllerButton::Options - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
+		next[ControllerButton::Share - 1U] = (xinput.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
 
 		Controller *controller = w->getInputHandler().getController(getId());
 
 		if(wi != nullptr)
 			for (u32 i = 1U; i < ControllerButton::length; ++i) {
 
-				Binding b = Binding(ControllerButton(i), getId());
+				Binding b = Binding(ControllerButton(i), (u8) getId());
 				InputState state = getState(b);
 
 				if (state == InputState::PRESSED)

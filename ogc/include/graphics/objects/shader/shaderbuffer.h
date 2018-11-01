@@ -73,11 +73,11 @@ namespace oi {
 		};
 
 		template<typename T> struct ShaderBufferCast { static bool check(u32 size, TextureFormat format) { return size == (u32) sizeof(T); } };
-		template<> struct ShaderBufferCast<f32> { static bool check(u32 size, TextureFormat format) { return format == TextureFormat::R32f; } };
-		template<> struct ShaderBufferCast<u32> { static bool check(u32 size, TextureFormat format) { return format == TextureFormat::R32u; } };
-		template<> struct ShaderBufferCast<i32> { static bool check(u32 size, TextureFormat format) { return format == TextureFormat::R32i; } };
+		template<> struct ShaderBufferCast<f32> { static bool check(u32, TextureFormat format) { return format == TextureFormat::R32f; } };
+		template<> struct ShaderBufferCast<u32> { static bool check(u32, TextureFormat format) { return format == TextureFormat::R32u; } };
+		template<> struct ShaderBufferCast<i32> { static bool check(u32, TextureFormat format) { return format == TextureFormat::R32i; } };
 
-		template<typename T, u32 n> struct ShaderBufferCast<TVec<T, n>> { static bool check(u32 size, TextureFormat format) { 
+		template<typename T, u32 n> struct ShaderBufferCast<TVec<T, n>> { static bool check(u32, TextureFormat format) { 
 
 			constexpr bool fl = std::is_floating_point<T>::value;
 			constexpr bool uns = std::is_unsigned<T>::value;

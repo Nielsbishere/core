@@ -121,26 +121,26 @@ bool Pipeline::init() {
 
 			for (auto elem0 : elem) {
 
-				String name = elem0.first;
+				String ename = elem0.first;
 				TextureFormat format = elem0.second;
 
 				u32 j = 0;
 
 				for (ShaderInput var : shinfo.inputs)
-					if (var.name == name) {
+					if (var.name == ename) {
 
 						if (!Graphics::isCompatible(var.type, format))
-							return Log::throwError<PipelineExt, 0x1>(String("Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; ") + info.shader->getName() + "'s " + var.name + " and " + info.meshBuffer->getName() + "'s " + name);
+							return Log::throwError<PipelineExt, 0x1>(String("Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; ") + info.shader->getName() + "'s " + var.name + " and " + info.meshBuffer->getName() + "'s " + ename);
 
 						break;
 					}
 					else ++j;
 
 				if(j == (u32) shinfo.inputs.size())
-					return Log::throwError<PipelineExt, 0x0>(String("Couldn't create pipeline; no match found in shader input from vertex input; ") + name);
+					return Log::throwError<PipelineExt, 0x0>(String("Couldn't create pipeline; no match found in shader input from vertex input; ") + ename);
 
 				if(attribute[j].format != 0)
-					return Log::throwError<PipelineExt, 0x0>(String("Couldn't create pipeline; vertex input (") + name + ") is already set. Don't use duplicate vertex inputs");
+					return Log::throwError<PipelineExt, 0x2>(String("Couldn't create pipeline; vertex input (") + ename + ") is already set. Don't use duplicate vertex inputs");
 
 				attribute[j] = { j, i, TextureFormatExt(format.getName()).getValue(), offset };
 

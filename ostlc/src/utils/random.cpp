@@ -5,8 +5,8 @@ using namespace oi;
 const u32 RMAX_min = 0x7FFF;
 u32 Random::off = 0, Random::seed = 0;
 
-void Random::setSeed(u32 seed) {
-	off = Random::seed = seed;
+void Random::setSeed(u32 newSeed) {
+	off = seed = newSeed;
 }
 
 void Random::seedRandom() {

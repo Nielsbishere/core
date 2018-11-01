@@ -90,6 +90,9 @@ namespace oi {
 			void use(GraphicsObject *go);
 
 			template<typename T>
+			bool destroy(T *&t);
+
+			template<typename T>
 			std::vector<GraphicsObject*> get();
 
 		protected:
@@ -157,6 +160,28 @@ namespace oi {
 
 			add(t);
 			return t;
+		}
+
+		template<typename T>
+		bool Graphics::destroy(T *&go) {
+
+			static_assert(std::is_base_of<GraphicsObject, T>::value, "Graphics::destroy<T> requires T to be a base of GraphicsObject");
+
+			if (go == nullptr) return false;
+
+			auto it = objects.find(typeid(T).hash_code());
+			if (it == objects.end()) return false;
+
+			auto &vec = it->second;
+
+			auto itt = std::find(vec.begin(), vec.end(), go);
+			if (itt == vec.end()) return false;
+
+			if (--go->refCount <= 0)
+				delete go;
+
+			go = nullptr;
+			return true;
 		}
 
 	}

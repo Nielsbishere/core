@@ -218,9 +218,9 @@ bool Shader::init() {
 		std::vector<ShaderRegister> reg;
 		u32 count = 0;
 
-		void add(ShaderRegister reg) {
-			this->reg.push_back(reg);
-			count += reg.size;
+		void add(ShaderRegister sreg) {
+			reg.push_back(sreg);
+			count += sreg.size;
 		}
 
 	};
@@ -302,7 +302,7 @@ bool Shader::init() {
 
 	std::vector<VkDescriptorSetLayout> layouts(g->getBuffering());
 	
-	for (u32 i = 0; i < g->getBuffering(); ++i)
+	for (i = 0; i < g->getBuffering(); ++i)
 		layouts[i] = ext.setLayout;
 
 	setInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

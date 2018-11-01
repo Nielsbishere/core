@@ -32,38 +32,38 @@ namespace oi {
 			//When that happens, this function will save to the file specified
 			virtual void save(String path) = 0;
 			
-			virtual void init(){}			//Called when the window is intialized once
+			virtual void init(){}							//Called when the window is intialized once
 			
-			virtual void initSurface() {}	//Called when the window is intialized
+			virtual void initSurface(Vec2u size) { size; }	//Called when the window is intialized
 			virtual void destroySurface(){}
 
-			virtual void onResize(Vec2u size) {}
-			virtual void onAspectChange(f32 aspect) {}
-			virtual void onMove(Vec2i pos) {}
-			virtual void onInput(InputDevice *device, Binding b, bool isDown) {}
+			virtual void onResize(Vec2u size) { size; }
+			virtual void onAspectChange(f32 aspect) { aspect; }
+			virtual void onMove(Vec2i pos) { pos; }
+			virtual void onInput(InputDevice *device, Binding b, bool isDown) { device; b; isDown; }
 
-			virtual void onMouseMove(Vec2 pos) {}
-			virtual void onMouseWheel(f32 delta) {}
-			virtual void onMouseDrag(Vec2 dpos) {}
+			virtual void onMouseMove(Vec2 pos) { pos; }
+			virtual void onMouseWheel(f32 delta) { delta; }
+			virtual void onMouseDrag(Vec2 dpos) { dpos; }
 			
 			virtual void update(f32 delta) { runtime += delta; }
 			virtual void render() {}
 
-			virtual void setFocus(bool isFocussed) {}
+			virtual void setFocus(bool isFocussed) { isFocussed; }
 
 			Window *getParent();
 			InputHandler &getInputHandler();
 			InputManager &getInputManager();
 
-			Timer getTimer() { return t; }
-			f64 getDuration() { return t.getDuration(); }
+			Timer getTimer() { return timer; }
+			f64 getDuration() { return timer.getDuration(); }
 
 			f64 getRuntime() { return runtime; }
 
 		private:
 
 			Window *parent;
-			Timer t;
+			Timer timer;
 			float runtime = 0.f;
 
 		};

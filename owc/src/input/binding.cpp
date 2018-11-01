@@ -6,8 +6,8 @@ Binding::Binding() : bindingType(0U), code(0U) {}
 Binding::Binding(const Key_s k): bindingType((u8) BindingType::KEYBOARD), code((u16) ((Key)k).getIndex()) { }
 Binding::Binding(const MouseButton_s c) : bindingType((u8)BindingType::MOUSE_BUTTON), code((u16)((MouseButton)c).getIndex()) { }
 Binding::Binding(const MouseAxis_s ma) : bindingType((u8)BindingType::MOUSE_AXIS), code((u16)((MouseAxis)ma).getIndex()) { }
-Binding::Binding(const ControllerButton_s cb, u8 controllerId) : bindingType((u8)BindingType::CONTROLLER_BUTTON), code((u16)((ControllerButton)cb).getIndex()) { }
-Binding::Binding(const ControllerAxis_s ca, u8 controllerId) : bindingType((u8)BindingType::CONTROLLER_AXIS), code((u16)((ControllerAxis)ca).getIndex()) { }
+Binding::Binding(const ControllerButton_s cb, u8 controllerId) : bindingType((u8)BindingType::CONTROLLER_BUTTON), code((u16)((ControllerButton)cb).getIndex()), controllerId(controllerId) { }
+Binding::Binding(const ControllerAxis_s ca, u8 controllerId) : bindingType((u8)BindingType::CONTROLLER_AXIS), code((u16)((ControllerAxis)ca).getIndex()), controllerId(controllerId) { }
 
 u32 Binding::toUInt() const {
 	return ((u32)bindingType << 24U) | ((u32)controllerId << 16U) | (u32)code;
@@ -130,7 +130,7 @@ Binding::Binding(String ostr) {
 			if (num > 255U)
 				goto failed;
 
-			controllerId = num;
+			controllerId = (u8)num;
 
 			end = start.fromLast(" ");
 

@@ -189,9 +189,9 @@ SBFile oiSB::convert(ShaderBufferInfo &info, SLFile *names) {
 		}
 
 		if (elem.format != TextureFormat::Undefined)
-			file.vars.push_back(SBVar(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.format.getValue(), (u8) elem.flags));
+			file.vars.push_back(SBVar((u16) names->lookup(elem.name), (u16) info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.format.getValue(), (u8) elem.flags));
 		else 
-			file.structs.push_back(SBStruct(names->lookup(elem.name), info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.flags, elem.length));
+			file.structs.push_back(SBStruct((u16) names->lookup(elem.name), (u16) info.lookup(elem.parent), elem.offset, arrayIndex, (u8) elem.flags, elem.length));
 
 	}
 

@@ -272,6 +272,15 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 		f32 shininessExponent = getMaterialNum(types["ShininessExponent"]);
 		Vec3 reflection = getMaterialCol(types["ReflectionColor"]) * getMaterialNum(types["ReflectionFactor"], 1);
 
+		emissive;
+		ambient;
+		diffuse;
+		transparency;
+		specular;
+		shininess;
+		shininessExponent;
+		reflection;
+
 		//TODO: Save materials
 
 	}
@@ -433,8 +442,8 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 
 		/*t.print();*/
 
-		RMFile file = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices, compression);
-		Buffer obuf = oiRM::write(file);
+		RMFile rfile = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices);
+		Buffer obuf = oiRM::write(rfile, compression);
 
 		if (obuf.size() == 0) {
 			lastError = String("The geometry object \"") + name + "\" couldn't be converted to oiRM.";
@@ -480,16 +489,16 @@ bool Fbx::convertMeshes(Buffer fbxBuffer, String outPath, bool compression) {
 		if (elem.first.equalsIgnoreCase(fileName) || elem.first == "") {
 			if (!FileManager::get()->write(outPath, elem.second)) {
 
-				for (auto &elem : buf)
-					elem.second.deconstruct();
+				for (auto &elem0 : buf)
+					elem0.second.deconstruct();
 
 				return Log::error("Couldn't write oiRM file to disk");
 
 			}
 		} else if(!FileManager::get()->write(base + "." + elem.first + ".oiRM", elem.second)) {
 
-			for (auto &elem : buf)
-				elem.second.deconstruct();
+			for (auto &elem0 : buf)
+				elem0.second.deconstruct();
 
 			return Log::error("Couldn't write oiRM file to disk");
 

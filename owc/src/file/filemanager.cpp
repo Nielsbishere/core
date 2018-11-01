@@ -26,7 +26,7 @@ bool FileManager::validate(String path, FileAccess writeAccess) const {
 
 	if (writeAccess <= FileAccess::READ || prefix == "out" || (prefix == "mod" && canModifyAssets())) {
 		if (writeAccess == FileAccess::READ && !fileExists(path))
-			return Log::error("Couldn't open file for read; it doesn't exist");
+			return Log::error(String("Couldn't open file for read; it doesn't exist (") + path + ")");
 		
 		return true;
 	}

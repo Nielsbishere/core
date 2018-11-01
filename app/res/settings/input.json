@@ -1,1 +1,68 @@
-{ "bindings": { "Shoot": [ "Cross key #0", "R1 key #0", "L1 key #0", "Space key", "Left mouse" ], "Woof": [ "Backspace key" ]  }, "axes": { "Move": [ { "binding": "D key", "effect": "x", "axisScale": 1 }, { "binding": "A key", "effect": "x", "axisScale": -1 }, { "binding": "E key", "effect": "y", "axisScale": 1 }, { "binding": "Q key", "effect": "y", "axisScale": -1 }, { "binding": "W key", "effect": "z", "axisScale": 1 }, { "binding": "S key", "effect": "z", "axisScale": -1 }, { "binding": "Lx axis #0", "effect": "x", "axisScale": 1 }, { "binding": "L2 axis #0", "effect": "y", "axisScale": 1 }, { "binding": "R2 axis #0", "effect": "y", "axisScale": -1 }, { "binding": "Ly axis #0", "effect": "z", "axisScale": 1 } ]  } }
+{{
+   "bindings":{  
+      "Shoot":[  
+         "Cross key #0",
+         "R1 key #0",
+         "L1 key #0",
+         "Space key",
+         "Left mouse"
+      ],
+      "Woof":[  
+         "Backspace key"
+      ]
+   },
+   "axes":{  
+      "Move":[  
+         {  
+            "binding":"D key",
+            "effect":"x",
+            "axisScale":1
+         },
+         {  
+            "binding":"A key",
+            "effect":"x",
+            "axisScale":-1
+         },
+         {  
+            "binding":"E key",
+            "effect":"y",
+            "axisScale":1
+         },
+         {  
+            "binding":"Q key",
+            "effect":"y",
+            "axisScale":-1
+         },
+         {  
+            "binding":"W key",
+            "effect":"z",
+            "axisScale":1
+         },
+         {  
+            "binding":"S key",
+            "effect":"z",
+            "axisScale":-1
+         },
+         {  
+            "binding":"Lx axis #0",
+            "effect":"x",
+            "axisScale":1
+         },
+         {  
+            "binding":"L2 axis #0",
+            "effect":"y",
+            "axisScale":1
+         },
+         {  
+            "binding":"R2 axis #0",
+            "effect":"y",
+            "axisScale":-1
+         },
+         {  
+            "binding":"Ly axis #0",
+            "effect":"z",
+            "axisScale":1
+         }
+      ]
+   }
+}}

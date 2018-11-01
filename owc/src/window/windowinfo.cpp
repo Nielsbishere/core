@@ -11,8 +11,8 @@ Window *WindowInfo::getParent() const { return parent; }
 WindowHandleExt *WindowInfo::getParam() const { return handle; }
 bool WindowInfo::isFullScreen() const { return fullScreen; }
 
-void WindowInfo::setFullScreen(bool fullScreen) { 
-	this->fullScreen = fullScreen; 
+void WindowInfo::setFullScreen(bool isFullScreen) { 
+	fullScreen = isFullScreen;
 	notify(WindowAction::FULL_SCREEN); 
 }
 

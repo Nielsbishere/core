@@ -29,7 +29,7 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 	std::vector<u32> indices;
 	std::vector<f32> perVert;
 
-	f32 *aperVert, *avertices;
+	f32 *aperVert = nullptr, *avertices = nullptr;
 
 	u32 avertexSiz = 0;
 
@@ -156,8 +156,8 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 	t.stop();
 	t.print();
 
-	RMFile file = oiRM::generate(Buffer::construct((u8*) avertices, vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size(), compression);
-	return oiRM::write(file);
+	RMFile file = oiRM::generate(Buffer::construct((u8*) avertices, vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size());
+	return oiRM::write(file, compression);
 }
 
 bool Obj::convert(Buffer objBuffer, String outPath, bool compression) {

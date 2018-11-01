@@ -147,8 +147,8 @@ namespace oi {
 namespace std {
 	template<>
 	struct hash<oi::String> {
-		inline size_t operator()(const oi::String& str) const {
-			return hash<std::string>()(str.source);
+		inline size_t operator()(const oi::String &str) const {
+			return hash<std::string>{}(str.source);
 		}
 	};
 }

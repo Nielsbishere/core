@@ -98,11 +98,11 @@ Vec2 InputManager::getAxis2D(String handle, InputAxes2D ia, bool clamp) const {
 
 bool InputManager::load(String path) {
 
-	String str;
-	if (!FileManager::get()->read(path, str))
+	String file;
+	if (!FileManager::get()->read(path, file))
 		return Log::error("Couldn't read InputManager file");
 
-	JSON json = str;
+	JSON json = file;
 
 	if (json.exists("bindings"))
 		for (auto &node : json["bindings"]) {
@@ -208,25 +208,19 @@ void InputManager::update() {
 
 			if (mapped == nullptr) continue;
 
-			InputState state = mapped->getState(elem);
+			InputState istate = mapped->getState(elem);
 
-			if (state == InputState::DOWN) {
+			if (istate == InputState::DOWN) {
 				st.value = InputState::DOWN;
 				break;
-			}
-
-			else if (state == InputState::RELEASED && st.value == InputState::UP)
+			} else if (istate == InputState::RELEASED && st.value == InputState::UP)
 				st.value = InputState::RELEASED;
-
-			else if (state == InputState::PRESSED && st.value == InputState::UP)
+			else if (istate == InputState::PRESSED && st.value == InputState::UP)
 				st.value = InputState::PRESSED;
-
-			else if (state == InputState::PRESSED && st.value == InputState::RELEASED) {
+			else if (istate == InputState::PRESSED && st.value == InputState::RELEASED) {
 				st.value = InputState::DOWN;
 				break;
-			}
-
-			else if (state == InputState::RELEASED && st.value == InputState::PRESSED) {
+			} else if (istate == InputState::RELEASED && st.value == InputState::PRESSED) {
 				st.value = InputState::DOWN;
 				break;
 			}

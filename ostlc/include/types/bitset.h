@@ -1,4 +1,6 @@
 #pragma once
+#include <cstring>
+#include <cmath>
 #include "buffer.h"
 
 namespace oi {

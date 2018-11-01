@@ -2,7 +2,7 @@
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/StandAlone/ResourceLimits.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
-#include "api/spv/spvhelper.h"
+#include "graphics/helper/spvhelper.h"
 #include "graphics/format/oish.h"
 #include "graphics/objects/shader/shader.h"
 #undef ERROR
@@ -34,7 +34,7 @@ struct FileIncluder : glslang::TShader::Includer {
 
 	//#include <x>
 	//Include from res/shaders
-	IncludeResult *includeSystem(const char *headerName, const char *includerName, size_t inclusionDepth) override { 
+	IncludeResult *includeSystem(const char *headerName, const char*, size_t inclusionDepth) override { 
 
 		if (inclusionDepth >= 32)
 			return (IncludeResult*)Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 32 nested includes");

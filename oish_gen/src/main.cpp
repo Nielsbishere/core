@@ -1,6 +1,6 @@
-#include <graphics/format/oish.h>
-#include <api/spv/spvhelper.h>
-#include <file/filemanager.h>
+#include "file/filemanager.h"
+#include "graphics/format/oish.h"
+#include "graphics/helper/spvhelper.h"
 
 using namespace oi;
 using namespace oi::gc;

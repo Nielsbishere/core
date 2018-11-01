@@ -74,7 +74,7 @@ namespace oi {
 			}
 
 			//There is no bool[] stored low-level, so nullptr
-			static bool *getPtr(std::vector<bool> &arr) { return nullptr; }
+			static bool *getPtr(std::vector<bool> &) { return nullptr; }
 
 		};
 
@@ -313,7 +313,7 @@ namespace oi {
 
 			//For any other compare, it returns false (but it is needed to compile)
 			template<typename T2>
-			bool operator==(const T2 &other) const {
+			bool operator==(const T2 &) const {
 				return false;
 			}
 
@@ -415,7 +415,7 @@ namespace oi {
 
 			//Instantiate the template loop from types
 			template<typename ...args>
-			static FbxProperty *allocate(TFbxTypes<args...> types, char type) {
+			static FbxProperty *allocate(TFbxTypes<args...>, char type) {
 				return TFbxTypeAlloc<args...>::get(type);
 			}
 
@@ -566,7 +566,7 @@ namespace oi {
 		struct FbxCheckPropertyValue {
 
 			template<typename T, typename ...args>
-			static bool check(TFbxTypes<args...> types, FbxProperty *prop, T t) {
+			static bool check(TFbxTypes<args...>, FbxProperty *prop, T t) {
 				return FbxCheckPropertyValue_inner<args...>::template check(prop, t);
 			}
 

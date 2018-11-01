@@ -1,3 +1,4 @@
+#include <cstring>
 #include "types/buffer.h"
 #include "types/bitset.h"
 #include "math.h"
@@ -99,19 +100,19 @@ String Buffer::toBinary() const {
 	return result;
 }
 
-String Buffer::getString(u32 where, u32 length) const {
-	if (where >= this->length) return String();
-	return String((char*)(data + where), this->length - where < length ? this->length - where : length);
+String Buffer::getString(u32 where, u32 len) const {
+	if (where >= length) return String();
+	return String((char*)(data + where), length - where < len ? length - where : len);
 }
 
 bool Buffer::setString(u32 where, String str) {
 	if (where >= this->length) return false;
-	memcpy(data + where, str.toCString(), this->length - where < str.size() ? this->length - where : str.size());
+	std::memcpy(data + where, str.toCString(), this->length - where < str.size() ? this->length - where : str.size());
 	return true;
 }
 
 void Buffer::clear() {
-	memset(data, 0, length);
+	std::memset((char*)data, 0, length);
 }
 
 bool Buffer::read(Bitset &bitset, u32 bits) {
@@ -122,7 +123,7 @@ bool Buffer::read(Bitset &bitset, u32 bits) {
 		return Log::error("Couldn't read bitset from buffer; not enough bytes");
 
 	bitset = Bitset(bits);
-	memcpy(bitset.addr(), data, bytes);
+	std::memcpy(bitset.addr(), data, bytes);
 	*this = offset(bytes);
 	return true;
 }
@@ -200,11 +201,11 @@ Buffer &Buffer::operator+=(u32 delta) {
 	return *this = offset(delta);
 }
 
-Buffer Buffer::subbuffer(u32 off, u32 length) const {
+Buffer Buffer::subbuffer(u32 off, u32 len) const {
 	Buffer b = offset(off);
-	if (b.length == 0) return b;
+	if (b.length == 0 || b.length < len) return b;
 
-	b.length = length;
+	b.length = len;
 	return b;
 }
 
@@ -249,9 +250,9 @@ std::vector<u8> Buffer::toArray() {
 	return { addr(), addr() + size() };
 }
 
-//Compressing and uncompressing (end of file to avoid poluting our Buffer.cpp's namespace
+//Compressing and uncompressing (end of file to avoid poluting our Buffer.cpp's namespace)
 
-#include "api/zlib/zlib.h"
+#include "zlib/zlib.h"
 
 bool Buffer::uncompress(Buffer output) const {
 

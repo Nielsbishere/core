@@ -72,7 +72,7 @@ public:
 	void save(oi::String path) override {}
 
 	void update(f32 dt) override;
-	void initSceneSurface() override;
+	void initSceneSurface(oi::Vec2u res) override;
 
 	void refreshPlanet(Planet planet);
 	void readPlanets(bool fromResource = false);

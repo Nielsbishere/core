@@ -157,7 +157,7 @@ namespace oi {
 			return Log::throwError<T, errorId>(msg);
 		}
 
-		#define vkAllocate(type, needed) 																									\
+		#define vkAllocate(type, ext, needed) 																								\
 		VkMemoryAllocateInfo memoryInfo;																									\
 		memset(&memoryInfo, 0, sizeof(memoryInfo));																							\
 																																			\
