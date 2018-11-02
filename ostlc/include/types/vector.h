@@ -470,8 +470,8 @@ namespace oi {
 		//Example for TVec3:
 		//query(1, 0, 2) would be something like '.yxz' in GLSL/HLSL
 		template<typename ...args>
-		TVec<T, ParamCount<args...>::get> query(args... arg) const {
-			TVec<T, ParamCount<args...>::get> vec;
+		TVec<T, sizeof...(args)> query(args... arg) const {
+			TVec<T, sizeof...(args)> vec;
 			CopyArray::run(this->arr, vec.getArray(), 0, arg...);
 			return vec;
 		}

@@ -113,9 +113,9 @@ namespace oi {
 			std::vector<RMVBO> vbos;
 			std::vector<RMAttribute> vbo;
 			std::vector<RMMisc> miscs;
-			std::vector<std::vector<u8>> vertices;
-			std::vector<u8> indices;
-			std::vector<std::vector<u8>> miscBuffer;			//Per misc data
+			std::vector<CopyBuffer> vertices;
+			CopyBuffer indices;
+			std::vector<CopyBuffer> miscBuffer;			//Per misc data
 			SLFile names;
 
 			u32 size = 0;

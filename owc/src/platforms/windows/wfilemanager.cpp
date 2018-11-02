@@ -1,12 +1,12 @@
 #ifdef __WINDOWS__
 
 #define _CRT_SECURE_NO_WARNINGS
-#include "file/filemanager.h"
-#include "types/string.h"
-#include "types/buffer.h"
-#include <utils/log.h>
 #include <fstream>
 #include <Windows.h>
+#include "types/string.h"
+#include "types/buffer.h"
+#include "utils/log.h"
+#include "file/filemanager.h"
 using namespace oi::wc;
 using namespace oi;
 

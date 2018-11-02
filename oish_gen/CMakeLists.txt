@@ -17,8 +17,4 @@ add_executable(
 
 target_link_libraries(oish_gen ostlc)
 target_link_libraries(oish_gen owc)
-
-if(Vulkan)
 target_link_libraries(oish_gen ogc)
-target_link_libraries(oish_gen ${VULKAN_LIB})
-endif()

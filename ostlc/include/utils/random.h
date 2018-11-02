@@ -1,6 +1,4 @@
 #pragma once
-
-#include "types/generic.h"
 #include "types/vector.h"
 
 namespace oi {

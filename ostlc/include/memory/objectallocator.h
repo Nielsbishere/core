@@ -1,5 +1,4 @@
 #pragma once
-#include "types/buffer.h"
 #include "types/bitset.h"
 
 namespace oi {
@@ -119,13 +118,13 @@ namespace oi {
 
 			occ = other.occ;
 
-			if (owned = other.owned) {
+			if ((owned = other.owned)) {
 
 				buf = Buffer(other.buf.size());
 
 				for (u32 i = 0, j = other.occ.getBits(); i < j; ++i)
 					if (occ[i])
-						::new (buf.addr() + i * objSize) T(other.buf.operator[]<T>(i * objSize));
+						::new (buf.addr() + i * objSize) T(other.buf.template operator[]<T>(i * objSize));
 					else
 						::new (buf.addr() + i * objSize) T();
 
@@ -241,6 +240,7 @@ namespace oi {
 		}
 
 		Buffer toBuffer() { return Buffer::construct((u8*)data, size); }
+		CopyBuffer toCb() { return CopyBuffer((u8*)data, size); }
 
 		typedef T (&ArrayType)[n];
 

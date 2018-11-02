@@ -1,7 +1,7 @@
 #pragma once
 
 #include "inputdevice.h"
-#include <bitset>
+#include "types/bitset.h"
 
 namespace oi {
 
@@ -23,7 +23,7 @@ namespace oi {
 
 			void update(Binding b, bool down) override;
 
-			std::bitset<Key::length - 1> prev, next;
+			StaticBitset<Key::length - 1> prev, next;
 
 		};
 	}

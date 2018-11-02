@@ -1,10 +1,10 @@
 #pragma once
 
+#include <string.h>
 #include "types/generic.h"
 #include "types/string.h"
-#include "templatefuncs.h"
 #include "utils/log.h"
-#include <string.h>
+#include "templatefuncs.h"
 
 //Note for enums:
 //Please make sure that names are standard C/C++ names (so no spaces/tabs; no starting with numbers, etc.)

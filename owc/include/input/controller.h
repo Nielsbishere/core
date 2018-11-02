@@ -2,8 +2,8 @@
 
 #include "platforms/generic.h"
 #include "inputdevice.h"
-#include <types/vector.h>
-#include <bitset>
+#include "types/vector.h"
+#include "types/bitset.h"
 
 namespace oi {
 
@@ -27,7 +27,7 @@ namespace oi {
 
 			void update(Binding b, bool down) override;
 
-			std::bitset<ControllerButton::length - 1> prev, next;
+			StaticBitset<ControllerButton::length - 1> prev, next;
 			f32 axes[ControllerAxis::length - 1];
 			f32 vibrationTime = 0;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types/matrix.h"
 #include "utils/log.h"
+#include "types/matrix.h"
 
 //Avoid linking for all ostlc's dependencies by forward declaration
 #ifndef RAPIDJSON
@@ -57,11 +57,13 @@ namespace oi {
 		static i64 getInt(rapidjson::Value *node);
 		static f64 getFloat(rapidjson::Value *node);
 		static bool getBool(rapidjson::Value *node);
+		static String getString(rapidjson::Value *node);
 
 		static void setUInt(rapidjson::Value *node, u64 val);
 		static void setInt(rapidjson::Value *node, i64 val);
 		static void setFloat(rapidjson::Value *node, f64 val);
 		static void setBool(rapidjson::Value *node, bool val);
+		static void setString(rapidjson::Value *node, String val);
 
 	};
 
@@ -69,12 +71,12 @@ namespace oi {
 	struct JSONNodeObj {
 
 		static T get(rapidjson::Value *node) {
-			static_assert(false, "JSONNodeObj<T> not valid");
+			Log::throwError<JSONNodeObj<T>, 0x1>("Invalid JSONNodeObj<T>");
 			return T{};
 		}
 
 		static void set(rapidjson::Value *node, T &t) {
-			static_assert(false, "JSONNodeObj<T> not valid");
+			Log::throwError<JSONNodeObj<T>, 0x0>("Invalid JSONNodeObj<T>");
 		}
 
 	};
@@ -101,6 +103,12 @@ namespace oi {
 	struct JSONNodeObj<bool, true, true, false> {
 		static bool get(rapidjson::Value *node) { return JSONNodeUtils::getBool(node); }
 		static void set(rapidjson::Value *node, bool &t) { JSONNodeUtils::setBool(node, t); }
+	};
+
+	template<>
+	struct JSONNodeObj<String, false, false, false> {
+		static String get(rapidjson::Value *node) { return JSONNodeUtils::getString(node); }
+		static void set(rapidjson::Value *node, String &t) { JSONNodeUtils::setString(node, t); }
 	};
 
 	class JSONNode {
@@ -199,12 +207,9 @@ namespace oi {
 		}
 
 		template<typename T>
-		void _set(T &t) {
+		void _set(T t) {
 			JSONNodeObj<T>::set(value, t);
 		}
-
-		void setString(String str);
-		String getString();
 
 		rapidjson::Document *json;
 		rapidjson::Value *value;

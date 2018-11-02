@@ -28,14 +28,8 @@ void JSONNodeUtils::setUInt(rapidjson::Value *node, u64 val) { node->SetUint64(v
 void JSONNodeUtils::setInt(rapidjson::Value *node, i64 val) { node->SetInt64(val); }
 void JSONNodeUtils::setFloat(rapidjson::Value *node, f64 val) { node->SetDouble(val); }
 void JSONNodeUtils::setBool(rapidjson::Value *node, bool val) { node->SetBool(val); }
-
-void JSONNode::setString(String str) {
-	value->SetString(str.toCString(), str.size());
-}
-
-String JSONNode::getString() {
-	return value->GetString();
-}
+String JSONNodeUtils::getString(rapidjson::Value *node) { return node->GetString(); }
+void JSONNodeUtils::setString(rapidjson::Value *node, String str) { node->SetString(str.toCString(), str.size()); }
 
 void JSONNode::reconstruct() {
 

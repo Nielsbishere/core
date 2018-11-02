@@ -200,6 +200,19 @@ void MainInterface::initScene() {
 	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.oiSH"));
 	g.use(shader0);
 
+	//MeshManager *meshManager;
+	//meshManager = g.create("Mesh manager", MeshManagerInfo(300'000, 400'000));		//Creates a mesh helper; with a default maximum of 300 000 vertices and 400 000 indices per mesh buffer
+
+	//meshManager = meshManager.load("res/models/anvil.oiRM");							//Load with any MeshBuffer (creates new if it can't find it)
+	//MeshBuffer *meshBuffer = mesh->getInfo().meshBuffer;
+	//mesh0 = meshManager.load("res/models/sword.oiRM", meshBuffer);					//Force as the same MeshBuffer (nullptr if it has a different type)
+
+	//mesh1 = meshManager.load("res/models/quad.oiRM", 0, 0);							//MeshBuffer with exact size
+
+	//mesh2 = meshManager.load("res/models/cube.oiRM", 3000, 4000);						//MeshBuffer with 3000 vertices, 4000 indices
+
+	//g.destroy(meshManager);															//Destroys all mesh buffers and meshes
+
 	//Setup our cube & sphere
 	RMFile file;
 	oiRM::read("res/models/anvil.oiRM", file);
@@ -236,7 +249,7 @@ void MainInterface::initScene() {
 	readPlanets(true);
 
 	//Setup our quad
-	oiRM::read("res/models/post_processing_quad.oiRM", file);
+	oiRM::read("res/models/quad.oiRM", file);
 	info = oiRM::convert(file);
 	info.first.topologyMode = TopologyMode::Triangle;
 	info.first.fillMode = FillMode::Fill;
@@ -365,10 +378,10 @@ void MainInterface::initSceneSurface(Vec2u res){
 
 	shader0->set("tex", renderTarget->getTarget(0));
 
-	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, meshBuffer, camera));
+	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, meshBuffer));
 	g.use(pipeline);
 
-	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0, camera));
+	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0));
 	g.use(pipeline0);
 
 }

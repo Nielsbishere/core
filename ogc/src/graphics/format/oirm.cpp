@@ -24,17 +24,17 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 	u32 *ibo = (u32*) bibo.addr();
 
 	u32 perIndex = vertices <= 256 ? 1 : (vertices <= 65536 ? 2 : 4);
-	std::vector<u8> fibo(indices * perIndex);
+	CopyBuffer fibo(indices * perIndex);
 
 	if (perIndex == 4)
-		memcpy(fibo.data(), ibo, bibo.size());
+		memcpy(fibo.addr(), ibo, bibo.size());
 	else
 		for (u32 i = 0; i < (u32) indices; ++i) {
 
 			if (perIndex == 1)
 				fibo[i] = (u8) ibo[i];
 			else if (perIndex == 2)
-				*(u16*)(fibo.data() + i * 2) = (u16) ibo[i];
+				*(u16*)(fibo.addr() + i * 2) = (u16) ibo[i];
 		}
 
 	u32 attributeCount = (u32) hasPos + hasUv + hasNrm;
@@ -89,7 +89,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 
 		attributes,
 		{},
-		{ vbo.toArray() },
+		{ vbo },
 		fibo,
 		{},
 		SLFile(String::getDefaultCharset(), names),
@@ -168,14 +168,14 @@ V0_0_1:
 		file.vertices.resize(file.header.vertexBuffers);
 
 		RMVBO *vbo = file.vbos.data();
-		std::vector<u8> *vbdat = file.vertices.data();
+		CopyBuffer *vbdat = file.vertices.data();
 		std::vector<u32> indices, indices0;
 
 		for (u32 i = 0; i < file.header.vertexBuffers; ++i) {
 
-			vbdat->resize(vbo->stride * file.header.vertices);
+			*vbdat = CopyBuffer(vbo->stride * file.header.vertices);
 
-			u8 *vbdata = vbdat->data();
+			u8 *vbdata = vbdat->addr();
 
 			memset(vbdata, 0, vbo->stride * file.header.vertices);
 
@@ -260,9 +260,9 @@ V0_0_1:
 				if (read.size() < index)
 					return Log::error("Couldn't read oiRM file; invalid index buffer length");
 
-				file.indices.resize(index);
+				file.indices = CopyBuffer(index);
 
-				u8 *aindices = file.indices.data();
+				u8 *aindices = file.indices.addr();
 
 				memcpy(aindices, read.addr(), index);
 				read = read.offset(index);
@@ -279,9 +279,9 @@ V0_0_1:
 				bitset.read(ind, perIndexb);
 				
 				u32 indexRes = file.header.indices * perIndex;
-				file.indices.resize(indexRes);
+				file.indices = CopyBuffer(indexRes);
 
-				u8 *aindices = file.indices.data();
+				u8 *aindices = file.indices.addr();
 
 				if (perIndex == 4)
 					memcpy(aindices, read.addr(), indexRes);
@@ -303,8 +303,8 @@ V0_0_1:
 			if (length > read.size())
 				return Log::error("Couldn't read oiRM file; invalid misc length");
 
-			file.miscBuffer[i].resize(length);
-			memcpy(file.miscBuffer[i].data(), read.addr(), length);
+			file.miscBuffer[i] = CopyBuffer(length);
+			memcpy(file.miscBuffer[i].addr(), read.addr(), length);
 			read = read.offset(length);
 		}
 
@@ -340,7 +340,7 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 	for (RMVBO vbo : file.vbos) {
 
 		vbos[i].resize(vbo.layouts);
-		vb[i] = Buffer(file.vertices[i].data(), (u32)file.vertices[i].size());
+		vb[i] = Buffer(file.vertices[i].addr(), (u32)file.vertices[i].size());
 
 		for (u32 k = 0; k < vbo.layouts; ++k)
 			vbos[i][k] = { file.names.names[file.vbo[k].name], file.vbo[k].format };
@@ -354,10 +354,10 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 		ib = Buffer(4 * file.header.indices);
 		u32 perIndex = file.header.vertices <= 256 ? 1 : (file.header.vertices <= 65536 ? 2 : 4);
 
-		if (perIndex == 4) ib.copy(Buffer::construct(file.indices.data(), (u32) file.indices.size()));
+		if (perIndex == 4) ib.copy(Buffer::construct(file.indices.addr(), (u32) file.indices.size()));
 		else if (perIndex == 2)
 			for (i = 0; i < (u32) file.indices.size() / 2; ++i)
-				ib.operator[]<u32>(i * 4) = *(u16*)(file.indices.data() + i * 2);
+				ib.operator[]<u32>(i * 4) = *(u16*)(file.indices.addr() + i * 2);
 		else if (perIndex == 1)
 			for (i = 0; i < (u32)file.indices.size(); ++i)
 				ib.operator[]<u32>(i * 4) = (u32) file.indices[i];
@@ -380,7 +380,7 @@ RMFile oiRM::convert(MeshInfo info) {
 	std::vector<RMAttribute> attributes;
 	std::vector<String> names;
 	std::vector<RMVBO> vbos(buffers.size());
-	std::vector<std::vector<u8>> vertices(buffers.size());
+	std::vector<CopyBuffer> vertices(buffers.size());
 
 	u32 i = 0, j = 0;
 
@@ -400,7 +400,7 @@ RMFile oiRM::convert(MeshInfo info) {
 		}
 
 		vbos[i] = { (u16) size, (u16) elem.size() };
-		vertices[i] = std::move(info.vbo[i].toArray());
+		vertices[i] = info.vbo[i];
 
 		++i;
 	}
@@ -433,7 +433,7 @@ RMFile oiRM::convert(MeshInfo info) {
 		attributes,
 		miscs,
 		vertices,
-		info.ibo.toArray(),
+		info.ibo,
 		{},
 		SLFile(String::getDefaultCharset(), names)
 
@@ -491,7 +491,18 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 	Buffer b = oiSL::write(file.names);
 	CopyBuffer vertices;
-	Buffer miscBuf(file.miscBuffer);
+
+	u32 miscBufLen = 0;
+	for (CopyBuffer &cb : file.miscBuffer)
+		miscBufLen += cb.size();
+
+	Buffer miscBuf(miscBufLen);
+
+	miscBufLen = 0;
+	for (CopyBuffer &cb : file.miscBuffer) {
+		memcpy(miscBuf.addr() + miscBufLen, cb.addr(), cb.size());
+		miscBufLen += cb.size();
+	}
 
 	if (compression) {
 
@@ -502,8 +513,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 		for (u32 j = 0; j < (u32) file.vbos.size(); ++j) {
 
 			RMVBO &vb = file.vbos[j];
-			std::vector<u8> &vbo = file.vertices[j];
-			u8 *avbo = vbo.data();
+			CopyBuffer &vbo = file.vertices[j];
+			u8 *avbo = vbo.addr();
 
 			u32 offset = 0;
 
@@ -590,7 +601,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 			std::vector<u32> indices(file.header.indices);
 
 			u32 *aindices0 = indices.data();
-			u8 *aindices = file.indices.data();
+			u8 *aindices = file.indices.addr();
 
 			if (perIndex == 4)
 				memcpy(aindices0, aindices, file.header.indices * 4);
@@ -614,13 +625,19 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 	} else {
 
-		Buffer vert = file.vertices;
-		vertices = CopyBuffer(vert);
-		vert.deconstruct();
+		
+		u32 vertexLength = 0;
+		for (CopyBuffer &cb : file.vertices)
+			vertexLength += cb.size();
 
-		Buffer ind0 = file.indices;
-		ind = CopyBuffer(ind0);
-		ind0.deconstruct();
+		vertices = CopyBuffer(vertexLength);
+		vertexLength = 0;
+		for (CopyBuffer &cb : file.vertices) {
+			memcpy(vertices.addr() + vertexLength, cb.addr(), cb.size());
+			vertexLength += cb.size();
+		}
+
+		ind = file.indices;
 
 	}
 

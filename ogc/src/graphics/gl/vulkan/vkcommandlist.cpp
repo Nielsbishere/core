@@ -101,8 +101,8 @@ bool CommandList::init() {
 
 void CommandList::bind(Pipeline *pipeline) {
 
-	if(pipeline->getInfo().meshBuffer != nullptr)
-		bind(pipeline->getInfo().meshBuffer);
+	if(pipeline->getInfo().meshBuffer != boundMB)
+		bind(boundMB = pipeline->getInfo().meshBuffer);
 
 	VkPipelineBindPoint pipelinePoint = pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
 	vkCmdBindPipeline(ext.cmd, pipelinePoint, pipeline->getExtension());

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "generic.h"
 #include <sstream>
+#include "generic.h"
 
 namespace oi {
 

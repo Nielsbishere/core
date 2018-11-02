@@ -31,7 +31,7 @@ mkdir "builds" 2>nul
 mkdir "builds/Android" 2>nul
 mkdir "builds/Android/!abi!" 2>nul
 cd "builds/Android/!abi!"
-cmake "../../../" -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK_HOME%\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-%lvl% -DCMAKE_MAKE_PROGRAM=%ANDROID_NDK_HOME%\prebuilt\%dev%\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="!abi!" -DAndroid=ON -DANDROID_APK_RUN=ON
+cmake "../../../" -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK_HOME%\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-%lvl% -DCMAKE_MAKE_PROGRAM=%ANDROID_NDK_HOME%\prebuilt\%dev%\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="!abi!" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
 echo mingw32-make -j > run_android.bat
 echo pause >> run_android.bat
 cd "%~dp0"

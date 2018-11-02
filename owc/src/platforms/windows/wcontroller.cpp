@@ -90,7 +90,7 @@ void Controller::update(Window *w, f32 dt) {
 
 	} else {
 		memset(&axes, 0, sizeof(axes));
-		next.reset();
+		next.clear();
 	}
 }
 

@@ -137,9 +137,9 @@ namespace oi {
 
 				if (getEncoding() != 0) {
 
-					std::vector<u8> tempVec(vec.size());	//A vector that is dependable, and not a bitset
+					CopyBuffer tempVec((u32)vec.size());	//A vector that is dependable, and not a bitset
 
-					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) tempVec.data(), getArrayLength() + 1));
+					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) tempVec.addr(), getArrayLength() + 1));
 
 					//Copy it into a bitset
 					for (u32 i = 0; i < (u32)tempVec.size(); ++i)
@@ -604,7 +604,7 @@ namespace oi {
 		template<typename ...args>
 		FbxNodes FbxNode::findNodes(String path, std::vector<u32> propertyIds, args... arg) {
 
-			if (propertyIds.size() != ParamCount<args...>::get) {
+			if (propertyIds.size() != sizeof...(args)) {
 				Log::error("Fbx::findNodes failed; propertyIds should have the same elements as type arguments");
 				return {};
 			}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "inputdevice.h"
-#include <bitset>
+#include "types/bitset.h"
 
 namespace oi {
 
@@ -23,7 +23,7 @@ namespace oi {
 
 			void update(Binding b, bool down) override;
 
-			std::bitset<MouseButton::length - 1> prev, next;
+			StaticBitset<MouseButton::length - 1> prev, next;
 			f32 axes[MouseAxis::length - 1];
 
 		};

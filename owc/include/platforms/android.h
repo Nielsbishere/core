@@ -1,7 +1,7 @@
 #pragma once
 
-#include <template/enum.h>
 #include <android_native_app_glue.h>
+#include "template/enum.h"
 
 namespace oi {
 

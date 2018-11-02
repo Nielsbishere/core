@@ -5,16 +5,6 @@
 
 namespace oi {
 
-	template<typename T, typename ...args>
-	struct ParamCount {
-		static constexpr u32 get = 1U + ParamCount<args...>::get;
-	};
-
-	template<typename T>
-	struct ParamCount<T> {
-		static constexpr u32 get = 1U;
-	};
-
 	struct FillArray {
 
 		template<typename T, u32 n, typename T2, typename ...args>

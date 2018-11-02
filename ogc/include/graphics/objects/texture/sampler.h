@@ -1,6 +1,6 @@
 #pragma once
 
-#include <template/enum.h>
+#include "template/enum.h"
 #include "graphics/gl/generic.h"
 #include "graphics/objects/graphicsresource.h"
 

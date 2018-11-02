@@ -1,7 +1,6 @@
 #pragma once
 
 #include <chrono>
-
 #include "types/generic.h"
 #include "types/string.h"
 

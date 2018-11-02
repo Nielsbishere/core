@@ -107,11 +107,11 @@ namespace oi {
 			std::vector<SHRegister> registers;
 			SLFile stringlist;
 			std::vector<SBFile> buffers;
-			std::vector<u8> bytecode;
+			CopyBuffer bytecode;
 
 			u32 size;
 
-			SHFile(std::vector<SHStage> stage, std::unordered_map<u32, std::vector<SHInput>> inputs, std::vector<SHRegister> registers, std::unordered_map<u32, std::vector<SHOutput>> outputs, SLFile stringlist, std::vector<SBFile> buffers, std::vector<u8> bytecode) : stage(stage), stageInputs(inputs), registers(registers), stageOutputs(outputs), stringlist(stringlist), buffers(buffers), bytecode(bytecode) {}
+			SHFile(std::vector<SHStage> stage, std::unordered_map<u32, std::vector<SHInput>> inputs, std::vector<SHRegister> registers, std::unordered_map<u32, std::vector<SHOutput>> outputs, SLFile stringlist, std::vector<SBFile> buffers, CopyBuffer bytecode) : stage(stage), stageInputs(inputs), registers(registers), stageOutputs(outputs), stringlist(stringlist), buffers(buffers), bytecode(bytecode) {}
 			SHFile() : SHFile({}, {}, {}, {}, {}, {}, {}) {}
 
 		};

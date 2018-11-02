@@ -1,15 +1,15 @@
 #ifdef __ANDROID__
 
-#include "platforms/generic.h"
-#include "file/filemanager.h"
-#include <types/string.h>
-#include <types/buffer.h>
-#include <utils/log.h>
 #include <android/asset_manager.h>
 #include <sys/stat.h>
 #include <cstring>
 #include <errno.h>
 #include <dirent.h>
+#include "types/string.h"
+#include "types/buffer.h"
+#include "utils/log.h"
+#include "platforms/generic.h"
+#include "file/filemanager.h"
 using namespace oi::wc;
 using namespace oi;
 

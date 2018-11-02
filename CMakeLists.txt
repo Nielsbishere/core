@@ -47,33 +47,35 @@ option(Android "Android" OFF)
 
 if(Android)
 
-if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_NDK_HOME})
-
-	message("-- Android - enabled")
-
-	set(ANDROID_NDK, $ENV{ANDROID_NDK_HOME})
-	set(ANDROID_HOME, $ENV{ANDROID_HOME})
-	set(JAVA_HOME, $ENV{JAVA_HOME})
-
-	if(${ANDROID_ABI} STREQUAL "arm64-v8a")
-		include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
+	if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_NDK_HOME})
+	
+		message("-- Android - enabled")
+	
+		set(ANDROID_NDK, $ENV{ANDROID_NDK_HOME})
+		set(ANDROID_HOME, $ENV{ANDROID_HOME})
+		set(JAVA_HOME, $ENV{JAVA_HOME})
+	
+		if(${ANDROID_ABI} STREQUAL "arm64-v8a")
+			include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
+		else()
+			include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
+		endif()
+		
+		include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
+	
+		set(CMAKE_VERBOSE_MAKEFILE 0)
+	
+		set(Vulkan ON)
+		set(Desktop OFF)
+		add_definitions(-D__PHONE__)
+		
+		link_libraries(android)
+	
 	else()
-		include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
+	
+		message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
+	
 	endif()
-	
-	include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
-
-	set(CMAKE_VERBOSE_MAKEFILE 0)
-
-	set(Vulkan ON)
-	set(Desktop OFF)
-	add_definitions(-D__PHONE__)
-	
-else()
-
-	message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
-
-endif()
 
 elseif(WIN32)
 
@@ -82,6 +84,8 @@ elseif(WIN32)
 	add_definitions(-D__WINDOWS__)
 	set(Windows ON)
 	set(Desktop ON)
+	
+	link_libraries(Xinput.lib)
 
 else()
 
@@ -127,6 +131,8 @@ if(Vulkan)
 		add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_android_surface")
 		add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
 	endif()
+	
+	link_libraries(${VULKAN_LIB})
 	
 endif()
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <types/vector.h>
+#include "types/vector.h"
+#include "utils/timer.h"
 #include "input/binding.h"
 #include "input/inputdevice.h"
-#include <utils/timer.h>
 
 namespace oi {
 
@@ -34,22 +34,22 @@ namespace oi {
 			
 			virtual void init(){}							//Called when the window is intialized once
 			
-			virtual void initSurface(Vec2u size) { size; }	//Called when the window is intialized
+			virtual void initSurface(Vec2u) { }	//Called when the window is intialized
 			virtual void destroySurface(){}
 
-			virtual void onResize(Vec2u size) { size; }
-			virtual void onAspectChange(f32 aspect) { aspect; }
-			virtual void onMove(Vec2i pos) { pos; }
-			virtual void onInput(InputDevice *device, Binding b, bool isDown) { device; b; isDown; }
+			virtual void onResize(Vec2u) { }
+			virtual void onAspectChange(f32) { }
+			virtual void onMove(Vec2i) { }
+			virtual void onInput(InputDevice*, Binding, bool) { }
 
-			virtual void onMouseMove(Vec2 pos) { pos; }
-			virtual void onMouseWheel(f32 delta) { delta; }
-			virtual void onMouseDrag(Vec2 dpos) { dpos; }
+			virtual void onMouseMove(Vec2) { }
+			virtual void onMouseWheel(f32) { }
+			virtual void onMouseDrag(Vec2) { }
 			
 			virtual void update(f32 delta) { runtime += delta; }
 			virtual void render() {}
 
-			virtual void setFocus(bool isFocussed) { isFocussed; }
+			virtual void setFocus(bool) { }
 
 			Window *getParent();
 			InputHandler &getInputHandler();

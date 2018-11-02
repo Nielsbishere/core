@@ -21,14 +21,13 @@ namespace oi {
 			Shader *shader;
 			PipelineState *pipelineState;
 			RenderTarget *renderTarget;
-			Camera *camera;
 			MeshBuffer *meshBuffer;
 
 			//Graphics pipeline
-			PipelineInfo(Shader *shader, PipelineState *pipelineState, RenderTarget *renderTarget, MeshBuffer *meshBuffer, Camera *camera) : shader(shader), pipelineState(pipelineState), renderTarget(renderTarget), camera(camera), meshBuffer(meshBuffer) {}
+			PipelineInfo(Shader *shader, PipelineState *pipelineState, RenderTarget *renderTarget, MeshBuffer *meshBuffer) : shader(shader), pipelineState(pipelineState), renderTarget(renderTarget), meshBuffer(meshBuffer) {}
 
 			//Compute pipeline
-			PipelineInfo(Shader *shader) : PipelineInfo(shader, nullptr, nullptr, nullptr, nullptr) {}
+			PipelineInfo(Shader *shader) : PipelineInfo(shader, nullptr, nullptr, nullptr) {}
 
 		};
 

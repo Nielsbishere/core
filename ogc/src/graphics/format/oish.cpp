@@ -77,7 +77,13 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 	} else {
 
+
+		u32 codeSize = 0;
+		for (ShaderStageInfo &ostage : info.stages)
+			codeSize += ostage.code.size();
+
 		u32 i = 0;
+		output.bytecode = CopyBuffer(codeSize);
 
 		for (ShaderStageInfo &istage : info.stages) {
 
@@ -96,9 +102,8 @@ SHFile oiSH::convert(ShaderInfo info) {
 			ostage.nameIndex = 0U;
 			ostage.inputs = (u8) istage.input.size();
 			ostage.outputs = (u8) istage.output.size();
-
-			output.bytecode.resize(byteIndex + ostage.codeLength);
-			memcpy(output.bytecode.data() + byteIndex, istage.code.addr(), istage.code.size());
+			
+			memcpy(output.bytecode.addr() + byteIndex, istage.code.addr(), istage.code.size());
 
 			shaderFlag = (SHStageTypeFlag)((u32) shaderFlag | 1U << (istage.type.getValue() - 1U));
 
@@ -207,7 +212,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 	info.stages.resize((u32)stage.size());
 
-	Buffer codeBuffer = Buffer::construct(file.bytecode.data(), (u32)file.bytecode.size());
+	Buffer codeBuffer = Buffer::construct(file.bytecode.addr(), (u32)file.bytecode.size());
 
 	std::vector<ShaderInput> inputs;
 	std::vector<ShaderOutput> outputs;
@@ -381,7 +386,7 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 			else
 				buf = buf.offset(file.buffers[i].size);
 
-		file.bytecode.assign(buf.addr(), buf.addr() + header.codeSize);
+		file.bytecode = CopyBuffer(buf.addr(), header.codeSize);
 		buf = buf.offset(header.codeSize);
 
 		goto end;
@@ -459,7 +464,7 @@ Buffer oiSH::write(SHFile &file) {
 		buffer.deconstruct();
 	}
 
-	write.copy(Buffer::construct(file.bytecode.data(), (u32)file.bytecode.size()), (u32)file.bytecode.size(), 0, 0);
+	write.copy(Buffer::construct(file.bytecode.addr(), (u32)file.bytecode.size()), (u32)file.bytecode.size(), 0, 0);
 	write = write.offset((u32)file.bytecode.size());
 
 	return output;

@@ -61,6 +61,7 @@ namespace oi {
 
 			CommandListInfo info;
 			CommandListExt ext;
+			MeshBuffer *boundMB = nullptr;
 
 		};
 

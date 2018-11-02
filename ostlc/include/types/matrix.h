@@ -1,8 +1,8 @@
 #pragma once
 
-#include "vector.h"
 #include <algorithm>
 #include <cstring>
+#include "vector.h"
 
 namespace oi {
 

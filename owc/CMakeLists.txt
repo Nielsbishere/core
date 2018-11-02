@@ -18,9 +18,3 @@ add_library(
 )
 
 target_link_libraries(owc ostlc)
-
-if(WIN32)
-	target_link_libraries(owc Xinput.lib)
-elseif(Android)
-	target_link_libraries(owc android egl)
-endif()

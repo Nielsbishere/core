@@ -272,14 +272,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 		f32 shininessExponent = getMaterialNum(types["ShininessExponent"]);
 		Vec3 reflection = getMaterialCol(types["ReflectionColor"]) * getMaterialNum(types["ReflectionFactor"], 1);
 
-		emissive;
-		ambient;
-		diffuse;
-		transparency;
-		specular;
-		shininess;
-		shininessExponent;
-		reflection;
+		Log::println(String("Material: ") + emissive + " " + diffuse + " " + transparency + " " + specular + " " + shininess + " " + shininessExponent + " " + reflection);
 
 		//TODO: Save materials
 

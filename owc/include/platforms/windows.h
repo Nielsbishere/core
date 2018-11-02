@@ -1,10 +1,12 @@
 #pragma once
-#include <template/enum.h>
+#include "template/enum.h"
 
 #include <Windows.h>
 #undef min
 #undef max
 #undef ERROR
+#undef near
+#undef far
 
 namespace oi {
 

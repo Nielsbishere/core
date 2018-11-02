@@ -22,8 +22,6 @@ target_link_libraries(app_android owc)
 target_link_libraries(app_android ogc)
 target_link_libraries(app_android app)
 
-target_link_libraries(app_android android)
-
 # Convert .so to .apk (Thanks to Discordia; check android_apk_make.txt)
 
 set(ANDROID_NAME app_android)

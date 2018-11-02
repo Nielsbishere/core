@@ -1,7 +1,7 @@
-#include "format/oisl.h"
-#include <types/buffer.h>
-#include <file/filemanager.h>
 #include <cmath>
+#include "format/oisl.h"
+#include "types/buffer.h"
+#include "file/filemanager.h"
 using namespace oi::wc;
 using namespace oi;
 
@@ -88,10 +88,10 @@ v1:
 			buf = buf.offset(header.keys);
 		}
 
-		std::vector<u8> strings(header.names);
+		CopyBuffer strings(header.names);
 		std::vector<String> &str = file.names = std::vector<String>(header.names);
 
-		strings.assign(buf.addr(), buf.addr() + names);
+		memcpy(strings.addr(), buf.addr(), names);
 		buf = buf.offset(names);
 
 		String decoded = String::decode(buf, file.keyset, header.perChar, header.length);
@@ -128,7 +128,7 @@ Buffer oiSL::write(SLFile &file) {
 
 	bool useDefault = keyset == String::getDefaultCharset();
 
-	std::vector<u8> strings(names.size());
+	CopyBuffer strings((u32)names.size());
 	
 	String toEncode;
 
@@ -170,7 +170,7 @@ Buffer oiSL::write(SLFile &file) {
 
 	u32 string = (u32) strings.size();
 
-	memcpy(write.addr(), strings.data(), string);
+	memcpy(write.addr(), strings.addr(), string);
 	write = write.offset(string);
 
 	write.copy(buf);

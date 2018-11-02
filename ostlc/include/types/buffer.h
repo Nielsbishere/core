@@ -1,8 +1,8 @@
 #pragma once
 
-#include "utils/binaryhelper.h"
 #include "string.h"
 #include "utils/log.h"
+#include "utils/binaryhelper.h"
 
 namespace oi {
 
@@ -19,8 +19,6 @@ namespace oi {
 		Buffer();													//Null buffer
 		Buffer(u32 length);											//New data
 		Buffer(u8 *data, u32 length);								//Copy data
-		Buffer(std::vector<u8> dat);								//Copy data
-		Buffer(std::vector<std::vector<u8>> dat);					//Copy data
 		Buffer(String str);											//Copy data
 		static Buffer construct(u8 *initData, u32 length);			//Turns the data into a buffer
 
@@ -103,8 +101,6 @@ namespace oi {
 		void clear();
 
 		u8 *addr() const;
-
-		std::vector<u8> toArray();
 
 	protected:
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include "vector.h"
 #include "generic.h"
-#include <algorithm>
 
 namespace oi {
 

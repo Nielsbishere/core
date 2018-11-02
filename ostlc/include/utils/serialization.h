@@ -113,9 +113,9 @@ namespace oi {
 
 		static void serialize(JSONNode &json, String &val, bool save) {
 			if (save)
-				json.setString(val);
+				json._set<String>(val);
 			else
-				val = json.getString();
+				val = json._get<String>();
 		}
 
 	};
@@ -125,7 +125,7 @@ namespace oi {
 
 		static void serialize(JSONNode &json, const char* val, bool save) {
 			if (save)
-				json.setString(val);
+				json._set<String>(val);
 			else
 				Log::throwError<JSONSerialize<const char*, false>, 0x0>("JSONSerialize read not possible with a char*");
 		}

@@ -17,8 +17,4 @@ add_executable(
 
 target_link_libraries(oirm_gen ostlc)
 target_link_libraries(oirm_gen owc)
-
-if(Vulkan)
 target_link_libraries(oirm_gen ogc)
-target_link_libraries(oirm_gen ${VULKAN_LIB})
-endif()
