@@ -83,7 +83,7 @@ private:
 	oi::gc::Shader *shader, *shader0;
 	oi::gc::Pipeline *pipeline, *pipeline0;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
-	oi::gc::Mesh *mesh, *mesh0, *mesh1, *mesh2, *mesh3 = nullptr;
+	std::vector<oi::gc::Mesh*> meshes;
 	oi::gc::DrawList *drawList, *drawList0;
 	oi::gc::RenderTarget *renderTarget;
 	oi::gc::MaterialList *materialList;

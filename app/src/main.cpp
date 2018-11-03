@@ -11,6 +11,7 @@
 #include "graphics/objects/model/meshbuffer.h"
 #include "graphics/objects/model/mesh.h"
 #include "graphics/objects/model/materiallist.h"
+#include "graphics/objects/model/meshmanager.h"
 #include "graphics/objects/render/drawlist.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/commandlist.h"
@@ -140,19 +141,10 @@ void MainInterface::refreshPlanet(Planet planet) {
 	RMFile file = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices);
 	oiRM::write(file, "out/models/planet.oiRM", false);
 
-	if (mesh3 != nullptr)
-		g.destroy(mesh3);
+	if (meshes[4] != nullptr)
+		meshManager->unload(meshes[4]);
 
-	meshBuffer->open();
-
-	oiRM::read("out/models/planet.oiRM", file);
-	auto info = oiRM::convert(file);
-
-	info.second.buffer = meshBuffer;
-	mesh3 = g.create("planet", info.second);
-	g.use(mesh3);
-
-	meshBuffer->close();
+	meshes[4] = meshManager->load(MeshAllocationInfo("out/models/planet.oiRM", meshBuffer));
 
 	t.stop();
 	t.print();
@@ -165,8 +157,8 @@ void MainInterface::writePlanets() {
 	json.serialize(planets, true);
 	FileManager::get()->write("out/models/planets.json", json.toString());
 
-	RMFile file = oiRM::convert(mesh3->getInfo());
-	oiRM::write(file, String("out/models/") + mesh3->getName() + ".oiRM", false);
+	RMFile file = oiRM::convert(meshes[4]->getInfo());
+	oiRM::write(file, String("out/models/") + meshes[4]->getName() + ".oiRM", false);
 }
 
 void MainInterface::readPlanets(bool fromResource) {
@@ -200,69 +192,23 @@ void MainInterface::initScene() {
 	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.oiSH"));
 	g.use(shader0);
 
-	//MeshManager *meshManager;
-	//meshManager = g.create("Mesh manager", MeshManagerInfo(300'000, 400'000));		//Creates a mesh helper; with a default maximum of 300 000 vertices and 400 000 indices per mesh buffer
+	//Load all of our models
 
-	//meshManager = meshManager.load("res/models/anvil.oiRM");							//Load with any MeshBuffer (creates new if it can't find it)
-	//MeshBuffer *meshBuffer = mesh->getInfo().meshBuffer;
-	//mesh0 = meshManager.load("res/models/sword.oiRM", meshBuffer);					//Force as the same MeshBuffer (nullptr if it has a different type)
+	std::vector<MeshAllocationInfo> info = {
+		MeshAllocationInfo("res/models/anvil.oiRM", MeshAllocationHint::ALLOCATE_DEFAULT),		//Allocate new MeshBuffer (with default size)
+		MeshAllocationInfo("res/models/sword.oiRM"),											//Allocate into existing MeshBuffer
+		MeshAllocationInfo("res/models/sphere.oiRM"),											//Allocate into existing MeshBuffer
+		MeshAllocationInfo("res/models/quad.oiRM", MeshAllocationHint::SIZE_TO_FIT)				//Allocate into new MeshBuffer (that is the same size as mesh)
+	};
 
-	//mesh1 = meshManager.load("res/models/quad.oiRM", 0, 0);							//MeshBuffer with exact size
+	meshes = meshManager->loadAll(info);
+	meshes.push_back(nullptr);					//Reserve planet
 
-	//mesh2 = meshManager.load("res/models/cube.oiRM", 3000, 4000);						//MeshBuffer with 3000 vertices, 4000 indices
+	meshBuffer = meshes[0]->getBuffer();
+	meshBuffer0 = meshes[3]->getBuffer();
 
-	//g.destroy(meshManager);															//Destroys all mesh buffers and meshes
-
-	//Setup our cube & sphere
-	RMFile file;
-	oiRM::read("res/models/anvil.oiRM", file);
-	auto info = oiRM::convert(file);
-
-	info.first.maxIndices = 300000;
-	info.first.maxVertices = 200000;
-	info.first.topologyMode = TopologyMode::Triangle;
-	info.first.fillMode = FillMode::Fill;
-	meshBuffer = g.create("Mesh buffer", info.first);
-	g.use(meshBuffer);
-	meshBuffer->open();
-
-	info.second.buffer = meshBuffer;
-	mesh = g.create("Anvil", info.second);
-	g.use(mesh);
-
-	oiRM::read("res/models/sword.oiRM", file);
-	info = oiRM::convert(file);
-
-	info.second.buffer = meshBuffer;
-	mesh0 = g.create("Sword", info.second);
-	g.use(mesh0);
-
-	oiRM::read("res/models/sphere.oiRM", file);
-	info = oiRM::convert(file);
-
-	info.second.buffer = meshBuffer;
-	mesh2 = g.create("Sphere", info.second);
-	g.use(mesh2);
-
-	meshBuffer->close();
-
+	//Read in planet model
 	readPlanets(true);
-
-	//Setup our quad
-	oiRM::read("res/models/quad.oiRM", file);
-	info = oiRM::convert(file);
-	info.first.topologyMode = TopologyMode::Triangle;
-	info.first.fillMode = FillMode::Fill;
-
-	meshBuffer0 = g.create("Mesh buffer 1", info.first);
-	g.use(meshBuffer0);
-	meshBuffer0->open();
-
-	info.second.buffer = meshBuffer0;
-	mesh1 = g.create("Quad", info.second);
-	g.use(mesh1);
-
-	meshBuffer0->close();
 
 	//Setup our drawLists (indirect)
 	drawList = g.create("Draw list (main geometry)", DrawListInfo(meshBuffer, 256, false));
@@ -271,7 +217,7 @@ void MainInterface::initScene() {
 	drawList0 = g.create("Draw list (second pass)", DrawListInfo(meshBuffer0, 1, false));
 	g.use(drawList0);
 
-	drawList0->draw(mesh1, 1);
+	drawList0->draw(meshes[3], 1);
 	drawList0->flush();
 
 	//Allocate textures
@@ -329,8 +275,8 @@ void MainInterface::initScene() {
 
 	//Setup drawcalls (reserve objects for meshes)
 
-	drawList->draw(mesh2, 1);		//Reserve index 0 for the sphere
-	drawList->draw(mesh3, 1);		//Reserve index 1 for the planet
+	drawList->draw(meshes[2], 1);		//Reserve index 0 for the sphere
+	drawList->draw(meshes[4], 1);		//Reserve index 1 for the planet
 	drawList->flush();
 
 }
@@ -464,13 +410,6 @@ MainInterface::~MainInterface(){
 	g.destroy(rock);
 	g.destroy(water);
 	g.destroy(osomi);
-	g.destroy(mesh);
-	g.destroy(mesh0);
-	g.destroy(mesh1);
-	g.destroy(mesh2);
-	g.destroy(mesh3);
-	g.destroy(meshBuffer);
-	g.destroy(meshBuffer0);
 	g.destroy(drawList);
 	g.destroy(drawList0);
 	g.destroy(renderTarget);

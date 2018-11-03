@@ -4,10 +4,12 @@
 #include "graphics/objects/shader/pipelinestate.h"
 #include "graphics/objects/texture/sampler.h"
 #include "graphics/objects/view/viewbuffer.h"
+#include "graphics/objects/model/meshmanager.h"
 using namespace oi::gc;
 using namespace oi;
 
 BasicGraphicsInterface::~BasicGraphicsInterface() {
+	g.destroy(meshManager);
 	g.destroy(view);
 	g.destroy(cameraFrustum);
 	g.destroy(camera);
@@ -48,6 +50,10 @@ void BasicGraphicsInterface::initScene() {
 	//Setup our view
 	view = g.create("Default view", ViewInfo(views, camera, cameraFrustum));
 	g.use(view);
+
+	//Setup our mesh manager
+	meshManager = g.create("Default mesh manager", MeshManagerInfo(400'000, 500'000));
+	g.use(meshManager);
 
 }
 

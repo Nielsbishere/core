@@ -22,6 +22,8 @@ namespace oi {
 			String getName() const;
 			String getTypeName() const;
 
+			i32 getRefCount() const;
+
 		protected:
 
 			Graphics *g = nullptr;

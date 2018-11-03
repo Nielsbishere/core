@@ -9,3 +9,4 @@ GraphicsObject::~GraphicsObject() { g->remove(this); }
 size_t GraphicsObject::getHash() const { return hash; }
 String GraphicsObject::getTypeName() const { return names[hash]; }
 String GraphicsObject::getName() const { return name; }
+i32 GraphicsObject::getRefCount() const { return refCount; }

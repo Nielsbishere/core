@@ -23,6 +23,8 @@ namespace oi {
 		BlockAllocation alloc(u32 length);
 		bool dealloc(u32 pos);
 
+		bool hasSpace(u32 length);
+
 		u32 size();
 
 	protected:

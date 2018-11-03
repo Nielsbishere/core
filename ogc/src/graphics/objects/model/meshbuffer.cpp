@@ -94,8 +94,52 @@ bool MeshBuffer::dealloc(MeshAllocation allocation) {
 	return vdealloc && idealloc;
 }
 
-MeshBuffer::MeshBuffer(MeshBufferInfo info) : info(info) {}
+bool MeshBuffer::sameIndices(const MeshBufferInfo &other) {
+	return (info.maxIndices == 0) == (other.maxIndices == 0);
+}
 
+bool MeshBuffer::supportsModes(const MeshBufferInfo &other) {
+	return (other.topologyMode.getValue() == 0 || other.topologyMode == info.topologyMode) && (other.fillMode.getValue() == 0 || other.fillMode == info.fillMode);
+}
+
+bool MeshBuffer::sameFormat(const MeshBufferInfo &other) {
+
+	if (info.buffers.size() != other.buffers.size())
+		return false;
+
+	u32 i = 0;
+	for (auto &elem : info.buffers) {
+
+		auto &elem0 = other.buffers[i];
+		if (elem.size() != elem0.size())
+			return false;
+
+		u32 j = 0;
+		for (auto &elem1 : elem) {
+
+			auto &elem2 = elem0[j];
+			if (elem1.first != elem2.first || elem1.second != elem2.second)
+				return false;
+
+			++j;
+		}
+
+		++i;
+	}
+
+	return true;
+
+}
+
+bool MeshBuffer::hasSpace(const MeshBufferInfo &other) {
+	return info.vertices->hasSpace(other.maxVertices) && info.indices->hasSpace(other.maxIndices);
+}
+
+bool MeshBuffer::canAllocate(const MeshBufferInfo &other) {
+	return sameIndices(other) && supportsModes(other) && sameFormat(other) && hasSpace(other);
+}
+
+MeshBuffer::MeshBuffer(MeshBufferInfo info) : info(info) {}
 MeshBuffer::~MeshBuffer() {
 
 	delete info.vertices;

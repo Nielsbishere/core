@@ -59,12 +59,20 @@ namespace oi {
 			//Deallocate a number of vertices and/or indices.
 			bool dealloc(MeshAllocation allocation);
 
+			//Check if MeshBuffer can allocate MeshBufferInfo (a sub-buffer)
+			bool canAllocate(const MeshBufferInfo &other);
+
 		protected:
 
 			MeshBuffer(MeshBufferInfo info);
 			~MeshBuffer();
 
 			bool init();
+
+			bool sameIndices(const MeshBufferInfo &other);
+			bool supportsModes(const MeshBufferInfo &other);
+			bool sameFormat(const MeshBufferInfo &other);
+			bool hasSpace(const MeshBufferInfo &other);
 
 		private:
 

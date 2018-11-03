@@ -13,14 +13,14 @@ namespace oi {
 
 			typedef PipelineState ResourceType;
 
-			f32 lineWidth = 1.f;
-			CullMode cullMode = CullMode::Back;
-			WindMode windMode = WindMode::CCW;
-			u32 samples = 1U;
-			BlendMode blendMode = BlendMode::Alpha;
+			f32 lineWidth;
+			CullMode cullMode;
+			WindMode windMode;
+			u32 samples;
+			BlendMode blendMode;
 			DepthMode depthMode;
 
-			PipelineStateInfo(DepthMode depthMode = DepthMode::All) : depthMode(depthMode) {}
+			PipelineStateInfo(DepthMode depthMode = DepthMode::All, BlendMode blendMode = BlendMode::Alpha, CullMode cullMode = CullMode::Back, WindMode windMode = WindMode::CCW, f32 lineWidth = 1.f, u32 samples = 1) : depthMode(depthMode), blendMode(blendMode), samples(samples), cullMode(cullMode), windMode(windMode), lineWidth(lineWidth) {}
 
 		};
 

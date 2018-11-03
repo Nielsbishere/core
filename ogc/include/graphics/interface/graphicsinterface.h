@@ -9,15 +9,15 @@ namespace oi {
 
 		public:
 
-			void init() override;
+			void init() override final;
 			virtual void initScene(){}
 			virtual void initSceneSurface(Vec2u) {}
 			
-			void initSurface(Vec2u res) override;
-			void destroySurface() override;
-			void onResize(Vec2u res) override;
+			void initSurface(Vec2u res) override final;
+			void destroySurface() override final;
+			void onResize(Vec2u res) override final;
 			
-			void render() override;
+			void render() override final;
 			virtual void renderScene(){}
 
 			Graphics &getGraphics() { return g; }

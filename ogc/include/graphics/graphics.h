@@ -58,15 +58,15 @@ namespace oi {
 			void end();
 			void finish();
 
-			Texture *create(String name, TextureInfo info);
-			RenderTarget *create(String name, RenderTargetInfo info);
-			CommandList *create(String name, CommandListInfo info);
-			Shader *create(String name, ShaderInfo info);
-			ShaderStage *create(String name, ShaderStageInfo info);
-			Pipeline *create(String name, PipelineInfo info);
+			[[nodiscard]] Texture *create(String name, TextureInfo info);
+			[[nodiscard]] RenderTarget *create(String name, RenderTargetInfo info);
+			[[nodiscard]] CommandList *create(String name, CommandListInfo info);
+			[[nodiscard]] Shader *create(String name, ShaderInfo info);
+			[[nodiscard]] ShaderStage *create(String name, ShaderStageInfo info);
+			[[nodiscard]] Pipeline *create(String name, PipelineInfo info);
 
 			template<typename T2>
-			typename T2::ResourceType *create(String name, T2 info) {
+			[[nodiscard]] typename T2::ResourceType *create(String name, T2 info) {
 				return init<typename T2::ResourceType, T2>(name, info);
 			}
 
@@ -81,7 +81,7 @@ namespace oi {
 
 			static Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
 
-			RenderTarget *getBackBuffer();
+			[[nodiscard]] RenderTarget *getBackBuffer();
 			u32 getBuffering();
 			void printObjects();
 
@@ -93,7 +93,7 @@ namespace oi {
 			bool destroy(T *&t);
 
 			template<typename T>
-			std::vector<GraphicsObject*> get();
+			[[nodiscard]] std::vector<GraphicsObject*> get();
 
 		protected:
 

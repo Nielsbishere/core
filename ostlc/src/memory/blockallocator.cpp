@@ -25,6 +25,15 @@ BlockAllocation VirtualBlockAllocator::alloc(u32 size) {
 	return result;
 }
 
+bool VirtualBlockAllocator::hasSpace(u32 size) {
+
+	for (BlockAllocation block : blocks)
+		if (block.size >= size)
+			return true;
+
+	return false;
+}
+
 bool VirtualBlockAllocator::dealloc(u32 pos) {
 
 	u32 i = 0;

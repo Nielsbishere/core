@@ -12,6 +12,7 @@ namespace oi {
 		class View;
 		class ViewBuffer;
 		class CommandList;
+		class MeshManager;
 
 		class BasicGraphicsInterface : public GraphicsInterface {
 
@@ -31,6 +32,7 @@ namespace oi {
 			View *view;
 			ViewBuffer *views;
 			CommandList *cmdList;
+			MeshManager *meshManager;
 
 
 		};
