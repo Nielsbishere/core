@@ -13,12 +13,12 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 
 	if (vbo.size() != stride * vertices) {
 		Log::error("Couldn't generate oiRM file; the vbo was of invalid size");
-		return {};
+		return RMFile();
 	}
 
 	if (bibo.size() != 4 * indices) {
 		Log::error("Couldn't generate oiRM file; the vbo was of invalid size");
-		return {};
+		return RMFile();
 	}
 
 	u32 *ibo = (u32*) bibo.addr();
@@ -46,20 +46,26 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 
 	if (hasPos) {
 		names.push_back("inPosition");
-		attributes.push_back({ (u8)0, (u8)TextureFormat::RGB32f, (u16)0 });
+		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)0 });
 	}
 
 	if (hasUv) {
 		names.push_back("inUv");
-		attributes.push_back({ (u8)0, (u8)TextureFormat::RG32f, (u16)attributes.size() });
+		attributes.push_back({ (u8)TextureFormat::RG32f, (u16)attributes.size() });
 	}
 
 	if (hasNrm) {
 		names.push_back("inNormal");
-		attributes.push_back({ (u8)0, (u8)TextureFormat::RGB32f, (u16)attributes.size() });
+		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)attributes.size() });
 	}
 
-	return {
+	std::vector<RMVBO> vboInfo(1); 
+	vboInfo[0] = RMVBO(
+		(u16)((hasPos ? sizeof(Vec3) : 0) + (hasUv ? sizeof(Vec2) : 0) + (hasNrm ? sizeof(Vec3) : 0)),
+		(u16)attributeCount
+	);
+
+	return RMFile(
 
 		//Header
 		{
@@ -76,25 +82,19 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 
 			{ 0, 0, 0, 0 },
 
-			(u32) vertices,
-			(u32) indices
+			(u32)vertices,
+			(u32)indices
 
 		},
 
-		//VBO
-		{ {
-			(u16)((hasPos ? sizeof(Vec3) : 0) + (hasUv ? sizeof(Vec2) : 0) + (hasNrm ? sizeof(Vec3) : 0)),
-			(u16)attributeCount
-		} },
-
+		vboInfo,
 		attributes,
 		{},
 		{ vbo },
 		fibo,
 		{},
-		SLFile(String::getDefaultCharset(), names),
-
-	};
+		SLFile(String::getDefaultCharset(), names)
+	);
 }
 
 bool oiRM::read(String path, RMFile &file) {
@@ -393,7 +393,7 @@ RMFile oiRM::convert(MeshInfo info) {
 		u32 size = 0;
 
 		for (auto &pair : elem) {
-			attributes.push_back({ 0, (u8)pair.second.getValue(), (u16)j });
+			attributes.push_back({ (u8)pair.second.getValue(), (u16)j });
 			names.push_back(pair.first);
 			size += Graphics::getFormatSize(pair.second);
 			++j;

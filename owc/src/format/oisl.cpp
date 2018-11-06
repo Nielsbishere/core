@@ -103,7 +103,6 @@ v1:
 			u8 &s = strings[i];
 			str[i] = String((char*)decoded.toCString() + offset, s);
 			offset += s;
-			Log::println(str[i]);
 		}
 
 		goto end;

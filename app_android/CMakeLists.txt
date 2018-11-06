@@ -68,6 +68,9 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 
   # Get Vulkan's validation layers into the APK
   add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/third_party/vulkan/src/build-android/jniLibs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
+  
+  # Get libc++ into the APK
+  add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
 
 endif()
 

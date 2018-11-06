@@ -38,14 +38,24 @@ namespace oi {
 		};
 
 		struct RMVBO {
+
 			u16 stride;
 			u16 layouts;
+
+			RMVBO(u16 stride, u16 layouts) : stride(stride), layouts(layouts) {}
+			RMVBO() : RMVBO(0, 0) {}
+
 		};
 
 		struct RMAttribute {
-			u8 padding;
+
+			u8 padding = 0;
 			u8 format;			//TextureFormat
 			u16 name;
+
+			RMAttribute(u8 format, u16 name) : format(format), name(name) {}
+			RMAttribute() : RMAttribute(0, 0) {}
+
 		};
 
 		UEnum(RMMiscType, Vertex = 0, Primitive = 1, Center_primitive = 2, Point = 3);
@@ -119,6 +129,9 @@ namespace oi {
 			SLFile names;
 
 			u32 size = 0;
+
+			RMFile(RMHeader header, std::vector<RMVBO> vbos, std::vector<RMAttribute> vbo, std::vector<RMMisc> miscs, std::vector<CopyBuffer> vertices, CopyBuffer indices, std::vector<CopyBuffer> miscBuffer, SLFile names) : header(header), vbos(vbos), vbo(vbo), miscs(miscs), vertices(vertices), indices(indices), miscBuffer(miscBuffer), names(names) {}
+			RMFile() { memset(&header, 0, sizeof(header)); }
 
 		};
 
