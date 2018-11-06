@@ -136,6 +136,9 @@ namespace oi {
 
 		static String getDefaultCharset();
 
+		auto begin() { return source.begin(); }
+		auto end() { return source.end(); }
+
 	protected:
 
 		std::string source;

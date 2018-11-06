@@ -10,9 +10,14 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-SHFile oiSH::convert(ShaderSource source) {
+SHFile oiSH::convert(ShaderSource &source) {
+	std::vector<String> deps;
+	return convert(source, deps);
+}
 
-	ShaderInfo info = compile(source);
+SHFile oiSH::convert(ShaderSource &source, std::vector<String> &dependencies) {
+
+	ShaderInfo info = compile(source, dependencies);
 
 	if (info.path == "") {
 		Log::error("Couldn't compile to oiSH file");
@@ -20,7 +25,11 @@ SHFile oiSH::convert(ShaderSource source) {
 	}
 
 	return oiSH::convert(info);
+}
 
+ShaderInfo oiSH::compile(ShaderSource &source) {
+	std::vector<String> deps;
+	return compile(source, deps);
 }
 
 //Allow including files through our FileManager
@@ -28,8 +37,9 @@ struct FileIncluder : glslang::TShader::Includer {
 
 	String base;
 	std::string currentFile;
+	std::vector<String> &dependencies;
 
-	explicit FileIncluder(String base) : base(base) {}
+	FileIncluder(String base, std::vector<String> &dependencies) : base(base), dependencies(dependencies) {}
 	~FileIncluder() {}
 
 	//#include <x>
@@ -40,6 +50,9 @@ struct FileIncluder : glslang::TShader::Includer {
 			return (IncludeResult*)Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 32 nested includes");
 
 		currentFile = std::string("res/shaders/") + headerName;
+		
+		if (std::find(dependencies.begin(), dependencies.end(), currentFile) == dependencies.end())
+			dependencies.push_back(currentFile);
 
 		Buffer buf;
 
@@ -67,6 +80,9 @@ struct FileIncluder : glslang::TShader::Includer {
 
 		currentFile = includePath.toStdString() + "/" + headerName;
 
+		if (std::find(dependencies.begin(), dependencies.end(), currentFile) == dependencies.end())
+			dependencies.push_back(currentFile);
+
 		Buffer buf;
 
 		if (!FileManager::get()->read(currentFile, buf))
@@ -85,7 +101,7 @@ struct FileIncluder : glslang::TShader::Includer {
 };
 
 //Allow compiling shaders
-bool oiSH::compileSource(ShaderSource &source, bool useFile) {
+bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String> &dependencies) {
 
 	constexpr u32 vulkanVersion = 100;
 	const String shaderVersion = "450";
@@ -218,7 +234,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile) {
 
 		shader->setStrings(&shaderSrc, 1);
 
-		FileIncluder fileIncluder(basePath);
+		FileIncluder fileIncluder(basePath, dependencies);
 
 		if (!shader->preprocess(&resources, vulkanVersion, EProfile::ENoProfile, false, false, compileFlags, &shaderSrcRes, fileIncluder)) {
 
@@ -284,7 +300,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile) {
 	return true;
 }
 
-ShaderInfo oiSH::compile(ShaderSource source) {
+ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies) {
 
 	//Fetch source from files
 	if (source.getFiles().size() != 0) {
@@ -312,7 +328,7 @@ ShaderInfo oiSH::compile(ShaderSource source) {
 		case ShaderSourceType::HLSL:
 
 			//Compile shader files
-			if (!compileSource(source, true)) {
+			if (!compileSource(source, true, dependencies)) {
 				Log::error("Couldn't convert shader source file(s) to SPV");
 				return {};
 			}
@@ -329,7 +345,7 @@ ShaderInfo oiSH::compile(ShaderSource source) {
 
 	//Compile shader source (only) to SPIRV
 	if (source.getType() != ShaderSourceType::SPV && source.files.size() == 0) {
-		if (!compileSource(source, false)) {
+		if (!compileSource(source, false, dependencies)) {
 			Log::error("Couldn't convert shader source file(s) to SPV");
 			return {};
 		}

@@ -173,15 +173,18 @@ namespace oi {
 			static SHFile convert(ShaderInfo info);
 			static ShaderInfo convert(Graphics *g, SHFile info);
 
-			static SHFile convert(ShaderSource source);
-			static ShaderInfo compile(ShaderSource source);
+			static SHFile convert(ShaderSource &source);
+			static ShaderInfo compile(ShaderSource &source);
+
+			static SHFile convert(ShaderSource &source, std::vector<String> &dependencies);
+			static ShaderInfo compile(ShaderSource &source, std::vector<String> &dependencies);
 
 			static bool write(String path, SHFile &file);
 			static Buffer write(SHFile &file);
 
 		private:
 
-			static bool compileSource(ShaderSource &source, bool useFile);	//Internal for compiling shader source files (GLSL/HLSL) to SPV
+			static bool compileSource(ShaderSource &source, bool useFile, std::vector<String> &dependencies);	//Internal for compiling shader source files (GLSL/HLSL) to SPV
 
 		};
 

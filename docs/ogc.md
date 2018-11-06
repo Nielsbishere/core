@@ -217,6 +217,8 @@ shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
 g.use(shader);
 ```
 
+Whenever the shader itself or any of the dependencies (included files) update, the shader will automatically be rebuilt when you run the baker (or if the app project rebuilds). This also happens if the output files don't exist yet.
+
 #### Runtime
 
 If you want to compile a shader at runtime, you can do it using the following code:

@@ -3,7 +3,7 @@ include_directories(../owc/include)
 include_directories(../ogc/include)
 include_directories(include)
 
-file(GLOB_RECURSE oirm_gen_SRC
+file(GLOB_RECURSE oibaker_SRC
 	"include/*.h"
 	"src/*.c"
 	"include/*.hpp"
@@ -11,10 +11,8 @@ file(GLOB_RECURSE oirm_gen_SRC
 )
 
 add_executable(
-	oirm_gen
-	${oirm_gen_SRC}
+	oibaker
+	${oibaker_SRC}
 )
 
-target_link_libraries(oirm_gen ostlc)
-target_link_libraries(oirm_gen owc)
-target_link_libraries(oirm_gen ogc)
+target_link_libraries(oibaker ostlc owc ogc)

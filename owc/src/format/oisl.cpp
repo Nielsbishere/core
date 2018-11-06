@@ -103,6 +103,7 @@ v1:
 			u8 &s = strings[i];
 			str[i] = String((char*)decoded.toCString() + offset, s);
 			offset += s;
+			Log::println(str[i]);
 		}
 
 		goto end;
@@ -164,7 +165,10 @@ Buffer oiSL::write(SLFile &file) {
 	write = write.offset((u32) sizeof(SLHeader));
 
 	if (!useDefault) {
-		write.copy(Buffer::construct((u8*)keyset.toCString(), (u32)keyset.size()));
+
+		for (u32 i = 0, j = (u32)keyset.size(); i < j; ++i)
+			write[i] = ~(u8)(keyset[i]);
+
 		write = write.offset((u32)keyset.size());
 	}
 

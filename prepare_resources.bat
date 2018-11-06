@@ -1,5 +1,4 @@
 @echo off
 cd "%~dp0app"
-cmd /c "%~dp0oish_gen"
-cmd /c "%~dp0oirm_gen"
+cmd /c "%~dp0oibaker"
 cd "%~dp0"

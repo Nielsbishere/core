@@ -38,7 +38,7 @@ endif()
 option(No_log "No_log" OFF)
 
 if(No_log)
-add_definitions(-DNO_LOG)
+	add_definitions(-DNO_LOG)
 endif()
 
 # Android
@@ -150,10 +150,8 @@ add_subdirectory(ogc)
 set_property(TARGET ostlc owc ogc PROPERTY FOLDER ocore)
 
 # desktop conversion tools
-add_subdirectory(oirm_gen)
-add_subdirectory(oish_gen)
-
-set_property(TARGET oirm_gen oish_gen PROPERTY FOLDER tools)
+add_subdirectory(oibaker)
+set_property(TARGET oibaker PROPERTY FOLDER tools)
 
 # app projects
 add_subdirectory(app)
