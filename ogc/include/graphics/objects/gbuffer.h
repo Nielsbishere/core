@@ -18,13 +18,12 @@ namespace oi {
 			GBufferType type;
 			u32 size;
 			u8 *ptr = nullptr;
-			bool persistent;
 
 			//Empty gpu buffer
-			GBufferInfo(GBufferType type, u32 size, bool persistent = false): type(type), size(size), persistent(persistent) {}
+			GBufferInfo(GBufferType type, u32 size): type(type), size(size) {}
 
 			//Filled gpu buffer
-			GBufferInfo(GBufferType type, u32 size, u8 *ptr, bool persistent = false) : type(type), size(size), ptr(ptr), persistent(persistent) {}
+			GBufferInfo(GBufferType type, u32 size, u8 *ptr) : type(type), size(size), ptr(ptr) {}
 
 		};
 
@@ -37,7 +36,7 @@ namespace oi {
 			GBufferType getType();
 			u32 getSize();
 
-			u8 *getAddress();	//Only available if it's initialized and persistent
+			u8 *getAddress();	//Only available if it's open
 
 			GBufferExt &getExtension();
 			const GBufferInfo getInfo();

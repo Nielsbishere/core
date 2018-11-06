@@ -21,11 +21,13 @@ Vec4 sample2D(sampler s, texture2D t, Vec2 uv){
 
 void main() {
 	
+    //Sample color
 	Vec3 col = sample2D(samp, tex, uv).rgb;
 	
-    //Exposure with gamma correction 
-	
+    //Exposure & gamma correction
     col = pow(Vec3(1) - exp(-col * settings.exposure), Vec3(1.0f / settings.gamma));
 	
+    //Write to back buffer
     outColor = Vec4(col, 1);
+
 }

@@ -41,7 +41,7 @@ void DrawList::draw(Mesh *m, u32 instances) {
 		info.objects.push_back({ m, instances });
 	}
 	else
-		it->second += instances;
+		Log::throwError<DrawList, 0x0>("Grouping the meshes by instance is required!");
 
 }
 

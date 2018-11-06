@@ -14,3 +14,19 @@ ViewBuffer *View::getParent() { return info.parent; }
 void ViewStruct::makeViewProjection(ViewBuffer *buffer) {
 	vp = buffer->getFrustum(frustum)->p * buffer->getCamera(camera)->v;
 }
+
+void View::setCamera(Camera *cam) {
+
+	if (cam == nullptr || cam->getParent() != getParent()) return;
+
+	info.ptr->camera = cam->getHandle();
+	info.parent->notify(info.parent->getViewId(getHandle()));
+}
+
+void View::setFrustum(CameraFrustum *frustum) {
+
+	if (frustum == nullptr || frustum->getParent() != getParent()) return;
+
+	info.ptr->frustum = frustum->getHandle();
+	info.parent->notify(info.parent->getViewId(getHandle()));
+}

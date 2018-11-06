@@ -54,11 +54,13 @@ Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 
 void main() {
 
-	//TODO: views[0] for now; but prevent hardcoding.
+	//Right now only support default view (TODO:)
 	Camera cam = viewData.cameras[viewData.views[0].camera];
 
+    //Get camera position
 	Vec3 cpos = normalize(cam.position - pos);
 
+    //Calculate lighting result
 	LightResult lr = { Vec3(0, 0, 0), 0, Vec3(0, 0, 0), 0 };
 	
 	for(int i = 0; i < dir.light.length(); i++){
@@ -78,9 +80,14 @@ void main() {
 		lr.diffuse += res.diffuse;
 		lr.specular += res.specular;
 	}
-
+	
+    //Get material
 	MaterialStruct m = mat[material];
-
-    outColor = Vec4(calculateLighting(lr, sample2D(samp, m.t_diffuse, uv).rgb, exc.ambient, m), m.shininessExponent);
+    
+    //Get diffuse texture
+	Vec3 dif = sample2D(samp, m.t_diffuse, uv).rgb;
+    
+    //Write lighting result to render target
+    outColor = Vec4(calculateLighting(lr, dif, exc.ambient, m), 1);
 
 }

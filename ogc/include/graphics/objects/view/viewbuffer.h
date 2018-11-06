@@ -34,6 +34,7 @@ namespace oi {
 			friend class Graphics;
 			friend class Camera;
 			friend class CameraFrustum;
+			friend class View;
 
 		public:
 

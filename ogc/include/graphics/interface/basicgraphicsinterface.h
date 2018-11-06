@@ -27,10 +27,10 @@ namespace oi {
 
 			PipelineState *pipelineState;
 			Sampler *sampler;
+			ViewBuffer *views;
 			Camera *camera;
 			CameraFrustum *cameraFrustum;
 			View *view;
-			ViewBuffer *views;
 			CommandList *cmdList;
 			MeshManager *meshManager;
 

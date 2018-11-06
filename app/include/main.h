@@ -87,10 +87,7 @@ private:
 	oi::gc::DrawList *drawList, *drawList0;
 	oi::gc::RenderTarget *renderTarget;
 	oi::gc::MaterialList *materialList;
-
-	oi::gc::Texture *osomi, *water, *rock;
-	oi::gc::TextureHandle hwater, hrock;
-	oi::gc::MaterialHandle hwaterMat, hrockMat;
+	oi::gc::Texture *water, *rock;
 
 	float exposure = .15f, gamma = .85f;
 	oi::Vec2 prevMouse;

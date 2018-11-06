@@ -26,9 +26,7 @@ void BasicGraphicsInterface::initScene() {
 	g.use(cmdList);
 
 	//Setup our pipeline state (with default settings)
-	PipelineStateInfo psi;
-	psi.lineWidth = 3.f;
-	pipelineState = g.create("Default pipeline state", psi);
+	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
 
 	//Allocate sampler
@@ -40,11 +38,11 @@ void BasicGraphicsInterface::initScene() {
 	g.use(views);
 
 	//Setup our camera
-	camera = g.create("Default camera", CameraInfo(views, Vec3(3, 3, 3), Vec4(0, 0, 0, 1)));
+	camera = g.create("Default camera", CameraInfo(views, Vec3(3), Vec4(0, 0, 0, 1)));
 	g.use(camera);
 
 	//Setup our viewport
-	cameraFrustum = g.create("Default viewport", CameraFrustumInfo(views, Vec2u(1, 1), 1.f, 40.f, 0.1f, 100.f));
+	cameraFrustum = g.create("Default viewport", CameraFrustumInfo(views, Vec2u(1), 1, 40, 0.1f, 100));
 	g.use(cameraFrustum);
 
 	//Setup our view

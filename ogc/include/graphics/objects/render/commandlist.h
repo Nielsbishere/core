@@ -42,7 +42,6 @@ namespace oi {
 			void end(RenderTarget *target);
 
 			void bind(Pipeline *pipeline);
-			bool bind(MeshBuffer *meshBuffer);
 			void draw(DrawList *drawList);
 
 			CommandListExt &getExtension();
@@ -50,6 +49,7 @@ namespace oi {
 		protected:
 
 			bool bind(std::vector<GBuffer*> vertices, GBuffer *indices = nullptr);
+			bool bind(MeshBuffer *meshBuffer);
 
 			~CommandList();
 			CommandList(CommandListInfo info);

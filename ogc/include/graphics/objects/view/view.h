@@ -51,6 +51,10 @@ namespace oi {
 		public:
 
 			const ViewStruct &getStruct();
+
+			void setCamera(Camera *cam);
+			void setFrustum(CameraFrustum *frustum);
+
 			ViewHandle getHandle();
 			ViewBuffer *getParent();
 

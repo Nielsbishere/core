@@ -36,10 +36,10 @@ namespace oi {
 
 			typedef Camera ResourceType;
 
+			CameraStruct temp;
+
 			ViewBuffer *parent;
 			CameraStruct *ptr;
-
-			CameraStruct temp;
 
 			CameraInfo(ViewBuffer *parent, Vec3 position = { }, Vec4 directionOrCenter = { 0, 0, -1, 0 }, Vec3 up = { 0, 1, 0 }) : parent(parent), temp(position, up, directionOrCenter), ptr(&temp) {}
 

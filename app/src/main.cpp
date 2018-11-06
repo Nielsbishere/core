@@ -176,108 +176,113 @@ void MainInterface::readPlanets(bool fromResource) {
 void MainInterface::initScene() {
 
 	BasicGraphicsInterface::initScene();
-
 	Log::println("Started main interface!");
-
-	//Fbx::convertMeshes("res/models/cube.fbx", "mod/models/cube.oiRM", true);
 
 	//Setup our input manager
 	getInputManager().load("res/settings/input.json");
 
-	//Setup our shader
+	//Setup our shader (forward phong shading)
 	shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
 	g.use(shader);
 
-	//Setup our post process shader
+	//Setup our post process shader (tone mapping & gamma correction)
 	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.oiSH"));
 	g.use(shader0);
 
-	//Load all of our models
-
+	//First: Allocate anvil into new MeshBuffer (with default size)
+	//Second: Allocate sword into existing MeshBuffer
+	//Third: Allocate sphere into existing MeshBuffer
+	//Last: Allocate quad into new MeshBuffer (same size as mesh)
 	std::vector<MeshAllocationInfo> info = {
-		MeshAllocationInfo("res/models/anvil.oiRM", MeshAllocationHint::ALLOCATE_DEFAULT),		//Allocate new MeshBuffer (with default size)
-		MeshAllocationInfo("res/models/sword.oiRM"),											//Allocate into existing MeshBuffer
-		MeshAllocationInfo("res/models/sphere.oiRM"),											//Allocate into existing MeshBuffer
-		MeshAllocationInfo("res/models/quad.oiRM", MeshAllocationHint::SIZE_TO_FIT)				//Allocate into new MeshBuffer (that is the same size as mesh)
+		{ "res/models/anvil.oiRM", MeshAllocationHint::ALLOCATE_DEFAULT },
+		{ "res/models/sword.oiRM" },
+		{ "res/models/sphere.oiRM" },
+		{ "res/models/quad.oiRM", MeshAllocationHint::SIZE_TO_FIT }
 	};
 
+	//Load our models
 	meshes = meshManager->loadAll(info);
-	meshes.push_back(nullptr);					//Reserve planet
+	meshes.push_back(nullptr);					//Reserve planet model
 
+	//Get our mesh buffers
 	meshBuffer = meshes[0]->getBuffer();
 	meshBuffer0 = meshes[3]->getBuffer();
 
 	//Read in planet model
 	readPlanets(true);
 
-	//Setup our drawLists (indirect)
+	//Set up our draw list
 	drawList = g.create("Draw list (main geometry)", DrawListInfo(meshBuffer, 256, false));
 	g.use(drawList);
 
-	drawList0 = g.create("Draw list (second pass)", DrawListInfo(meshBuffer0, 1, false));
+	drawList0 = g.create("Draw list (post processing pass)", DrawListInfo(meshBuffer0, 1, false));
 	g.use(drawList0);
 
+	//Setup our post processing pass to draw a quad
 	drawList0->draw(meshes[3], 1);
 	drawList0->flush();
 
-	//Allocate textures
-	osomi = g.create("osomi", TextureInfo("res/textures/osomi.png"));
-	g.use(osomi);
+	//Setup geometry draw calls
+	drawList->draw(meshes[2], 1);		//Reserve objects[0] for the sphere/water
+	drawList->draw(meshes[4], 1);		//Reserve objects[1] for the planet
+	drawList->flush();
 
+	//Allocate textures
 	rock = g.create("rock", TextureInfo("res/textures/rock_dif.png"));
 	g.use(rock);
 
 	water = g.create("water", TextureInfo("res/textures/water_dif.png"));
 	g.use(water);
 
+	//Allocate our textures into a TextureList
 	TextureList *tex = shader->get<TextureList>("tex");
-	hrock = tex->alloc(rock);
-	hwater = tex->alloc(water);
+	TextureHandle hrock = tex->alloc(rock);
+	TextureHandle hwater = tex->alloc(water);
 
+	//Create 2 materials with our textures
 	materialList = g.create("Materials", MaterialListInfo(tex, 2));
 	g.use(materialList);
 
+	//Setup our materials
 	MaterialStruct rockMat;
 	rockMat.t_diffuse = hrock;
 
 	MaterialStruct waterMat;
 	waterMat.t_diffuse = hwater;
 
-	hrockMat = materialList->alloc(rockMat);
-	hwaterMat = materialList->alloc(waterMat);
+	//Allocate materials into material list
+	MaterialHandle hrockMat = materialList->alloc(rockMat);
+	MaterialHandle hwaterMat = materialList->alloc(waterMat);
+
+	//Set our materials in our objects array
+	objects[0].diffuse = hwaterMat;		//Water
+	objects[1].diffuse = hrockMat;		//Planet
+
+	//Update the materials
 	materialList->update();
 
-	//Set our shader sampler
+	//Set our shader samplers
 	shader->set("samp", sampler);
-
-	//Setup our post-process sampler
 	shader0->set("samp", sampler);
 
-	//Set our view data
+	//Set our view data to our view buffer
+	//Set our material data to material buffer
+	//Set our object data to our object buffer
 	shader->get<ShaderBuffer>("Views")->setBuffer(0, views->getBuffer());
+	shader->get<ShaderBuffer>("Materials")->setBuffer(materialList->getSize(), materialList->getBuffer());
+	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
 
-	//Setup lighting
+	//Setup lighting; 1 point, directional and spot light
 	shader->get<ShaderBuffer>("PointLights")->instantiate(1);
 	shader->get<ShaderBuffer>("SpotLights")->instantiate(1);
-
-	shader->get<ShaderBuffer>("Materials")->setBuffer(materialList->getSize(), materialList->getBuffer());
-
 	ShaderBuffer *directionalLights = shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
 
+	//Pass directional data (no point/spot lights)
 	directionalLights->open();
 	directionalLights->set("light/dir", Vec3(-1, 0, -1));
 	directionalLights->set("light/intensity", 16.f);
 	directionalLights->set("light/col", Vec3(1.f));
 	directionalLights->close();
-
-	//Setup the Objects buffer with our size
-	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
-
-	//Setup drawcalls (reserve objects for meshes)
-
-	drawList->draw(meshes[2], 1);		//Reserve index 0 for the sphere
-	drawList->draw(meshes[4], 1);		//Reserve index 1 for the planet
-	drawList->flush();
 
 }
 
@@ -308,7 +313,7 @@ void MainInterface::renderScene(){
 
 void MainInterface::initSceneSurface(Vec2u res){
 
-	//Reconstruct pipeline
+	//Destroy old data
 
 	if (pipeline != nullptr) {
 		g.destroy(renderTarget);
@@ -316,17 +321,20 @@ void MainInterface::initSceneSurface(Vec2u res){
 		g.destroy(pipeline0);
 	}
 
-	if (res.x == 0 || res.y == 0)
-		return;
+	//Recreate render targets and pipelines
 
+	//Create result of rendering (with HDR)
 	renderTarget = g.create("Post processing target", RenderTargetInfo(res, TextureFormat::Depth, { TextureFormat::RGBA16f }));
 	g.use(renderTarget);
 
+	//Update post processing shader
 	shader0->set("tex", renderTarget->getTarget(0));
 
+	//drawList -> Rendering pipeline -> renderTarget
 	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, meshBuffer));
 	g.use(pipeline);
 
+	//renderTarget -> Post processing pipeline -> back buffer
 	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0));
 	g.use(pipeline0);
 
@@ -377,13 +385,11 @@ void MainInterface::update(f32 dt) {
 
 	objects[0].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.5f));
 	objects[0].mvp = view->getStruct().vp * objects[0].m;
-	objects[0].diffuse = hwater;
 
 	objects[1].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(3.f));
 	objects[1].mvp = view->getStruct().vp * objects[1].m;
-	objects[1].diffuse = hrock;
 
-	shader->get<ShaderBuffer>("Objects")->getBuffer()->set(Buffer::construct((u8*)objects, sizeof(objects)));
+	shader->get<ShaderBuffer>("Objects")->set(Buffer::construct((u8*)objects, sizeof(objects)));
 
 	//Update per execution shader buffer
 	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
@@ -409,7 +415,6 @@ MainInterface::~MainInterface(){
 	g.destroy(materialList);
 	g.destroy(rock);
 	g.destroy(water);
-	g.destroy(osomi);
 	g.destroy(drawList);
 	g.destroy(drawList0);
 	g.destroy(renderTarget);
