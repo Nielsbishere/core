@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="${ANDROID_NAME}" default="help">
+
+	<property environment="env" />
+	
+    <condition property="sdk.dir" value="$ENV{ANDROID_HOME}">
+		<isset property="env.ANDROID_HOME" />
+	</condition>
+	
+	<condition property="target" value="android-${ANDROID_NATIVE_API_LEVEL}">
+		<isset property="env.ANDROID_HOME" />
+	</condition>
+	
+    <import file="$ENV{ANDROID_HOME}/tools/ant/build.xml" />
+</project>

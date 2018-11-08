@@ -94,6 +94,10 @@ g.get<Texture>();	//Get all allocated Textures (std::vector<Texture*>)
 
 Defined in "graphics/objects/graphicsobject.h"
 
+## destroyObject vs destroy
+
+destroyObject and destroy are two different functions; one is virtual (destroyObject) and the other is not. destroy is if the final type is known (for example; Texture) and not when it is the parent (GraphicsResource or GraphicsObject). destroy will automatically set the input pointer (e.g. `Texture*` ) to nullptr when there are no more references, while destroyObject will not. Using destroy on GraphicsObject or GraphicsResource will result into an error.
+
 ## Ownership
 
 A GraphicsObject can be owned by the API or driver, which means that there is no allocated data maintained by us. This still means you have to call destroy on them, but the driver will take care of the data. An example is a VersionedTexture, Texture and RenderTarget; the backbuffer is owned by the driver and won't be deleted by us. It isn't implemented for other types yet.
@@ -210,7 +214,7 @@ As for includes; using `#include <x.glsl>` will automatically include `res/shade
 
 #### Baked
 
-I would **highly** suggest using baked shaders instead of compiling them runtime. oiSH isn't fully optimized and shader compilation itself is very expensive. The baking process is done automatically if you put your resource files in `app/res/shaders` from the CMake root.
+I would **highly** suggest using baked shaders instead of compiling them runtime. oiSH compilation isn't fully optimized and shader compilation itself is very expensive. The baking process is done automatically if you put your resource files in `app/res/shaders` from the CMake root.
 
 ```cpp
 shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
@@ -300,9 +304,8 @@ ShaderBuffer *instantiate(u32 objects);
 void setBuffer(u32 objects, GBuffer *g);
 
 //Same as GBuffer's implementation
-void open();
+void flush();
 void copy(Buffer buf);
-void close();
 
 void set(Buffer buf);
 
@@ -321,14 +324,13 @@ void set(String path, T t);
 //Update per execution shader buffer
 ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
 
-perExecution->open();
 perExecution->set("ambient", Vec3(1));
 perExecution->set("time", (f32)getRuntime());
 perExecution->set("power", 1.f);
-perExecution->close();
+perExecution->flush();
 ```
 
-Before you can use a ShaderBuffer, you have to open it (like any GBuffer) and then you have to push the changes. 
+If you want to apply your changes to the buffer, you have to call 'flush' to push it to the GPU.
 
 Indexing into a variable can be done by using a path;
 
@@ -402,8 +404,7 @@ GBuffer *ibo;							//Index buffers
 #### Functions
 
 ```cpp
-void open();									//Opens the buffer (read/write)
-void close();									//Closes the buffer (pushes changes)
+void flush();									//Pushes changes to GPU
 
 MeshAllocation alloc(u32 vertices, 
                      u32 indices = 0);			//Allocates space for mesh
@@ -488,7 +489,7 @@ MeshAllocation getAllocation();
 
 ### Baking a Mesh
 
-Before a Mesh can be used, oirm_gen has to be ran. This converts files in "app/res/models" from fbx and obj to oiRM format. This format is created to be less limiting and faster; as well as allowing new modern features. oiRM also stores information about the layout, that can be used to create a MeshBuffer.
+Before a Mesh can be used, oibaker has to be ran. This converts files in "app/res/models" from fbx and obj to oiRM format (as well as converting shader files to oiSH format). This format is created to be less limiting and faster; as well as allowing new modern features. oiRM also stores information about the layout, that can be used to create a MeshBuffer.
 
 The inputs of the meshes can be either Fbx or Obj, loading them runtime is **NOT** recommended; but it is possible (see _Reading external formats_).
 
@@ -521,12 +522,56 @@ std::vector<MeshBuffer*> meshBuffers;
 
 ### MeshAllocationInfo
 
+#### Constructor (File auto)
+
+This type of allocation tries to find a meshBuffer to allocate into; by using the info from the file. If it can't find any, it will return a nullptr for a Mesh.
+
 ```cpp
 String path,						//owc-formatted path to the oiRM file
-MeshBuffer *parent,					//If null tries to find or allocate MeshBuffer
-MeshAllocationHint hintVertices,	//How the vertices/mesh buffer is allocated
-MeshAllocationHint hintIndices		//Size of indices
+
+//How the vertices/mesh buffer is allocated
+MeshAllocationHint hintVertices = FORCE_EXISTING,
+
+//How many indices to allocate (ALLOCATE_DEFAULT or the number of indices)
+MeshAllocationHint hintIndices = ALLOCATE_DEFAULT
 ```
+
+#### Constructor (File manual)
+
+Tries to allocate into the MeshBuffer; returns nullptr if it fails.
+
+```cpp
+String path,						//owc-formatted path to the oiRM file
+MeshBuffer *parent					//If null tries to find or allocate MeshBuffer
+```
+
+#### Constructor (Data)
+
+To create a Mesh using the vertex and index data, you can use the data constructor. This requires you to name the object, give a parent and provide valid vertex and index data.
+
+```cpp
+String name,						//The mesh name
+MeshBuffer *meshBuffer,				//The meshBuffer to allocate into
+std::vector<Buffer> vbos,			//Data laid out in  MeshBuffer's format
+Buffer ibo = {}						//The index data (optional if no indices)
+```
+
+#### Data
+
+```cpp
+String name;						//Name of the Mesh (if file; = path)
+String path;
+MeshBuffer *meshBuffer;
+MeshAllocationHint hintMaxVertices;
+MeshAllocationHint hintMaxIndices;
+
+std::vector<Buffer> vbos;			//Raw vertex input data of the allocation
+Buffer ibo;							//Raw index input data
+
+Mesh *mesh;							//Mesh object
+```
+
+
 
 ### MeshAllocationHint enum
 
@@ -1383,8 +1428,9 @@ std::vector<ShaderOutput> output;		//Outputs of the stage
 
 ```cpp
 GBufferType type;		//The type of the buffer
-u32 size;				//The size of the buffer
-u8 *ptr;				//Initialization data (before init) and GPU data if open
+Buffer buffer;			//The data of the buffer
+
+u32 size;				//Constructor only; creates an empty buffer
 ```
 
 ### GBufferType OEnum
@@ -1401,14 +1447,15 @@ CBO = 4					//Command buffer (multi draw indirect)
 
 ```cpp
 GBufferType getType();
+
 u32 getSize();
 u8 *getAddress();
+Buffer getBuffer();
 
-bool set(Buffer buf);	//open(), copy(), close()
+bool set(Buffer buf);	//copy(buf); flush();
 
-void open();			//Get ready to push data to the GPU
-void close();			//Push data to GPU
-bool copy(Buffer buf);	//Copy the buffer to the GPU (if open)
+void flush();			//Push data to GPU
+bool copy(Buffer buf);	//Copy the buffer to the CPU buffer
 ```
 
 # Reading external formats
@@ -1696,7 +1743,7 @@ void MainInterface::initScene() {
 	meshBuffer0 = meshes[3]->getBuffer();
 
 	//Read in planet model
-	readPlanets(true);
+	refreshPlanetMesh(true);
 
 	//Set up our draw list
 	drawList = g.create("Draw list (main geometry)", 
@@ -1769,11 +1816,10 @@ void MainInterface::initScene() {
         shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
 
     //Pass directional data (no point/spot lights)
-	directionalLights->open();
 	directionalLights->set("light/dir", Vec3(-1, 0, -1));
 	directionalLights->set("light/intensity", 16.f);
 	directionalLights->set("light/col", Vec3(1.f));
-	directionalLights->close();
+	directionalLights->flush();
 
 }
 ```
@@ -1805,20 +1851,19 @@ void MainInterface::update(f32 dt) {
 	//Update per execution shader buffer
 	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
 
-	perExecution->open();
 	perExecution->set("ambient", Vec3(1));
 	perExecution->set("time", (f32)getRuntime());
 	perExecution->set("power", 1.f);
-	perExecution->close();
+    perExecution->set("view", view->getHandle());
+	perExecution->flush();
 
 	//Setup post processing settings
 	ShaderBuffer *postProcessing = 
         shader0->get<ShaderBuffer>("PostProcessingSettings");
 
-	postProcessing->open();
 	postProcessing->set("exposure", exposure);
 	postProcessing->set("gamma", gamma);
-	postProcessing->close();
+	postProcessing->flush();
 ```
 
 ## Shader code (GLSL)
@@ -1895,7 +1940,8 @@ struct PerObject {
 	Matrix m;
 	Matrix mvp;
 
-	Vec3u padding;
+	Vec2u padding;
+    ViewHandle view;
 	MaterialHandle material;
 
 };

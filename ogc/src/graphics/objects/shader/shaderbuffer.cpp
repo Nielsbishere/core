@@ -271,8 +271,8 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 
 			if ((sbo = sbo->find(str)) == nullptr)
 				Log::throwError<ShaderBufferVar, 0x7>(String("Couldn't find the path \"") + path + "\"");
-
-			offset += sbo->offset;
+			else
+				offset += sbo->offset;
 
 		} else 
 			arr.push_back((u32)str.toLong());

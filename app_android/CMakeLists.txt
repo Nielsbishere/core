@@ -60,24 +60,22 @@ add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E 
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${APK_DIR}/src")
 add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_DIR}/src" "${APK_DIR}/src/")
 
-# Copy manifest & strings.xml
-configure_file("${ANDROID_DIR}/AndroidManifest.xml" "${APK_DIR}/AndroidManifest.xml")
-configure_file("${ANDROID_DIR}/strings.xml" "${APK_DIR}/res/values/strings.xml")
-
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 
   # Get Vulkan's validation layers into the APK
   add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/third_party/vulkan/src/build-android/jniLibs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
-  
-  # Get libc++ into the APK
-  add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
 
 endif()
 
-# Refresh command
-add_custom_command(TARGET ${ANDROID_NAME}
-  COMMAND android update project -t android-${ANDROID_NATIVE_API_LEVEL} --name ${ANDROID_NAME} --path "${APK_DIR}")
-  
+# Get libc++ into the APK
+add_custom_command(TARGET ${ANDROID_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}" "${APK_DIR}/libs/${ANDROID_ABI}")
+
+# Configure android project
+
+configure_file("${ANDROID_DIR}/AndroidManifest.xml" "${APK_DIR}/AndroidManifest.xml")
+configure_file("${ANDROID_DIR}/strings.xml" "${APK_DIR}/res/values/strings.xml")
+configure_file("${ANDROID_DIR}/build.xml" "${APK_DIR}/build.xml")
+
 # Build the apk file
 if(CMAKE_BUILD_TYPE MATCHES Release)
 
