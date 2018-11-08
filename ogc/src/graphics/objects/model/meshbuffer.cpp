@@ -5,51 +5,19 @@ using namespace oi;
 
 const MeshBufferInfo MeshBuffer::getInfo() { return info; }
 
-void MeshBuffer::open() {
+void MeshBuffer::flush() {
 
-	u32 i = 0;
+	for (GBuffer *gbuffer : info.vbos)
+		gbuffer->flush();
 
-	buffers.resize(info.vbos.size());
-
-	for (GBuffer *buf : info.vbos) {
-		buf->open();
-		buffers[i] = Buffer::construct(buf->getInfo().ptr, buf->getSize());
-		++i;
-	}
-
-	if (info.ibo != nullptr) {
-		info.ibo->open();
-		ibo = Buffer::construct(info.ibo->getInfo().ptr, info.ibo->getSize());
-	}
-
-	isOpen = true;
-
-}
-
-void MeshBuffer::close() {
-
-	for (u32 i = 0; i < (u32)buffers.size(); ++i) {
-		info.vbos[i]->close();
-		buffers[i] = {};
-	}
-
-	if (info.ibo != nullptr) {
-		info.ibo->close();
-		ibo = {};
-	}
-
-	isOpen = false;
+	if (info.ibo != nullptr)
+		info.ibo->flush();
 
 }
 
 MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 
-	if (!isOpen) {
-		Log::throwError<MeshBuffer, 0x0>("MeshBuffer has to be opened before allocating into it");
-		return {};
-	}
-
-	if ((indices == 0) != (ibo.size() == 0)) {
+	if ((indices == 0) != (info.ibo == nullptr)) {
 		Log::throwError<MeshBuffer, 0x1>("Please only allocate 0 indices when there is no index buffer, or use indices higher when there is an index buffer");
 		return {};
 	}
@@ -58,7 +26,7 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 	result.vertices = vertices;
 	result.indices = indices;
 
-	if (ibo.size() != 0){
+	if (info.ibo != nullptr){
 
 		BlockAllocation alloc = info.indices->alloc(indices);
 		result.baseIndex = alloc.start;
@@ -68,7 +36,7 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 			return {};
 		}
 
-		result.ibo = ibo.subbuffer(alloc.start * 4, alloc.size * 4);
+		result.ibo = info.ibo->getBuffer().subbuffer(alloc.start * 4, alloc.size * 4);
 
 	}
 
@@ -80,10 +48,10 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 		return {};
 	}
 
-	result.vbo.resize(buffers.size());
+	result.vbo.resize(info.vbos.size());
 
-	for (u32 i = 0; i < buffers.size(); ++i)
-		result.vbo[i] = buffers[i].subbuffer(alloc.start * info.vboStrides[i], alloc.size * info.vboStrides[i]);
+	for (u32 i = 0, j = (u32) info.vbos.size(); i < j; ++i)
+		result.vbo[i] = info.vbos[i]->getBuffer().subbuffer(alloc.start * info.vboStrides[i], alloc.size * info.vboStrides[i]);
 
 	return result;
 }

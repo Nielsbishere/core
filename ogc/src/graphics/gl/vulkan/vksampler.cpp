@@ -1,3 +1,4 @@
+#ifdef __VULKAN__
 #include "graphics/graphics.h"
 #include "graphics/objects/texture/sampler.h"
 using namespace oi::gc;
@@ -35,3 +36,5 @@ bool Sampler::init() {
 
 	return true;
 }
+
+#endif

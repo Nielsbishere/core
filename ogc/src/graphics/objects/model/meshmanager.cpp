@@ -111,9 +111,8 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 			MeshInfo mi = rmdat.second;
 			mi.buffer = minfo.meshBuffer;
 
-			mi.buffer->open();
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->close();
+			mi.buffer->flush();
 
 			info.meshAllocations[minfo.name] = minfo;
 
@@ -149,9 +148,8 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 			mi.vbo = minfo.vbos;
 			mi.ibo = minfo.ibo;
 
-			mi.buffer->open();
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->close();
+			mi.buffer->flush();
 
 			info.meshAllocations[minfo.name] = minfo;
 
@@ -273,7 +271,6 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 	for (auto &elem : batches) {
 
 		MeshBuffer *meshBuffer = elem.first;
-		meshBuffer->open();
 
 		for (auto &elem0 : elem.second) {
 
@@ -288,7 +285,7 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 
 		}
 
-		meshBuffer->close();
+		meshBuffer->flush();
 
 	}
 

@@ -284,11 +284,10 @@ void MainInterface::initScene() {
 	ShaderBuffer *directionalLights = shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
 
 	//Pass directional data (no point/spot lights)
-	directionalLights->open();
 	directionalLights->set("light/dir", Vec3(-1, 0, -1));
 	directionalLights->set("light/intensity", 16.f);
 	directionalLights->set("light/col", Vec3(1.f));
-	directionalLights->close();
+	directionalLights->flush();
 
 }
 
@@ -400,19 +399,18 @@ void MainInterface::update(f32 dt) {
 	//Update per execution shader buffer
 	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
 
-	perExecution->open();
 	perExecution->set("ambient", Vec3(1));
 	perExecution->set("time", (f32)getRuntime());
 	perExecution->set("power", 1.f);
-	perExecution->close();
+	perExecution->set("view", view->getHandle());
+	perExecution->flush();
 
 	//Setup post processing settings
 	ShaderBuffer *postProcessing = shader0->get<ShaderBuffer>("PostProcessingSettings");
 
-	postProcessing->open();
 	postProcessing->set("exposure", exposure);
 	postProcessing->set("gamma", gamma);
-	postProcessing->close();
+	postProcessing->flush();
 
 }
 

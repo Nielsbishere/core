@@ -70,6 +70,7 @@ Graphics::~Graphics(){
 		vkExtension(vkDestroyDebugReportCallbackEXT);
 
 		vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, vkAllocator);
+
 		#endif
 
 		vkDestroyInstance(ext.instance, vkAllocator);
@@ -125,10 +126,10 @@ void Graphics::init(Window *w){
 				"VK_LAYER_LUNARG_core_validation", "VK_LAYER_GOOGLE_unique_objects" };
 	#else 
 	clayers.push_back("VK_LAYER_LUNARG_standard_validation");
+	cextensions.push_back("VK_EXT_debug_utils");
 	#endif
 
 	cextensions.push_back("VK_EXT_debug_report");
-	cextensions.push_back("VK_EXT_debug_utils");
 	#endif
 	
 	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions

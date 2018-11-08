@@ -97,7 +97,7 @@ namespace oi {
 
 		public:
 
-			ShaderBufferVar(ShaderBufferObject &obj, Buffer buf, bool available);
+			ShaderBufferVar(ShaderBufferObject &obj, Buffer buf);
 
 			template<typename T>
 			T &cast() {
@@ -112,7 +112,6 @@ namespace oi {
 
 			ShaderBufferObject &obj;
 			Buffer buf;
-			bool available;
 
 		};
 
@@ -141,11 +140,10 @@ namespace oi {
 			//The length of the GBuffer should match the ShaderBuffer's length
 			void setBuffer(u32 objects, GBuffer *g);
 
-			void open();					//Call this if you start writing/reading
 			void copy(Buffer buf);			//Copy a buffer
-			void close();					//Call this if you end writing
+			void flush();					//Flush buffer to GPU
 
-			void set(Buffer buf);			//Same as GBuffer::set; open(), copy(), close()
+			void set(Buffer buf);			//copy(buf); flush();
 
 			template<typename T>
 			T &get(String path);
@@ -167,16 +165,12 @@ namespace oi {
 
 			ShaderBufferInfo info;
 			GBuffer *buffer = nullptr;
-			Buffer current;
-
-			bool isOpen = false;
 
 		};
 
 
 		template<typename T>
 		T &ShaderBuffer::get(String path) {
-			if (!isOpen) Log::throwError<ShaderBuffer, 0x0>("ShaderBuffer::set; buffer isn't open");
 			return get(path).cast<T>();
 		}
 

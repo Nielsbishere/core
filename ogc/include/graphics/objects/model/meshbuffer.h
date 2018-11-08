@@ -49,8 +49,7 @@ namespace oi {
 
 			const MeshBufferInfo getInfo();
 
-			void open();								//Open for write
-			void close();								//Flush updates to MeshBuffer
+			void flush();		//Flush updates to MeshBuffer
 
 			//Allocate a number of vertices and/or indices.
 			//If the buffer is not opened for write, it returns a null allocation.
@@ -77,11 +76,6 @@ namespace oi {
 		private:
 
 			MeshBufferInfo info;
-			bool isOpen = false;
-
-			std::vector<Buffer> buffers;
-			Buffer ibo;
-
 
 		};
 

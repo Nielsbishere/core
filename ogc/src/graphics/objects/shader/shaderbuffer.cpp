@@ -124,14 +124,14 @@ void ShaderBufferInfo::push(ShaderBufferObject obj, ShaderBufferObject &parent) 
 
 ///ShaderBufferVar
 
-ShaderBufferVar::ShaderBufferVar(ShaderBufferObject &obj, Buffer buf, bool available) : obj(obj), buf(buf), available(available) {}
+ShaderBufferVar::ShaderBufferVar(ShaderBufferObject &obj, Buffer buf) : obj(obj), buf(buf) {}
 
 ///ShaderBuffer
 
 const ShaderBufferInfo ShaderBuffer::getInfo() { return info; }
 
 ShaderBufferVar ShaderBuffer::get() {
-	return { info.self, current, isOpen }; 
+	return { info.self, buffer->getBuffer() }; 
 }
 
 u32 ShaderBuffer::getElements(){ return (u32) info.self.childs.size(); }
@@ -188,14 +188,10 @@ GBuffer *ShaderBuffer::getBuffer() {
 	return buffer;
 }
 
-void ShaderBuffer::open() {
+void ShaderBuffer::flush() {
 
-	isOpen = true;
-
-	if (buffer != nullptr) {
-		buffer->open();
-		this->current = Buffer::construct(buffer->getAddress(), buffer->getSize());
-	}
+	if (buffer != nullptr)
+		buffer->flush();
 	else
 		Log::throwError<ShaderBuffer, 0x3>("Can't update a non-existent buffer");
 
@@ -203,7 +199,7 @@ void ShaderBuffer::open() {
 
 void ShaderBuffer::copy(Buffer buf) {
 
-	if (buffer == nullptr || buf.size() == 0U || !isOpen)
+	if (buffer == nullptr || buf.size() == 0U)
 		Log::throwError<ShaderBuffer, 0x4>("ShaderBuffer::copy requires a buffer to be set and ShaderBuffer has to be open");
 
 	buffer->copy(buf);
@@ -216,18 +212,6 @@ void ShaderBuffer::set(Buffer buf) {
 		Log::throwError<ShaderBuffer, 0x5>("ShaderBuffer::set requires a buffer to be set");
 
 	buffer->set(buf);
-}
-
-void ShaderBuffer::close() {
-
-	isOpen = false;
-	this->current = {};
-
-	if (buffer != nullptr)
-		buffer->close();
-	else
-		Log::throwError<ShaderBuffer, 0x6>("Can't update a non-existent buffer");
-
 }
 
 ShaderBuffer::ShaderBuffer(ShaderBufferInfo info): info(info) {}
@@ -297,5 +281,5 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 
 	calculateArrayInfo(arr, sbo->arr, sbo->length, offset, count);
 
-	return { *sbo, Buffer::construct(this->current.addr() + offset, sbo->length * count), isOpen };
+	return { *sbo, Buffer::construct(buffer->getAddress() + offset, sbo->length * count) };
 }

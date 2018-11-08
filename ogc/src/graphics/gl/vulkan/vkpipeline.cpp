@@ -1,3 +1,4 @@
+#ifdef __VULKAN__
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/model/meshbuffer.h"
@@ -211,3 +212,5 @@ bool Pipeline::init() {
 	Log::println("Successfully created pipeline");
 	return true;
 }
+
+#endif

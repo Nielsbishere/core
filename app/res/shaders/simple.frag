@@ -14,8 +14,9 @@ layout(binding = 1) uniform PerExecution {
 	Vec3 ambient;
 	f32 time;
 
-	Vec3 padding;
+	Vec2u padding;
 	f32 power;
+	u32 view;
 	
 } exc;
 
@@ -54,8 +55,7 @@ Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 
 void main() {
 
-	//Right now only support default view (TODO:)
-	Camera cam = viewData.cameras[viewData.views[0].camera];
+	Camera cam = viewData.cameras[viewData.views[exc.view].camera];
 
     //Get camera position
 	Vec3 cpos = normalize(cam.position - pos);
@@ -88,6 +88,6 @@ void main() {
 	Vec3 dif = sample2D(samp, m.t_diffuse, uv).rgb;
     
     //Write lighting result to render target
-    outColor = Vec4(calculateLighting(lr, dif, exc.ambient, m), 1);
+    outColor = Vec4(calculateLighting(lr, dif, exc.ambient, m) * ((sin(exc.time) * 0.5 + 0.5) * 0.5 + 0.5), 1);
 
 }

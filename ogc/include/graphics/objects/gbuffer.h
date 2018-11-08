@@ -16,14 +16,13 @@ namespace oi {
 			typedef GBuffer ResourceType;
 
 			GBufferType type;
-			u32 size;
-			u8 *ptr = nullptr;
+			Buffer buffer;
 
 			//Empty gpu buffer
-			GBufferInfo(GBufferType type, u32 size): type(type), size(size) {}
+			GBufferInfo(GBufferType type, u32 size) : type(type), buffer(size) { buffer.clear(); }
 
 			//Filled gpu buffer
-			GBufferInfo(GBufferType type, u32 size, u8 *ptr) : type(type), size(size), ptr(ptr) {}
+			GBufferInfo(GBufferType type, Buffer buffer) : type(type), buffer(buffer) {}
 
 		};
 
@@ -34,18 +33,20 @@ namespace oi {
 		public:
 
 			GBufferType getType();
-			u32 getSize();
 
-			u8 *getAddress();	//Only available if it's open
+			u32 getSize();
+			u8 *getAddress();
+
+			Buffer getBuffer();
 
 			GBufferExt &getExtension();
-			const GBufferInfo getInfo();
+			const GBufferInfo &getInfo();
 
-			bool set(Buffer buf);	//open(), copy(), close()
-
-			void open();
-			void close();
 			bool copy(Buffer buf);
+			void set(Buffer buf);		//copy(buf); flush();
+
+			//Call flush to push changes to GPU
+			void flush();
 
 		protected:
 
