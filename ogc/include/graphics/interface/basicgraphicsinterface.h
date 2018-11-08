@@ -18,7 +18,7 @@ namespace oi {
 
 		public:
 
-			~BasicGraphicsInterface();
+			virtual ~BasicGraphicsInterface();
 
 			void initScene() override;
 			void onAspectChange(float asp) override;

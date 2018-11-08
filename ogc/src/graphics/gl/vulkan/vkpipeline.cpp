@@ -206,6 +206,8 @@ bool Pipeline::init() {
 
 	}
 
+	vkName(gext, ext, VK_OBJECT_TYPE_PIPELINE, getName());
+
 	Log::println("Successfully created pipeline");
 	return true;
 }

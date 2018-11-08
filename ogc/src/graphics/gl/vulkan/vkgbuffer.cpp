@@ -39,6 +39,7 @@ bool GBuffer::init() {
 	bufferInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
 	vkCheck<0x0, GBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &ext.resource), "Failed to create buffer");
+	vkName(graphics, ext.resource, VK_OBJECT_TYPE_BUFFER, getName());
 
 	vkAllocate(Buffer, ext, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 

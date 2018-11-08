@@ -59,7 +59,7 @@ void Planet::seed() {
 		offset = Random::randomize<3>(-50000.f, 50000.f);
 }
 
-void MainInterface::refreshPlanet(Planet planet) {
+void MainInterface::refreshPlanet(Planet planet, MeshAllocationInfo &mai) {
 
 	Timer t;
 
@@ -138,13 +138,7 @@ void MainInterface::refreshPlanet(Planet planet) {
 
 	}
 
-	RMFile file = oiRM::generate(Buffer::construct((u8*) avertex, vertices * 32), Buffer::construct((u8*) aindex, indices * 4), true, true, true, vertices, indices);
-	oiRM::write(file, "out/models/planet.oiRM", false);
-
-	if (meshes[4] != nullptr)
-		meshManager->unload(meshes[4]);
-
-	meshes[4] = meshManager->load(MeshAllocationInfo("out/models/planet.oiRM", meshBuffer));
+	mai = MeshAllocationInfo("Planet", meshBuffer, { Buffer((u8*)avertex, vertices * 32) }, Buffer((u8*)aindex, indices * 4));
 
 	t.stop();
 	t.print();
@@ -161,7 +155,7 @@ void MainInterface::writePlanets() {
 	oiRM::write(file, String("out/models/") + meshes[4]->getName() + ".oiRM", false);
 }
 
-void MainInterface::readPlanets(bool fromResource) {
+void MainInterface::readPlanets(bool fromResource, MeshAllocationInfo &mai) {
 
 	String str;
 	FileManager::get()->read(String(fromResource ? "res/models/planets.json" : "out/models/planets.json"), str);
@@ -169,7 +163,19 @@ void MainInterface::readPlanets(bool fromResource) {
 	json.serialize(planets, false);
 
 	for(auto &elem : planets)
-		refreshPlanet(elem.second);
+		refreshPlanet(elem.second, mai);
+
+}
+
+void MainInterface::refreshPlanetMesh(bool fromResource) {
+
+	MeshAllocationInfo mai;
+	readPlanets(fromResource, mai);
+
+	if (meshes[4] != nullptr)
+		meshManager->unload(meshes[4]);
+
+	meshes[4] = meshManager->load(mai);
 
 }
 
@@ -202,14 +208,14 @@ void MainInterface::initScene() {
 
 	//Load our models
 	meshes = meshManager->loadAll(info);
-	meshes.push_back(nullptr);					//Reserve planet model
+	meshes.push_back(nullptr);				//Reserve planet
 
 	//Get our mesh buffers
 	meshBuffer = meshes[0]->getBuffer();
 	meshBuffer0 = meshes[3]->getBuffer();
 
 	//Read in planet model
-	readPlanets(true);
+	refreshPlanetMesh(true);
 
 	//Set up our draw list
 	drawList = g.create("Draw list (main geometry)", DrawListInfo(meshBuffer, 256, false));
@@ -347,7 +353,7 @@ void MainInterface::onInput(InputDevice*, Binding b, bool down) {
 		if (b.toKey() == Key::Volume_up || b.toKey() == Key::Up)
 			writePlanets();
 		else if (b.toKey() == Key::Volume_down || b.toKey() == Key::Down)
-			readPlanets(true);
+			refreshPlanetMesh(true);
 
 	}
 

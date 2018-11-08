@@ -89,30 +89,74 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 
 	if (it == info.meshAllocations.end()) {
 
-		RMFile file;
-		if (!oiRM::read(minfo.path, file))
-			return (Mesh*) Log::error(String("Couldn't read mesh from file \"") + minfo.path + "\"");
+		if (minfo.path != "") {
 
-		auto rmdat = oiRM::convert(file);
+			RMFile file;
+			if (!oiRM::read(minfo.path, file))
+				return (Mesh*)Log::error(String("Couldn't read mesh from file \"") + minfo.name + "\"");
 
-		if (minfo.meshBuffer == nullptr){
+			auto rmdat = oiRM::convert(file);
 
-			minfo.meshBuffer = findBuffer(rmdat.first, minfo);
+			if (minfo.meshBuffer == nullptr) {
 
-			if(minfo.meshBuffer == nullptr)
-				return (Mesh*)Log::error(String("Couldn't read mesh into meshBuffer \"") + minfo.path + "\" (" + minfo.meshBuffer->getName() + "); couldn't find or allocate MeshBuffer");
+				minfo.meshBuffer = findBuffer(rmdat.first, minfo);
 
-		} else if (!validateBuffer(minfo, rmdat.first))
-			return (Mesh*)Log::error(String("Couldn't read mesh into meshBuffer \"") + minfo.path + "\" (" + minfo.meshBuffer->getName() + ")");
+				if (minfo.meshBuffer == nullptr)
+					return (Mesh*)Log::error(String("Couldn't write mesh into meshBuffer \"") + minfo.name + "\" (" + minfo.meshBuffer->getName() + "); couldn't find or allocate MeshBuffer");
 
-		MeshInfo mi = rmdat.second;
-		mi.buffer = minfo.meshBuffer;
+			}
+			else if (!validateBuffer(minfo, rmdat.first))
+				return (Mesh*)Log::error(String("Couldn't write mesh into meshBuffer \"") + minfo.name + "\" (" + minfo.meshBuffer->getName() + ")");
 
-		mi.buffer->open();
-		m = minfo.mesh = g->create(minfo.path, mi);
-		mi.buffer->close();
+			MeshInfo mi = rmdat.second;
+			mi.buffer = minfo.meshBuffer;
 
-		info.meshAllocations[minfo.path] = minfo;
+			mi.buffer->open();
+			m = minfo.mesh = g->create(minfo.name, mi);
+			mi.buffer->close();
+
+			info.meshAllocations[minfo.name] = minfo;
+
+		} else {
+
+			if (minfo.meshBuffer == nullptr)
+				return (Mesh*)Log::error("Couldn't write mesh into meshBuffer; when submitting raw data, be sure to use a valid buffer");
+
+			MeshBufferInfo mbinfo = minfo.meshBuffer->getInfo();
+
+			if(minfo.vbos.size() != mbinfo.vbos.size() || (minfo.ibo.size() == 0) != (mbinfo.ibo == nullptr))
+				return (Mesh*)Log::error("Couldn't write mesh into meshBuffer; when submitting raw data, the number of buffers (vbos, ibo) has to be the same");
+			
+			u32 i = 0;
+			for (Buffer b : minfo.vbos) {
+
+				if (b.size() % mbinfo.vboStrides[i] != 0)
+					return (Mesh*)Log::error("Couldn't write mesh into meshBuffer; when submitting raw data, the vbo layouts have to be the same");
+
+				++i;
+			}
+
+			mbinfo.maxVertices = minfo.vbos[0].size() / mbinfo.vboStrides[0];
+			mbinfo.maxIndices = minfo.ibo.size() / 4;
+
+			if(!validateBuffer(minfo, mbinfo))
+				return (Mesh*)Log::error(String("Couldn't write mesh into meshBuffer \"") + minfo.name + "\" (" + minfo.meshBuffer->getName() + ")");
+
+			MeshInfo mi;
+			mi.buffer = minfo.meshBuffer;
+			mi.indices = mbinfo.maxIndices;
+			mi.vertices = mbinfo.maxVertices;
+			mi.vbo = minfo.vbos;
+			mi.ibo = minfo.ibo;
+
+			mi.buffer->open();
+			m = minfo.mesh = g->create(minfo.name, mi);
+			mi.buffer->close();
+
+			info.meshAllocations[minfo.name] = minfo;
+
+		}
+
 
 	} else m = it->second.mesh;
 
@@ -135,13 +179,58 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 	u32 i = 0;
 	for (const MeshAllocationInfo &mai : minfo) {
 
-		auto it = info.meshAllocations.find(mai.path);
+		auto it = info.meshAllocations.find(mai.name);
 
 		if (it == info.meshAllocations.end()) {
 
+			if (mai.path == "") {
+
+				if (mai.meshBuffer == nullptr) {
+					Log::error("Couldn't write mesh into meshBuffer; when submitting raw data, be sure to use a valid buffer");
+					continue;
+				}
+
+				MeshBufferInfo mbinfo = mai.meshBuffer->getInfo();
+
+				if (mai.vbos.size() != mbinfo.vbos.size() || (mai.ibo.size() == 0) != (mbinfo.ibo == nullptr)) {
+					Log::error("Couldn't write mesh into meshBuffer; when submitting raw data, the number of buffers (vbos, ibo) has to be the same");
+					continue;
+				}
+
+				u32 j = 0;
+				bool invalidVbo = false;
+
+				for (Buffer b : mai.vbos) {
+
+					if (b.size() % mbinfo.vboStrides[j] != 0) {
+						Log::error("Couldn't write mesh into meshBuffer; when submitting raw data, the vbo layouts have to be the same");
+						invalidVbo = true;
+						break;
+					}
+
+					++j;
+				}
+
+				if (invalidVbo) continue;
+
+				mbinfo.maxVertices = mai.vbos[0].size() / mbinfo.vboStrides[0];
+				mbinfo.maxIndices = mai.ibo.size() / 4;
+				
+
+				MeshInfo mi;
+				mi.buffer = mai.meshBuffer;
+				mi.indices = mbinfo.maxIndices;
+				mi.vertices = mbinfo.maxVertices;
+				mi.vbo = mai.vbos;
+				mi.ibo = mai.ibo;
+
+				oiRMs[i] = { mbinfo, mi };
+				continue;
+			}
+
 			RMFile file;
 			if (!oiRM::read(mai.path, file)) {
-				Log::error(String("Couldn't load model \"") + mai.path + "\"");
+				Log::error(String("Couldn't load model \"") + mai.name + "\"");
 				continue;
 			}
 
@@ -161,17 +250,19 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 
 	for (i = 0; i < (u32)minfo.size(); ++i) {
 		
-		if (meshes[i] != nullptr) continue;
+		if (meshes[i] != nullptr || oiRMs[i].second.vbo.size() == 0) continue;
 
-		MeshAllocationInfo &mai = minfo[i];
+		MeshAllocationInfo &mai = minfo[i];	//What if oiRM not loaded?
 
 		if (mai.meshBuffer == nullptr) {
+
 			mai.meshBuffer = findBuffer(oiRMs[i].first, mai);
 			batches[mai.meshBuffer].push_back({ i, &oiRMs[i].second });
-		} else if(validateBuffer(mai, oiRMs[i].first))
+
+		} else if (validateBuffer(mai, oiRMs[i].first))
 			batches[mai.meshBuffer].push_back({ i, &oiRMs[i].second });
 		else
-			Log::error(String("Couldn't read mesh into meshBuffer \"") + mai.path + "\" (" + mai.meshBuffer->getName() + ")");
+			Log::error(String("Couldn't read mesh into meshBuffer \"") + mai.name + "\" (" + mai.meshBuffer->getName() + ")");
 
 	}
 
@@ -192,8 +283,8 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 			mi->buffer = meshBuffer;
 
 			MeshAllocationInfo &mai = minfo[id];
-			mai.mesh = meshes[id] = g->create(mai.path, *mi);
-			info.meshAllocations[mai.path] = mai;
+			mai.mesh = meshes[id] = g->create(mai.name, *mi);
+			info.meshAllocations[mai.name] = mai;
 
 		}
 

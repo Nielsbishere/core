@@ -64,9 +64,11 @@ bool Texture::init(bool isOwned) {
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
+		vkName(graphics, ext.resource, VK_OBJECT_TYPE_IMAGE, getName());
 
 		//Allocate memory
 		vkAllocate(Image, ext, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
 	}
 	
 	//Create image view
@@ -83,6 +85,7 @@ bool Texture::init(bool isOwned) {
 	viewInfo.subresourceRange.layerCount = 1;
 
 	vkCheck<0x2, Texture>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext.view), "Couldn't create image view");
+	vkName(graphics, ext.view, VK_OBJECT_TYPE_IMAGE_VIEW, getName() + " view");
 
 	//Set data in texture
 
@@ -106,6 +109,7 @@ bool Texture::init(bool isOwned) {
 		stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
 		vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, &gbext.resource), "Couldn't send texture data to GPU");
+		vkName(graphics, gbext.resource, VK_OBJECT_TYPE_IMAGE, getName() + " staging buffer");
 
 		vkAllocate(Buffer, gbext, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 

@@ -31,6 +31,7 @@ bool Sampler::init() {
 	samplerInfo.maxLod = 32.f;
 
 	vkCheck<0x0, Sampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, vkAllocator, &ext), "Couldn't create sampler object");
+	vkName(gext, ext, VK_OBJECT_TYPE_SAMPLER, getName());
 
 	return true;
 }

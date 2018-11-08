@@ -95,6 +95,7 @@ bool RenderTarget::init(bool isOwned) {
 	passInfo.subpassCount = 1;
 
 	vkCheck<0x0, RenderTarget>(vkCreateRenderPass(gext.device, &passInfo, vkAllocator, &ext.renderPass), "Couldn't create render pass for render target");
+	vkName(gext, ext.renderPass, VK_OBJECT_TYPE_RENDER_PASS, getName());
 
 	Log::println("Successfully created render pass for render target");
 
@@ -125,6 +126,8 @@ bool RenderTarget::init(bool isOwned) {
 		fbInfo.pAttachments = fbAttachment.data();
 
 		vkCheck<0x1, RenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
+		vkName(gext, ext.frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
+
 	}
 
 	Log::println("Successfully created framebuffers for render target");

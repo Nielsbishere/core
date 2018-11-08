@@ -35,6 +35,8 @@ namespace oi {
 			VkDebugReportCallbackEXT debugCallback = nullptr;
 			u32 queueFamilyIndex = u32_MAX;
 
+			PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
+
 		};
 
 		struct VkRenderTarget {
@@ -187,6 +189,24 @@ namespace oi {
 
 
 		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
+
+		template<typename T>
+		void vkName(VkGraphics &g, T *val, VkObjectType type, String name) {
+
+			const VkDebugUtilsObjectNameInfoEXT namedInfo = {
+				VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, // sType
+				NULL,                                               // pNext
+				type,												// objectType
+				(uint64_t)val,										// object
+				name.toCString()									// pObjectName
+			};
+
+			if(g.debugNames == nullptr)
+				return;
+
+			g.debugNames(g.device, &namedInfo);
+
+		}
 
 		//Reserved for allocation
 		constexpr VkAllocationCallbacks *vkAllocator = nullptr;

@@ -27,6 +27,7 @@ namespace oi {
 		struct CommandListInfo;
 
 		class GraphicsObject;
+		class GraphicsResource;
 
 		enum class TextureFormatStorage;
 
@@ -86,7 +87,7 @@ namespace oi {
 			void printObjects();
 
 			bool contains(GraphicsObject *go) const;
-			bool destroy(GraphicsObject *go);
+			bool destroyObject(GraphicsObject *go);
 			void use(GraphicsObject *go);
 
 			template<typename T>
@@ -108,7 +109,7 @@ namespace oi {
 		private:
 			
 			bool initialized = false;
-			u32 buffering;
+			u32 buffering = 0;
 
 			RenderTarget *backBuffer = nullptr;
 			GraphicsExt ext;
@@ -167,6 +168,8 @@ namespace oi {
 
 			static_assert(std::is_base_of<GraphicsObject, T>::value, "Graphics::destroy<T> requires T to be a base of GraphicsObject");
 
+			static_assert(!std::is_same<GraphicsObject, T>::value && !std::is_same<GraphicsResource, T>::value, "Graphics::destroy can't be used on virtual GraphicsObjects or GraphicsResources");
+
 			if (go == nullptr) return false;
 
 			auto it = objects.find(typeid(T).hash_code());
@@ -177,10 +180,12 @@ namespace oi {
 			auto itt = std::find(vec.begin(), vec.end(), go);
 			if (itt == vec.end()) return false;
 
-			if (--go->refCount <= 0)
+			if (--go->refCount <= 0) {
+				vec.erase(itt);
 				delete go;
+				go = nullptr;
+			}
 
-			go = nullptr;
 			return true;
 		}
 

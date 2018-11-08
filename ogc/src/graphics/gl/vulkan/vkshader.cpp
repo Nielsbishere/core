@@ -20,7 +20,7 @@ Shader::~Shader() {
 
 	for (auto &sb : info.shaderRegister)
 		if (sb.second != nullptr)
-			g->destroy(sb.second);
+			g->destroyObject(sb.second);
 
 	vkDestroyDescriptorPool(gext.device, ext.descriptorPool, vkAllocator);
 	vkDestroyDescriptorSetLayout(gext.device, ext.setLayout, vkAllocator);
@@ -257,6 +257,7 @@ bool Shader::init() {
 	descInfo.pBindings = descriptorSet.data();
 
 	vkCheck<0x1, VkShader>(vkCreateDescriptorSetLayout(gext.device, &descInfo, vkAllocator, &ext.setLayout), "Couldn't create descriptor set layout");
+	vkName(gext, ext.setLayout, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, getName() + " descriptor set layout");
 
 	//Create pipeline layout
 
@@ -268,6 +269,7 @@ bool Shader::init() {
 	layoutInfo.pSetLayouts = &ext.setLayout;
 
 	vkCheck<0x0, VkShader>(vkCreatePipelineLayout(gext.device, &layoutInfo, vkAllocator, &ext.layout), "Couldn't create shader pipeline layout");
+	vkName(gext, ext.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, getName() + " pipeline layout");
 
 	//Create descriptor pool
 
@@ -294,6 +296,7 @@ bool Shader::init() {
 	poolInfo.maxSets = g->getBuffering();
 
 	vkCheck<0x2, VkShader>(vkCreateDescriptorPool(gext.device, &poolInfo, vkAllocator, &ext.descriptorPool), "Couldn't create descriptor pool");
+	vkName(gext, ext.descriptorPool, VK_OBJECT_TYPE_DESCRIPTOR_POOL, getName() + " descriptor pool");
 
 	//Create descriptor set (versioned)
 
@@ -313,6 +316,9 @@ bool Shader::init() {
 	ext.descriptorSet.resize(g->getBuffering());
 
 	vkCheck<0x3, VkShader>(vkAllocateDescriptorSets(gext.device, &setInfo, ext.descriptorSet.data()), "Couldn't create descriptor sets");
+
+	for (u32 j = 0, k = (u32)ext.descriptorSet.size(); j < k; ++j)
+		vkName(gext, ext.descriptorSet[j], VK_OBJECT_TYPE_DESCRIPTOR_SET, getName() + " descriptor set " + j);
 
 	//Create shader buffers
 

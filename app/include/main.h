@@ -15,6 +15,7 @@ namespace oi {
 		class DrawList;
 		class RenderTarget;
 		class MaterialList;
+		struct MeshAllocationInfo;
 		
 		class Texture;
 		typedef u32 TextureHandle;
@@ -74,9 +75,13 @@ public:
 	void update(f32 dt) override;
 	void initSceneSurface(oi::Vec2u res) override;
 
-	void refreshPlanet(Planet planet);
-	void readPlanets(bool fromResource = false);
+protected:
+
+	void refreshPlanet(Planet planet, oi::gc::MeshAllocationInfo &mai);
+	void readPlanets(bool fromResource, oi::gc::MeshAllocationInfo &mai);
 	void writePlanets();
+
+	void refreshPlanetMesh(bool fromResource);
 
 private:
 	

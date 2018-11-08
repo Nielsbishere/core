@@ -236,7 +236,7 @@ bool Graphics::contains(GraphicsObject *go) const {
 
 }
 
-bool Graphics::destroy(GraphicsObject *go) {
+bool Graphics::destroyObject(GraphicsObject *go) {
 
 	if (go == nullptr) return false;
 
@@ -248,10 +248,11 @@ bool Graphics::destroy(GraphicsObject *go) {
 	auto itt = std::find(vec.begin(), vec.end(), go);
 	if (itt == vec.end()) return false;
 
-	if (--go->refCount <= 0)
+	if (--go->refCount <= 0) {
+		vec.erase(itt);
 		delete go;
+	}
 
-	go = nullptr;
 	return true;
 
 }

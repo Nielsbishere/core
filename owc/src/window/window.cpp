@@ -6,7 +6,7 @@ using namespace oi;
 using namespace wc;
 
 Window::Window(WindowManager *manager, WindowInfo info) : parent(manager), inputHandler(), inputManager(&inputHandler), info(info) {}
-Window::~Window() { if (wi != nullptr) delete wi; destroyPlatform(); }
+Window::~Window() { if (wi != nullptr) delete wi; }
 
 WindowInfo &Window::getInfo() { return info; }
 InputHandler &Window::getInputHandler() { return inputHandler; }

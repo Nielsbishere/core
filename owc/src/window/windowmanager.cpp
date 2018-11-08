@@ -7,11 +7,12 @@ WindowManager *WindowManager::instance = nullptr;
 void WindowManager::remove(Window *w) {
 
 	auto it = find(windows.begin(), windows.end(), w);
-	
-	if(it != windows.end())
-		windows.erase(it);
 
+	w->destroyPlatform();
 	delete w;
+
+	if (it != windows.end())
+		windows.erase(it);
 }
 
 Window *WindowManager::create(WindowInfo info) {

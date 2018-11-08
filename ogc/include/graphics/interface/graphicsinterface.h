@@ -9,6 +9,8 @@ namespace oi {
 
 		public:
 
+			virtual ~GraphicsInterface() { }
+
 			void init() override final;
 			virtual void initScene(){}
 			virtual void initSceneSurface(Vec2u) {}

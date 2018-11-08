@@ -26,18 +26,25 @@ namespace oi {
 
 		struct MeshAllocationInfo {
 
-			String path;
-			MeshBuffer *meshBuffer;
-			MeshAllocationHint hintMaxVertices, hintMaxIndices;
+			String name;
+			String path = "";
+			MeshBuffer *meshBuffer = nullptr;
+			MeshAllocationHint hintMaxVertices = MeshAllocationHint::FORCE_EXISTING, hintMaxIndices = MeshAllocationHint::FORCE_EXISTING;
+
+			std::vector<Buffer> vbos;
+			Buffer ibo;
 
 			Mesh *mesh = nullptr;
 
 			//Path as owc-validated path, file with oiRM format
-			//Allocates into MeshBuffer (if invalid; returns nullptr mesh)
-			MeshAllocationInfo(String path, MeshBuffer *meshBuffer, MeshAllocationHint hintMaxVertices = MeshAllocationHint::FORCE_EXISTING, MeshAllocationHint hintMaxIndices = MeshAllocationHint::ALLOCATE_DEFAULT) : path(path), meshBuffer(meshBuffer), hintMaxVertices(hintMaxVertices), hintMaxIndices(hintMaxIndices) {}
+			//Allocates into MeshBuffer
+			MeshAllocationInfo(String path, MeshBuffer *meshBuffer) : name(path), path(path), meshBuffer(meshBuffer) {}
 
 			//Path as owc-validated path, file with oiRM format
-			MeshAllocationInfo(String path, MeshAllocationHint hintMaxVertices = MeshAllocationHint::FORCE_EXISTING, MeshAllocationHint hintMaxIndices = MeshAllocationHint::ALLOCATE_DEFAULT) : path(path), meshBuffer(nullptr), hintMaxVertices(hintMaxVertices), hintMaxIndices(hintMaxIndices) {}
+			MeshAllocationInfo(String path, MeshAllocationHint hintMaxVertices = MeshAllocationHint::FORCE_EXISTING, MeshAllocationHint hintMaxIndices = MeshAllocationHint::ALLOCATE_DEFAULT) : path(path), name(path), hintMaxVertices(hintMaxVertices), hintMaxIndices(hintMaxIndices) {}
+
+			//Allocates into VBOs and/or IBO into MeshBuffer
+			MeshAllocationInfo(String name, MeshBuffer *meshBuffer, std::vector<Buffer> vbos, Buffer ibo = {}) : name(name), meshBuffer(meshBuffer), vbos(vbos), ibo(ibo) {}
 
 			//Null buffer
 			MeshAllocationInfo() : MeshAllocationInfo("", nullptr) {}

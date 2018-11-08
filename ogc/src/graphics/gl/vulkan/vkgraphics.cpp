@@ -50,7 +50,7 @@ Graphics::~Graphics(){
 		for (auto &a : objects)
 			for (u32 i = (u32) a.second.size() - 1; i != u32_MAX; --i) {
 				Log::warn(String("Left over object ") + a.second[i]->getName() + " (" + a.second[i]->getTypeName() + ") #" + i + " and refCount " + a.second[i]->refCount);
-				destroy(a.second[i]);
+				destroyObject(a.second[i]);
 			}
 
 		objects.clear();
@@ -60,6 +60,9 @@ Graphics::~Graphics(){
 		vkDestroyFence(ext.device, ext.present, vkAllocator);
 
 		destroySurface();
+
+		Log::println("HI vkDestroyDevice");
+
 		vkDestroyDevice(ext.device, vkAllocator);
 
 		#ifdef __DEBUG__
@@ -125,12 +128,13 @@ void Graphics::init(Window *w){
 	#endif
 
 	cextensions.push_back("VK_EXT_debug_report");
+	cextensions.push_back("VK_EXT_debug_utils");
 	#endif
 	
 	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions
 	dextensions[0] = "VK_KHR_swapchain";
 	dextensions[1] = "VK_KHR_shader_draw_parameters";
-	
+
 	//Set up the application
 	
 	VkApplicationInfo application;
@@ -300,6 +304,17 @@ void Graphics::init(Window *w){
 	Log::println("Successfully created device");
 	delete[] families;
 
+	#ifdef __DEBUG__
+
+	//Debug object names
+
+	ext.debugNames = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(ext.device, "vkSetDebugUtilsObjectNameEXT");
+
+	#endif
+
+	vkName(ext, ext.instance, VK_OBJECT_TYPE_INSTANCE, "Vulkan instance");
+	vkName(ext, ext.device, VK_OBJECT_TYPE_DEVICE, "Vulkan device");
+
 	//Create present fence
 
 	VkFenceCreateInfo fenceInfo;
@@ -308,6 +323,7 @@ void Graphics::init(Window *w){
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
 	vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, vkAllocator, &ext.present), "Couldn't create the present fence");
+	vkName(ext, ext.present, VK_OBJECT_TYPE_FENCE, "Present fence");
 
 	//Create semaphore
 
@@ -317,6 +333,7 @@ void Graphics::init(Window *w){
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
 	vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, &ext.semaphore), "Couldn't create semaphore");
+	vkName(ext, ext.semaphore, VK_OBJECT_TYPE_SEMAPHORE, "Present semaphore");
 
 
 	//Create command pool
@@ -329,6 +346,7 @@ void Graphics::init(Window *w){
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
 	vkCheck<0x16>(vkCreateCommandPool(ext.device, &poolInfo, vkAllocator, &ext.pool), "Couldn't create command pool");
+	vkName(ext, ext.pool, VK_OBJECT_TYPE_COMMAND_POOL, "Graphics command pool");
 
 	//Get memory properties
 	vkGetPhysicalDeviceMemoryProperties(ext.pdevice, &ext.pmemory);
@@ -442,6 +460,7 @@ void Graphics::initSurface(Window *w) {
 	swapchainInfo.presentMode = mode;
 
 	vkCheck<0x9>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, vkAllocator, &ext.swapchain), "Couldn't create swapchain");
+	vkName(ext, ext.swapchain, VK_OBJECT_TYPE_SWAPCHAIN_KHR, "Back buffer swapchain");
 
 	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, nullptr);
 

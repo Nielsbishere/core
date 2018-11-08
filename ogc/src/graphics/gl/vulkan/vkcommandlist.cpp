@@ -96,6 +96,8 @@ bool CommandList::init() {
 
 	vkCheck<0x0, CommandList>(vkAllocateCommandBuffers(glext.device, &allocInfo, &ext.cmd), "Couldn't allocate command list");
 
+	vkName(glext, ext.cmd, VK_OBJECT_TYPE_COMMAND_BUFFER, getName());
+
 	return true;
 }
 
