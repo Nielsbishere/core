@@ -14,9 +14,10 @@ before_install:
 
 script:
    - cd $HOME/build/OsomiLunar/ocore
-   - ls
+   - chmod +x make_android.sh
    - ./make_android.sh
    - cd builds/Android/arm64-v8a
+   - chmod +x run_android.sh
    - ./run_android.sh
 
 # Discord hooks

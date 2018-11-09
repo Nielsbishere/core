@@ -26,19 +26,22 @@ makeAndroid() {
 
 }
 
-if "$1" = ''; then
+if [ "$1" == '' ]
+then
 	dev="android-arm64"
 else
 	dev="$1"
 fi
 
-if "$2" = ''; then
+if [ "$2" == '' ]
+then
 	lvl="24"
 else
 	lvl="$2"
 fi
 
-if "$3" = ''; then
+if [ "$3" == '' ]
+then
 
 	echo Creating builds for every Android ABI...
 	echo For a specialized build: run_android $dev $lvl arm64-v8a
