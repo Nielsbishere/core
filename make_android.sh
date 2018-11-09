@@ -18,10 +18,9 @@ makeAndroid() {
 
 	android_ndk_home=printf '%s\n' "${!ANDROID_NDK_HOME}"
 
-	cmake "../../../" -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=$android_ndk_home\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$2 -DCMAKE_MAKE_PROGRAM=$android_ndk_home\prebuilt\$1\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="$3" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
+	cmake "../../../" -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=$android_ndk_home\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$2 -DCMAKE_MAKE_PROGRAM=$android_ndk_home\prebuilt\$1\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="$3" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
 	
-	echo mingw32-make -j > run_android.sh
-	echo read -p "Press enter to continue" >> run_android.sh
+	echo make > run_android.sh
 	cd ../../../
 
 }

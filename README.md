@@ -51,17 +51,17 @@ make_pc "MinGW Makefiles"
 
 ### Dependencies
 
-Android [SDK](https://developer.android.com/studio/install) & [NDK](https://developer.android.com/ndk/)
-[Mingw-w64](https://mingw-w64.org/)
-[Apache ANT](https://ant.apache.org/bindownload.cgi)
+Android [SDK](https://developer.android.com/studio/install) & [NDK](https://developer.android.com/ndk/)  
+[Mingw-w64](https://mingw-w64.org/)  
+[Apache ANT](https://ant.apache.org/bindownload.cgi)  
 [Enable developer mode and USB debugging](https://android.gadgethacks.com/how-to/android-basics-enable-developer-options-usb-debugging-0161948/)
 
 ### Environment variables
 
 Before you can use Android, you have to ensure that all variables are set correctly;
 
-JAVA_HOME (jdk directory)
-ANDROID_HOME (sdk directory)
+JAVA_HOME (jdk directory)  
+ANDROID_HOME (sdk directory)  
 ANDROID_NDK_HOME (ndk directory)
 
 Now you can build for Android
