@@ -5,6 +5,7 @@ android:
   components:
     - build-tools-25.2.5
     - android-24
+    - sys-img-arm64-v8a-android-24
 
 before_install:
   - yes | sdkmanager "platforms;android-24"
