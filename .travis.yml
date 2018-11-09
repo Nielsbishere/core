@@ -11,6 +11,9 @@ before_install:
   - yes | sdkmanager "platforms;android-24"
 
 script:
+   - ls
+   - cd $HOME
+   - ls
    - $HOME/make_android.sh
    - cd $HOME/builds/Android/arm64-v8a
    - ./run_android.sh
