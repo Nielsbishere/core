@@ -2,7 +2,7 @@
 echo Android requires the following dependencies to be installed:
 echo - Java
 echo - Android SDK
-echo - Android NDK
+echo - Android NDK set up as environment variable ANDROID_NDK
 echo - MinGW Makefiles (64-bit)
 echo - Apache Ant
 echo - Vulkan SDK
@@ -30,7 +30,7 @@ mkdir "builds" 2>nul
 mkdir "builds/Android" 2>nul
 mkdir "builds/Android/!abi!" 2>nul
 cd "builds/Android/!abi!"
-cmake "../../../" -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK_HOME%\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-%lvl% -DCMAKE_MAKE_PROGRAM=%ANDROID_NDK_HOME%\prebuilt\%dev%\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="!abi!" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
+cmake "../../../" -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%ANDROID_NDK%\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-%lvl% -DCMAKE_MAKE_PROGRAM=%ANDROID_NDK%\prebuilt\%dev%\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="!abi!" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
 echo mingw32-make -j > run_android.bat
 echo pause >> run_android.bat
 cd "%~dp0"

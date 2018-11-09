@@ -46,13 +46,13 @@ option(Android "Android" OFF)
 
 if(Android)
 
-	if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_NDK_HOME})
-	
+	if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_NDK})
+
 		message("-- Android - enabled")
 	
-		set(ANDROID_NDK, $ENV{ANDROID_NDK_HOME})
 		set(ANDROID_HOME, $ENV{ANDROID_HOME})
 		set(JAVA_HOME, $ENV{JAVA_HOME})
+		set(ANDROID_NDK, $ENV{ANDROID_NDK})
 	
 		if(${ANDROID_ABI} STREQUAL "arm64-v8a")
 			include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)

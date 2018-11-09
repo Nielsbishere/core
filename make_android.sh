@@ -1,7 +1,7 @@
 echo Android requires the following dependencies to be installed:
 echo - Java
 echo - Android SDK
-echo - Android NDK
+echo - Android NDK set up as environment variable ANDROID_NDK
 echo - MinGW Makefiles 64-bit
 echo - Apache Ant
 echo - Vulkan SDK
@@ -16,9 +16,7 @@ makeAndroid() {
 	mkdir -p builds/Android/$3
 	cd builds/Android/$3
 
-	android_ndk_home=printf '%s\n' "${!ANDROID_NDK_HOME}"
-
-	cmake "../../../" -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=$android_ndk_home\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$2 -DCMAKE_MAKE_PROGRAM=$android_ndk_home\prebuilt\$1\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="$3" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
+	cmake "../../../" -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}\build\cmake\android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$2 -DCMAKE_MAKE_PROGRAM=$android_ndk_home\prebuilt\$1\bin\make.exe -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="$3" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
 	
 	echo make > run_android.sh
 	cd ../../../
@@ -27,7 +25,7 @@ makeAndroid() {
 
 if [ "$1" == '' ]
 then
-	dev="android-arm64"
+	dev="linux-x86_64"
 else
 	dev="$1"
 fi
