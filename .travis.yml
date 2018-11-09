@@ -10,8 +10,23 @@ android:
 before_install:
   - yes | sdkmanager "platforms;android-24"
 
+# Build for arm64-v8a
+
 script:
-   - cd $HOME/build
+	- cd $HOME/build
+   - ls
    - ./make_android.sh
    - cd builds/Android/arm64-v8a
    - ./run_android.sh
+
+# Discord hooks
+
+after_success:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $WEBHOOK_URL
+
+after_failure:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $WEBHOOK_URL
