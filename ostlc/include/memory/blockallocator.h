@@ -40,7 +40,7 @@ namespace oi {
 	};
 
 	//A generic block allocator; handles memory
-	class BlockAllocator : VirtualBlockAllocator {
+	class BlockAllocator : public VirtualBlockAllocator {
 
 	public:
 
@@ -65,7 +65,7 @@ namespace oi {
 		template<typename T>
 		bool dealloc(T *t) {
 			t->~T();
-			return dealloc((u8*)t);	//TOOD: This ain't work!
+			return dealloc((u8*)t);
 		}
 
 		u8 *addr();

@@ -1,0 +1,3 @@
+cd app
+../oibaker
+cd ../

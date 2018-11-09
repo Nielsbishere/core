@@ -25,7 +25,11 @@ target_link_libraries(app ostlc)
 target_link_libraries(app owc)
 target_link_libraries(app ogc)
 
-add_custom_command(TARGET app COMMAND "${HOME_DIR}/prepare_resources")
+if(WIN32)
+	add_custom_command(TARGET app COMMAND "${HOME_DIR}/prepare_resources.bat")
+else()
+	add_custom_command(TARGET app COMMAND "${HOME_DIR}/prepare_resources.sh")
+endif()
 
 if(MSVC)
 	set_target_properties(app PROPERTIES VS_GLOBAL_DisableFastUpToDateCheck true)
