@@ -15,7 +15,7 @@ install:
   - mkdir ndk
   - cd ndk
   - curl https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip --output android_ndk.zip
-  - unzip -q android_ndk.zip $HOME/build/OsomiLunar/ocore/ndk
+  - unzip -q android_ndk.zip -d $HOME/build/OsomiLunar/ocore/ndk
   - cd ../
   - export ANDROID_NDK=$HOME/build/OsomiLunar/ocore/ndk
 
