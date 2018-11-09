@@ -60,8 +60,6 @@ Android [SDK](https://developer.android.com/studio/install) & [NDK](https://deve
 
 Before you can use Android, you have to ensure that all variables are set correctly;
 
-JAVA_HOME (jdk directory)  
-ANDROID_HOME (sdk directory)  
 ANDROID_NDK (ndk directory)
 
 Now you can build for Android

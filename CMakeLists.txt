@@ -46,12 +46,10 @@ option(Android "Android" OFF)
 
 if(Android)
 
-	if(DEFINED ENV{JAVA_HOME} AND DEFINED ENV{ANDROID_HOME} AND DEFINED ENV{ANDROID_NDK})
+	if(DEFINED ENV{ANDROID_NDK})
 
 		message("-- Android - enabled")
 	
-		set(ANDROID_HOME, $ENV{ANDROID_HOME})
-		set(JAVA_HOME, $ENV{JAVA_HOME})
 		set(ANDROID_NDK, $ENV{ANDROID_NDK})
 	
 		if(${ANDROID_ABI} STREQUAL "arm64-v8a")
@@ -72,7 +70,7 @@ if(Android)
 	
 	else()
 	
-		message(FATAL_ERROR "-- Android - disabled: please set JAVA_HOME, ANDROID_HOME and ANDROID_NDK_HOME in system variables!")
+		message(FATAL_ERROR "-- Android - disabled: please set ANDROID_NDK in system variables!")
 	
 	endif()
 
