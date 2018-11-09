@@ -2,14 +2,14 @@ echo Android requires the following dependencies to be installed:
 echo - Java
 echo - Android SDK
 echo - Android NDK
-echo - MinGW Makefiles (64-bit)
+echo - MinGW Makefiles 64-bit
 echo - Apache Ant
 echo - Vulkan SDK
 
 # Dev env, API lvl, ABI
 makeAndroid() {
 
-	echo Making Android build ($1 $2 $3)
+	echo Making Android build $1 $2 $3
 
 	mkdir -p builds
 	mkdir -p builds/Android
