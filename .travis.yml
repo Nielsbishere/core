@@ -10,6 +10,15 @@ android:
 before_install:
   - yes | sdkmanager "platforms;android-24"
 
+install:
+  - cd $HOME/build/OsomiLunar/ocore
+  - mkdir ndk
+  - cd ndk
+  - curl https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip --output android_ndk.zip
+  - unzip android_ndk.zip
+  - cd ../
+  - export ANDROID_NDK=$HOME/build/OsomiLunar/ocore
+
 # Build for arm64-v8a
 
 script:
