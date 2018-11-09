@@ -8,7 +8,7 @@ Osomi Core - A basic framework for graphics and engines.
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |
 | Windows      |  x86, x86_64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore) |
-| Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   no ||
+| Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   [![Build Status](https://travis-ci.com/OsomiLunar/ocore.svg?branch=OCore_v2)](https://travis-ci.com/OsomiLunar/ocore) ||
 | Linux | none      |    no |
 | Mac OS | none      |    no |
 # Fetching from git
