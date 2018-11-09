@@ -65,6 +65,7 @@ namespace oi {
 		class MaterialList : public GraphicsObject {
 
 			friend class Graphics;
+			friend class oi::BlockAllocator;
 
 		public:
 

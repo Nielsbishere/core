@@ -22,6 +22,7 @@ namespace oi {
 		class VersionedTexture : public GraphicsResource {
 
 			friend class Graphics;
+			friend class oi::BlockAllocator;
 
 		public:
 

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "types/vector.h"
 #include "graphics/gl/generic.h"
+#include "memory/blockallocator.h"
 
 namespace oi {
 	
@@ -48,6 +49,7 @@ namespace oi {
 			
 		public:
 			
+			Graphics(u32 heapSize) : heapSize(heapSize), allocator(heapSize) {}
 			~Graphics();
 			
 			void init(oi::wc::Window *w);
@@ -109,9 +111,10 @@ namespace oi {
 		private:
 			
 			bool initialized = false;
-			u32 buffering = 0;
+			u32 buffering = 0, heapSize = 0;
 
 			RenderTarget *backBuffer = nullptr;
+			oi::BlockAllocator allocator;
 			GraphicsExt ext;
 
 			std::unordered_map<size_t, std::vector<GraphicsObject*>> objects;
@@ -150,7 +153,7 @@ namespace oi {
 		template<typename T, typename TInfo>
 		T *Graphics::init(String name, TInfo info) {
 
-			T *t = new T(info);
+			T *t = allocator.alloc<T, TInfo>(info);
 			t->g = this;
 
 			t->name = name;
@@ -182,7 +185,7 @@ namespace oi {
 
 			if (--go->refCount <= 0) {
 				vec.erase(itt);
-				delete go;
+				allocator.dealloc(go);
 				go = nullptr;
 			}
 

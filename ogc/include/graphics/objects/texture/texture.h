@@ -95,6 +95,7 @@ namespace oi {
 		class Texture : public GraphicsResource {
 
 			friend class Graphics;
+			friend class oi::BlockAllocator;
 
 		public:
 

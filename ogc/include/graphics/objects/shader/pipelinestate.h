@@ -27,6 +27,7 @@ namespace oi {
 		class PipelineState : public GraphicsObject {
 
 			friend class Graphics;
+			friend class oi::BlockAllocator;
 
 		public:
 

@@ -33,6 +33,7 @@ namespace oi {
 		class ShaderStage : public GraphicsObject {
 
 			friend class Graphics;
+			friend class oi::BlockAllocator;
 
 		public:
 

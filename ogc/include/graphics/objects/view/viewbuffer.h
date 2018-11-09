@@ -35,6 +35,7 @@ namespace oi {
 			friend class Camera;
 			friend class CameraFrustum;
 			friend class View;
+			friend class oi::BlockAllocator;
 
 		public:
 

@@ -56,6 +56,12 @@ namespace oi {
 			return ::new(addr) T();
 		}
 
+		template<typename T, typename ...args>
+		T *alloc(args... arg) {
+			u8 *addr = alloc(sizeof(T)).addr();
+			return ::new(addr) T(arg...);
+		}
+
 		template<typename T>
 		bool dealloc(T *t) {
 			t->~T();

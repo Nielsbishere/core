@@ -32,6 +32,7 @@ namespace oi {
 
 			friend class Graphics;
 			friend class Texture;
+			friend class oi::BlockAllocator;
 
 		public:
 

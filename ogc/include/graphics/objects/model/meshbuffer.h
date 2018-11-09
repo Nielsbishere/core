@@ -44,6 +44,7 @@ namespace oi {
 		class MeshBuffer : public GraphicsObject {
 
 			friend class Graphics;
+			friend class oi::BlockAllocator;
 
 		public:
 

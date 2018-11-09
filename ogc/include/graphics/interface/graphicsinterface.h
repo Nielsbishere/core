@@ -9,6 +9,7 @@ namespace oi {
 
 		public:
 
+			GraphicsInterface(u32 heapSize) : g(heapSize) {}
 			virtual ~GraphicsInterface() { }
 
 			void init() override final;

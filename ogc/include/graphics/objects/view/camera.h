@@ -49,6 +49,7 @@ namespace oi {
 
 			friend class Graphics;
 			friend class ViewBuffer;
+			friend class oi::BlockAllocator;
 
 		public:
 

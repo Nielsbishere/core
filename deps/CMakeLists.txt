@@ -9,6 +9,7 @@ set_property(TARGET zlib PROPERTY FOLDER zlib)
 set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "Skip building the executable and tests along with the library" FORCE)
 set(SKIP_SPIRV_TOOLS_INSTALL ON CACHE BOOL "Skip installation" FORCE)
 set(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Headers")
+set(ENABLE_TESTS OFF CACHE BOOL "Enable tests" FORCE)
 add_subdirectory(SPIRV-Tools)
 
 set_property(TARGET spirv-tools-pkg-config spirv-tools-shared-pkg-config PROPERTY FOLDER SPIRV-Tools\ build)

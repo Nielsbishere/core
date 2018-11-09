@@ -5,6 +5,8 @@
 
 namespace oi {
 
+	class BlockAllocator;
+
 	namespace gc {
 
 		class Graphics;
@@ -12,6 +14,7 @@ namespace oi {
 		class GraphicsObject { 
 		
 			friend class Graphics;
+			friend class oi::BlockAllocator;
 
 		public:
 

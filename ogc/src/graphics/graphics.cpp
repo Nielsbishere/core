@@ -250,7 +250,7 @@ bool Graphics::destroyObject(GraphicsObject *go) {
 
 	if (--go->refCount <= 0) {
 		vec.erase(itt);
-		delete go;
+		allocator.dealloc(go);
 	}
 
 	return true;

@@ -18,6 +18,9 @@ namespace oi {
 
 		public:
 
+			static constexpr u32 defaultGraphicsHeapSize = 64 * 1024 * 1024;	//Allocate 64 MiB for our heap
+
+			BasicGraphicsInterface(u32 heapSize = defaultGraphicsHeapSize) : GraphicsInterface(heapSize) {}
 			virtual ~BasicGraphicsInterface();
 
 			void initScene() override;
