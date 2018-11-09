@@ -1,6 +1,5 @@
-project(oic)
-
 cmake_minimum_required(VERSION 3.9.0)
+project(oic)
 
 # User options
 
@@ -142,7 +141,7 @@ endif()
 
 # dependencies
 add_subdirectory(deps)
-
+	
 # ocore
 add_subdirectory(ostlc)
 add_subdirectory(owc)
