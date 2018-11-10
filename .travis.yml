@@ -13,6 +13,7 @@ before_install:
 install:
   - cd $HOME/build/OsomiLunar/ocore
   - curl https://cmake.org/files/v3.13/cmake-3.13.0-rc3-Linux-x86_64.tar.gz --output cmake.zip
+  - sudo apt remove cmake
   - unzip -q cmake.zip -d ./
   - mv cmake-3.13.0-rc3-Linux-x86_64 cmake
   - export PATH="${PATH}:$HOME/build/OsomiLunar/ocore/cmake/bin"
