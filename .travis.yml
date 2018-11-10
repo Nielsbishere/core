@@ -10,6 +10,8 @@ android:
 before_install:
   - yes | sdkmanager "platforms;android-24"
 
+# Update CMake to latest (required 3.6.0)
+# Install Android NDK
 install:
   - cd $HOME/build/OsomiLunar/ocore
   - sudo apt remove cmake

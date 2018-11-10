@@ -16,9 +16,9 @@ makeAndroid() {
 	mkdir -p builds/Android/$3
 	cd builds/Android/$3
 
-	cmake "../../../" -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$2 -DCMAKE_MAKE_PROGRAM=${ANDROID_NDK}/prebuilt/$1/bin/make -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="$3" -DAndroid=ON -DANDROID_APK_RUN=ON -DANDROID_STL=c++_shared
+	cmake "../../../" -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$2 -DCMAKE_MAKE_PROGRAM=${ANDROID_NDK}/prebuilt/$1/bin/make -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI="$3" -DAndroid=ON -DANDROID_STL=c++_shared -DANDROID_APK_RUN=OFF
 	
-	echo make > run_android.sh
+	echo make -j > run_android.sh
 	cd ../../../
 
 }
