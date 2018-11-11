@@ -52,7 +52,7 @@ if(Android)
 	
 		set(ANDROID_NDK, $ENV{ANDROID_NDK})
 	
-		if(${ANDROID_ABI} STREQUAL "arm64-v8a")
+		if((${ANDROID_ABI} STREQUAL "arm64-v8a") OR (${ANDROID_ABI} STREQUAL "x86_64"))
 			include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
 		else()
 			include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)

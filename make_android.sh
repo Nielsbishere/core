@@ -1,3 +1,4 @@
+#!/bin/bash
 # simple pause
 pause() {
 	read -p "Press enter to continue..."
@@ -107,7 +108,8 @@ then
 
 	# Build all targets
 
-	echo cd builds/Android/arm64-v8a > build_android.sh
+	echo "#!/bin/bash" > build_android.so
+	echo cd builds/Android/arm64-v8a >> build_android.sh
 	echo $makeCmd -j >> build_android.sh
 
 	echo cd ../x86_64 >> build_android.sh
@@ -155,7 +157,7 @@ else
 
 	echo cd builds/Android/$abi > build_android.sh
 	echo $makeCmd -j >> build_android.sh
-	echo cd ../../ >> build_android.sh
+	echo cd ../ >> build_android.sh
 
 	# Make apk dirs
 
@@ -232,7 +234,8 @@ else
 fi
 
 # run script
-echo ./build_android.sh > run_android.sh
+echo "#!/bin/bash" > run_android.so
+echo ./build_android.sh >> run_android.sh
 
 if [ $release ]
 then
