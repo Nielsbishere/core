@@ -85,7 +85,7 @@ void Shader::update() {
 				if (buf == nullptr)
 					Log::throwError<Shader, 0x0>("Shader mentions an invalid buffer");
 
-				bufferInfo->buffer = buf != nullptr ? buf->getExtension().resource : nullptr;
+				bufferInfo->buffer = buf != nullptr ? buf->getExtension().resource : VK_NULL_HANDLE;
 				bufferInfo->range = (VkDeviceSize) shaderBuffer->getSize();
 
 				++j;

@@ -192,7 +192,7 @@ void Graphics::init(Window *w){
 
 	callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
 	callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;	//All but info
-	callbackInfo.pfnCallback = onDebugReport;
+	callbackInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) onDebugReport;	//TODO: Warning on some devices; not same type?
 
 	vkExtension(vkCreateDebugReportCallbackEXT);
 
@@ -525,7 +525,7 @@ void Graphics::initSurface(Window *w) {
 
 void Graphics::destroySurface() {
 
-	if (ext.swapchain != nullptr) {
+	if (ext.swapchain != VK_NULL_HANDLE) {
 
 		vkQueueWaitIdle(ext.queue);
 
@@ -533,7 +533,7 @@ void Graphics::destroySurface() {
 		vkDestroySurfaceKHR(ext.instance, ext.surface, vkAllocator);
 
 		destroy(backBuffer);
-		ext.swapchain = nullptr;
+		ext.swapchain = VK_NULL_HANDLE;
 
 		Log::println("Successfully destroyed surface");
 	}
@@ -568,7 +568,7 @@ void Graphics::end() {
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = &ext.semaphore;
 
-	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, nullptr), "Couldn't submit queue");
+	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, VK_NULL_HANDLE), "Couldn't submit queue");
 
 	//Present it
 

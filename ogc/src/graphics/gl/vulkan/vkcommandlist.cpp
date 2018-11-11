@@ -155,7 +155,7 @@ void CommandList::flush() {
 	submitInfo.commandBufferCount = 1U;
 	submitInfo.pCommandBuffers = &ext.cmd;
 
-	vkCheck<0x4, CommandList>(vkQueueSubmit(g->getExtension().queue, 1, &submitInfo, nullptr), "Couldn't submit queue");
+	vkCheck<0x4, CommandList>(vkQueueSubmit(g->getExtension().queue, 1, &submitInfo, VK_NULL_HANDLE), "Couldn't submit queue");
 
 	g->finish();
 }

@@ -10,7 +10,7 @@ ShaderStage::~ShaderStage() {
 
 	VkGraphics &graphics = g->getExtension();
 
-	if (ext.shader != nullptr)
+	if (ext.shader != VK_NULL_HANDLE)
 		vkDestroyShaderModule(graphics.device, ext.shader, vkAllocator);
 }
 

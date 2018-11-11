@@ -27,9 +27,14 @@ git submodule update --init --recursive
 
 # Dependencies
 
-[CMake](https://cmake.org/download/) 3.9.0 or later
+The following dependencies are required for the entire project:
 
+[CMake](https://cmake.org/download/) 3.6.0 or later
 [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) 1.1.85.0 or later
+
+### Windows
+
+The project uses bash; Unix's built in scripting language. This means that you need to emulate Unix's functions and Unix Makefiles. This can be done by installing the [Git BASH](https://gitforwindows.org/) and [Mingw-w64](https://mingw-w64.org/).
 
 # Building using CMake
 
@@ -37,14 +42,14 @@ This project uses CMake and a few tools to help the user setup their environment
 ## Setting up a Windows environment
 ### Dependencies
 
-[Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2017) or [Mingw-w64](https://mingw-w64.org/)
+[Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2017)
 
-### make_pc
+### make_pc.bat
 
 ```bat
 # Visual Studio 15 2017 and Win64 (x86 and x86_64)
 make_pc
-# Mingw-w64
+# Command line build only
 make_pc "MinGW Makefiles"
 ```
 ## Setting up an Android environment
@@ -52,7 +57,6 @@ make_pc "MinGW Makefiles"
 ### Dependencies
 
 Android [SDK](https://developer.android.com/studio/install) & [NDK](https://developer.android.com/ndk/)  
-[Mingw-w64](https://mingw-w64.org/)  
 [Apache ANT](https://ant.apache.org/bindownload.cgi)  
 [Enable developer mode and USB debugging](https://android.gadgethacks.com/how-to/android-basics-enable-developer-options-usb-debugging-0161948/)
 
@@ -60,21 +64,41 @@ Android [SDK](https://developer.android.com/studio/install) & [NDK](https://deve
 
 Before you can use Android, you have to ensure that all variables are set correctly;
 
-ANDROID_NDK (ndk directory)
+**ANDROID_NDK (ndk directory)**
 
-Now you can build for Android
+### Setting up build env
 
-```bat
-# Setup an Android CMake project; with default settings (API level 24, arm64-v8a/armeabi-v7a/x86/x64 architecture and windows-x86_64 environment)
-make_android.bat
+```sh
+# Setup a debug environment for all android ABIs, API lvl 24, windows environment
+make_android.sh -abi=windows-x86_64
 
-# Setup an Android CMake project; specified for the ABI (if you leave it out, it will create 4 different ABI directories)
-make_android.bat windows-x86_64 24 arm64-v8a
+# Setup for linux environment
+make_android.sh
 
-# Run app on Android (requires connected device with developer settings)
-"builds/Android/%abi%/run_android.bat"
+# Release environment for windows; with only .oiRM models, .oiSH shaders, textures and settings
+make_android.sh -abi=windows-x86_64 -release -exclude_ext_formats
+
+# Only build arm64-v8a debug for linux-x86_64
+make_android.sh -abi=arm64-v8a
 ```
+On Linux, this might require you to `chmod +x make_android.sh` before you use it.
+
+#### Building / running apk
+
+```sh
+# Build APK (builds/Android/apk/bin)
+build_android.sh
+
+# Build and run APK
+run_android.sh
+```
+
+Building an APK file requires you to build ALL architectures; arm64-v8a, armeabi-v7a, x86_64, x86. This means long compile times. Try to pick the ABI of your choosing (check your emulator or phone) and set the environment to build for that.
+
+On Linux, this might require you to `chmod +x build_android.sh` and `chmod +x run_android.sh`.
+
 ## Baking all resources
+
 If you want to bake the resources of your project (to get native resources), you can use the prepare_resources command:
 
 ```bat
@@ -88,6 +112,8 @@ cd ../
 ```
 
 oibaker compiles GLSL/HLSL files into oiSH (SPIRV and reflection) and fbx/obj to oiRM.
+
+**Note: oibaker is currently only available on Windows; but the baked resources are already uploaded to git.**
 
 # How to use ocore in a project
 

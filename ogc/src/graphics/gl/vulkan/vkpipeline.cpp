@@ -182,7 +182,7 @@ bool Pipeline::init() {
 
 		//Create the pipeline
 
-		vkCheck<0x0, Pipeline>(vkCreateGraphicsPipelines(gext.device, nullptr, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
+		vkCheck<0x0, Pipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
 
 	} else {
 	
@@ -203,7 +203,7 @@ bool Pipeline::init() {
 
 		//Create the pipeline
 
-		vkCheck<0x1, Pipeline>(vkCreateComputePipelines(gext.device, nullptr, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
+		vkCheck<0x1, Pipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
 
 	}
 

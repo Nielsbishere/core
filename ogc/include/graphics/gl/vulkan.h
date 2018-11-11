@@ -18,21 +18,21 @@ namespace oi {
 
 		struct VkGraphics {
 
-			VkInstance instance = nullptr;
-			VkPhysicalDevice pdevice = nullptr;
+			VkInstance instance = VK_NULL_HANDLE;
+			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
 			VkPhysicalDeviceMemoryProperties pmemory{};
 			VkPhysicalDeviceFeatures pfeatures{};
-			VkDevice device = nullptr;
-			VkSurfaceKHR surface = nullptr;
+			VkDevice device = VK_NULL_HANDLE;
+			VkSurfaceKHR surface = VK_NULL_HANDLE;
 			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
-			VkQueue queue = nullptr;
+			VkQueue queue = VK_NULL_HANDLE;
 			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-			VkSwapchainKHR swapchain = nullptr;
-			VkFence present = nullptr;
+			VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+			VkFence present = VK_NULL_HANDLE;
 			u32 current = 0;
-			VkCommandPool pool = nullptr;
-			VkSemaphore semaphore = nullptr;
-			VkDebugReportCallbackEXT debugCallback = nullptr;
+			VkCommandPool pool = VK_NULL_HANDLE;
+			VkSemaphore semaphore = VK_NULL_HANDLE;
+			VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
 			u32 queueFamilyIndex = u32_MAX;
 
 			PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
@@ -41,16 +41,16 @@ namespace oi {
 
 		struct VkRenderTarget {
 
-			VkRenderPass renderPass = nullptr;
+			VkRenderPass renderPass = VK_NULL_HANDLE;
 			std::vector<VkFramebuffer> frameBuffer;
 
 		};
 
 		struct VkTexture {
 
-			VkImage resource = nullptr;
-			VkDeviceMemory memory = nullptr;
-			VkImageView view = nullptr;
+			VkImage resource = VK_NULL_HANDLE;
+			VkDeviceMemory memory = VK_NULL_HANDLE;
+			VkImageView view = VK_NULL_HANDLE;
 
 			CommandList *cmdList = nullptr;
 
@@ -58,14 +58,14 @@ namespace oi {
 
 		struct VkGBuffer {
 
-			VkBuffer resource = nullptr;
-			VkDeviceMemory memory = nullptr;
+			VkBuffer resource = VK_NULL_HANDLE;
+			VkDeviceMemory memory = VK_NULL_HANDLE;
 
 		};
 
 		struct VkShaderStage {
 
-			VkShaderModule shader = nullptr;
+			VkShaderModule shader = VK_NULL_HANDLE;
 			VkPipelineShaderStageCreateInfo pipeline{};
 
 		};
@@ -74,17 +74,17 @@ namespace oi {
 
 			std::vector<VkShaderStage*> stage;
 
-			VkPipelineLayout layout = nullptr;
-			VkDescriptorSetLayout setLayout = nullptr;
-			VkDescriptorPool descriptorPool = nullptr;
+			VkPipelineLayout layout = VK_NULL_HANDLE;
+			VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
+			VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 			std::vector<VkDescriptorSet> descriptorSet;
 
 		};
 
 		struct VkCommandList {
 
-			VkCommandPool pool = nullptr;
-			VkCommandBuffer cmd = nullptr;
+			VkCommandPool pool = VK_NULL_HANDLE;
+			VkCommandBuffer cmd = VK_NULL_HANDLE;
 
 		};
 
@@ -186,12 +186,11 @@ namespace oi {
 																																			\
 		vkCheck<0x0, VkGraphics>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");		\
 		vkCheck<0x1, VkGraphics>(vkBind##type##Memory(graphics.device, ext.resource, ext.memory, 0), "Couldn't bind " #type " memory");
-
-
+		
 		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
 
 		template<typename T>
-		void vkName(VkGraphics &g, T *val, VkObjectType type, String name) {
+		void vkName(VkGraphics &g, T val, VkObjectType type, String name) {
 
 			const VkDebugUtilsObjectNameInfoEXT namedInfo = {
 				VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, // sType
