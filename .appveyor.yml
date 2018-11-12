@@ -15,7 +15,11 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    powershell Set-MpPreference -DisableRealtimeMonitoring $true
+    dir "C:/msys64"
+
+    dir "C:/cygwin64"
+
+    dir "C:/Program Files/Git/usr/bin"
 
     package_windows.sh -release -exclude_ext_formats
     
