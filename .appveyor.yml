@@ -15,7 +15,7 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    sc stop WinDefend
+    powershell Set-MpPreference -DisableRealtimeMonitoring $true
 
     package_windows.sh -release -exclude_ext_formats
     
