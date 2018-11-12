@@ -15,9 +15,11 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    rd /s /q "C:/cygwin64"
-
-    rd /s /q "C:/msys64"
+    set rep=""
+    set str="%PATH%"
+    call set str=%%str:C:\Program Files\Git\usr\bin=%rep%%%
+    echo %str%
+    set PATH=%str%
 
     package_windows.sh -release -exclude_ext_formats
     
