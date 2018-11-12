@@ -108,7 +108,7 @@ then
 
 	# Build all targets
 
-	echo "#!/bin/bash" > build_android.so
+	echo "#!/bin/bash" > build_android.sh
 	echo cd builds/Android/arm64-v8a >> build_android.sh
 	echo $makeCmd -j >> build_android.sh
 
@@ -183,19 +183,19 @@ fi
 
 # Prepare assets and src
 
-echo mkdir apk/src >> build_android.sh
+echo mkdir -p apk/src >> build_android.sh
 echo cp -r ../../app_android/src/* apk/src >> build_android.sh
 echo cp -r ../../app_android/res/* apk/res >> build_android.sh
 
-echo mkdir apk/assets >> build_android.sh
-echo mkdir apk/assets/res >> build_android.sh
+echo mkdir -p apk/assets >> build_android.sh
+echo mkdir -p apk/assets/res >> build_android.sh
 
 if [ $exexfo ]
 then
-	echo mkdir apk/assets/res/models >> build_android.sh
-	echo mkdir apk/assets/res/shaders >> build_android.sh
-	echo mkdir apk/assets/res/textures >> build_android.sh
-	echo mkdir apk/assets/res/settings >> build_android.sh
+	echo mkdir -p apk/assets/res/models >> build_android.sh
+	echo mkdir -p apk/assets/res/shaders >> build_android.sh
+	echo mkdir -p apk/assets/res/textures >> build_android.sh
+	echo mkdir -p apk/assets/res/settings >> build_android.sh
 	echo find ../../app/res/models -name \*.oiRM -exec cp {} apk/assets/res/models \\\; >> build_android.sh
 	echo find ../../app/res/shaders -name \*.oiSH -exec cp {} apk/assets/res/shaders \\\; >> build_android.sh
 	echo cp -r ../../app/res/textures/* apk/assets/res/textures >> build_android.sh
@@ -234,7 +234,7 @@ else
 fi
 
 # run script
-echo "#!/bin/bash" > run_android.so
+echo "#!/bin/bash" > run_android.sh
 echo ./build_android.sh >> run_android.sh
 
 if [ $release ]
