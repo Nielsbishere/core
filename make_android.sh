@@ -197,6 +197,7 @@ then
 	echo mkdir -p apk/assets/res/textures >> build_android.sh
 	echo mkdir -p apk/assets/res/settings >> build_android.sh
 	echo find ../../app/res/models -name \*.oiRM -exec cp {} apk/assets/res/models \\\; >> build_android.sh
+	echo find ../../app/res/models -name \*.json -exec cp {} apk/assets/res/models \\\; >> build_android.sh
 	echo find ../../app/res/shaders -name \*.oiSH -exec cp {} apk/assets/res/shaders \\\; >> build_android.sh
 	echo cp -r ../../app/res/textures/* apk/assets/res/textures >> build_android.sh
 	echo cp -r ../../app/res/settings/* apk/assets/res/settings >> build_android.sh
@@ -227,7 +228,7 @@ echo cd apk >> build_android.sh
 if [ $release ]
 then
 	echo ant release >> build_android.sh
-	echo jarsigner -verbose -keystore ~/my-release-key.keystore bin/app_android-unsigned.apk myalias >> build_android.sh
+	# echo jarsigner -verbose -keystore ~/my-release-key.keystore bin/app_android-unsigned.apk myalias >> build_android.sh
 	echo zipalign -v -f 4 bin/app_android-unsigned.apk bin/app_android.apk >> build_android.sh
 else
 	echo ant debug >> build_android.sh
@@ -236,12 +237,13 @@ fi
 # run script
 echo "#!/bin/bash" > run_android.sh
 echo ./build_android.sh >> run_android.sh
+echo cd builds/Android/apk/bin >> run_android.sh
 
 if [ $release ]
 then
-	echo adb install -r bin/app_android.apk >> run_android.sh
+	echo adb install -r app_android.apk >> run_android.sh
 else
-	echo adb install -r bin/app_android-debug.apk >> run_android.sh
+	echo adb install -r app_android-debug.apk >> run_android.sh
 fi
 
 echo adb shell am start -n net.osomi.Osomi_Core/android.app.NativeActivity >> run_android.sh
