@@ -75,11 +75,11 @@ fi
 # Build
 
 if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
-	cmd.exe /c "MSBuild.exe \"Visual Studio 15 2017 Win64/oic.sln\" $params"
+	cmd.exe /c "MSBuild.exe \"Visual Studio 15 2017 Win64/oic.sln\" $params /p:Platform=\"x64\""
 fi
 
 if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
-	cmd.exe /c "MSBuild.exe \"Visual Studio 15 2017/oic.sln\" $params"
+	cmd.exe /c "MSBuild.exe \"Visual Studio 15 2017/oic.sln\" $params /p:Platform=\"x86\""
 fi
 
 rm -rf build
