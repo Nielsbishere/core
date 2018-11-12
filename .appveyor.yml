@@ -9,11 +9,11 @@ install:
 
     PortableGit-2.19.1-64-bit.exe -y
 
-	cd "C:/prgs/git"
+    cd "C:/prgs/git"
 
-	mklink /J latest PortableGit-2.19.1-64-bit
+    mklink /J latest PortableGit-2.19.1-64-bit
 
-	set GIT_ROOT=C:/prgs/git/latest
+    set GIT_ROOT=C:/prgs/git/latest
 
     set str="%PATH%"
 
