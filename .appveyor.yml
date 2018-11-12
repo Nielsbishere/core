@@ -15,10 +15,6 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    rd /s /q "C:/Program Files/Git/usr/bin"
-
-    dir "C:"
-
     package_windows.sh -release -exclude_ext_formats
     
 cache: >-
