@@ -15,17 +15,17 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-	curl -L https://github.com/git-for-windows/git/releases/download/v2.19.1.windows.1/Git-2.19.1-64-bit.exe -o gitPortable.exe
+    curl -L https://github.com/git-for-windows/git/releases/download/v2.19.1.windows.1/Git-2.19.1-64-bit.exe -o gitPortable.exe
 
-	.\gitPortable.exe /S
+    .\gitPortable.exe /S
 
-	cd C:\prgs\git
+    cd C:\prgs\git
 
-	mklink /J latest PortableGit-2.7.0-64-bit
+    mklink /J latest PortableGit-2.7.0-64-bit
 
-	set GIT_ROOT=c:\prgs\git\latest
+    set GIT_ROOT=c:\prgs\git\latest
 
-	set PATH=%PATH%;%GIT_ROOT%;%GIT_ROOT%\bin;%GIT_ROOT%\cmd;%GIT_ROOT%\us`\bin
+    set PATH=%PATH%;%GIT_ROOT%;%GIT_ROOT%\bin;%GIT_ROOT%\cmd;%GIT_ROOT%\us`\bin
     
     package_windows.sh -release -exclude_ext_formats
     
