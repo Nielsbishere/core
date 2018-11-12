@@ -15,7 +15,7 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    git update-git-for-windows
+    git update-git-for-windows /SILENT /y
 
     package_windows.sh -release -exclude_ext_formats
     
