@@ -11,7 +11,7 @@ install:
     
     dir
     
-    dir PortableGit-2.19.1-64-bit
+    dir PortableGit
     
     set GIT_ROOT=C:/projects/ocore/PortableGit
     
