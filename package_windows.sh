@@ -70,7 +70,6 @@ if [ $release ]
 then
 	params="$params /p:Configuration=Release"
 	btype="Release"
-	echo "$params"
 fi
 
 # Build
