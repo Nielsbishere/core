@@ -16,8 +16,8 @@ install:
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
     dir C:
-	dir "C:/Program Files"
-	dir "C:/Program Files (x86)"
+    dir "C:/Program Files"
+    dir "C:/Program Files (x86)"
 
     package_windows.sh -release -exclude_ext_formats
     
