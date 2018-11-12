@@ -5,11 +5,19 @@ environment:
   VULKAN_VERSION: 1.1.85.0
 install:
 - cmd: >-
-    set rep=""
+    curl -L https://github.com/git-for-windows/git/releases/download/v2.19.1.windows.1/PortableGit-2.19.1-64-bit.7z.exe -o PortableGit-2.19.1-64-bit.exe
+
+    PortableGit-2.19.1-64-bit.exe -y
+
+	cd "C:/prgs/git"
+
+	mklink /J latest PortableGit-2.19.1-64-bit
+
+	set GIT_ROOT=C:/prgs/git/latest
 
     set str="%PATH%"
 
-    call set str=%%str:C:\Program Files\Git\usr\bin=%rep%%%
+    call set str=%%str:C:\Program Files\Git\usr\bin=%GIT_ROOT%%%
 
     echo %str%
 
