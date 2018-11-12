@@ -15,7 +15,9 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    powershell Get-Item -Path "C:\Program Files\Git\usr\bin\*.exe" | %{ Set-ProcessMitigation -Name $_.Name -Disable ForceRelocateImages }
+    dir C:
+	dir "C:/Program Files"
+	dir "C:/Program Files (x86)"
 
     package_windows.sh -release -exclude_ext_formats
     
