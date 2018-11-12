@@ -44,14 +44,38 @@ This project uses CMake and a few tools to help the user setup their environment
 
 [Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2017)
 
+### Environment variables
+
+If you want to distribute the zip with x64 and x86 binaries, you require to have the msbuild command from vs17 available from command line. This means that you require to add the following path to your path environment variable:
+
+`<vs17dir>/MSBuild/15.0/Bin`
+
+Where vs17dir is the installation directory for Visual Studio 2017.
+
 ### make_pc.bat
 
 ```bat
 # Visual Studio 15 2017 and Win64 (x86 and x86_64)
 make_pc
-# Command line build only
-make_pc "MinGW Makefiles"
 ```
+#### package_pc.sh
+
+Packaging a Windows build will ensure that both x64 and x86 binaries are in the final zip. It will pull all required resources and put them next to the exe so it can run. This requires you to have access to msbuild.
+
+```sh
+# Only package images, settings, models/*.json & models/*.oiRM, shaders/*.oiSH
+# Release build
+package_windows.sh -release -exclude_ext_formats
+
+# Debug build; with all external formats
+package_windows.sh
+
+# Release build; with all external formats (x64 only)
+package_windows.sh -env=x64
+```
+
+This will generate a folder; builds/Windows/build, which includes the x86 and x64 binaries 
+
 ## Setting up an Android environment
 
 ### Dependencies

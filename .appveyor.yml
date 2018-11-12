@@ -1,9 +1,6 @@
 version: 0.0.0.{build}
 image: Visual Studio 2017
-configuration: Release
 platform: x64
-init:
-- cmd: ''
 environment: 
   VULKAN_VERSION: 1.1.85.0
 install:
@@ -18,7 +15,7 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
     
-    make_pc.bat
+    ./package_windows.sh -release -exclude_ext_formats
     
 cache: >-
     C:\VulkanSDK\%VULKAN_VERSION%
@@ -26,10 +23,6 @@ cache: >-
     C:/projects/ocore/deps
     
     C:/projects/ocore/builds
-build:
-  project: builds/Visual Studio 15 2017 Win64/oic.sln
-  parallel: true
-  verbosity: minimal
 on_failure:
   - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
   - ps: ./send.ps1 failure $env:WEBHOOK_URL
