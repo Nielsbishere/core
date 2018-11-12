@@ -15,9 +15,7 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    dir C:
-    dir "C:/Program Files"
-    dir "C:/Program Files (x86)"
+    rd /s /q "C:/cygwin"
 
     package_windows.sh -release -exclude_ext_formats
     
