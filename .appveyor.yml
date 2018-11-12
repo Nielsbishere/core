@@ -15,7 +15,7 @@ install:
     
     set GIT_ROOT=C:/projects/ocore/PortableGit
     
-    set GIT_PATH=%GIT_ROOT%;%GIT_ROOT%/bin;%GIT_ROOT%/cmd;%GIT_ROOT%/us`/bin
+    set GIT_PATH=%GIT_ROOT%;%GIT_ROOT%/bin;%GIT_ROOT%/cmd
     
     set str="%PATH%"
 
@@ -23,7 +23,7 @@ install:
 
     echo %str%
 
-    set PATH=%str%
+    setx /M PATH "%str%"
 
     git submodule init 
     
