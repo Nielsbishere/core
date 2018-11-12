@@ -11,10 +11,21 @@ file(GLOB_RECURSE app_pc_SRC
 	"src/*.cpp"
 )
 
-add_executable(
-	app_pc
-	${app_pc_SRC}
-)
+if(MSVC)
+
+	add_executable(
+		app_pc
+		${app_pc_SRC} res/app_pc.ico app_pc.rc
+	)
+
+else()
+
+	add_executable(
+		app_pc
+		${app_pc_SRC}
+	)
+	
+endif()
 
 target_link_libraries(app_pc ostlc)
 target_link_libraries(app_pc owc)
