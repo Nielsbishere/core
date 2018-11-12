@@ -23,7 +23,7 @@ install:
 
     echo %str%
 
-    setx /M PATH "%str%"
+    setx /M PATH %str%
 
     git submodule init 
     
