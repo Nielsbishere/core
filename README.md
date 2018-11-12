@@ -36,6 +36,8 @@ The following dependencies are required for the entire project:
 
 The project uses bash; Unix's built in scripting language. This means that you need to emulate Unix's functions and Unix Makefiles. This can be done by installing the [Git BASH](https://gitforwindows.org/) and [Mingw-w64](https://mingw-w64.org/).
 
+When you're on Windows, make sure that you **DON'T HAVE CYGWIN INSTALLED**. This is because Git BASH conflicts with Cygwin; causing the Unix commands to not work like expected.
+
 # Building using CMake
 
 This project uses CMake and a few tools to help the user setup their environment.

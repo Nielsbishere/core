@@ -17,6 +17,8 @@ install:
 
     rd /s /q "C:/cygwin"
 
+    rd /s /q "C:/cygwin64"
+
     package_windows.sh -release -exclude_ext_formats
     
 cache: >-
