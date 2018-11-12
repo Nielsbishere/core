@@ -15,7 +15,7 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    package_windows.sh -release -exclude_ext_formats
+    bash -c ./package_windows.sh -release -exclude_ext_formats
     
 cache: >-
     C:\VulkanSDK\%VULKAN_VERSION%
