@@ -5,6 +5,16 @@ environment:
   VULKAN_VERSION: 1.1.85.0
 install:
 - cmd: >-
+    set rep=""
+
+    set str="%PATH%"
+
+    call set str=%%str:C:\Program Files\Git\usr\bin=%rep%%%
+
+    echo %str%
+
+    set PATH=%str%
+
     git submodule init 
     
     git submodule update
@@ -14,12 +24,6 @@ install:
     if not exist "%VULKAN_SDK%" curl -L https://vulkan.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/VulkanSDK-%VULKAN_VERSION%-Installer.exe -o VulkanSDK.exe
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
-
-    set rep=""
-    set str="%PATH%"
-    call set str=%%str:C:\Program Files\Git\usr\bin=%rep%%%
-    echo %str%
-    set PATH=%str%
 
     package_windows.sh -release -exclude_ext_formats
     
