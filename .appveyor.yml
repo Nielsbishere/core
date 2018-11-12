@@ -8,15 +8,15 @@ install:
     curl -L https://github.com/git-for-windows/git/releases/download/v2.19.1.windows.1/PortableGit-2.19.1-64-bit.7z.exe -o PortableGit-2.19.1-64-bit.exe
 
     PortableGit-2.19.1-64-bit.exe -y
-	
+    
     dir
-	
+    
     dir PortableGit-2.19.1-64-bit
-
+    
     set GIT_ROOT=C:/projects/ocore/PortableGit-2.19.1-64-bit
-
+    
     set GIT_PATH=%GIT_ROOT%;%GIT_ROOT%/bin;%GIT_ROOT%/cmd;%GIT_ROOT%/us`/bin
-
+    
     set str="%PATH%"
 
     call set str=%%str:C:\Program Files\Git\usr\bin=%GIT_PATH%%%
