@@ -26,7 +26,7 @@ target_link_libraries(app_android app)
 
 set(ANDROID_NAME app_android)
 set(ANDROID_DIR ${HOME_DIR}/${ANDROID_NAME})
-set(APK_DIR ../bin/apk)
+set(APK_DIR ../bin/build)
 set(LIBS_DIR ../lib)
 
 # Set debuggable

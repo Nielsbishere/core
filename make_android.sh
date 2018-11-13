@@ -125,28 +125,28 @@ then
 
 	# Make apk dirs
 
-	echo rm -rf apk >> build_android.sh
-	echo mkdir -p apk >> build_android.sh
-	echo mkdir -p apk/libs >> build_android.sh
-	echo mkdir -p apk/libs/arm64-v8a >> build_android.sh
-	echo mkdir -p apk/libs/x86_64 >> build_android.sh
-	echo mkdir -p apk/libs/armeabi-v7a >> build_android.sh
-	echo mkdir -p apk/libs/x86 >> build_android.sh
+	echo rm -rf build >> build_android.sh
+	echo mkdir -p build >> build_android.sh
+	echo mkdir -p build/libs >> build_android.sh
+	echo mkdir -p build/libs/arm64-v8a >> build_android.sh
+	echo mkdir -p build/libs/x86_64 >> build_android.sh
+	echo mkdir -p build/libs/armeabi-v7a >> build_android.sh
+	echo mkdir -p build/libs/x86 >> build_android.sh
 
 	# Dependencies
 
 	if ! [ $release ]
 	then
-		echo cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/* apk/libs >> build_android.sh
-		echo rm -rf apk/libs/mips >> build_android.sh
-		echo rm -rf apk/libs/mips64 >> build_android.sh
+		echo cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/* build/libs >> build_android.sh
+		echo rm -rf build/libs/mips >> build_android.sh
+		echo rm -rf build/libs/mips64 >> build_android.sh
 	fi
 
-	echo cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/* apk/libs >> build_android.sh
+	echo cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/* build/libs >> build_android.sh
 
 	# Prepare assets, src and AndroidManifest, build.xml
 
-	echo cp -r arm64-v8a/bin/apk/* apk >> build_android.sh
+	echo cp -r arm64-v8a/bin/build/* build >> build_android.sh
 
 else
 
@@ -161,48 +161,48 @@ else
 
 	# Make apk dirs
 
-	echo rm -rf apk >> build_android.sh
-	echo mkdir -p apk >> build_android.sh
-	echo mkdir -p apk/libs >> build_android.sh
-	echo mkdir -p apk/libs/$abi >> build_android.sh
+	echo rm -rf build >> build_android.sh
+	echo mkdir -p build >> build_android.sh
+	echo mkdir -p build/libs >> build_android.sh
+	echo mkdir -p build/libs/$abi >> build_android.sh
 
 	# Dependencies
 
 	if ! [ $release ]
 	then
-		echo cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$abi/* apk/libs/$abi >> build_android.sh
+		echo cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$abi/* build/libs/$abi >> build_android.sh
 	fi
 
-	echo cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$abi/* apk/libs/$abi >> build_android.sh
+	echo cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$abi/* build/libs/$abi >> build_android.sh
 
 	# Prepare src and AndroidManifest, build.xml
 
-	echo cp -r $abi/bin/apk/* apk >> build_android.sh
+	echo cp -r $abi/bin/build/* build >> build_android.sh
 
 fi
 
 # Prepare assets and src
 
-echo mkdir -p apk/src >> build_android.sh
-echo cp -r ../../app_android/src/* apk/src >> build_android.sh
-echo cp -r ../../app_android/res/* apk/res >> build_android.sh
+echo mkdir -p build/src >> build_android.sh
+echo cp -r ../../app_android/src/* build/src >> build_android.sh
+echo cp -r ../../app_android/res/* build/res >> build_android.sh
 
-echo mkdir -p apk/assets >> build_android.sh
-echo mkdir -p apk/assets/res >> build_android.sh
+echo mkdir -p build/assets >> build_android.sh
+echo mkdir -p build/assets/res >> build_android.sh
 
 if [ $exexfo ]
 then
-	echo mkdir -p apk/assets/res/models >> build_android.sh
-	echo mkdir -p apk/assets/res/shaders >> build_android.sh
-	echo mkdir -p apk/assets/res/textures >> build_android.sh
-	echo mkdir -p apk/assets/res/settings >> build_android.sh
-	echo find ../../app/res/models -name \*.oiRM -exec cp {} apk/assets/res/models \\\; >> build_android.sh
-	echo find ../../app/res/models -name \*.json -exec cp {} apk/assets/res/models \\\; >> build_android.sh
-	echo find ../../app/res/shaders -name \*.oiSH -exec cp {} apk/assets/res/shaders \\\; >> build_android.sh
-	echo cp -r ../../app/res/textures/* apk/assets/res/textures >> build_android.sh
-	echo cp -r ../../app/res/settings/* apk/assets/res/settings >> build_android.sh
+	echo mkdir -p build/assets/res/models >> build_android.sh
+	echo mkdir -p build/assets/res/shaders >> build_android.sh
+	echo mkdir -p build/assets/res/textures >> build_android.sh
+	echo mkdir -p build/assets/res/settings >> build_android.sh
+	echo find ../../app/res/models -name \*.oiRM -exec cp {} build/assets/res/models \\\; >> build_android.sh
+	echo find ../../app/res/models -name \*.json -exec cp {} build/assets/res/models \\\; >> build_android.sh
+	echo find ../../app/res/shaders -name \*.oiSH -exec cp {} build/assets/res/shaders \\\; >> build_android.sh
+	echo cp -r ../../app/res/textures/* build/assets/res/textures >> build_android.sh
+	echo cp -r ../../app/res/settings/* build/assets/res/settings >> build_android.sh
 else
-	echo cp -r ../../app/res/* apk/assets/res >> build_android.sh
+	echo cp -r ../../app/res/* build/assets/res >> build_android.sh
 fi
 
 if [ "$abi" == "all" ]
@@ -210,20 +210,20 @@ then
 
 	# Copy build results
 
-	echo cp arm64-v8a/lib/libapp_android.so apk/libs/arm64-v8a/libapp_android.so >> build_android.sh
-	echo cp x86_64/lib/libapp_android.so apk/libs/x86_64/libapp_android.so >> build_android.sh
-	echo cp armeabi-v7a/lib/libapp_android.so apk/libs/armeabi-v7a/libapp_android.so >> build_android.sh
-	echo cp x86/lib/libapp_android.so apk/libs/x86/libapp_android.so >> build_android.sh
+	echo cp arm64-v8a/lib/libapp_android.so build/libs/arm64-v8a/libapp_android.so >> build_android.sh
+	echo cp x86_64/lib/libapp_android.so build/libs/x86_64/libapp_android.so >> build_android.sh
+	echo cp armeabi-v7a/lib/libapp_android.so build/libs/armeabi-v7a/libapp_android.so >> build_android.sh
+	echo cp x86/lib/libapp_android.so build/libs/x86/libapp_android.so >> build_android.sh
 
 else
 
 	# Copy build results
 
-	echo cp $abi/lib/libapp_android.so apk/libs/$abi/libapp_android.so >> build_android.sh
+	echo cp $abi/lib/libapp_android.so build/libs/$abi/libapp_android.so >> build_android.sh
 
 fi
 
-echo cd apk >> build_android.sh
+echo cd build >> build_android.sh
 
 if [ $release ]
 then
@@ -237,7 +237,7 @@ fi
 # run script
 echo "#!/bin/bash" > run_android.sh
 echo ./build_android.sh >> run_android.sh
-echo cd builds/Android/apk/bin >> run_android.sh
+echo cd builds/Android/build/bin >> run_android.sh
 
 if [ $release ]
 then
