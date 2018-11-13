@@ -32,12 +32,15 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /MP /W4 /permissive- /wd4201")
 endif()
 
-# No console/log option
+# No console option
 
-option(No_log "No_log" OFF)
+option(no_console "no_console" OFF)
 
-if(No_log)
-	add_definitions(-DNO_LOG)
+if(no_console)
+	message ("-- Console - disabled")
+	add_definitions(-D__NO_CONSOLE__)
+else()
+	message ("-- Console - enabled")
 endif()
 
 # Android

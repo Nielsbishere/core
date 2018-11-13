@@ -6,7 +6,7 @@ The FileManager can be acquired by using the FileManager::get() function (if set
 Because of the resource model on Android, we use an indicator before our file path.  
 "out/" is when you want the file to be written and you want to read what you've written; it is an actual **out**put file (on Android in the program's directory).  
 "res/" is when you just want to read a file; it's basically an asset, or a **res**ource that you can only modify offline.  
-"mod/" is access to a "res/" folder and wanting to **mod**ify it. This should only be used for tools targeted at desktop platforms. On devices that use roms/apks, this is impossible and you should only use it when you're sure you want to replace the resource. You can check FileManager's canModifyAssets to check if you can use this.
+"mod/" is access to a "res/" folder and wanting to **mod**ify it. This is only allowed on non-packaged desktop builds (aka; desktop build tools). The command line build packages the resources inside of the executable (apk, exe) and mod/ is not guaranteed to work.
 ### Checking directories/files
 If you want a directory path to exist, you can use the 'mkdir' function in FileManager. The fileExists, dirExists and exists functions are used to determine if something is already on the disk.
 ### Getting file info

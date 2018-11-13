@@ -54,26 +54,23 @@ If you want to distribute the zip with x64 and x86 binaries, you require to have
 
 Where vs17dir is the installation directory for Visual Studio 2017.
 
-### make_pc.bat
-
-```bat
-# Visual Studio 15 2017 and Win64 (x86 and x86_64)
-make_pc
-```
-#### package_pc.sh
+#### make_windows.sh
 
 Packaging a Windows build will ensure that both x64 and x86 binaries are in the final zip. It will pull all required resources and put them next to the exe so it can run. This requires you to have access to msbuild.
 
 ```sh
 # Only package images, settings, models/*.json & models/*.oiRM, shaders/*.oiSH
-# Release build
-package_windows.sh -release -exclude_ext_formats
+# Release build without console (x64 & x86)
+make_windows.sh -release -exclude_ext_formats -no_console
 
-# Debug build; with all external formats
-package_windows.sh
+# Debug build; with all external formats & console (x64 & x86)
+make_windows.sh
 
-# Release build; with all external formats (x64 only)
-package_windows.sh -env=x64
+# Release build; with all external formats (x64 only; no console)
+make_windows.sh -env=x64 -no_console
+
+# Get more info about the command
+make_windows.sh -help
 ```
 
 This will generate a folder; builds/Windows/build, which includes the x86 and x64 binaries 
@@ -106,6 +103,9 @@ make_android.sh -abi=windows-x86_64 -release -exclude_ext_formats
 
 # Only build arm64-v8a debug for linux-x86_64
 make_android.sh -abi=arm64-v8a
+
+# Get more info about the command
+make_android.sh -help
 ```
 On Linux, this might require you to `chmod +x make_android.sh` before you use it.
 

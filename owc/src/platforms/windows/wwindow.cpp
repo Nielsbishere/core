@@ -189,6 +189,7 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 	return (LRESULT) NULL;
 }
 
+
 void Window::initPlatform() {
 
 	ext.instance = GetModuleHandle(NULL);
@@ -201,23 +202,26 @@ void Window::initPlatform() {
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = ext.instance;
-	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	wc.hIconSm = wc.hIcon;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hIcon = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 32, 32, 0);
+	wc.hIconSm = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 16, 16, 0);
+	wc.hCursor = LoadCursorA(NULL, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = str.toCString();
 	wc.cbSize = sizeof(WNDCLASSEX);
 
-	if (!RegisterClassEx(&wc))
+	if (!RegisterClassExA(&wc)) {
+		HRESULT res = GetLastError();
+		Log::error(res);
 		Log::throwError<Window, 0x0>("Couldn't init Windows class");
+	}
 
 	int nStyle = WS_OVERLAPPED | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
 
 	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	ext.window = CreateWindowEx(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext.instance, NULL);
+	ext.window = CreateWindowExA(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext.instance, NULL);
 
 	if (ext.window == NULL)
 		Log::throwError<Window, 0x1>("Couldn't init Windows window");
@@ -260,15 +264,15 @@ void Window::updatePlatform() {
 
 	if (isSet(info.pending, WindowAction::FULL_SCREEN)) {
 
-		DWORD dwStyle = GetWindowLong(ext.window, GWL_STYLE);
+		DWORD dwStyle = GetWindowLongA(ext.window, GWL_STYLE);
 		MONITORINFO mi = { sizeof(mi) };
 
-		if (info.fullScreen && GetMonitorInfo(MonitorFromWindow(ext.window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
-			SetWindowLong(ext.window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+		if (info.fullScreen && GetMonitorInfoA(MonitorFromWindow(ext.window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
+			SetWindowLongA(ext.window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
 			SetWindowPos(ext.window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 		}
 		else {
-			SetWindowLong(ext.window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+			SetWindowLongA(ext.window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
 			SetWindowPos(ext.window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 		}
 

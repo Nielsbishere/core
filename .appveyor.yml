@@ -15,7 +15,7 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    bash -c ./package_windows.sh -release -exclude_ext_formats
+    bash -c ./make_windows.sh -release -exclude_ext_formats -no_console
 
     appveyor exit
     

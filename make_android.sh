@@ -71,11 +71,11 @@ then
 	echo - Vulkan SDK
 	echo
 	echo "Command line args:"
-	echo "- -abi=all Android ABI (all if not specified)"
-	echo "- -lvl=24 Android API level (24 or higher)"
-	echo "- -dev=linux-x86_64 Dev environment (linux-x86_64 by default)"
-	echo "- -release Release environment (debug by default)"
-	echo "- -exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
+	echo "-abi=all Android ABI (all if not specified)"
+	echo "-lvl=24 Android API level (24 or higher)"
+	echo "-dev=linux-x86_64 Dev environment (linux-x86_64 by default)"
+	echo "-release Release environment (debug by default)"
+	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	pause
 fi
 
