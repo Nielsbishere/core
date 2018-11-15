@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# simple pause
-pause() {
-	read -p "Press enter to continue..."
-	exit
-}
-
 # declFlag flagName flagVar
 declFlag() {
 
@@ -57,7 +51,7 @@ then
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	echo "-no_console Hides console (program can still redirect console calls)"
 	echo "-strip_debug_info Strips debug info (shaders)"
-	pause
+	exit
 fi
 
 # reload "dir" "generator"

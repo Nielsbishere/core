@@ -65,31 +65,16 @@ endif()
 
 # configure zlib.pc and zconf.h
 
-if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-    # If we're doing an out of source build and the user has a zconf.h
-    # in their source tree...
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h)
-        message(STATUS "Renaming")
-        message(STATUS "    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h")
-        message(STATUS "to 'zconf.h.included' because this file is included with zlib")
-        message(STATUS "but CMake generates it automatically in the build directory.")
-        file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
-  endif()
-endif()
-
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/zlib.pc.cmakein
 		${CMAKE_CURRENT_SOURCE_DIR}/zlib.pc @ONLY)
+
 configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
-		${CMAKE_CURRENT_SOURCE_DIR}/zconf.h @ONLY)
-		
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
-string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
-    "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
+		${CMAKE_BINARY_DIR}/zconf.h @ONLY)
 
 # zlib
 
 set(ZLIB_PUBLIC_HDRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h
+    ${CMAKE_BINARY_DIR}/zconf.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h
 )
 set(ZLIB_PRIVATE_HDRS

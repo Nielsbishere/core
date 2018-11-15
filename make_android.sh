@@ -1,9 +1,4 @@
 #!/bin/bash
-# simple pause
-pause() {
-	read -p "Press enter to continue..."
-	exit
-}
 
 # declFlag flagName flagVar
 declFlag() {
@@ -78,7 +73,7 @@ then
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	echo "-strip_debug_info Strips debug info (shaders)"
-	pause
+	exit
 fi
 
 # build abi
