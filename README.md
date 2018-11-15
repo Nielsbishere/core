@@ -64,10 +64,10 @@ Packaging a Windows build will ensure that both x64 and x86 binaries are in the 
 make_windows.sh -release -exclude_ext_formats -no_console
 
 # Also strip debug info (so the shader source can't be reversed as easily)
-# This saves disk space as well as securing the 
-make_windows.sh -re
+# This saves disk space as well as securing the SPV-side of the oiSH file.
+make_windows.sh -release -exclude_ext_formats -no_console -strip_debug_info
 
-# Debug build; with all external formats & console (x64 & x86)
+# Debug build; with all external formats & console & debug info (x64 & x86)
 make_windows.sh
 
 # Release build; with all external formats (x64 only; no console)
@@ -104,6 +104,9 @@ make_android.sh
 
 # Release environment for windows; with only .oiRM models, .oiSH shaders, textures and settings
 make_android.sh -abi=windows-x86_64 -release -exclude_ext_formats
+
+# Exclude debug info from shaders
+make_android.sh -strip_debug_info
 
 # Only build arm64-v8a debug for linux-x86_64
 make_android.sh -abi=arm64-v8a

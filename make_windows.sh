@@ -67,11 +67,14 @@ reload(){
 	cd "$1"
 
 	if [ $noConsole ] ; then
-		cmake ../../../ -G "$2" -Dno_console=ON
-	else
-		cmake ../../../ -G "$2"
+		params="-Dno_console=ON "
 	fi
-
+	
+	if [ $strip ] ; then
+		params="-Dstrip_debug_info=ON "
+	fi
+	
+	cmake ../../../ -G "$2" $params
 	cd ../
 
 }
@@ -87,7 +90,7 @@ if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
 	reload "x86" "Visual Studio 15 2017"
 fi
 
-# Multi core compiling & minimal verbosity
+# Build type
 
 if [ $release ] ; then
 	btype="Release"
@@ -98,11 +101,11 @@ fi
 # Build
 
 if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
-	cmd.exe /c "MSBuild.exe \"x86_64/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"x64\""
+	cmd.exe /c "MSBuild.exe \"x86_64/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"x64\" /p:PostBuildEventUseInBuild=false"
 fi
 
 if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
-	cmd.exe /c "MSBuild.exe \"x86/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"Win32\""
+	cmd.exe /c "MSBuild.exe \"x86/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"Win32\" /p:PostBuildEventUseInBuild=false"
 fi
 
 rm -rf build/*
@@ -121,17 +124,18 @@ fi
 # Prepare resources
 
 mkdir -p build/res
-cp -r ../../app/res/* build/res
 
-cd build
+cd ../../app
 
 if [ $strip ] ; then
-	"../../../oibaker.exe" -strip_debug_info
+	"../oibaker.exe" -strip_debug_info
 else
-	"../../../oibaker.exe"
+	"../oibaker.exe"
 fi
 
-cd res
+cd ../builds/Windows
+cp -r ../../app/res/* build/res
+cd build/res
 
 # Get rid of fbx, obj, oiBM and glsl/hlsl/vert/frag/geom/comp files
 

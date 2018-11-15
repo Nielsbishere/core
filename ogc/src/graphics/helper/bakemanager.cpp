@@ -73,7 +73,7 @@ bool BakeManager::bakeShader(BakedFile &file, bool stripDebug) {
 
 }
 
-BakeManager::BakeManager(String file) : location(file), bakeOptions({
+BakeManager::BakeManager(bool stripDebug, String file) : location(file), stripDebug(stripDebug), bakeOptions({
 
 	BakeOption(
 		"Models",
@@ -115,6 +115,14 @@ void BakeManager::load() {
 
 		if (memcmp(header.header, "oiBM", 4) != 0)
 			Log::throwError<BakeManager, 0x1>("Invalid BakeManager file header");
+
+		//The file format isn't valid anymore; rebake
+		if (header.version != BMHeader::getGlobalVersion())
+			return;
+
+		//Different flags; rebake
+		if (header.flags != makeFlags())
+			return;
 
 		file.header = header;
 
@@ -172,7 +180,7 @@ void BakeManager::load() {
 
 }
 
-int BakeManager::run(bool stripDebug) {
+int BakeManager::run() {
 
 	Log::println("BakingManager started...");
 
@@ -300,6 +308,10 @@ void BakeManager::cache(BakedFile &bf) {
 
 }
 
+u16 BakeManager::makeFlags() {
+	return stripDebug ? BMFlag::StripDebug.value : 0;
+}
+
 void BakeManager::write() {
 
 	if (changed) {
@@ -308,6 +320,8 @@ void BakeManager::write() {
 
 		memcpy(file.header.header, "oiBM", 4);
 		file.header.files = (u16)file.files.size();
+		file.header.version = BMHeader::getGlobalVersion();
+		file.header.flags = makeFlags();
 
 		file.strings.keyset = "";
 		file.strings.names.clear();

@@ -16,7 +16,9 @@ struct BMHeader {
 	char header[4];		//oiBM
 
 	u16 files;
-	u16 padding = 0;
+	u16 flags;
+    
+    u32 version;
 
 };
 
@@ -41,7 +43,7 @@ The SLFile stores all paths as string (only using the necessary bit-depth) and t
 
 ```cpp
 //oiBM data
-6F 69 42 4D 0B 00 00 00 01 01 00 00 01 01 00 00 01 01 00 00 01 02 00 00 01 02 00 00 01 01 00 00 01 01 00 00 01 01 00 00 01 01 00 00 02 01 01 00 02 01 02 00 00 00 01 00 02 00 03 00 04 00 05 00 06 00 07 00 08 00 09 00 0A 00 0B 00 0C 00 0D 00 0E 00 0F 00 10 00 11 00 12 00 13 00 14 00 15 00 16 00 17 00 18 00 19 00 1A 00 1B 00 17 00
+6F 69 42 4D 0B 00 00 00 00 00 00 00 01 01 00 00 01 01 00 00 01 01 00 00 01 02 00 00 01 02 00 00 01 01 00 00 01 01 00 00 01 01 00 00 01 01 00 00 02 01 01 00 02 01 02 00 00 00 01 00 02 00 03 00 04 00 05 00 06 00 07 00 08 00 09 00 0A 00 0B 00 0C 00 0D 00 0E 00 0F 00 10 00 11 00 12 00 13 00 14 00 15 00 16 00 17 00 18 00 19 00 1A 00 1B 00 17 00
 //oiSL data
 ...
 ```
@@ -49,8 +51,8 @@ The SLFile stores all paths as string (only using the necessary bit-depth) and t
 Consider the data above; the first 8 bytes is the header:
 
 ```cpp
-6F 69 42 4D 0B 00 00 00
-{ "oiBM", 11, 0 }
+6F 69 42 4D, 0B 00, 00 00, 00 00 00 00
+{ "oiBM", 11, BMFlag::None, 0 /* version */ }
 ```
 
 For every file, we have a BMBakedFile:

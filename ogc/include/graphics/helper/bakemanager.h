@@ -4,12 +4,19 @@ namespace oi {
 
 	namespace gc {
 
+		DEnum(BMFlag, u16, None = 0, StripDebug = 1);
+
 		struct BMHeader {
 
 			char header[4];		//oiBM
 
 			u16 files;
-			u16 padding = 0;
+			u16 flags;			//BMFlag
+
+			u32 version;
+
+			//If any change is made to the baker; this increases
+			static const u32 getGlobalVersion() { return 0; }
 
 		};
 		
@@ -53,10 +60,10 @@ namespace oi {
 
 		public:
 
-			BakeManager(String file = "mod/baker.oiBM");
+			BakeManager(bool stripDebug, String file = "mod/baker.oiBM");
 
 			//Returns how many options have failed (0 if success)
-			int run(bool stripDebug);
+			int run();
 
 		protected:
 
@@ -64,6 +71,8 @@ namespace oi {
 			void write();
 			void cache(BakedFile &file);
 			bool shouldUpdate(BakedFile &file);
+
+			u16 makeFlags();
 
 			static bool bakeModel(BakedFile &file, bool stripDebug);
 			static bool bakeShader(BakedFile &file, bool stripDebug);
@@ -73,7 +82,7 @@ namespace oi {
 			std::vector<BakeOption> bakeOptions;
 			BakerFile file;
 			String location;
-			bool changed = false;
+			bool changed = false, stripDebug;
 
 		};
 
