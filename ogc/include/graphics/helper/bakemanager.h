@@ -35,7 +35,7 @@ namespace oi {
 		};
 
 		typedef std::vector<std::pair<String, std::vector<String>>> BakeTypes;
-		typedef std::function<bool(BakedFile&)> BakeFunction;
+		typedef std::function<bool(BakedFile&, bool stripDebug)> BakeFunction;
 
 		struct BakeOption {
 
@@ -56,7 +56,7 @@ namespace oi {
 			BakeManager(String file = "mod/baker.oiBM");
 
 			//Returns how many options have failed (0 if success)
-			int run();
+			int run(bool stripDebug);
 
 		protected:
 
@@ -65,8 +65,8 @@ namespace oi {
 			void cache(BakedFile &file);
 			bool shouldUpdate(BakedFile &file);
 
-			static bool bakeModel(BakedFile &file);
-			static bool bakeShader(BakedFile &file);
+			static bool bakeModel(BakedFile &file, bool stripDebug);
+			static bool bakeShader(BakedFile &file, bool stripDebug);
 
 		private:
 

@@ -173,11 +173,11 @@ namespace oi {
 			static SHFile convert(ShaderInfo info);
 			static ShaderInfo convert(Graphics *g, SHFile info);
 
-			static SHFile convert(ShaderSource &source);
-			static ShaderInfo compile(ShaderSource &source);
+			static SHFile convert(ShaderSource &source, bool stripDebug);
+			static ShaderInfo compile(ShaderSource &source, bool stripDebug);
 
-			static SHFile convert(ShaderSource &source, std::vector<String> &dependencies);
-			static ShaderInfo compile(ShaderSource &source, std::vector<String> &dependencies);
+			static SHFile convert(ShaderSource &source, std::vector<String> &dependencies, bool stripDebug);
+			static ShaderInfo compile(ShaderSource &source, std::vector<String> &dependencies, bool stripDebug);
 
 			static bool write(String path, SHFile &file);
 			static Buffer write(SHFile &file);

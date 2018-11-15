@@ -2,6 +2,7 @@
 #include "graphics/format/oish.h"
 #include "graphics/helper/spvhelper.h"
 #include "SPIRV-Cross/spirv_cross.hpp"
+#include "SPIRV/SPVRemapper.h"
 using namespace oi::gc;
 using namespace oi;
 using namespace spirv_cross;
@@ -283,7 +284,7 @@ bool SpvHelper::addResources(spirv_cross::Compiler &comp, ShaderStageType type, 
 
 }
 
-bool SpvHelper::addStage(const CopyBuffer &b, ShaderStageType type, ShaderInfo &info) {
+bool SpvHelper::addStage(CopyBuffer b, ShaderStageType type, ShaderInfo &info, bool stripDebug) {
 
 	if (b.size() % 4 != 0 || b.size() == 0)
 		return Log::error("SPIR-V Bytecode invalid");
@@ -297,9 +298,11 @@ bool SpvHelper::addStage(const CopyBuffer &b, ShaderStageType type, ShaderInfo &
 	if (!SpvHelper::addResources(comp, type, info, input, output))
 		return Log::error("Couldn't add stage resources to shader");
 
-	#ifndef __DEBUG__
-	//TODO: Optimize
-	#endif
+	if (stripDebug) {
+		bytecode = std::vector<uint32_t>((u32*)b.addr(), (u32*)(b.addr() + b.size()));
+		spv::spirvbin_t{}.remap(bytecode, spv::spirvbin_base_t::STRIP);
+		b = CopyBuffer((u8*)bytecode.data(), u32(bytecode.size() * 4));
+	}
 
 	info.stages.push_back(ShaderStageInfo(b, type, input, output));
 

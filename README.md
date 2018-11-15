@@ -59,9 +59,13 @@ Where vs17dir is the installation directory for Visual Studio 2017.
 Packaging a Windows build will ensure that both x64 and x86 binaries are in the final zip. It will pull all required resources and put them next to the exe so it can run. This requires you to have access to msbuild.
 
 ```sh
-# Only package images, settings, models/*.json & models/*.oiRM, shaders/*.oiSH
+# Don't package .fbx, .obj and .glsl/.hlsl/.vert/.frag./.comp/.geom files (only .oiSH and .oiRM)
 # Release build without console (x64 & x86)
 make_windows.sh -release -exclude_ext_formats -no_console
+
+# Also strip debug info (so the shader source can't be reversed as easily)
+# This saves disk space as well as securing the 
+make_windows.sh -re
 
 # Debug build; with all external formats & console (x64 & x86)
 make_windows.sh

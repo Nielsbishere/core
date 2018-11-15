@@ -8,7 +8,7 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-bool BakeManager::bakeModel(BakedFile &file) {
+bool BakeManager::bakeModel(BakedFile &file, bool) {
 
 	if (file.extension == "obj") {
 
@@ -55,14 +55,14 @@ bool BakeManager::bakeModel(BakedFile &file) {
 }
 
 
-bool BakeManager::bakeShader(BakedFile &file) {
+bool BakeManager::bakeShader(BakedFile &file, bool stripDebug) {
 
 	file.outputs.resize(1);
 	file.outputs[0] = file.file + ".oiSH";
 
 	ShaderSource source(file.file.getFileName(), file.inputs, file.extension == "hlsl" ? ShaderSourceType::HLSL : ShaderSourceType::GLSL);
 
-	SHFile info = oiSH::convert(source, file.dependencies);
+	SHFile info = oiSH::convert(source, file.dependencies, stripDebug);
 	if (info.bytecode.size() == 0)
 		return Log::error(file.outputs[0] + " couldn't compile shader");
 
@@ -172,7 +172,7 @@ void BakeManager::load() {
 
 }
 
-int BakeManager::run() {
+int BakeManager::run(bool stripDebug) {
 
 	Log::println("BakingManager started...");
 
@@ -229,7 +229,7 @@ int BakeManager::run() {
 				continue;
 			}
 
-			bo.bake(bf);
+			bo.bake(bf, stripDebug);
 			cache(bf);
 			Log::println(bf.file.replaceFirst("mod/", "res/") + " has been updated");
 

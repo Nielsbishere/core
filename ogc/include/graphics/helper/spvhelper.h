@@ -46,7 +46,7 @@ namespace oi {
 			static bool addResources(spirv_cross::Compiler &compiler, ShaderStageType type, ShaderInfo &info, std::vector<ShaderInput> &input, std::vector<ShaderOutput> &output);
 
 			//Add stage to shader
-			static bool addStage(const CopyBuffer &buf, ShaderStageType type, ShaderInfo &info);
+			static bool addStage(CopyBuffer buf, ShaderStageType type, ShaderInfo &info, bool stripDebug);
 
 		};
 

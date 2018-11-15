@@ -10,14 +10,14 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
-SHFile oiSH::convert(ShaderSource &source) {
+SHFile oiSH::convert(ShaderSource &source, bool stripDebug) {
 	std::vector<String> deps;
-	return convert(source, deps);
+	return convert(source, deps, stripDebug);
 }
 
-SHFile oiSH::convert(ShaderSource &source, std::vector<String> &dependencies) {
+SHFile oiSH::convert(ShaderSource &source, std::vector<String> &dependencies, bool stripDebug) {
 
-	ShaderInfo info = compile(source, dependencies);
+	ShaderInfo info = compile(source, dependencies, stripDebug);
 
 	if (info.path == "") {
 		Log::error("Couldn't compile to oiSH file");
@@ -27,9 +27,9 @@ SHFile oiSH::convert(ShaderSource &source, std::vector<String> &dependencies) {
 	return oiSH::convert(info);
 }
 
-ShaderInfo oiSH::compile(ShaderSource &source) {
+ShaderInfo oiSH::compile(ShaderSource &source, bool stripDebug) {
 	std::vector<String> deps;
-	return compile(source, deps);
+	return compile(source, deps, stripDebug);
 }
 
 //Allow including files through our FileManager
@@ -300,7 +300,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 	return true;
 }
 
-ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies) {
+ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies, bool stripDebug) {
 
 	//Fetch source from files
 	if (source.getFiles().size() != 0) {
@@ -354,11 +354,11 @@ ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies
 	ShaderInfo info;
 	info.path = source.getName();
 
-	for (auto &elem : source.getSpv()) {
+	for (auto &elem : source.spv) {
 
 		ShaderStageType type = SpvHelper::pickType(elem.first);
 
-		if (!SpvHelper::addStage(elem.second, type, info)) {
+		if (!SpvHelper::addStage(elem.second, type, info, stripDebug)) {
 			Log::error("Couldn't add stage to shader");
 			return {};
 		}

@@ -42,6 +42,7 @@ declFlag release release
 declFlag exclude_ext_formats exexfo
 declFlag help helpMe
 declFlag no_console noConsole
+declFlag strip_debug_info strip
 declParam env env
 
 if [ $helpMe ]
@@ -55,6 +56,7 @@ then
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	echo "-no_console Hides console (program can still redirect console calls)"
+	echo "-strip_debug_info Strips debug info (shaders)"
 	pause
 fi
 
@@ -116,26 +118,36 @@ if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
 	cp "x86/bin/$btype/Osomi Core.exe" "build/Osomi Core x86.exe"
 fi
 
-# Copy resources
+# Prepare resources
 
 mkdir -p build/res
+cp -r ../../app/res/* build/res
+
+cd build
+
+if [ $strip ] ; then
+	"../../../oibaker.exe" -strip_debug_info
+else
+	"../../../oibaker.exe"
+fi
+
+cd res
+
+# Get rid of fbx, obj, oiBM and glsl/hlsl/vert/frag/geom/comp files
 
 if [ $exexfo ]
 then
 
-	mkdir -p build/res/models
-	mkdir -p build/res/shaders
-	mkdir -p build/res/textures
-	mkdir -p build/res/settings
+	find . -type f -name '*.oiBM' -exec rm -f {} +
+	find . -type f -name '*.fbx' -exec rm -f {} +
+	find . -type f -name '*.obj' -exec rm -f {} +
+	find . -type f -name '*.glsl' -exec rm -f {} +
+	find . -type f -name '*.hlsl' -exec rm -f {} +
+	find . -type f -name '*.vert' -exec rm -f {} +
+	find . -type f -name '*.frag' -exec rm -f {} +
+	find . -type f -name '*.geom' -exec rm -f {} +
+	find . -type f -name '*.comp' -exec rm -f {} +
 
-	find ../../app/res/models -name \*.oiRM -exec cp {} build/res/models \;
-	find ../../app/res/models -name \*.json -exec cp {} build/res/models \;
-	find ../../app/res/shaders -name \*.oiSH -exec cp {} build/res/shaders \;
-	cp -r ../../app/res/textures/* build/res/textures
-	cp -r ../../app/res/settings/* build/res/settings
-
-else
-	cp -r ../../app/res/* build/res
 fi
 
-cd ../../
+cd ../../../../

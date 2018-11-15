@@ -43,6 +43,7 @@ gen=Unix\ Makefiles
 declFlag release release
 declFlag exclude_ext_formats exexfo
 declFlag help helpMe
+declFlag strip_debug_info strip
 declParam abi abi
 declParam lvl lvl
 declParam dev dev
@@ -76,6 +77,7 @@ then
 	echo "-dev=linux-x86_64 Dev environment (linux-x86_64 by default)"
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
+	echo "-strip_debug_info Strips debug info (shaders)"
 	pause
 fi
 
