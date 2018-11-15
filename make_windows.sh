@@ -123,8 +123,6 @@ fi
 
 # Prepare resources
 
-mkdir -p build/res
-
 cd ../../app
 
 if [ $strip ] ; then
@@ -133,9 +131,10 @@ else
 	"../oibaker.exe"
 fi
 
-cd ../builds/Windows
-cp -r ../../app/res/* build/res
-cd build/res
+cd ../builds/Windows/build
+mkdir -p res
+cp -r ../../../app/res/* res
+cd res
 
 # Get rid of fbx, obj, oiBM and glsl/hlsl/vert/frag/geom/comp files
 

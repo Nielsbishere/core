@@ -192,19 +192,41 @@ echo cp -r ../../app_android/res/* build/res >> build_android.sh
 echo mkdir -p build/assets >> build_android.sh
 echo mkdir -p build/assets/res >> build_android.sh
 
+# Run baker
+
+if [ "$dev" == "windows-x86_64" ] ; then
+
+	echo cd ../../app >> build_android.sh
+	
+	if [ $strip ] ; then
+		echo "../oibaker.exe" -strip_debug_info >> build_android.sh
+	else
+		echo "../oibaker.exe" >> build_android.sh
+	fi
+
+	echo cd ../builds/Android >> build_android.sh
+
+fi
+
+# Copy results
+
+echo cp -r ../../app/res/* build/assets/res >> build_android.sh
+
+# Filter out some extensions
+
 if [ $exexfo ]
 then
-	echo mkdir -p build/assets/res/models >> build_android.sh
-	echo mkdir -p build/assets/res/shaders >> build_android.sh
-	echo mkdir -p build/assets/res/textures >> build_android.sh
-	echo mkdir -p build/assets/res/settings >> build_android.sh
-	echo find ../../app/res/models -name \*.oiRM -exec cp {} build/assets/res/models \\\; >> build_android.sh
-	echo find ../../app/res/models -name \*.json -exec cp {} build/assets/res/models \\\; >> build_android.sh
-	echo find ../../app/res/shaders -name \*.oiSH -exec cp {} build/assets/res/shaders \\\; >> build_android.sh
-	echo cp -r ../../app/res/textures/* build/assets/res/textures >> build_android.sh
-	echo cp -r ../../app/res/settings/* build/assets/res/settings >> build_android.sh
-else
-	echo cp -r ../../app/res/* build/assets/res >> build_android.sh
+	echo cd build/assets/res >> build_android.sh
+	echo find . -type f -name '*.oiBM' -exec rm -f {} +	>> build_android.sh
+	echo find . -type f -name '*.fbx' -exec rm -f {} + >> build_android.sh
+	echo find . -type f -name '*.obj' -exec rm -f {} + >> build_android.sh
+	echo find . -type f -name '*.glsl' -exec rm -f {} +	>> build_android.sh
+	echo find . -type f -name '*.hlsl' -exec rm -f {} +	>> build_android.sh
+	echo find . -type f -name '*.vert' -exec rm -f {} +	>> build_android.sh
+	echo find . -type f -name '*.frag' -exec rm -f {} +	>> build_android.sh
+	echo find . -type f -name '*.geom' -exec rm -f {} +	>> build_android.sh
+	echo find . -type f -name '*.comp' -exec rm -f {} +	>> build_android.sh
+	echo cd ../../../ >> build_android.sh
 fi
 
 if [ "$abi" == "all" ]
