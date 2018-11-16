@@ -94,7 +94,7 @@ namespace oi {
 
 		Bitset operator~() const;
 
-		void write(std::vector<u32> &values, u32 bitsPerVal);
+		void write(const std::vector<u32> &values, u32 bitsPerVal);
 		void read(std::vector<u32> &values, u32 bitsPerVal);
 
 		u8 &at(u32 bit);

@@ -221,7 +221,7 @@ Bitset &Bitset::operator&=(const Bitset &other) {
 
 }
 
-void Bitset::write(std::vector<u32> &values, u32 bitsPerVal) {
+void Bitset::write(const std::vector<u32> &values, u32 bitsPerVal) {
 
 	if (bits != bitsPerVal * values.size())
 		Log::throwError<Bitset, 0x0>("Couldn't write values to bitset; bitset didn't have enough space");

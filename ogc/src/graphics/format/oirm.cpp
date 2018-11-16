@@ -408,17 +408,13 @@ u32 findChannel(u8 *data, u32 totalSize, u8 *c, u32 bpc) {
 
 }
 
-//TODO: Resource hog!
 u32 findAttribute(u32 *attributes, u32 totalSize, u32 *channels, u32 channelCount) {
 
-	u32 *ptr = attributes - 1; 
-	u32 *end = attributes + totalSize;
+	for (u32 i = 0; i < totalSize / channelCount; ++i)
+		if (memcmp(attributes + i * channelCount, channels, 4 * channelCount) == 0)
+			return i;
 
-	do {
-		ptr = std::search(ptr + 1, attributes + totalSize, channels, channels + channelCount);
-	} while(ptr != end && u32(ptr - attributes) % channelCount != 0);
-
-	return u32(ptr - attributes) / channelCount;
+	return totalSize / channelCount;
 }
 
 bool addChannel(CopyBuffer &buf, u32 bpc, u8 *addr, u32 *channel) {

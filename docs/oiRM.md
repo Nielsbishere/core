@@ -68,6 +68,9 @@ struct RMMisc {
 'flags' can be 'Uses_offset' (1) if there is an offset to the primitives, 'Is_array' (2) if there are multiple primitives present, Offset_in_relative_space (4) if the offset uses relative space (1 vertex; tangent space, multiple; combined tangent space).  
 'type' can be Vertex (0), Primitive (1), Center_primitive (2) the center of a primitive, Point (3) a point in model space.  
 'size' the data attached to the misc.
+
+Miscs aren't currently queryable because there currently is no way of adding them into a model. However, this could potentially be done with Fbx's properties of a Mesh; which would mean that Obj and non-property formats wouldn't support this.
+
 ## VBOs
 After this data, all VBO data is stored in binary (but might have to be decompressed). One vertex's buffer is stored as following:
 ```
@@ -111,8 +114,9 @@ Bitset data(vertices * valueBits];					//All references to keys (stored in binar
 For decompression; the vertex data's order has to be changed, so all attributes are placed next to each other for every vertex.  
 In a short diagram:  
 ![VBO Attributes compression](vbo%20compression.png)
+
 ## IBO
-The index buffer is located after the vertex buffers and the size can be determined by first determing the format. If there's at max 256 vertices, it means that you can use a u8 to represent an index to it, if there's at max 65536, it means you can use a u16 and otherwise you have to use a u32. This means that the index buffer can be the size of vertices, 2 * vertices or 4 * vertices, depending on the vertexCount. On the GPU, this IBO is expanded to 4 * vertices, because of cache improvements that come with uints (it can fetch it with 1 operation instead of multiple).
+The index buffer is located after the vertex buffers and the size is equal to `indices * 4` unless compressed, aka a `u32[indices]`. `u8[]` and `u16[]` aren't used in non-compressed IBOs, because on the GPU it is stored as a `u32[]`, this is because modern models generally require around 65 536+ vertices and because the concept of MeshBuffers requires the index type to be compatible (e.g. u8 indices buffer can't be stored in a u32 indices buffer). It also has to do with the idea that a fetch operation can be optimized better with a uint than a ubyte by the GPU.
 ### Compression
 For compression, the following formula is followed to determine the IBO size (in bits):
 ```cpp
@@ -120,7 +124,7 @@ indices * std::ceil(std::log2(vertices))
 ```
 This means that if you have 24 vertices (ex. a cube), you can use ceil(log2(24)) = ceil(4.58) = 5 bits per index. Resulting in a total index buffer of 23 bytes (36 indices). This compresses a lot (especially when using 65536+ vertices, because mostly they won't end up using 32 bits, but 17 or 18).
 ## MiscBuffer
-The MiscBuffer is the buffer for every misc. Every misc can have up to 65535 bytes of data; right now this data doesn't have a use, or definition yet; however this feature will be further developed in the future (it is a task on the trello board).
+The MiscBuffer is the buffer for every misc. Every misc can have up to 65535 bytes of data; right now this data doesn't have a use, or definition yet; however this feature will be further developed in the future.
 ## Names
 Like all other Osomi file formats, the names are stored in a oiSL file that is embedded at the end of the object. 
 # API Usage
