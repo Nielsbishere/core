@@ -21,21 +21,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 		return RMFile();
 	}
 
-	u32 *ibo = (u32*) bibo.addr();
-
-	u32 perIndex = vertices <= 256 ? 1 : (vertices <= 65536 ? 2 : 4);
-	CopyBuffer fibo(indices * perIndex);
-
-	if (perIndex == 4)
-		memcpy(fibo.addr(), ibo, bibo.size());
-	else
-		for (u32 i = 0; i < (u32) indices; ++i) {
-
-			if (perIndex == 1)
-				fibo[i] = (u8) ibo[i];
-			else if (perIndex == 2)
-				*(u16*)(fibo.addr() + i * 2) = (u16) ibo[i];
-		}
+	CopyBuffer fibo(bibo.addr(), indices * 4);
 
 	u32 attributeCount = (u32) hasPos + hasUv + hasNrm;
 	std::vector<String> names;
@@ -138,7 +124,6 @@ bool oiRM::read(Buffer data, RMFile &file) {
 V0_0_1:
 	{
 
-		u32 perIndex = file.header.vertices <= 256 ? 1 : (file.header.vertices <= 65536 ? 2 : 4);
 		u32 perIndexb = (u32) std::ceil(std::log2(file.header.vertices));
 
 		u32 vertexBuffer = file.header.vertexBuffers * (u32) sizeof(RMVBO);
@@ -255,16 +240,12 @@ V0_0_1:
 
 			if (!compression) {
 
-				u32 index = file.header.indices * perIndex;
+				u32 index = file.header.indices * 4;
 
 				if (read.size() < index)
 					return Log::error("Couldn't read oiRM file; invalid index buffer length");
 
-				file.indices = CopyBuffer(index);
-
-				u8 *aindices = file.indices.addr();
-
-				memcpy(aindices, read.addr(), index);
+				file.indices = CopyBuffer(read.addr(), index);
 				read = read.offset(index);
 
 			} else {
@@ -278,19 +259,8 @@ V0_0_1:
 				std::vector<u32> ind(file.header.indices);
 				bitset.read(ind, perIndexb);
 				
-				u32 indexRes = file.header.indices * perIndex;
-				file.indices = CopyBuffer(indexRes);
-
-				u8 *aindices = file.indices.addr();
-
-				if (perIndex == 4)
-					memcpy(aindices, read.addr(), indexRes);
-				else if (perIndex == 2)
-					for (u32 i = 0; i < file.header.indices; ++i)
-						*(u16*)(aindices + i * 2) = (u16) ind[i];
-				else
-					for (u32 i = 0; i < file.header.indices; ++i)
-						*(aindices + i) = (u8) ind[i];
+				u32 indexRes = file.header.indices * 4;
+				file.indices = CopyBuffer((u8*) ind.data(), indexRes);
 
 			}
 		}
@@ -349,20 +319,8 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 		++i;
 	}
 
-	if (file.header.indices != 0) {
-
-		ib = Buffer(4 * file.header.indices);
-		u32 perIndex = file.header.vertices <= 256 ? 1 : (file.header.vertices <= 65536 ? 2 : 4);
-
-		if (perIndex == 4) ib.copy(Buffer::construct(file.indices.addr(), (u32) file.indices.size()));
-		else if (perIndex == 2)
-			for (i = 0; i < (u32) file.indices.size() / 2; ++i)
-				ib.operator[]<u32>(i * 4) = *(u16*)(file.indices.addr() + i * 2);
-		else if (perIndex == 1)
-			for (i = 0; i < (u32)file.indices.size(); ++i)
-				ib.operator[]<u32>(i * 4) = (u32) file.indices[i];
-
-	}
+	if (file.header.indices != 0)
+		ib = Buffer(file.indices.addr(), file.header.indices * 4);
 
 	result.first = MeshBufferInfo(file.header.vertices, file.header.indices, vbos, file.header.topologyMode, file.header.fillMode);
 	result.second = MeshInfo(nullptr, file.header.vertices, file.header.indices, vb, ib);
@@ -450,6 +408,7 @@ u32 findChannel(u8 *data, u32 totalSize, u8 *c, u32 bpc) {
 
 }
 
+//TODO: Resource hog!
 u32 findAttribute(u32 *attributes, u32 totalSize, u32 *channels, u32 channelCount) {
 
 	u32 *ptr = attributes - 1; 
@@ -480,7 +439,6 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 	RMHeader &header = file.header;
 
-	u32 perIndex = header.vertices <= 256 ? 1 : (header.vertices <= 65536 ? 2 : 4);
 	u32 perIndexb = (u32) std::ceil(std::log2(file.header.vertices));
 
 	u32 vertexBuffer = (u32)(header.vertexBuffers * sizeof(RMVBO));
@@ -598,19 +556,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 		if (file.header.indices != 0) {
 
-			std::vector<u32> indices(file.header.indices);
-
-			u32 *aindices0 = indices.data();
-			u8 *aindices = file.indices.addr();
-
-			if (perIndex == 4)
-				memcpy(aindices0, aindices, file.header.indices * 4);
-			else if (perIndex == 2)
-				for (u32 i = 0; i < file.header.indices; ++i)
-					aindices0[i] = (u32)*(u16*)(aindices + i * 2);
-			else
-				for (u32 i = 0; i < file.header.indices; ++i)
-					aindices0[i] = (u32)*(aindices + i);
+			std::vector<u32> indices(file.indices.addr<u32>(), file.indices.addrEnd<u32>());
 
 			Bitset bitset(perIndexb * file.header.indices);
 			bitset.write(indices, perIndexb);

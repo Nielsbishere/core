@@ -225,8 +225,6 @@ bool Buffer::getBit(u32 bitoff) {
 	return val & (1U << (bitoff % 8U));
 }
 
-u8 *Buffer::addr() const { return data; }
-
 //Compressing and uncompressing (end of file to avoid poluting our Buffer.cpp's namespace)
 
 #include "zlib/zlib.h"

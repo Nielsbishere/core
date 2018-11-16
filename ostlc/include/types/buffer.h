@@ -100,7 +100,11 @@ namespace oi {
 		u32 size() const;
 		void clear();
 
-		u8 *addr() const;
+		template<typename Cast = u8>
+		Cast *addr() const { return (Cast*) data; }
+
+		template<typename Cast = u8>
+		Cast *addrEnd() const { return (Cast*)(data + length); }
 
 	protected:
 
