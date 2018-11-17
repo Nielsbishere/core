@@ -46,11 +46,11 @@ declParam dev dev
 if [ "$dev" == "windows-x86_64" ]
 then
 	gen=MinGW\ Makefiles
-	makeCmd=mingw32-make
+	makeCmd=mingw32-make -d
 	android_ndk=${ANDROID_NDK}
 	android_ndk="${android_ndk//\\//}"
 else
-	makeCmd=make
+	makeCmd=make -d
 	android_ndk=${ANDROID_NDK}
 fi
 
