@@ -32,7 +32,6 @@ declParam() {
 abi=all
 lvl=24
 dev=linux-x86_64
-gen=Unix\ Makefiles
 
 # Params and flags
 declFlag release release
@@ -86,8 +85,13 @@ build(){
 	mkdir -p builds/Android/$1
 	cd builds/Android/$1
 	
-	cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM=${ANDROID_NDK}/prebuilt/$dev/bin/make -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
-	
+	if ! [ "$gen" == "" ] ; then
+		cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM=${ANDROID_NDK}/prebuilt/$dev/bin/make -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
+	else
+		cmake "../../../" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM=${ANDROID_NDK}/prebuilt/$dev/bin/make -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
+	fi
+
+
 	cd ../../../
 
 }
@@ -107,16 +111,16 @@ then
 
 	echo "#!/bin/bash" > build_android.sh
 	echo cd builds/Android/arm64-v8a >> build_android.sh
-	echo $makeCmd -i -j >> build_android.sh
+	echo $makeCmd -j >> build_android.sh
 
 	echo cd ../x86_64 >> build_android.sh
-	echo $makeCmd -i -j >> build_android.sh
+	echo $makeCmd -j >> build_android.sh
 
 	echo cd ../armeabi-v7a >> build_android.sh
-	echo $makeCmd -i -j >> build_android.sh
+	echo $makeCmd -j >> build_android.sh
 
 	echo cd ../x86 >> build_android.sh
-	echo $makeCmd -i -j >> build_android.sh
+	echo $makeCmd -j >> build_android.sh
 
 	echo cd ../ >> build_android.sh
 
@@ -153,7 +157,7 @@ else
 	# Build all targets
 
 	echo cd builds/Android/$abi > build_android.sh
-	echo $makeCmd -i -j >> build_android.sh
+	echo $makeCmd -j >> build_android.sh
 	echo cd ../ >> build_android.sh
 
 	# Make apk dirs
