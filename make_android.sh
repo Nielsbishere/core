@@ -46,11 +46,11 @@ declParam dev dev
 if [ "$dev" == "windows-x86_64" ]
 then
 	gen=MinGW\ Makefiles
-	makeCmd=mingw32-make -d
+	makeCmd=mingw32-make
 	android_ndk=${ANDROID_NDK}
 	android_ndk="${android_ndk//\\//}"
 else
-	makeCmd=make -d
+	makeCmd=make
 	android_ndk=${ANDROID_NDK}
 fi
 
@@ -107,16 +107,16 @@ then
 
 	echo "#!/bin/bash" > build_android.sh
 	echo cd builds/Android/arm64-v8a >> build_android.sh
-	echo $makeCmd -j >> build_android.sh
+	echo $makeCmd -d -j >> build_android.sh
 
 	echo cd ../x86_64 >> build_android.sh
-	echo $makeCmd -j >> build_android.sh
+	echo $makeCmd -d -j >> build_android.sh
 
 	echo cd ../armeabi-v7a >> build_android.sh
-	echo $makeCmd -j >> build_android.sh
+	echo $makeCmd -d -j >> build_android.sh
 
 	echo cd ../x86 >> build_android.sh
-	echo $makeCmd -j >> build_android.sh
+	echo $makeCmd -d -j >> build_android.sh
 
 	echo cd ../ >> build_android.sh
 
@@ -153,7 +153,7 @@ else
 	# Build all targets
 
 	echo cd builds/Android/$abi > build_android.sh
-	echo $makeCmd -j >> build_android.sh
+	echo $makeCmd -d -j >> build_android.sh
 	echo cd ../ >> build_android.sh
 
 	# Make apk dirs
