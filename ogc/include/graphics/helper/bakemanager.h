@@ -16,7 +16,7 @@ namespace oi {
 			u32 version;
 
 			//If any change is made to the baker; this increases
-			static const u32 getGlobalVersion() { return 2; }
+			static const u32 getGlobalVersion() { return 3; }
 
 		};
 		

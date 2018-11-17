@@ -15,25 +15,32 @@ namespace oi {
 		UEnum(RMHeaderVersion, Undefined = 0, V0_0_1 = 1);
 		UEnum(RMHeaderFlag1, None = 0, Contains_materials = 1, Per_tri_materials = 2, Uses_compression = 4);
 
+		enum class RMOperationFlag {
+			NoOp = 0b00,		/* 3 indices = 1 triangle; [i, j, k] */
+			Quad = 0b01,		/* 1 index = 2 triangles; [i + 2, i + 1, i, i + 3, i + 2, i ]*/
+			RevIndInc = 0b10,	/* 1 index = 1 triangle; [i + 2, i + 1, i ] */
+			RevIndInc2 = 0b11	/* 1 index = 1 triangle; [ i + 3, i + 2, i ] */
+		};
+
 		struct RMHeader {
 
-			char header[4];		//oiRM
+			char header[4];			//oiRM
 
-			u8 version;			//RMHeaderVersion
-			u8 flags;			//RMHeaderFlag1
+			u8 version;				//RMHeaderVersion
+			u8 flags;				//RMHeaderFlag1
 			u8 vertexBuffers;
 			u8 vertexAttributes;
 
-			u8 topologyMode;	//TopologyMode
-			u8 fillMode;		//FillMode
+			u8 topologyMode;		//TopologyMode
+			u8 fillMode;			//FillMode
 			u8 miscs;
 			u8 p0;
 
-			u8 p1[4];
+			u32 indexOperations;	//can only be non zero if indices != 0 and Uses_compression and topologyMode supports triangle
 
 			u32 vertices;
 
-			u32 indices;		//Optional (=0 if no indices)
+			u32 indices;			//Optional (=0 if no indices)
 
 		};
 

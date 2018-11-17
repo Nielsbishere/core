@@ -37,9 +37,9 @@ The index (ind) buffer is used so vertices aren't duplicated. Instead of using a
 
 After all compression, the file turns out to be 830 845 bytes (it also has things like headers and things that take up more info too.), instead of 3 012 848 bytes. 28% of the original size. When compressed, this is 465 929 bytes; 15% of the original size.
 
-## TODO: IBO compression
+## IBO compression
 
-Most of the model file is indices to indices to values; there is almost no raw data left (about 11 / 830 K). This means that if the indices are optimized, there could be a significant improvement in storage; maybe 500K (non-zipped) is accomplishable. This is only possible if the indices follow some sort of pattern, which for Ind is pretty easy to grasp:
+Most of the model file is indices to indices to values; there is almost no raw data left (about 11 / 830 K). This means that if the indices are optimized, there could be a significant improvement in storage; maybe 500K (non-zipped) is accomplishable. This is only possible if the indices follow some sort of pattern, which for Index buffer is pretty easy to grasp
 
 ```
 2, 1, 0, (3x u16)
@@ -51,10 +51,10 @@ Most of the model file is indices to indices to values; there is almost no raw d
 4 triangles are actually 2 quads. If we find a way to specify that in less than 3 * 4 * 2 = 24 bytes, we can save a lot of storage.
 
 ```
-triangle increase index right to left 0
-triangle increase index right to left 0 step 2 once
-triangle increase index right to left 4
-triangle increase index right to left 4 step 2 once
+triangle increase index right to left 0; n + 2, n + 1, n
+triangle increase index right to left 0 step 2 once; n + 3, n + 2, n
+triangle increase index right to left 4; n + 2, n + 1, n
+triangle increase index right to left 4 step 2 once; n + 3, n + 2, n
 ```
 
 If we go through the triangles and rank them in 4 options; 00 (3x ind), 01 (1 ind; inc left to right), 10 (1 ind; inc right to left) and 11 (1 ind; inc right to left and step of 2 after 1st ind), we get the following results (27 328 indices):
@@ -68,8 +68,17 @@ This means that we require 2 bits per triangle at least, and in our case; 50 max
 
 We would go from 163 968 bytes to 13 664 * 2 * (2 + 16) / 8 = 61 488 bytes (37.5% of original).
 
-In modern modeling software, artists model by quads (not triangles), which means this technique is very well made for that. The only drawback is that other triangles that don't follow that logic will still use the regular indices; so still take 50 bits per triangle. 
+In modern modeling software, artists model by quads (not triangles), which means this technique is very well made for that. The only drawback is that other triangles that don't follow that logic will still use the regular indices; so still take a max of 50 bits per triangle. 
 
 This technique would reduce the 830 845 byte anvil oiRMc file to 728 365 bytes (24.1% of original and 88% of compressed). Which means that indices take up 8.4% of the total file, instead of 22.5%. 
 
-With this in mind; we know that CW isn't produced normally by the Fbx/Obj converter; it automatically uses CCW. This means that we could use 01 as a quad; saving 50% space.
+With this in mind; we know that CW isn't produced normally by the Fbx/Obj converter; it automatically uses CCW. This means that we could use 01 as a quad; saving 50% space (for index buffer). Keep in mind that we can only apply this technique to triangle mode oiRMs.
+
+With this technique; using 01 as quad; we see the following:
+
+|        | 00   | 01     | 10   | 11   |
+| ------ | ---- | ------ | ---- | ---- |
+| Number | 0    | 13 664 | 0    | 0    |
+| Bits   | 0    | 27 328 | 0    | 0    |
+
+Meaning we go from 163 968 bytes to `13 664 * (2 + 16) / 8 = 30 744 bytes` (18.75% of original). While the original buffer in memory would be 327 936 bytes (9.375%).

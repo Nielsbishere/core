@@ -18,7 +18,7 @@ The compression flag turns oiRM from high file size and very fast / almost immed
   u8 miscs;
   u8 p0;
 
-  u8 p1[4];
+  u32 indexOperations;
 
   u32 vertices;
 
@@ -33,8 +33,10 @@ The compression flag turns oiRM from high file size and very fast / almost immed
 'topologyMode' is defined in ogc.md; important ones are triangle, points and lines.  
 'fillMode' is how the polygons are processed; most commonly fill (see ogc.md).  
 'miscs' how many miscs are in this file.  
+'indexOperations' is how many index operations are in the file; this is the optimization of indices and is only available in triangle mode. Only available in compression mode.
 'vertices' how many vertices are in this file.  
 'indices' how many indices are in this file (0 if there's no indices present).
+
 ## RMVBO
 ```cpp
 struct RMVBO {
@@ -118,11 +120,35 @@ In a short diagram:
 ## IBO
 The index buffer is located after the vertex buffers and the size is equal to `indices * 4` unless compressed, aka a `u32[indices]`. `u8[]` and `u16[]` aren't used in non-compressed IBOs, because on the GPU it is stored as a `u32[]`, this is because modern models generally require around 65 536+ vertices and because the concept of MeshBuffers requires the index type to be compatible (e.g. u8 indices buffer can't be stored in a u32 indices buffer). It also has to do with the idea that a fetch operation can be optimized better with a uint than a ubyte by the GPU.
 ### Compression
-For compression, the following formula is followed to determine the IBO size (in bits):
+For compression, the following formula is followed to determine the size of a pointer (in bits):
 ```cpp
-indices * std::ceil(std::log2(vertices))
+perIndexb = (u32) std::ceil(std::log2(vertices))
 ```
 This means that if you have 24 vertices (ex. a cube), you can use ceil(log2(24)) = ceil(4.58) = 5 bits per index. Resulting in a total index buffer of 23 bytes (36 indices). This compresses a lot (especially when using 65536+ vertices, because mostly they won't end up using 32 bits, but 17 or 18).
+
+However, the IBO compression only uses that compression per index if there are no 'special operations'; which reduces triangles from 3 indices per tri to 1 index per tri. These special operations are the following:
+
+```cpp
+NoOp (3 indices; [i, j, k])
+Quad ([n + 2, n + 1, n], [n + 3, n + 2, n])
+RevIndInc ([n + 2, n + 1, n])
+RevIndInc2 ([n + 3, n + 2, n])
+```
+
+These 4 operations are stored in a bitset with length `2 * header.indexOperations`. Every indexOperation has 2 bits that specify what the operation does. Quad generation saves 6 indices and only requires the base index n (1 index + 2 bits). 
+
+For example our cube has 6 sides (quad); meaning we can store the indices in 12 bits (2 bytes) and 30 bits (4 bytes); resulting in 6 bytes instead of 23. Other shapes like spheres (and even anvils) mostly use Quad + RevIndInc, meaning that they will be highly optimized too.
+
+```cpp
+for(u32 i = 0; i < indexOperations; ++i)
+    if(ops[i * 2] || ops[i * 2 + 1])
+        ; 	//Read 1 index into either a quad, reverse index increase or inc2
+	else
+        ;	//Read 3 indices into a normal triangle
+```
+
+More about this compression can be found in the [model compression document](model compression.md). It is only applied to triangle meshes.
+
 ## MiscBuffer
 The MiscBuffer is the buffer for every misc. Every misc can have up to 65535 bytes of data; right now this data doesn't have a use, or definition yet; however this feature will be further developed in the future.
 ## Names

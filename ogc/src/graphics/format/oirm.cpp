@@ -66,7 +66,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 			(u8)0,
 			(u8)0,
 
-			{ 0, 0, 0, 0 },
+			0,
 
 			(u32)vertices,
 			(u32)indices
@@ -250,17 +250,77 @@ V0_0_1:
 
 			} else {
 
-				u32 indexb = file.header.indices * perIndexb;
+				if (file.header.indexOperations == 0) {
 
-				Bitset bitset;
-				if(!read.read(bitset, indexb))
-					return Log::error("Couldn't read oiRM file; invalid index buffer length");
+					u32 indexb = file.header.indices * perIndexb;
 
-				std::vector<u32> ind(file.header.indices);
-				bitset.read(ind, perIndexb);
+					Bitset bitset;
+					if (!read.read(bitset, indexb))
+						return Log::error("Couldn't read oiRM file; invalid index buffer length");
+
+					std::vector<u32> ind(file.header.indices);
+					bitset.read(ind, perIndexb);
+
+					u32 indexRes = file.header.indices * 4;
+					file.indices = CopyBuffer((u8*)ind.data(), indexRes);
+
+				} else {
 				
-				u32 indexRes = file.header.indices * 4;
-				file.indices = CopyBuffer((u8*) ind.data(), indexRes);
+					Bitset ops;
+					if(!read.read(ops, 2 * file.header.indexOperations))
+						return Log::error("Couldn't read oiRM file; invalid operation bitset length");
+
+					u32 opLen = 0;
+					for (u32 i = 0; i < file.header.indexOperations; ++i)
+						if (ops[i * 2] || ops[i * 2 + 1])
+							++opLen;
+						else
+							opLen += 3;
+
+					Bitset contents;
+					if(!read.read(contents, opLen * perIndexb))
+						return Log::error("Couldn't read oiRM file; invalid operationData bitset length");
+
+					std::vector<u32> indOps(opLen);
+					contents.read(indOps, perIndexb);
+
+					file.indices = CopyBuffer(file.header.indices * 4);
+					u32 *aindices = file.indices.addr<u32>();
+					u32 *aindOps = indOps.data();
+
+					u32 i = 0, j = 0;
+					while (i < file.header.indices) {
+
+						bool b0 = ops[j * 2];
+						bool b1 = ops[j * 2 + 1];
+						u32 n = aindOps[j];
+
+						if (!b0 && b1) {				//Quad
+							aindices[i] = n + 2;
+							aindices[i + 1] = n + 1;
+							aindices[i + 2] = n;
+							aindices[i + 3] = n + 3;
+							aindices[i + 4] = n + 2;
+							aindices[i + 5] = n;
+							i += 3;
+						} else if (b0 && !b1) {			//RevIndInc
+							aindices[i] = n + 2;
+							aindices[i + 1] = n + 1;
+							aindices[i + 2] = n;
+						} else if (b0 && !b1) {			//RevIndInc2
+							aindices[i] = n + 3;
+							aindices[i + 1] = n + 2;
+							aindices[i + 2] = n;
+						} else {
+							memcpy(aindices + i, aindOps + j, 12);
+							j += 2;
+						}
+
+						i += 3;
+						++j;
+					}
+				
+				}
 
 			}
 		}
@@ -380,7 +440,7 @@ RMFile oiRM::convert(MeshInfo info) {
 			0,													//TODO: Saving miscs
 			0,
 
-			{ 0, 0, 0, 0 },
+			0,
 
 			info.vertices,
 
@@ -552,12 +612,147 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 		if (file.header.indices != 0) {
 
-			std::vector<u32> indices(file.indices.addr<u32>(), file.indices.addrEnd<u32>());
+			u32 *aindices = file.indices.addr<u32>();
+			std::vector<u32> indices(aindices, file.indices.addrEnd<u32>());
 
-			Bitset bitset(perIndexb * file.header.indices);
-			bitset.write(indices, perIndexb);
+			//Undefined mode is basically triangle; but allows you to turn it into wireframe
+			//This is operation compression
+			if (file.header.topologyMode == TopologyMode::Triangle || file.header.topologyMode == TopologyMode::Undefined) {
 
-			ind = bitset.toBuffer();
+				bool prev = false;
+				u32 i00 = 0,	//no op
+					i01 = 0,	//quad op
+					i10 = 0,	//rev inc op
+					i11 = 0;	//rev inc op; first step 2
+
+				Bitset ops(2 * file.header.indices / 3);			//Could be smaller than per tri; operations bitset
+				std::vector<u32> start(file.header.indices / 3);	//Info where the operation's begin is
+				u32 opOff = 0, totalInd = 0, test = 0;
+
+				for (u32 i = 0, j = file.header.indices / 3; i < j; ++i) {
+
+					Vec3u curr = *(Vec3u*) (aindices + i * 3);
+
+					if (curr.x == curr.y + 1 && curr.y == curr.z + 1) {
+						if(!prev)
+							prev = true;
+						else {				//RevIndInc
+							ops[2 * opOff] = true;
+							ops[2 * opOff + 1] = false;
+							start[opOff] = (i - 1) * 3 + 2;		//Save the base index
+							++opOff;
+							++i10;
+							++totalInd;
+							test += 3;
+						}
+					} else if (curr.x == curr.y + 1 && curr.y == curr.z + 2) {
+
+						//RevIndInc2
+						if (!prev) {
+							ops[2 * opOff] = true;
+							ops[2 * opOff + 1] = true;
+							start[opOff] = i * 3 + 2;			//Save the base index
+							++opOff;
+							++i11;
+							++totalInd;
+							test += 3;
+							continue;
+						}
+
+						//Quad
+						ops[2 * opOff] = false;
+						ops[2 * opOff + 1] = true;
+						start[opOff] = i * 3 + 2;				//Save the base index
+						++opOff;
+						++i01;
+						++totalInd;
+						test += 6;
+						prev = false;
+
+					} else {
+
+						//RevIndInc
+						if (prev) {
+							ops[2 * opOff] = true;
+							ops[2 * opOff + 1] = false;
+							start[opOff] = (i - 1) * 3 + 2;		//Save the base index
+							++opOff;
+							++i10;
+							++totalInd;
+							test += 3;
+							prev = false;
+						}
+
+						//NoOp
+						ops[2 * opOff] = false;
+						ops[2 * opOff + 1] = false;
+						start[opOff] = i * 3;					//Save the base index
+						++opOff;
+						++i00;
+						test += 3;
+						totalInd += 3;
+
+					}
+
+
+				}
+
+				//If last op was RevIndInc
+				if (prev) {
+					ops[2 * opOff] = true;
+					ops[2 * opOff + 1] = false;
+					start[opOff] = (file.header.indices / 3 - 1) * 3 + 2;	//Save the base index
+					++opOff;
+					++i10;
+					test += 3;
+					prev = false;
+				}
+
+				if (i01 == 0 && i10 == 0 && i11 == 0) {		//Operations don't have any effect; so don't use them
+
+					Bitset bitset(perIndexb * file.header.indices);
+					bitset.write(indices, perIndexb);
+
+					ind = bitset.toBuffer();
+
+				} else {
+
+					file.header.indexOperations = opOff;
+
+					Bitset operationData(totalInd * perIndexb);
+					std::vector<u32> indOpBuf(totalInd);
+					u32 *aindOpBuf = indOpBuf.data();
+
+					u32 j = 0;
+					for (u32 i = 0; i < opOff; ++i) {
+
+						if (ops[2 * i] || ops[2 * i + 1])
+							indOpBuf[j] = aindices[start[i]];
+						else {
+							memcpy(aindOpBuf + j, aindices + start[i], 12);
+							j += 2;
+						}
+
+						++j;
+					}
+
+					operationData.write(indOpBuf, perIndexb);
+
+					Bitset aops(opOff * 2);
+					aops |= ops;
+
+					ind = aops.toBuffer() + operationData.toBuffer();
+
+				}
+
+			} else {
+
+				Bitset bitset(perIndexb * file.header.indices);
+				bitset.write(indices, perIndexb);
+
+				ind = bitset.toBuffer();
+
+			}
 
 		}
 
