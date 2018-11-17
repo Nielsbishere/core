@@ -107,16 +107,16 @@ then
 
 	echo "#!/bin/bash" > build_android.sh
 	echo cd builds/Android/arm64-v8a >> build_android.sh
-	echo $makeCmd -d -j >> build_android.sh
+	echo $makeCmd -i -j >> build_android.sh
 
 	echo cd ../x86_64 >> build_android.sh
-	echo $makeCmd -d -j >> build_android.sh
+	echo $makeCmd -i -j >> build_android.sh
 
 	echo cd ../armeabi-v7a >> build_android.sh
-	echo $makeCmd -d -j >> build_android.sh
+	echo $makeCmd -i -j >> build_android.sh
 
 	echo cd ../x86 >> build_android.sh
-	echo $makeCmd -d -j >> build_android.sh
+	echo $makeCmd -i -j >> build_android.sh
 
 	echo cd ../ >> build_android.sh
 
@@ -153,7 +153,7 @@ else
 	# Build all targets
 
 	echo cd builds/Android/$abi > build_android.sh
-	echo $makeCmd -d -j >> build_android.sh
+	echo $makeCmd -i -j >> build_android.sh
 	echo cd ../ >> build_android.sh
 
 	# Make apk dirs
