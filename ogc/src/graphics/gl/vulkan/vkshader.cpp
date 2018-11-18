@@ -241,10 +241,7 @@ bool Shader::init() {
 
 		orderedRegisters[ShaderRegisterTypeExt(reg.type.getName()).getValue()].add(reg);
 
-		if (reg.type == ShaderRegisterType::Texture2D && reg.size > 1)
-			info.shaderRegister[reg.name] = g->create(getName() + " TextureList " + reg.name, TextureListInfo(reg.size));
-		else
-			info.shaderRegister[reg.name] = nullptr;
+		info.shaderRegister[reg.name] = nullptr;
 
 		++i;
 	}

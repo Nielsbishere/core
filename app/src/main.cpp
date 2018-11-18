@@ -11,6 +11,7 @@
 #include "graphics/objects/model/meshbuffer.h"
 #include "graphics/objects/model/mesh.h"
 #include "graphics/objects/model/materiallist.h"
+#include "graphics/objects/model/material.h"
 #include "graphics/objects/model/meshmanager.h"
 #include "graphics/objects/render/drawlist.h"
 #include "graphics/objects/render/rendertarget.h"
@@ -233,36 +234,31 @@ void MainInterface::initScene() {
 	drawList->draw(meshes[4], 1);		//Reserve objects[1] for the planet
 	drawList->flush();
 
-	//Allocate textures
-	rock = g.create("rock", TextureInfo("res/textures/rock_dif.png"));
-	g.use(rock);
-
-	water = g.create("water", TextureInfo("res/textures/water_dif.png"));
-	g.use(water);
-
 	//Allocate our textures into a TextureList
-	TextureList *tex = shader->get<TextureList>("tex");
-	TextureHandle hrock = tex->alloc(rock);
-	TextureHandle hwater = tex->alloc(water);
+	textureList = g.create("Textures", TextureListInfo(2));
+	shader->set("tex", textureList);
 
-	//Create 2 materials with our textures
-	materialList = g.create("Materials", MaterialListInfo(tex, 2));
+	//Create the material list
+	materialList = g.create("Materials", MaterialListInfo(textureList, 2));
 	g.use(materialList);
 
+	//Allocate textures
+	trock = g.create("rock", TextureInfo(textureList, "res/textures/rock_dif.png"));
+	g.use(trock);
+
+	twater = g.create("water", TextureInfo(textureList, "res/textures/water_dif.png"));
+	g.use(twater);
+
 	//Setup our materials
-	MaterialStruct rockMat;
-	rockMat.t_diffuse = hrock;
+	rock = g.create("Rock material", MaterialInfo(materialList));
+	rock->setDiffuse(trock);
 
-	MaterialStruct waterMat;
-	waterMat.t_diffuse = hwater;
-
-	//Allocate materials into material list
-	MaterialHandle hrockMat = materialList->alloc(rockMat);
-	MaterialHandle hwaterMat = materialList->alloc(waterMat);
+	water = g.create("Water material", MaterialInfo(materialList));
+	water->setDiffuse(twater);
 
 	//Set our materials in our objects array
-	objects[0].diffuse = hwaterMat;		//Water
-	objects[1].diffuse = hrockMat;		//Planet
+	objects[0].diffuse = water->getHandle();	//Water
+	objects[1].diffuse = rock->getHandle();		//Planet
 
 	//Update the materials
 	materialList->update();
@@ -416,9 +412,12 @@ void MainInterface::update(f32 dt) {
 
 MainInterface::~MainInterface(){
 	g.finish();
-	g.destroy(materialList);
 	g.destroy(rock);
 	g.destroy(water);
+	g.destroy(trock);
+	g.destroy(twater);
+	g.destroy(textureList);
+	g.destroy(materialList);
 	g.destroy(drawList);
 	g.destroy(drawList0);
 	g.destroy(renderTarget);

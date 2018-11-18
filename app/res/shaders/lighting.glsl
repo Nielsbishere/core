@@ -7,7 +7,7 @@
 #define MaterialHandle uint
 
 //Material
-//112 bytes; ~9362 material (structs) per MiB
+//128 bytes; ~8192 material (structs) per MiB
 struct MaterialStruct {
 
 	Vec3 diffuse;
@@ -30,12 +30,17 @@ struct MaterialStruct {
 	f32 reflectiveness;
 	f32 sheen;
 	TextureHandle t_diffuse;			//sRGB8 (3 Bpp)
-	TextureHandle t_opacitySpecular;	//RG8 (2 Bpp)
+	TextureHandle t_opacity;			//R8 (1 Bpp)
+	
+	TextureHandle t_emissive;			//RGB16 (6 Bpp)
+	TextureHandle t_roughness;			//R8 (1 Bpp)
+	TextureHandle t_ao;					//R8 (1 Bpp)
+	TextureHandle t_height;				//R8 (1 Bpp)
 
-	TextureHandle t_emissive;			//RGB8 (3 Bpp)
-	TextureHandle t_rahm;				//RGBA8 (4 Bpp); Roughness, ao, height, metallic
+	TextureHandle t_metallic;			//R8 (1 Bpp)
 	TextureHandle t_normal;				//RGB8s (3 Bpp)
-	u32 p0;
+	TextureHandle t_specular;			//R8 (1 Bpp)
+	u32 p1;
 	
 };
 

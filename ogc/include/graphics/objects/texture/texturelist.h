@@ -1,10 +1,11 @@
 #pragma once
-#include "texture.h"
+#include "graphics/objects/graphicsresource.h"
 
 namespace oi {
 
 	namespace gc {
 
+		class Texture;
 		class TextureList;
 
 		struct TextureListInfo {
@@ -31,7 +32,6 @@ namespace oi {
 		public:
 
 			Texture *get(TextureHandle i);
-			void set(TextureHandle i, Texture *tex);
 
 			TextureHandle alloc(Texture *tex);
 			void dealloc(Texture *tex);

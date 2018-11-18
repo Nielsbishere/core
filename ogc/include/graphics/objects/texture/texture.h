@@ -12,6 +12,10 @@ namespace oi {
 		
 		class Graphics;
 		class CommandList;
+		class Texture;
+		class TextureList;
+
+		typedef u32 TextureHandle;
 
 		DEnum(TextureFormat, u32, Undefined = 0, 
 
@@ -71,8 +75,6 @@ namespace oi {
 			sRGBA8 = 8
 		);
 
-		class Texture;
-
 		struct TextureInfo {
 
 			typedef Texture ResourceType;
@@ -87,8 +89,11 @@ namespace oi {
 
 			u32 mipLevels = 1U;													//Automatic detection. No need to set it
 
-			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : res(res), format(format), usage(usage) {}
-			TextureInfo(String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8) : path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()) {}
+			TextureList *parent;
+			TextureHandle handle = u32_MAX;
+
+			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : parent(nullptr), res(res), format(format), usage(usage) {}
+			TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()) {}
 
 		};
 
@@ -104,8 +109,12 @@ namespace oi {
 			Vec2u getSize();
 			bool isOwned();
 
+			TextureHandle getHandle();
+
 			TextureExt &getExtension();
 			const TextureInfo getInfo();
+
+			void initParent(TextureList *parent);
 
 		protected:
 

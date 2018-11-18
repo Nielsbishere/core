@@ -3,6 +3,7 @@
 #include "graphics/graphics.h"
 #include "graphics/gl/vulkan.h"
 #include "graphics/objects/texture/texture.h"
+#include "graphics/objects/texture/texturelist.h"
 #include "graphics/objects/render/commandlist.h"
 using namespace oi::gc;
 using namespace oi;
@@ -246,11 +247,17 @@ bool Texture::init(bool isOwned) {
 		free(info.dat.addr());
 	}
 
+	if (info.parent != nullptr)
+		info.handle = info.parent->alloc(this);
+
 	Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	return true;
 }
 
 Texture::~Texture() {
+	
+	if(info.parent != nullptr)
+		info.parent->dealloc(this);
 
 	if (g != nullptr) {
 

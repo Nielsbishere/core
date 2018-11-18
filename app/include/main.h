@@ -14,11 +14,14 @@ namespace oi {
 		class Mesh;
 		class DrawList;
 		class RenderTarget;
+		class Material;
 		class MaterialList;
-		struct MeshAllocationInfo;
-		
+
 		class Texture;
-		typedef u32 TextureHandle;
+		class TextureList;
+
+		struct MeshAllocationInfo;
+
 		typedef u32 MaterialHandle;
 
 	}
@@ -92,7 +95,9 @@ private:
 	oi::gc::DrawList *drawList, *drawList0;
 	oi::gc::RenderTarget *renderTarget;
 	oi::gc::MaterialList *materialList;
-	oi::gc::Texture *water, *rock;
+	oi::gc::TextureList *textureList;
+	oi::gc::Material *water, *rock;
+	oi::gc::Texture *twater, *trock;
 
 	float exposure = .15f, gamma = .85f;
 	oi::Vec2 prevMouse;
