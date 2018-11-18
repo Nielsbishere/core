@@ -1,4 +1,6 @@
 #include "graphics/objects/texture/texturelist.h"
+#include "graphics/objects/render/commandlist.h"
+#include "graphics/graphics.h"
 using namespace oi::gc;
 
 Texture *TextureList::get(TextureHandle i) { return info.textures[i]; }

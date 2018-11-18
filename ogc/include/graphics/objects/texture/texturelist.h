@@ -32,7 +32,6 @@ namespace oi {
 		public:
 
 			Texture *get(TextureHandle i);
-
 			TextureHandle alloc(Texture *tex);
 			void dealloc(Texture *tex);
 

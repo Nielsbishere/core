@@ -779,6 +779,7 @@ A Texture is an array of attributes. This can be loaded from a file, written to 
 #### Constructor (from file)
 
 ```cpp
+TextureList *parent,			//The holder of the Texture; can be nullptr
 String path,					//Load from file
 TextureFormat format = sRGB8	//What type of format to load; TextureLoadFormat
 ```
@@ -812,11 +813,14 @@ TextureFormat format;
 TextureUsage usage;
 
 String path;
-Buffer dat;						//Loaded data from disk (if applicable)
+Buffer dat;							//Loaded data from disk (if applicable)
 TextureLoadFormat loadFormat 
-= TextureLoadFormat::Undefined;	//Loaded format
+= TextureLoadFormat::Undefined;		//Loaded format
 
-u32 mipLevels = 1U;				//Automatically detected miplevels
+u32 mipLevels = 1U;					//Automatically detected miplevels
+
+TextureList *parent;				//Owner responsible for the handle
+TextureHandle handle = u32_MAX;		//u32_MAX if parent nullptr; otherwise valid
 ```
 
 ### TextureFormat OEnum
@@ -884,6 +888,9 @@ TextureFormat getFormat();
 TextureUsage getUsage();
 Vec2u getSize();
 bool isOwned();
+
+TextureHandle getHandle();
+void initParent(TextureList *parent);		//Set parent if it is null
 ```
 
 ## Sampler
@@ -1073,14 +1080,14 @@ u32 count						//How many textures it can hold
 
 ```cpp
 std::vector<Texture*> textures;
+
+CommandList *textureCommands;
 ```
 
 ### Functions
 
 ```cpp
 Texture *get(TextureHandle i);				//Getting a Texture from TextureHandle
-void set(TextureHandle i, Texture *tex);	//Replacing a TextureHandle
-
 TextureHandle alloc(Texture *tex);			//Allocating a TextureHandle
 void dealloc(Texture *tex);					//Deallocating a TextureHandle
 
@@ -1090,21 +1097,171 @@ u32 size();
 ### Example
 
 ```cpp
-TextureList *tex = shader->get<TextureList>("tex");
-TextureHandle hrock = tex->alloc(rock);
-TextureHandle hwater = tex->alloc(water);
+//Allocate our textures into a TextureList
+textureList = g.create("Textures", TextureListInfo(2));
+shader->set("tex", textureList);
+
+//Allocate textures
+trock = g.create("rock", TextureInfo(textureList, "res/textures/rock_dif.png"));
+g.use(trock);
+
+twater = g.create("water", TextureInfo(textureList, "res/textures/water_dif.png"));
+g.use(twater);
 ```
 
-## TODO: MaterialList
+## MaterialList
 
-MaterialList has all materials; this is needed for the way draw calls are structured. This means that a MaterialHandle (uint) can be used to identify a Material.
+MaterialList has all materials; this is needed for the way draw calls are structured. This means that a MaterialHandle (uint) can be used to identify a Material. It is used for material allocation and deallocation.
 
 ### MaterialListInfo
+
+#### Constructor
 
 ```cpp
 TextureList *textures,		//The textures that are used for these materials
 u32 maxCount				//How many materials can be used
 ```
+
+#### Data
+
+```cpp
+TextureList *textures;
+
+bool notified = false;		//True if any submaterials have been updated
+u32 size;					//aka maxCount
+
+GBuffer *buffer = nullptr;	//Buffer that stores material structs
+```
+
+### Functions
+
+```cpp
+MaterialStruct *alloc(MaterialStruct info);		//Allocate a struct into buffer
+bool dealloc(MaterialStruct *ptr);				//Deallocate
+void flush();									//Update buffer
+
+MaterialStruct *operator[](MaterialHandle handle);				//Get by handle
+const MaterialStruct *operator[](MaterialHandle handle) const;	//^ const
+
+u32 getSize() const;							//Get size in materials
+u32 getBufferSize() const;						//Get size in bytes (* 128)
+GBuffer *getBuffer() const;						//Get GBuffer
+```
+
+## Material
+
+A material is a combination of parameters and textures that can be applied to models. These parameters are predefined, but an internal interpretation of materials could always be used; as long as it evaluates to the physically based rendering / raytracing material system. These values are stored in a MaterialStruct but updated through the Material class. 
+
+### MaterialInfo
+
+#### Constructor
+
+```cpp
+MaterialList *parent;
+```
+
+After calling the constructor (with a parent), you can access the material info through the 'temp' variable; which stores the information before it is allocated. Alternatively, you can always use the MaterialStruct pointer to get the current MaterialStruct (temp or allocated) and this can also be done through the `->` operator.
+
+```cpp
+MaterialInfo info(materialList);
+info->diffuse = Vec3(0.5f, 0, 1);
+info->ambient = Vec3(0.5f, 0.5f, 0.25f);
+//Allocate material
+```
+
+Or it can be done through the allocated material to use the more user-friendly interface.
+
+```cpp
+Material *m = g.create("My material", MaterialInfo(materialList));
+m->setDiffuse(Vec3(0.5f, 0, 1));
+m->setAmbient(Vec3(0.5f, 0.5f, 0.25f));
+
+//Setting a texture:
+m->setDiffuse(myTexture);
+```
+
+#### Data
+
+```cpp
+MaterialStruct temp;			//Temporary instance (for initialization)
+
+MaterialList *parent;			//Parent; material buffer
+MaterialStruct *ptr;			//Current material struct; temp or allocated
+```
+
+### Functions
+
+```cpp
+MaterialHandle getHandle() const;
+MaterialList *getParent() const;
+
+void setDiffuse(Vec3 dif);
+void setAmbient(Vec3 amb);
+void setShininess(f32 shn);
+void setEmissive(Vec3 emi);
+void setShininessExponent(f32 sne);
+void setSpecular(Vec3 spc);
+void setRoughness(f32 rgh);
+void setMetallic(f32 met);
+void setTransparency(f32 trn);
+void setClearcoat(f32 clc);
+void setClearcoatGloss(f32 clg);
+void setReflectiveness(f32 rfn);
+void setSheen(f32 shn);
+
+void setDiffuse(Texture *difTex);
+void setOpacity(Texture *opcTex);
+void setEmissive(Texture *emiTex);
+void setRoughness(Texture *rghTex);
+void setAmbientOcclusion(Texture *aocTex);
+void setHeight(Texture *hghTex);
+void setMetallic(Texture *metTex);
+void setNormal(Texture *nrmTex);
+void setSpecular(Texture *spcTex);
+```
+
+### MaterialStruct
+
+```cpp
+//All material info; 128 bytes (8 lines)
+struct MaterialStruct {
+
+	Vec3 diffuse = 1.f;
+	MaterialHandle id = u32_MAX;
+
+	Vec3 ambient = 0.1f;
+	f32 shininess = 0.f;
+
+	Vec3 emissive = 0.f;
+	f32 shininessExponent = 1.f;
+
+	Vec3 specular = 1.f;
+	f32 roughness = 0.5f;
+
+	f32 metallic = 0.5f;
+	f32 transparency = 0.f;
+	f32 clearcoat = 0.5f;
+	f32 clearcoatGloss = 0.5f;
+
+	f32 reflectiveness = 0.f;
+	f32 sheen = 0.f;
+	TextureHandle t_diffuse = 0;			//sRGB8 (3 Bpp)
+	TextureHandle t_opacity = 0;			//R8 (1 Bpp)
+
+	TextureHandle t_emissive = 0;			//RGB16 (6 Bpp)
+	TextureHandle t_roughness = 0;			//R8 (1 Bpp)
+	TextureHandle t_ao = 0;					//R8 (1 Bpp)
+	TextureHandle t_height = 0;				//R8 (1 Bpp)
+
+	TextureHandle t_metallic = 0;			//R8 (1 Bpp); Metallic
+	TextureHandle t_normal = 0;				//RGB8s (3 Bpp)
+	TextureHandle t_specular = 0;			//R8 (1 Bpp)
+	u32 p0 = 0;
+
+};
+```
+
+A MaterialStruct is the GPU representation of a material; a handle can be used to reference one in a MaterialList.
 
 ## VersionedTexture
 
@@ -1660,10 +1817,12 @@ When you finish your program, you have to tell Graphics to finish the current fr
 ```cpp
 MainInterface::~MainInterface(){
 	g.finish();
-	g.destroy(materialList);
 	g.destroy(rock);
 	g.destroy(water);
-	g.destroy(osomi);
+	g.destroy(trock);
+	g.destroy(twater);
+	g.destroy(textureList);
+	g.destroy(materialList);
 	g.destroy(drawList);
 	g.destroy(drawList0);
 	g.destroy(renderTarget);
@@ -1763,39 +1922,36 @@ void MainInterface::initScene() {
 	drawList->draw(meshes[4], 1);		//Reserve objects[1] for the planet
 	drawList->flush();
 
+	//Allocate our textures into a TextureList and send it to our shader
+	textureList = g.create("Textures", TextureListInfo(2));
+	shader->set("tex", textureList);
+
 	//Allocate textures
-	rock = g.create("rock", TextureInfo("res/textures/rock_dif.png"));
-	g.use(rock);
+	trock = g.create("rock", 
+                     TextureInfo(textureList, "res/textures/rock_dif.png"));
+	g.use(trock);
 
-	water = g.create("water", TextureInfo("res/textures/water_dif.png"));
-	g.use(water);
+	twater = g.create("water", 
+                      TextureInfo(textureList, "res/textures/water_dif.png"));
+	g.use(twater);
 
-    //Allocate our textures into a TextureList
-	TextureList *tex = shader->get<TextureList>("tex");
-	TextureHandle hrock = tex->alloc(rock);
-	TextureHandle hwater = tex->alloc(water);
-
-    //Create 2 materials with our textures
-	materialList = g.create("Materials", MaterialListInfo(tex, 2));
+	//Create the material list
+	materialList = g.create("Materials", MaterialListInfo(textureList, 2));
 	g.use(materialList);
 
-    //Setup our materials
-	MaterialStruct rockMat;
-	rockMat.t_diffuse = hrock;
+	//Setup our materials
+	rock = g.create("Rock material", MaterialInfo(materialList));
+	rock->setDiffuse(trock);
 
-	MaterialStruct waterMat;
-	waterMat.t_diffuse = hwater;
+	water = g.create("Water material", MaterialInfo(materialList));
+	water->setDiffuse(twater);
 
-    //Allocate materials into material list
-	MaterialHandle hrockMat = materialList->alloc(rockMat);
-	MaterialHandle hwaterMat = materialList->alloc(waterMat);
+	//Set our materials in our objects array
+	objects[0].diffuse = water->getHandle();	//Water
+	objects[1].diffuse = rock->getHandle();		//Planet
 
-    //Set our materials in our objects array
-	objects[0].diffuse = hwaterMat;		//Water
-	objects[1].diffuse = hrockMat;		//Planet
-
-    //Update the materials
-	materialList->update();
+	//Update the materials
+	materialList->flush();
 
 	//Set our shader samplers
 	shader->set("samp", sampler);

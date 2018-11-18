@@ -238,16 +238,16 @@ void MainInterface::initScene() {
 	textureList = g.create("Textures", TextureListInfo(2));
 	shader->set("tex", textureList);
 
-	//Create the material list
-	materialList = g.create("Materials", MaterialListInfo(textureList, 2));
-	g.use(materialList);
-
 	//Allocate textures
 	trock = g.create("rock", TextureInfo(textureList, "res/textures/rock_dif.png"));
 	g.use(trock);
 
 	twater = g.create("water", TextureInfo(textureList, "res/textures/water_dif.png"));
 	g.use(twater);
+
+	//Create the material list
+	materialList = g.create("Materials", MaterialListInfo(textureList, 2));
+	g.use(materialList);
 
 	//Setup our materials
 	rock = g.create("Rock material", MaterialInfo(materialList));
@@ -261,7 +261,7 @@ void MainInterface::initScene() {
 	objects[1].diffuse = rock->getHandle();		//Planet
 
 	//Update the materials
-	materialList->update();
+	materialList->flush();
 
 	//Set our shader samplers
 	shader->set("samp", sampler);

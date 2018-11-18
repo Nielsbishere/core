@@ -30,7 +30,7 @@ bool MaterialList::dealloc(MaterialStruct *str) {
 
 }
 
-void MaterialList::update() {
+void MaterialList::flush() {
 	if (info.notified) {
 		getBuffer()->flush();
 		info.notified = false;

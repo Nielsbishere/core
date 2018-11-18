@@ -21,7 +21,7 @@ namespace oi {
 
 			TextureList *textures;
 
-			bool notified;
+			bool notified = false;
 			u32 size;
 
 			GBuffer *buffer = nullptr;
@@ -41,16 +41,16 @@ namespace oi {
 
 			MaterialStruct *alloc(MaterialStruct info);
 			bool dealloc(MaterialStruct *ptr);
-			void update();
+			void flush();
 
 			MaterialStruct *operator[](MaterialHandle handle);
 			const MaterialStruct *operator[](MaterialHandle handle) const;
 
 			u32 getSize() const;
 			u32 getBufferSize() const;
+			GBuffer *getBuffer() const;
 
 			const MaterialListInfo getInfo() const;
-			GBuffer *getBuffer() const;
 
 		protected:
 

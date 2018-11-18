@@ -69,8 +69,9 @@ namespace oi {
 
 		public:
 
-			MaterialHandle getHandle() const;
 			const MaterialInfo &getInfo() const;
+
+			MaterialHandle getHandle() const;
 			MaterialList *getParent() const;
 
 			void setDiffuse(Vec3 dif);
