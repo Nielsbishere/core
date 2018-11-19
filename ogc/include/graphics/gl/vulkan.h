@@ -35,7 +35,9 @@ namespace oi {
 			VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
 			u32 queueFamilyIndex = u32_MAX;
 
+			#ifdef __WINDOWS__
 			PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
+			#endif
 
 		};
 
@@ -192,6 +194,8 @@ namespace oi {
 		template<typename T>
 		void vkName(VkGraphics &g, T val, VkObjectType type, String name) {
 
+			#ifdef __WINDOWS__
+
 			const VkDebugUtilsObjectNameInfoEXT namedInfo = {
 				VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, // sType
 				NULL,                                               // pNext
@@ -204,6 +208,8 @@ namespace oi {
 				return;
 
 			g.debugNames(g.device, &namedInfo);
+
+			#endif
 
 		}
 

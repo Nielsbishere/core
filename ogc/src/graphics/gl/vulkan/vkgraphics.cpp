@@ -305,7 +305,7 @@ void Graphics::init(Window *w){
 	Log::println("Successfully created device");
 	delete[] families;
 
-	#ifdef __DEBUG__
+	#if defined(__DEBUG__) && defined(__WINDOWS__)
 
 	//Debug object names
 
