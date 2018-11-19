@@ -38,6 +38,7 @@ declFlag release release
 declFlag exclude_ext_formats exexfo
 declFlag help helpMe
 declFlag strip_debug_info strip
+declFlag disable_parallel noparallel
 declParam abi abi
 declParam lvl lvl
 declParam dev dev
@@ -72,6 +73,7 @@ then
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	echo "-strip_debug_info Strips debug info (shaders)"
+	echo "-disable_parallel To disable parallel compilation (for travis build)"
 	exit
 fi
 
@@ -86,9 +88,9 @@ build(){
 	cd builds/Android/$1
 	
 	if ! [ "$gen" == "" ] ; then
-		cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM=${ANDROID_NDK}/prebuilt/$dev/bin/make -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
+		cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
 	else
-		cmake "../../../" -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM=${ANDROID_NDK}/prebuilt/$dev/bin/make -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
+		cmake "../../../" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
 	fi
 
 
@@ -96,6 +98,10 @@ build(){
 
 }
 
+
+if ! [ $noparallel ] ; then
+	params="-j"
+fi
 
 if [ "$abi" == "all" ]
 then
@@ -111,16 +117,16 @@ then
 
 	echo "#!/bin/bash" > build_android.sh
 	echo cd builds/Android/arm64-v8a >> build_android.sh
-	echo $makeCmd >> build_android.sh
+	echo $makeCmd $params >> build_android.sh
 
 	echo cd ../x86_64 >> build_android.sh
-	echo $makeCmd >> build_android.sh
+	echo $makeCmd $params >> build_android.sh
 
 	echo cd ../armeabi-v7a >> build_android.sh
-	echo $makeCmd >> build_android.sh
+	echo $makeCmd $params >> build_android.sh
 
 	echo cd ../x86 >> build_android.sh
-	echo $makeCmd >> build_android.sh
+	echo $makeCmd $params >> build_android.sh
 
 	echo cd ../ >> build_android.sh
 
@@ -157,7 +163,7 @@ else
 	# Build all targets
 
 	echo cd builds/Android/$abi > build_android.sh
-	echo $makeCmd >> build_android.sh
+	echo $makeCmd $params >> build_android.sh
 	echo cd ../ >> build_android.sh
 
 	# Make apk dirs
