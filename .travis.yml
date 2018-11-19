@@ -31,8 +31,8 @@ install:
 
 script:
    - cd $HOME/build/OsomiLunar/ocore
-   - chmod +x make_android.sh -abi=arm64-v8a
-   - ./make_android.sh
+   - chmod +x make_android.sh
+   - ./make_android.sh -abi=arm64-v8a
    - chmod +x build_android.sh
    - ./build_android.sh
 

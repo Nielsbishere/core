@@ -157,7 +157,7 @@ else
 	# Build all targets
 
 	echo cd builds/Android/$abi > build_android.sh
-	echo $makeCmd -j >> build_android.sh
+	echo $makeCmd >> build_android.sh
 	echo cd ../ >> build_android.sh
 
 	# Make apk dirs
