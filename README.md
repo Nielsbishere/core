@@ -34,9 +34,7 @@ The following dependencies are required for the entire project:
 
 ### Windows
 
-The project uses bash; Unix's built in scripting language. This means that you need to emulate Unix's functions and Unix Makefiles. This can be done by installing the [Git BASH](https://gitforwindows.org/) and [Mingw-w64](https://mingw-w64.org/).
-
-When you're on Windows, make sure that you **DON'T HAVE CYGWIN INSTALLED**. This is because Git BASH conflicts with Cygwin; causing the Unix commands to not work like expected.
+The project uses bash; Unix's built in scripting language. This means that you need to emulate Unix's functions and Unix Makefiles. This can be done by installing the [Git BASH](https://gitforwindows.org/) and [Mingw-w64](https://mingw-w64.org/). Make sure that you use the Git BASH client, not Cygwin's bash; to force this, you can use `bash -c "$cmd"` where cmd is your command and bash is Git BASH; either through path variable or an absolute path.
 
 # Building using CMake
 
@@ -61,23 +59,23 @@ Packaging a Windows build will ensure that both x64 and x86 binaries are in the 
 ```sh
 # Don't package .fbx, .obj and .glsl/.hlsl/.vert/.frag./.comp/.geom files (only .oiSH and .oiRM)
 # Release build without console (x64 & x86)
-make_windows.sh -release -exclude_ext_formats -no_console
+make_windows.sh -cmake -release -exclude_ext_formats -no_console
 
 # Also strip debug info (so the shader source can't be reversed as easily)
 # This saves disk space as well as securing the SPV-side of the oiSH file.
-make_windows.sh -release -exclude_ext_formats -no_console -strip_debug_info
+make_windows.sh -cmake -release -exclude_ext_formats -no_console -strip_debug_info
 
 # Debug build; with all external formats & console & debug info (x64 & x86)
-make_windows.sh
+make_windows.sh -cmake
 
 # Release build; with all external formats (x64 only; no console)
-make_windows.sh -env=x64 -no_console
+make_windows.sh -cmake -env=x64 -no_console
 
 # Get more info about the command
 make_windows.sh -help
 ```
 
-This will generate a folder; builds/Windows/build, which includes the x86 and x64 binaries 
+This will generate a folder; builds/Windows/build, which includes the x86 and x64 binaries. If you include the `-cmake` flag, it will reload/initialize the CMake data; while adding `-run` will automatically run the project when it is done building. Don't include the CMake flag if you don't change the environment (you don't add source or include files or change build flags), since it will require the project to rebuild entirely or partly.
 
 ## Setting up an Android environment
 

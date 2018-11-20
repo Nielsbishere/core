@@ -37,6 +37,8 @@ declFlag exclude_ext_formats exexfo
 declFlag help helpMe
 declFlag no_console noConsole
 declFlag strip_debug_info strip
+declFlag cmake cmake
+declFlag run run
 declParam env env
 
 if [ $helpMe ]
@@ -46,6 +48,8 @@ then
 	echo - Vulkan SDK
 	echo
 	echo "Command line args:"
+	echo "-cmake Reloads or initializes the CMake data"
+	echo "-run Runs the final build"
 	echo "-env=all Platform (x86, x64)"
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
@@ -76,12 +80,16 @@ reload(){
 mkdir -p builds/Windows
 cd builds/Windows
 
-if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
-	reload "x86_64" "Visual Studio 15 2017 Win64"
-fi
+if [ $cmake ] ; then
 
-if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
-	reload "x86" "Visual Studio 15 2017"
+	if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
+		reload "x86_64" "Visual Studio 15 2017 Win64"
+	fi
+
+	if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
+		reload "x86" "Visual Studio 15 2017"
+	fi
+
 fi
 
 # Build type
@@ -147,4 +155,16 @@ then
 
 fi
 
-cd ../../../../
+if [ $run ] ; then
+
+	cd ../
+
+	if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
+		"./Osomi Core.exe"
+	else
+		"./Osomi Core x86.exe"
+	fi
+
+fi
+
+cd ../../../
