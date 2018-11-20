@@ -39,6 +39,8 @@ declFlag exclude_ext_formats exexfo
 declFlag help helpMe
 declFlag strip_debug_info strip
 declFlag disable_parallel noparallel
+declFlag run run
+declFlag cmake cmake
 declParam abi abi
 declParam lvl lvl
 declParam dev dev
@@ -67,6 +69,8 @@ then
 	echo - Vulkan SDK
 	echo
 	echo "Command line args:"
+	echo "-cmake Reloads or initializes the CMake data"
+	echo "-run Runs the build"
 	echo "-abi=all Android ABI (all if not specified)"
 	echo "-lvl=24 Android API level (24 or higher)"
 	echo "-dev=linux-x86_64 Dev environment (linux-x86_64 by default)"
@@ -108,130 +112,136 @@ then
 
 	# Make all builds
 
-	build arm64-v8a
-	build x86_64
-	build armeabi-v7a
-	build x86
+	if [ $cmake ] ; then
+
+		build arm64-v8a
+		build x86_64
+		build armeabi-v7a
+		build x86
+
+	fi
 
 	# Build all targets
 
-	echo "#!/bin/bash" > build_android.sh
-	echo cd builds/Android/arm64-v8a >> build_android.sh
-	echo $makeCmd $params >> build_android.sh
+	cd builds/Android/arm64-v8a
+	eval "$makeCmd" $params
 
-	echo cd ../x86_64 >> build_android.sh
-	echo $makeCmd $params >> build_android.sh
+	cd ../x86_64
+	eval "$makeCmd" $params
 
-	echo cd ../armeabi-v7a >> build_android.sh
-	echo $makeCmd $params >> build_android.sh
+	cd ../armeabi-v7a
+	eval "$makeCmd" $params
 
-	echo cd ../x86 >> build_android.sh
-	echo $makeCmd $params >> build_android.sh
+	cd ../x86
+	eval "$makeCmd" $params
 
-	echo cd ../ >> build_android.sh
+	cd ../
 
 	# Make apk dirs
 
-	echo rm -rf build >> build_android.sh
-	echo mkdir -p build >> build_android.sh
-	echo mkdir -p build/libs >> build_android.sh
-	echo mkdir -p build/libs/arm64-v8a >> build_android.sh
-	echo mkdir -p build/libs/x86_64 >> build_android.sh
-	echo mkdir -p build/libs/armeabi-v7a >> build_android.sh
-	echo mkdir -p build/libs/x86 >> build_android.sh
+	rm -rf build
+	mkdir -p build
+	mkdir -p build/libs
+	mkdir -p build/libs/arm64-v8a
+	mkdir -p build/libs/x86_64
+	mkdir -p build/libs/armeabi-v7a
+	mkdir -p build/libs/x86
 
 	# Dependencies
 
 	if ! [ $release ]
 	then
-		echo cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/* build/libs >> build_android.sh
-		echo rm -rf build/libs/mips >> build_android.sh
-		echo rm -rf build/libs/mips64 >> build_android.sh
+		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/* build/libs
+		rm -rf build/libs/mips
+		rm -rf build/libs/mips64
 	fi
 
-	echo cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/* build/libs >> build_android.sh
+	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/* build/libs
 
 	# Prepare assets, src and AndroidManifest, build.xml
 
-	echo cp -r arm64-v8a/bin/build/* build >> build_android.sh
+	cp -r arm64-v8a/bin/build/* build
 
 else
 
 	# Make build
-	build $abi
+
+	if [ $cmake ] ; then
+		build $abi
+	fi
 	
 	# Build all targets
 
-	echo cd builds/Android/$abi > build_android.sh
-	echo $makeCmd $params >> build_android.sh
-	echo cd ../ >> build_android.sh
+	cd builds/Android/$abi
+	eval "$makeCmd" $params
+	cd ../
 
 	# Make apk dirs
 
-	echo rm -rf build >> build_android.sh
-	echo mkdir -p build >> build_android.sh
-	echo mkdir -p build/libs >> build_android.sh
-	echo mkdir -p build/libs/$abi >> build_android.sh
+	rm -rf build
+	mkdir -p build
+	mkdir -p build/libs
+	mkdir -p build/libs/$abi
 
 	# Dependencies
 
 	if ! [ $release ]
 	then
-		echo cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$abi/* build/libs/$abi >> build_android.sh
+		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$abi/* build/libs/$abi
 	fi
 
-	echo cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$abi/* build/libs/$abi >> build_android.sh
+	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$abi/* build/libs/$abi
 
 	# Prepare src and AndroidManifest, build.xml
 
-	echo cp -r $abi/bin/build/* build >> build_android.sh
+	cp -r $abi/bin/build/* build
 
 fi
 
 # Prepare assets and src
 
-echo mkdir -p build/src >> build_android.sh
-echo cp -r ../../app_android/src/* build/src >> build_android.sh
-echo cp -r ../../app_android/res/* build/res >> build_android.sh
+mkdir -p build/src
+cp -r ../../app_android/src/* build/src
+cp -r ../../app_android/res/* build/res
 
-echo mkdir -p build/assets >> build_android.sh
-echo mkdir -p build/assets/res >> build_android.sh
+mkdir -p build/assets
+mkdir -p build/assets/res
 
 # Run baker
 
 if [ "$dev" == "windows-x86_64" ] ; then
 
-	echo cd ../../app >> build_android.sh
+	cd ../../app
 	
 	if [ $strip ] ; then
-		echo "../oibaker.exe" -strip_debug_info >> build_android.sh
+		"../oibaker.exe" -strip_debug_info
 	else
-		echo "../oibaker.exe" >> build_android.sh
+		"../oibaker.exe"
 	fi
 
-	echo cd ../builds/Android >> build_android.sh
+	cd ../builds/Android
 
 fi
 
 # Copy results
 
-echo cp -r ../../app/res/* build/assets/res >> build_android.sh
+cp -r ../../app/res/* build/assets/res
 
 # Filter out some extensions
 
 if [ $exexfo ]
 then
-	echo cd build/assets/res >> build_android.sh
-	echo find . -type f -name '*.oiBM' -exec rm -f {} +	>> build_android.sh
-	echo find . -type f -name '*.fbx' -exec rm -f {} + >> build_android.sh
-	echo find . -type f -name '*.obj' -exec rm -f {} + >> build_android.sh
-	echo find . -type f -name '*.glsl' -exec rm -f {} +	>> build_android.sh
-	echo find . -type f -name '*.hlsl' -exec rm -f {} +	>> build_android.sh
-	echo find . -type f -name '*.vert' -exec rm -f {} +	>> build_android.sh
-	echo find . -type f -name '*.frag' -exec rm -f {} +	>> build_android.sh
-	echo find . -type f -name '*.geom' -exec rm -f {} +	>> build_android.sh
-	echo find . -type f -name '*.comp' -exec rm -f {} +	>> build_android.sh
-	echo cd ../../../ >> build_android.sh
+	cd build/assets/res
+	find . -type f -name '*.oiBM' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.fbx' -exec rm -f {} +
+	find . -type f -name '*.obj' -exec rm -f {} +
+	find . -type f -name '*.glsl' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.hlsl' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.vert' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.frag' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.geom' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.comp' -exec rm -f {} +	>> build_android.sh
+	cd ../../../
 fi
 
 if [ "$abi" == "all" ]
@@ -239,44 +249,47 @@ then
 
 	# Copy build results
 
-	echo cp arm64-v8a/lib/libapp_android.so build/libs/arm64-v8a/libapp_android.so >> build_android.sh
-	echo cp x86_64/lib/libapp_android.so build/libs/x86_64/libapp_android.so >> build_android.sh
-	echo cp armeabi-v7a/lib/libapp_android.so build/libs/armeabi-v7a/libapp_android.so >> build_android.sh
-	echo cp x86/lib/libapp_android.so build/libs/x86/libapp_android.so >> build_android.sh
+	cp arm64-v8a/lib/libapp_android.so build/libs/arm64-v8a/libapp_android.so
+	cp x86_64/lib/libapp_android.so build/libs/x86_64/libapp_android.so
+	cp armeabi-v7a/lib/libapp_android.so build/libs/armeabi-v7a/libapp_android.so
+	cp x86/lib/libapp_android.so build/libs/x86/libapp_android.so
 
 else
 
 	# Copy build results
 
-	echo cp $abi/lib/libapp_android.so build/libs/$abi/libapp_android.so >> build_android.sh
+	cp $abi/lib/libapp_android.so build/libs/$abi/libapp_android.so
 
 fi
 
-echo cd build >> build_android.sh
+cd build
 
 if [ $release ]
 then
-	echo ant release >> build_android.sh
-	# echo jarsigner -verbose -keystore ~/my-release-key.keystore bin/app_android-unsigned.apk myalias >> build_android.sh
-	echo zipalign -v -f 4 bin/app_android-unsigned.apk bin/app_android.apk >> build_android.sh
+	ant release
+	# jarsigner -verbose -keystore ~/my-release-key.keystore bin/app_android-unsigned.apk myalias
+	zipalign -v -f 4 bin/app_android-unsigned.apk bin/app_android.apk
 else
-	echo ant debug >> build_android.sh
+	ant debug
 fi
 
 # run script
-echo "#!/bin/bash" > run_android.sh
-echo ./build_android.sh >> run_android.sh
-echo cd builds/Android/build/bin >> run_android.sh
 
-if [ $release ]
-then
-	echo adb install -r app_android.apk >> run_android.sh
-else
-	echo adb install -r app_android-debug.apk >> run_android.sh
+if [ $run ] ; then
+
+	cd bin
+	
+	if [ $release ]
+	then
+		adb install -r app_android.apk
+	else
+		adb install -r app_android-debug.apk
+	fi
+	
+	adb shell am start -n net.osomi.Osomi_Core/android.app.NativeActivity
+	adb logcat -c
+	adb logcat -s "oi_Log"
+
 fi
 
-echo adb shell am start -n net.osomi.Osomi_Core/android.app.NativeActivity >> run_android.sh
-echo adb logcat -c >> run_android.sh
-echo adb logcat -s "oi_Log" >> run_android.sh
-
-cd ../../
+cd ../../../../

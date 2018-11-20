@@ -49,7 +49,7 @@ then
 	echo
 	echo "Command line args:"
 	echo "-cmake Reloads or initializes the CMake data"
-	echo "-run Runs the final build"
+	echo "-run Runs the build"
 	echo "-env=all Platform (x86, x64)"
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"

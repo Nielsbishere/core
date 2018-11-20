@@ -95,38 +95,28 @@ Before you can use Android, you have to ensure that all variables are set correc
 
 ```sh
 # Setup a debug environment for all android ABIs, API lvl 24, windows environment
-make_android.sh -abi=windows-x86_64
+make_android.sh -cmake -abi=windows-x86_64
 
 # Setup for linux environment
-make_android.sh
+make_android.sh -cmake
 
 # Release environment for windows; with only .oiRM models, .oiSH shaders, textures and settings
-make_android.sh -abi=windows-x86_64 -release -exclude_ext_formats
+make_android.sh -cmake -abi=windows-x86_64 -release -exclude_ext_formats
 
 # Exclude debug info from shaders
-make_android.sh -strip_debug_info
+make_android.sh -cmake -strip_debug_info
 
 # Only build arm64-v8a debug for linux-x86_64
-make_android.sh -abi=arm64-v8a
+make_android.sh -cmake -abi=arm64-v8a
 
 # Get more info about the command
 make_android.sh -help
 ```
-On Linux, this might require you to `chmod +x make_android.sh` before you use it.
+On Linux, this might require you to `chmod +x make_android.sh` before you use it. The `cmake` flag is only needed when you need to update the CMake files; so either the environment changed (build flags & vars) or there were source files added; otherwise specifying it will cost extra compile time.
 
-#### Building / running apk
+#### Running & building apk
 
-```sh
-# Build APK (builds/Android/apk/bin)
-build_android.sh
-
-# Build and run APK
-run_android.sh
-```
-
-Building an APK file requires you to build ALL architectures; arm64-v8a, armeabi-v7a, x86_64, x86. This means long compile times. Try to pick the ABI of your choosing (check your emulator or phone) and set the environment to build for that.
-
-On Linux, this might require you to `chmod +x build_android.sh` and `chmod +x run_android.sh`.
+Building an APK file requires you to build architectures; arm64-v8a, armeabi-v7a, x86_64, x86. This means long compile times. Try to pick the ABI of your choosing (check your emulator or phone) and set the environment to build for that. However, you can also pick one for shorter compile times (testing purposes). The only reason you'd not specify `-abi=x` is to build an APK that will run on all Android 7.0+ environments. By adding `-run` to the make_android command, it will try to run it automatically on a device; this could be attached or an emulator that is currently active. 
 
 ## Baking all resources
 
