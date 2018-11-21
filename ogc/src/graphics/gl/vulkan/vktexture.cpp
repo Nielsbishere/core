@@ -122,7 +122,7 @@ bool Texture::init(bool isOwned) {
 
 		//Push that into the texture
 
-		if ((ext.cmdList = g->create(getName() + " stage command", CommandListInfo())) == nullptr)
+		if ((ext.cmdList = g->create(getName() + " stage command", CommandListInfo(true))) == nullptr)
 			return Log::throwError<Texture, 0x6>("Couldn't send texture data; it requires a cmdList");
 
 		CommandListExt &cmd = ext.cmdList->getExtension();
@@ -145,7 +145,7 @@ bool Texture::init(bool isOwned) {
 		barrier.subresourceRange.layerCount = 1;
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-		vkCmdPipelineBarrier(cmd.cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 		///Copy it into the texture
 
@@ -156,7 +156,7 @@ bool Texture::init(bool isOwned) {
 		region.imageSubresource.layerCount = 1U;
 		region.imageExtent = { info.res.x, info.res.y, 1 };
 
-		vkCmdCopyBufferToImage(cmd.cmd, gbext.resource, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+		vkCmdCopyBufferToImage(cmd.cmds[0], gbext.resource, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 		///Now generate mipmaps
 
@@ -182,7 +182,7 @@ bool Texture::init(bool isOwned) {
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-			vkCmdPipelineBarrier(cmd.cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 			///Create mipmap from mip i - 1 into i
 
@@ -199,7 +199,7 @@ bool Texture::init(bool isOwned) {
 			blit.dstSubresource.mipLevel = i;
 			blit.dstSubresource.layerCount = 1U;
 
-			vkCmdBlitImage(cmd.cmd, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+			vkCmdBlitImage(cmd.cmds[0], ext.resource, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
 
 			if (mipWidth > 1) mipWidth >>= 1U;
 			if (mipHeight > 1) mipHeight >>= 1U;
@@ -232,7 +232,7 @@ bool Texture::init(bool isOwned) {
 
 		VkImageMemoryBarrier barriers[] = { barrier, barrier0 };
 
-		vkCmdPipelineBarrier(cmd.cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, info.mipLevels == 1 ? 1U : 2U, info.mipLevels == 1 ? barriers + 1 : barriers);
+		vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, info.mipLevels == 1 ? 1U : 2U, info.mipLevels == 1 ? barriers + 1 : barriers);
 
 		///Submit commands
 

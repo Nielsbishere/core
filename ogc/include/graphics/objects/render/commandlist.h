@@ -16,7 +16,15 @@ namespace oi {
 		class Mesh;
 		class DrawList;
 
-		struct CommandListInfo { typedef CommandList ResourceType; };
+		struct CommandListInfo { 
+
+			typedef CommandList ResourceType; 
+
+			bool isReusable;
+
+			CommandListInfo(bool isReusable = false) : isReusable(isReusable) {}
+		
+		};
 
 		struct RenderTargetClear {
 

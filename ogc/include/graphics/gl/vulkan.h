@@ -20,23 +20,32 @@ namespace oi {
 
 			VkInstance instance = VK_NULL_HANDLE;
 			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
-			VkPhysicalDeviceMemoryProperties pmemory{};
-			VkPhysicalDeviceFeatures pfeatures{};
 			VkDevice device = VK_NULL_HANDLE;
 			VkSurfaceKHR surface = VK_NULL_HANDLE;
-			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
 			VkQueue queue = VK_NULL_HANDLE;
-			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 			VkSwapchainKHR swapchain = VK_NULL_HANDLE;
-			VkFence present = VK_NULL_HANDLE;
-			u32 current = 0;
 			VkCommandPool pool = VK_NULL_HANDLE;
-			VkSemaphore semaphore = VK_NULL_HANDLE;
-			VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
+
+			VkPhysicalDeviceFeatures pfeatures{};
+			VkPhysicalDeviceMemoryProperties pmemory{};
+
+			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+
+			std::vector<VkFence> fences;
+			std::vector<VkSemaphore> semaphores;
+
+			u32 current = 0, frames = 0;
 			u32 queueFamilyIndex = u32_MAX;
 
-			#ifdef __WINDOWS__
-			PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
+			#ifdef __DEBUG__
+
+				VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
+
+				#ifdef __WINDOWS__
+					PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
+				#endif
+
 			#endif
 
 		};
@@ -86,7 +95,9 @@ namespace oi {
 		struct VkCommandList {
 
 			VkCommandPool pool = VK_NULL_HANDLE;
-			VkCommandBuffer cmd = VK_NULL_HANDLE;
+			std::vector<VkCommandBuffer> cmds;
+
+			VkCommandBuffer &cmd(VkGraphics &g);
 
 		};
 

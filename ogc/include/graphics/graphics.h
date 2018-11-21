@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include "types/vector.h"
+#include "utils/timer.h"
 #include "graphics/gl/generic.h"
 #include "memory/blockallocator.h"
 
@@ -112,6 +113,8 @@ namespace oi {
 			
 			bool initialized = false;
 			u32 buffering = 0, heapSize = 0;
+
+			Timer renderTimer;
 
 			RenderTarget *backBuffer = nullptr;
 			oi::BlockAllocator allocator;

@@ -1018,7 +1018,13 @@ A CommandList contains all commands to send to the GPU.
 
 ### CommandListInfo
 
-The command list doesn't require any additional arguments and stores no data.
+#### Constructor & data
+
+```cpp
+//If it is reusable; it means that commands recorded stay recorded
+//Otherwise; it will be versioned so that it can be used render-time.
+bool isReusable = false;
+```
 
 ### Functions
 

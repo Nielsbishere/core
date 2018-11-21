@@ -56,8 +56,6 @@ Graphics::~Graphics(){
 		objects.clear();
 
 		vkDestroyCommandPool(ext.device, ext.pool, vkAllocator);
-		vkDestroySemaphore(ext.device, ext.semaphore, vkAllocator);
-		vkDestroyFence(ext.device, ext.present, vkAllocator);
 
 		destroySurface();
 
@@ -316,27 +314,6 @@ void Graphics::init(Window *w){
 	vkName(ext, ext.instance, VK_OBJECT_TYPE_INSTANCE, "Vulkan instance");
 	vkName(ext, ext.device, VK_OBJECT_TYPE_DEVICE, "Vulkan device");
 
-	//Create present fence
-
-	VkFenceCreateInfo fenceInfo;
-	memset(&fenceInfo, 0, sizeof(fenceInfo));
-
-	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-
-	vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, vkAllocator, &ext.present), "Couldn't create the present fence");
-	vkName(ext, ext.present, VK_OBJECT_TYPE_FENCE, "Present fence");
-
-	//Create semaphore
-
-	VkSemaphoreCreateInfo semaphoreInfo;
-	memset(&semaphoreInfo, 0, sizeof(semaphoreInfo));
-
-	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, &ext.semaphore), "Couldn't create semaphore");
-	vkName(ext, ext.semaphore, VK_OBJECT_TYPE_SEMAPHORE, "Present semaphore");
-
-
 	//Create command pool
 
 	VkCommandPoolCreateInfo poolInfo;
@@ -419,6 +396,8 @@ void Graphics::initSurface(Window *w) {
 	
 	//Try to support mailbox present mode if triple buffering is enabled
 	
+	Log::println(String("Attempting ") + buffering);
+
 	if(buffering > capabilities.maxImageCount && capabilities.maxImageCount > 0) buffering = capabilities.maxImageCount;
 	if(buffering < capabilities.minImageCount) buffering = capabilities.minImageCount;
 	
@@ -444,7 +423,9 @@ void Graphics::initSurface(Window *w) {
 	
 	if(buffering == 1 && mode != desire)
 		Log::throwError<Graphics, 0x8>("Immediate presentMode is required for single buffering");
-	
+
+	Log::println(String("Option: ") + buffering);
+
 	swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainInfo.minImageCount = buffering;
 	swapchainInfo.clipped = VK_TRUE;
@@ -465,12 +446,42 @@ void Graphics::initSurface(Window *w) {
 
 	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, nullptr);
 
-	Log::println(String("Successfully created swapchain (with buffering option ") + buffering + ")");
-	
 	//Create the swapchain images
 	
 	std::vector<VkImage> swapchainImages = std::vector<VkImage>(buffering);
 	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, swapchainImages.data());
+
+	//Create present fence
+
+	VkFenceCreateInfo fenceInfo;
+	memset(&fenceInfo, 0, sizeof(fenceInfo));
+
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	ext.fences.resize(2 * buffering);
+
+	for (u32 i = 0; i < 2 * buffering; ++i) {
+		fenceInfo.flags = i < buffering ? 0 : VK_FENCE_CREATE_SIGNALED_BIT;
+		vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, vkAllocator, ext.fences.data() + i), "Couldn't create the present fence");
+		vkName(ext, ext.fences[i], VK_OBJECT_TYPE_FENCE, String("Present fence # ") + i / buffering + " version " + i % buffering);
+	}
+
+	//Create semaphore
+
+	VkSemaphoreCreateInfo semaphoreInfo;
+	memset(&semaphoreInfo, 0, sizeof(semaphoreInfo));
+
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	ext.semaphores.resize(buffering);
+
+	for (u32 i = 0; i < buffering; ++i) {
+		vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, ext.semaphores.data() + i), "Couldn't create semaphore");
+		vkName(ext, ext.semaphores[i], VK_OBJECT_TYPE_SEMAPHORE, String("Present semaphore version ") + i);
+	}
+
+	Log::println(String("Successfully created swapchain (with buffering option ") + buffering + ") " + capabilities.minImageCount + " " + capabilities.maxImageCount);
 
 	std::vector<Texture*> textures = std::vector<Texture*>(buffering);
 	
@@ -527,7 +538,13 @@ void Graphics::destroySurface() {
 
 	if (ext.swapchain != VK_NULL_HANDLE) {
 
-		vkQueueWaitIdle(ext.queue);
+		finish();
+
+		for (VkSemaphore &semaphore : ext.semaphores)
+			vkDestroySemaphore(ext.device, semaphore, vkAllocator);
+
+		for (VkFence &fence : ext.fences)
+			vkDestroyFence(ext.device, fence, vkAllocator);
 
 		vkDestroySwapchainKHR(ext.device, ext.swapchain, vkAllocator);
 		vkDestroySurfaceKHR(ext.instance, ext.surface, vkAllocator);
@@ -542,14 +559,38 @@ void Graphics::destroySurface() {
 
 void Graphics::begin() {
 
-	vkCheck<0x10>(vkAcquireNextImageKHR(ext.device, ext.swapchain, u64_MAX, VK_NULL_HANDLE, ext.present, &ext.current), "Couldn't acquire next image");
-	vkCheck<0x11>(vkWaitForFences(ext.device, 1, &ext.present, VK_TRUE, u64_MAX), "Couldn't wait for fences");
-	vkCheck<0x12>(vkResetFences(ext.device, 1, &ext.present), "Couldn't reset fences");
-	vkCheck<0x13>(vkQueueWaitIdle(ext.queue), "Couldn't wait idle");
+	renderTimer.reset();
+
+	u32 next = ext.frames == 0 ? 0 : (ext.current + 1) % buffering;
+
+	//Get next image
+	Log::println(String("Locking fence: ") + next);
+
+	vkCheck<0x10>(vkAcquireNextImageKHR(ext.device, ext.swapchain, u64_MAX, VK_NULL_HANDLE, ext.fences[next], &ext.current), "Couldn't acquire next image");
+
+	renderTimer.lap("vkAcquireNextImageKHR");
+
+	//Wait for image and previous frame
+
+	VkFence fences[2] = { ext.fences[ext.current], ext.fences[ext.current + buffering] };
+
+	Log::println(String("Unlocking fences: ") + ext.current + " and " + (ext.current + buffering) + " (" + next + ")");
+
+	vkCheck<0x11>(vkWaitForFences(ext.device, 2, fences, VK_TRUE, u64_MAX), "Couldn't wait for fences");
+
+	renderTimer.lap("vkWaitForFences");
+
+	//Reset fences
+
+	vkCheck<0x12>(vkResetFences(ext.device, 2, fences), "Couldn't reset fences");
+
+	renderTimer.lap("vkResetFences");
 
 }
 
 void Graphics::end() {
+
+	renderTimer.lap("Frame");
 
 	//Submit commands
 
@@ -560,15 +601,19 @@ void Graphics::end() {
 
 	std::vector<VkCommandBuffer> commandBuffer(commandList.size());
 	for (u32 i = 0; i < (u32) commandBuffer.size(); ++i)
-		commandBuffer[i] = ((CommandList*)commandList[i])->ext.cmd;
+		commandBuffer[i] = ((CommandList*)commandList[i])->ext.cmd(ext);
 
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = (u32) commandList.size();
 	submitInfo.pCommandBuffers = commandBuffer.data();
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &ext.semaphore;
+	submitInfo.pSignalSemaphores = ext.semaphores.data() + ext.current;
 
-	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, VK_NULL_HANDLE), "Couldn't submit queue");
+	Log::println(String("Locking fence: ") + (ext.current + buffering));
+
+	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, ext.fences[ext.current + buffering]), "Couldn't submit queue");
+
+	renderTimer.lap("vkQueueSubmit");
 
 	//Present it
 
@@ -583,15 +628,27 @@ void Graphics::end() {
 	presentInfo.pResults = &result;
 	presentInfo.pImageIndices = &ext.current;
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = &ext.semaphore;
+	presentInfo.pWaitSemaphores = ext.semaphores.data() + ext.current;
 
 	vkCheck<0xF>(vkQueuePresentKHR(ext.queue, &presentInfo), "Couldn't present image");
 	vkCheck<0x14>(result, "Couldn't present image");
+
+	renderTimer.lap("vkQueuePresentKHR");
+
+	if (ext.frames % 100 == 0) {
+		Log::println(String("Frame #") + ext.frames + ":");
+		for (auto &elem : renderTimer.getTotalTime())
+			Log::println(elem.first + "; " + elem.second);
+	}
+
+	++ext.frames;
 
 }
 
 void Graphics::finish() {
 	vkQueueWaitIdle(ext.queue);
+	ext.current = 0;
+	ext.frames = 0;
 }
 
 CommandList *Graphics::create(String name, CommandListInfo info) {
