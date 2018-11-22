@@ -232,15 +232,15 @@ cp -r ../../app/res/* build/assets/res
 if [ $exexfo ]
 then
 	cd build/assets/res
-	find . -type f -name '*.oiBM' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.oiBM' -exec rm -f {} +
 	find . -type f -name '*.fbx' -exec rm -f {} +
 	find . -type f -name '*.obj' -exec rm -f {} +
-	find . -type f -name '*.glsl' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.hlsl' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.vert' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.frag' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.geom' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.comp' -exec rm -f {} +	>> build_android.sh
+	find . -type f -name '*.glsl' -exec rm -f {} +
+	find . -type f -name '*.hlsl' -exec rm -f {} +
+	find . -type f -name '*.vert' -exec rm -f {} +
+	find . -type f -name '*.frag' -exec rm -f {} +
+	find . -type f -name '*.geom' -exec rm -f {} +
+	find . -type f -name '*.comp' -exec rm -f {} +
 	cd ../../../
 fi
 

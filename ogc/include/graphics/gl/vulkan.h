@@ -32,8 +32,8 @@ namespace oi {
 			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
 
-			std::vector<VkFence> fences;
-			std::vector<VkSemaphore> semaphores;
+			std::vector<VkFence> presentFence;
+			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
 
 			u32 current = 0, frames = 0;
 			u32 queueFamilyIndex = u32_MAX;
