@@ -33,7 +33,7 @@ install:
 script:
    - cd $HOME/build/OsomiLunar/ocore
    - chmod +x make_android.sh
-   - ./make_android.sh -cmake -exclude_ext_formats -strip_debug_info -disable_parallel -abi=arm64-v8a
+   - ./make_android.sh -cmake -exclude_ext_formats -strip_debug_info -jobs=2 -abi=arm64-v8a
 
 # Discord hooks
 
