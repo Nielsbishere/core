@@ -118,7 +118,7 @@ On Linux, this might require you to `chmod +x make_android.sh` before you use it
 
 #### Running & building apk
 
-Building a full APK file requires you to build architectures; arm64-v8a, armeabi-v7a, x86_64, x86. This means long compile times. Try to pick the ABI of your choosing (check your emulator or phone) and set the environment to build for that. However, you can also pick one for shorter compile times (testing purposes). The only reason you'd not specify `-abi=x` is to build an APK that will run on all Android 7.0+ environments. By adding `-run` to the make_android command, it will try to run it automatically on a device; this could be attached or an emulator that is currently active. The apk flag will build your resources and sources into an apk file; without this it will only compile.
+Building a full APK file requires you to build architectures; arm64-v8a, armeabi-v7a, x86_64, x86, which means long compile times. Try to pick the ABI of your choosing (check your emulator or phone) and set the environment to build for that. When you specify `-abi=x`; it will mean that the APK will not run on all Android 7.0+ environments. By adding `-run` to the make_android command, it will try to run it automatically on a device; this could be attached or an emulator that is currently active. The apk flag will build your resources and sources into an apk file; without this it will only compile.
 
 At the end of creating an APK; it will require you to create your own private cert for signing. Please make sure to make a backup of your ".keystore" file located in builds/Android if you want to keep updating this app and using the cert for release builds (like if you accidently remove the keystore). This step is **required** when you want to run your apk on any device, or publish it on the Play Store. Unsigned apks can't run on most devices (security) and won't get accepted into the Play Store. When you lose this cert, you can't update your apps anymore!
 
@@ -170,7 +170,7 @@ If you want to bake the resources of your project (to get native resources), you
 
 # manual
 cd app
-"../oibaker"
+"../oibaker.exe"
 cd ../
 ```
 
