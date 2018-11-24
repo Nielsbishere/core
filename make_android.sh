@@ -66,7 +66,6 @@ then
 	echo - Android SDK
 	echo - Android NDK set up as environment variable ANDROID_NDK
 	echo - MinGW Makefiles 64-bit
-	echo - Apache Ant
 	echo - Vulkan SDK
 	echo
 	echo "Command line args:"

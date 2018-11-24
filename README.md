@@ -82,6 +82,7 @@ This will generate a folder; builds/Windows/build, which includes the x86 and x6
 ### Dependencies
 
 Android [SDK](https://developer.android.com/studio/install) & [NDK](https://developer.android.com/ndk/)  
+Java
 [Enable developer mode and USB debugging](https://android.gadgethacks.com/how-to/android-basics-enable-developer-options-usb-debugging-0161948/)
 
 ### Environment variables
@@ -90,6 +91,7 @@ Before you can use Android, you have to ensure that all variables are set correc
 
 **ANDROID_NDK (ndk directory)**
 **ANDROID_SDK (sdk directory)**
+**JAVA_HOME (jdk directory)**
 
 ### Setting up build env
 
