@@ -199,3 +199,9 @@ There's also documentation about the file formats used; [oiSL](docs/oiSL.md) (St
 
 # Viewing progress
 You can view progress and planned features on [our trello board](https://trello.com/b/US4bChrI/osomi-core).
+
+# Special thanks
+
+[Lagmeester4000](https://github.com/lagmeester4000) for reviewing CPU memory allocation code.
+[Velddev](https://github.com/velddev) for creating a new logo.
+
