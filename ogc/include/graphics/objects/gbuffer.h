@@ -18,11 +18,13 @@ namespace oi {
 			GBufferType type;
 			Buffer buffer;
 
+			bool hasData;
+
 			//Empty gpu buffer
-			GBufferInfo(GBufferType type, u32 size) : type(type), buffer(size) { buffer.clear(); }
+			GBufferInfo(GBufferType type, u32 size) : type(type), buffer(size), hasData(false) { buffer.clear(); }
 
 			//Filled gpu buffer
-			GBufferInfo(GBufferType type, Buffer buffer) : type(type), buffer(buffer) {}
+			GBufferInfo(GBufferType type, Buffer buffer) : type(type), buffer(buffer), hasData(true) {}
 
 		};
 

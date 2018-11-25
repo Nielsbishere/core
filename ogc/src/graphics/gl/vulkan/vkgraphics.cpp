@@ -43,6 +43,8 @@ VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT, 
 
 Graphics::~Graphics(){
 	
+	destroy(ext.stagingCmdList);
+
 	if(initialized){
 
 		destroy(backBuffer);
@@ -329,6 +331,11 @@ void Graphics::init(Window *w){
 	//Get memory properties
 	vkGetPhysicalDeviceMemoryProperties(ext.pdevice, &ext.pmemory);
 
+	//Initialize resource commands
+	ext.stagingCmdList = create("Resource command list", CommandListInfo());
+
+	ext.stagingCmdList->begin();
+
 }
 
 
@@ -602,14 +609,32 @@ void Graphics::end() {
 
 	std::vector<GraphicsObject*> commandList = get<CommandList>();
 
-	std::vector<VkCommandBuffer> commandBuffer(commandList.size());
-	for (u32 i = 0; i < (u32) commandBuffer.size(); ++i)
-		commandBuffer[i] = ((CommandList*)commandList[i])->ext.cmd(ext);
+	std::vector<VkCommandBuffer> commandBuffer;
+	commandBuffer.reserve(commandList.size());
+
+	//Submit staging commands; if possible
+
+	if (ext.stagingBuffers.size() != 0) {
+		ext.stagingCmdList->end();
+		commandBuffer.push_back(ext.stagingCmdList->getExtension().cmd(ext));
+	}
+
+	//Submit user commands
+
+	for (u32 i = 0; i < (u32)commandList.size(); ++i) {
+
+		CommandList *cmdList = (CommandList*)commandList[i];
+
+		if (cmdList != ext.stagingCmdList)
+			commandBuffer.push_back(cmdList->ext.cmd(ext));
+	}
+
+	//Submit queue
 
 	VkPipelineStageFlags stageWait = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = (u32) commandList.size();
+	submitInfo.commandBufferCount = (u32)commandBuffer.size();
 	submitInfo.pCommandBuffers = commandBuffer.data();
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = ext.submitSemaphore.data() + ext.current;
@@ -640,6 +665,26 @@ void Graphics::end() {
 	vkCheck<0x14>(result, "Couldn't present image");
 
 	renderTimer.lap("vkQueuePresentKHR");
+
+	//Free staging buffers
+
+	if (ext.stagingBuffers.size() != 0) {
+
+		//TODO: Do this more elegantly
+		vkWaitForFences(ext.device, 1, ext.presentFence.data() + ext.current, true, u64_MAX);
+
+		for (u32 i = 0; i < (u32)ext.stagingBuffers.size(); ++i) {
+			vkFreeMemory(ext.device, ext.stagingBuffers[i].memory, vkAllocator);
+			vkDestroyBuffer(ext.device, ext.stagingBuffers[i].resource, vkAllocator);
+		}
+
+		ext.stagingBuffers.clear();
+
+	}
+
+	renderTimer.lap("Staging");
+
+	//Quick and easy frame counter
 
 	if (ext.frames % 100 == 0) {
 		Log::println(String("Frame #") + ext.frames + ":");

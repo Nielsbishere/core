@@ -1587,13 +1587,27 @@ std::vector<ShaderOutput> output;		//Outputs of the stage
 
 ### GBufferInfo
 
-#### Constructor / data
+#### Constructor (buffer)
 
 ```cpp
 GBufferType type;		//The type of the buffer
 Buffer buffer;			//The data of the buffer
+```
 
-u32 size;				//Constructor only; creates an empty buffer
+#### Constructor (size)
+
+```cpp
+GBufferType type;		//The type of the buffer
+u32 size;				//Empty buffer with size
+```
+
+#### Data
+
+```cpp
+GBufferType type;
+Buffer buffer;
+
+bool hasData;			//Whether or not there's data initialized (buffer constructor)
 ```
 
 ### GBufferType OEnum

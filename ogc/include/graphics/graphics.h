@@ -85,7 +85,7 @@ namespace oi {
 
 			static Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
 
-			[[nodiscard]] RenderTarget *getBackBuffer();
+			RenderTarget *getBackBuffer();
 			u32 getBuffering();
 			void printObjects();
 
@@ -117,6 +117,7 @@ namespace oi {
 			Timer renderTimer;
 
 			RenderTarget *backBuffer = nullptr;
+
 			oi::BlockAllocator allocator;
 			GraphicsExt ext;
 

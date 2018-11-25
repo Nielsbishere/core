@@ -16,39 +16,7 @@ namespace oi {
 		class Graphics;
 		class CommandList;
 
-		struct VkGraphics {
-
-			VkInstance instance = VK_NULL_HANDLE;
-			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
-			VkDevice device = VK_NULL_HANDLE;
-			VkSurfaceKHR surface = VK_NULL_HANDLE;
-			VkQueue queue = VK_NULL_HANDLE;
-			VkSwapchainKHR swapchain = VK_NULL_HANDLE;
-			VkCommandPool pool = VK_NULL_HANDLE;
-
-			VkPhysicalDeviceFeatures pfeatures{};
-			VkPhysicalDeviceMemoryProperties pmemory{};
-
-			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
-
-			std::vector<VkFence> presentFence;
-			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
-
-			u32 current = 0, frames = 0;
-			u32 queueFamilyIndex = u32_MAX;
-
-			#ifdef __DEBUG__
-
-				VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
-
-				#ifdef __WINDOWS__
-					PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
-				#endif
-
-			#endif
-
-		};
+		struct VkGraphics;
 
 		struct VkRenderTarget {
 
@@ -109,6 +77,43 @@ namespace oi {
 			VkPipelineColorBlendStateCreateInfo blending{};
 			VkPipelineDepthStencilStateCreateInfo depthStencil{};
 			VkPipelineMultisampleStateCreateInfo multiSample{};
+
+		};
+
+		struct VkGraphics {
+
+			VkInstance instance = VK_NULL_HANDLE;
+			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
+			VkDevice device = VK_NULL_HANDLE;
+			VkSurfaceKHR surface = VK_NULL_HANDLE;
+			VkQueue queue = VK_NULL_HANDLE;
+			VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+			VkCommandPool pool = VK_NULL_HANDLE;
+
+			VkPhysicalDeviceFeatures pfeatures{};
+			VkPhysicalDeviceMemoryProperties pmemory{};
+
+			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+
+			std::vector<VkFence> presentFence;
+			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
+
+			CommandList *stagingCmdList;
+			std::vector<VkGBuffer> stagingBuffers;
+
+			u32 current = 0, frames = 0;
+			u32 queueFamilyIndex = u32_MAX;
+
+			#ifdef __DEBUG__
+
+				VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
+
+				#ifdef __WINDOWS__
+					PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
+				#endif
+
+			#endif
 
 		};
 
