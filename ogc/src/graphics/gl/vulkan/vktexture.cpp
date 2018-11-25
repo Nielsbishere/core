@@ -112,7 +112,7 @@ bool Texture::init(bool isOwned) {
 		vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, &gbext.resource), "Couldn't send texture data to GPU");
 		vkName(graphics, gbext.resource, VK_OBJECT_TYPE_IMAGE, getName() + " staging buffer");
 
-		vkAllocate(Buffer, gbext, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		vkAllocate(Buffer, gbext, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
 		void *stagingData;
 
@@ -120,14 +120,9 @@ bool Texture::init(bool isOwned) {
 		memcpy(stagingData, info.dat.addr(), info.dat.size());
 		vkUnmapMemory(graphics.device, gbext.memory);
 
-		//Push that into the texture
+		//Copy data to cmd list
 
-		if ((ext.cmdList = g->create(getName() + " stage command", CommandListInfo(true))) == nullptr)
-			return Log::throwError<Texture, 0x6>("Couldn't send texture data; it requires a cmdList");
-
-		CommandListExt &cmd = ext.cmdList->getExtension();
-
-		ext.cmdList->begin();
+		CommandListExt &cmd = graphics.stagingCmdList->getExtension();
 
 		///Transition to write
 
@@ -230,17 +225,11 @@ bool Texture::init(bool isOwned) {
 
 		vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, info.mipLevels == 1 ? 1U : 2U, info.mipLevels == 1 ? barriers + 1 : barriers);
 
-		///Submit commands
+		//Clean up staging buffer and free memory
 
-		ext.cmdList->flush();
-		g->destroy(ext.cmdList);
-
-		//Now clean it up
-
-		vkFreeMemory(graphics.device, gbext.memory, vkAllocator);
-		vkDestroyBuffer(graphics.device, gbext.resource, vkAllocator);
-
+		graphics.stagingBuffers.push_back(gbext);
 		free(info.dat.addr());
+
 	}
 
 	if (info.parent != nullptr)

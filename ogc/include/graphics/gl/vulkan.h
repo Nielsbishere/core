@@ -18,6 +18,8 @@ namespace oi {
 
 		struct VkGraphics;
 
+		class GBufferType;
+
 		struct VkRenderTarget {
 
 			VkRenderPass renderPass = VK_NULL_HANDLE;
@@ -31,14 +33,16 @@ namespace oi {
 			VkDeviceMemory memory = VK_NULL_HANDLE;
 			VkImageView view = VK_NULL_HANDLE;
 
-			CommandList *cmdList = nullptr;
-
 		};
 
 		struct VkGBuffer {
 
 			VkBuffer resource = VK_NULL_HANDLE;
 			VkDeviceMemory memory = VK_NULL_HANDLE;
+
+			static bool isVersioned(GBufferType type);
+			static bool isStaged(GBufferType type);
+			static bool isCoherent(GBufferType type);
 
 		};
 
@@ -114,7 +118,7 @@ namespace oi {
 				#endif
 
 			#endif
-
+			
 		};
 
 		template<u32 errorId, typename T = gc::Graphics>

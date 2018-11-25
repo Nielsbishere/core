@@ -674,8 +674,8 @@ void Graphics::end() {
 		vkWaitForFences(ext.device, 1, ext.presentFence.data() + ext.current, true, u64_MAX);
 
 		for (u32 i = 0; i < (u32)ext.stagingBuffers.size(); ++i) {
-			vkFreeMemory(ext.device, ext.stagingBuffers[i].memory, vkAllocator);
 			vkDestroyBuffer(ext.device, ext.stagingBuffers[i].resource, vkAllocator);
+			vkFreeMemory(ext.device, ext.stagingBuffers[i].memory, vkAllocator);
 		}
 
 		ext.stagingBuffers.clear();

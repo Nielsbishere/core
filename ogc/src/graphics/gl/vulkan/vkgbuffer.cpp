@@ -15,9 +15,21 @@ GBuffer::~GBuffer() {
 
 }
 
+bool VkGBuffer::isVersioned(GBufferType type) {
+	return type != GBufferType::VBO && type != GBufferType::IBO;
+}
+
+bool VkGBuffer::isStaged(GBufferType type) {
+	return type != GBufferType::UBO && type != GBufferType::CBO && type != GBufferType::SSBO;
+}
+
+bool VkGBuffer::isCoherent(GBufferType type) {
+	return type == GBufferType::CBO;
+}
+
 void GBuffer::flush() {
 
-	if (info.type == GBufferType::VBO || info.type == GBufferType::IBO) {
+	if (VkGBuffer::isStaged(info.type)) {
 
 		GraphicsExt &graphics = g->getExtension();
 		CommandListExt &cmdList = graphics.stagingCmdList->getExtension();
@@ -69,10 +81,20 @@ void GBuffer::flush() {
 
 		//Transition back to read only
 
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = info.type == GBufferType::IBO ? VK_ACCESS_INDEX_READ_BIT : VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		VkPipelineStageFlagBits stage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+		VkAccessFlags access = VK_ACCESS_SHADER_READ_BIT;
 
-		vkCmdPipelineBarrier(cmdList.cmd(graphics), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+		if (info.type == GBufferType::IBO)
+			access = VK_ACCESS_INDEX_READ_BIT;
+		else if (info.type == GBufferType::VBO)
+			access = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		else
+			stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = access;
+
+		vkCmdPipelineBarrier(cmdList.cmd(graphics), VK_PIPELINE_STAGE_TRANSFER_BIT, stage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 
 		graphics.stagingBuffers.push_back(stagingBuffer);
 
@@ -88,7 +110,7 @@ void GBuffer::flush() {
 
 	//Flush (if needed)
 
-	if (info.type != GBufferType::UBO) {
+	if (!VkGBuffer::isCoherent(info.type)) {
 
 		VkMappedMemoryRange range = {
 			VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
@@ -122,7 +144,7 @@ bool GBuffer::init() {
 	bufferInfo.queueFamilyIndexCount = 1;
 	bufferInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-	if (info.type == GBufferType::VBO || info.type == GBufferType::IBO)
+	if (VkGBuffer::isStaged(info.type))
 		bufferInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	vkCheck<0x1, GBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &ext.resource), "Failed to create buffer");
@@ -130,9 +152,9 @@ bool GBuffer::init() {
 
 	VkMemoryPropertyFlagBits alloc = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;	//CBOs and SSBOs are host visible for quicker access from CPU
 
-	if (info.type == GBufferType::VBO || info.type == GBufferType::IBO)		//VBOs and IBOs are rarely write, mostly read; so device local
+	if (VkGBuffer::isStaged(info.type))									//VBOs and IBOs are rarely write, mostly read; so device local
 		alloc = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	else if (info.type == GBufferType::UBO)									//UBOs are frequently unmapped; so should be placed in coherent memory
+	else if (VkGBuffer::isCoherent(info.type))								//UBOs are frequently unmapped; so should be placed in coherent memory
 		alloc = (VkMemoryPropertyFlagBits)(alloc | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	vkAllocate(Buffer, ext, alloc);
