@@ -3,15 +3,15 @@
 using namespace oi::gc;
 using namespace oi;
 
-const MeshBufferInfo MeshBuffer::getInfo() { return info; }
+const MeshBufferInfo MeshBuffer::getInfo() const { return info; }
 
-void MeshBuffer::flush() {
+void MeshBuffer::flush(const MeshAllocation &allocation) {
 
-	for (GBuffer *gbuffer : info.vbos)
-		gbuffer->flush();
+	for (u32 i = 0, j = (u32) info.vboStrides.size(); i < j; ++i)
+		info.vbos[i]->flush(Vec2u(allocation.baseVertex, allocation.baseVertex + allocation.vertices) * info.vboStrides[i]);
 
 	if (info.ibo != nullptr)
-		info.ibo->flush();
+		info.ibo->flush(Vec2u(allocation.baseIndex, allocation.baseIndex + allocation.indices) * 4);
 
 }
 
@@ -62,15 +62,15 @@ bool MeshBuffer::dealloc(MeshAllocation allocation) {
 	return vdealloc && idealloc;
 }
 
-bool MeshBuffer::sameIndices(const MeshBufferInfo &other) {
+bool MeshBuffer::sameIndices(const MeshBufferInfo &other) const {
 	return (info.maxIndices == 0) == (other.maxIndices == 0);
 }
 
-bool MeshBuffer::supportsModes(const MeshBufferInfo &other) {
+bool MeshBuffer::supportsModes(const MeshBufferInfo &other) const {
 	return (other.topologyMode.getValue() == 0 || other.topologyMode == info.topologyMode) && (other.fillMode.getValue() == 0 || other.fillMode == info.fillMode);
 }
 
-bool MeshBuffer::sameFormat(const MeshBufferInfo &other) {
+bool MeshBuffer::sameFormat(const MeshBufferInfo &other) const {
 
 	if (info.buffers.size() != other.buffers.size())
 		return false;
@@ -99,11 +99,11 @@ bool MeshBuffer::sameFormat(const MeshBufferInfo &other) {
 
 }
 
-bool MeshBuffer::hasSpace(const MeshBufferInfo &other) {
+bool MeshBuffer::hasSpace(const MeshBufferInfo &other) const {
 	return info.vertices->hasSpace(other.maxVertices) && info.indices->hasSpace(other.maxIndices);
 }
 
-bool MeshBuffer::canAllocate(const MeshBufferInfo &other) {
+bool MeshBuffer::canAllocate(const MeshBufferInfo &other) const {
 	return sameIndices(other) && supportsModes(other) && sameFormat(other) && hasSpace(other);
 }
 

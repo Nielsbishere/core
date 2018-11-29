@@ -48,9 +48,10 @@ namespace oi {
 
 		public:
 
-			const MeshBufferInfo getInfo();
+			const MeshBufferInfo getInfo() const;
 
-			void flush();		//Flush updates to MeshBuffer
+			//Flush updates from an allocation
+			void flush(const MeshAllocation &allocation);
 
 			//Allocate a number of vertices and/or indices.
 			//If the buffer is not opened for write, it returns a null allocation.
@@ -60,7 +61,7 @@ namespace oi {
 			bool dealloc(MeshAllocation allocation);
 
 			//Check if MeshBuffer can allocate MeshBufferInfo (a sub-buffer)
-			bool canAllocate(const MeshBufferInfo &other);
+			bool canAllocate(const MeshBufferInfo &other) const;
 
 		protected:
 
@@ -69,10 +70,10 @@ namespace oi {
 
 			bool init();
 
-			bool sameIndices(const MeshBufferInfo &other);
-			bool supportsModes(const MeshBufferInfo &other);
-			bool sameFormat(const MeshBufferInfo &other);
-			bool hasSpace(const MeshBufferInfo &other);
+			bool sameIndices(const MeshBufferInfo &other) const;
+			bool supportsModes(const MeshBufferInfo &other) const;
+			bool sameFormat(const MeshBufferInfo &other) const;
+			bool hasSpace(const MeshBufferInfo &other) const;
 
 		private:
 

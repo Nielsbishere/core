@@ -188,30 +188,13 @@ GBuffer *ShaderBuffer::getBuffer() {
 	return buffer;
 }
 
-void ShaderBuffer::flush() {
-
-	if (buffer != nullptr)
-		buffer->flush();
-	else
-		Log::throwError<ShaderBuffer, 0x3>("Can't update a non-existent buffer");
-
-}
-
-void ShaderBuffer::copy(Buffer buf) {
+void ShaderBuffer::set(Buffer buf) {
 
 	if (buffer == nullptr || buf.size() == 0U)
 		Log::throwError<ShaderBuffer, 0x4>("ShaderBuffer::copy requires a buffer to be set and ShaderBuffer has to be open");
 
-	buffer->copy(buf);
-
-}
-
-void ShaderBuffer::set(Buffer buf) {
-
-	if (buffer == nullptr || buf.size() == 0U)
-		Log::throwError<ShaderBuffer, 0x5>("ShaderBuffer::set requires a buffer to be set");
-
 	buffer->set(buf);
+
 }
 
 ShaderBuffer::ShaderBuffer(ShaderBufferInfo info): info(info) {}

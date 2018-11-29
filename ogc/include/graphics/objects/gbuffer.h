@@ -2,6 +2,7 @@
 
 #include "graphicsobject.h"
 #include "graphics/gl/generic.h"
+#include "types/vector.h"
 
 namespace oi {
 
@@ -19,6 +20,7 @@ namespace oi {
 			Buffer buffer;
 
 			bool hasData;
+			std::vector<Vec2u> changes;
 
 			//Empty gpu buffer
 			GBufferInfo(GBufferType type, u32 size) : type(type), buffer(size), hasData(false) { buffer.clear(); }
@@ -45,17 +47,20 @@ namespace oi {
 			GBufferExt &getExtension();
 			const GBufferInfo &getInfo();
 
-			bool copy(Buffer buf);
-			void set(Buffer buf);		//copy(buf); flush();
+			bool set(Buffer buf);
 
-			//Call flush to push changes to GPU
-			void flush();
+			//Flush tells the GPU to update a range of the buffer
+			//These changes get pushed by Graphics
+			void flush(Vec2u range);
 
 		protected:
 
 			~GBuffer();
 			GBuffer(GBufferInfo info);
 			bool init();
+
+			//Push changes to GPU
+			void push();
 
 		private:
 

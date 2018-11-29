@@ -51,5 +51,5 @@ void Material::setTex(TextureHandle &texHandle, Texture *tex) {
 
 void Material::notify() {
 	if(info.ptr != &info.temp)
-		info.parent->notify();
+		info.parent->notify(info.ptr);
 }

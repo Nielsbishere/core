@@ -7,6 +7,7 @@
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/commandlist.h"
+#include "graphics/objects/gbuffer.h"
 
 
 #undef min
@@ -613,6 +614,9 @@ void Graphics::end() {
 	commandBuffer.reserve(commandList.size());
 
 	//Submit staging commands; if possible
+
+	for (GraphicsObject *go : get<GBuffer>())
+		((GBuffer*)go)->push();
 
 	if (ext.stagingBuffers.size() != 0) {
 		ext.stagingCmdList->end();

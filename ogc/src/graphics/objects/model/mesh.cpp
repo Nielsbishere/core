@@ -60,5 +60,7 @@ bool Mesh::init() {
 	for (u32 i = 0; i < info.vbo.size(); ++i)
 		info.allocation.vbo[i].copy(info.vbo[i]);
 
+	info.buffer->flush(info.allocation);
+
 	return true;
 }

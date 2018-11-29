@@ -112,7 +112,7 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 			mi.buffer = minfo.meshBuffer;
 
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->flush();
+			mi.buffer->flush(mi.allocation);
 
 			info.meshAllocations[minfo.name] = minfo;
 
@@ -149,7 +149,7 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 			mi.ibo = minfo.ibo;
 
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->flush();
+			mi.buffer->flush(mi.allocation);
 
 			info.meshAllocations[minfo.name] = minfo;
 
@@ -283,9 +283,8 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 			mai.mesh = meshes[id] = g->create(mai.name, *mi);
 			info.meshAllocations[mai.name] = mai;
 
+			meshBuffer->flush(mi->allocation);
 		}
-
-		meshBuffer->flush();
 
 	}
 
