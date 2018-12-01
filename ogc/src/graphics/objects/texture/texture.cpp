@@ -17,3 +17,11 @@ void Texture::initParent(TextureList *parent) {
 	if (info.parent == nullptr)
 		info.parent = parent;
 }
+
+void Texture::flush() {
+	info.isChanged = true;
+}
+
+bool Texture::shouldStage() {
+	return info.isChanged;
+}

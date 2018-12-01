@@ -20,9 +20,7 @@ namespace oi {
 
 			typedef CommandList ResourceType; 
 
-			bool isReusable;
-
-			CommandListInfo(bool isReusable = false) : isReusable(isReusable) {}
+			CommandListInfo() {}
 		
 		};
 

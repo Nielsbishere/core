@@ -202,6 +202,7 @@ You can view progress and planned features on [our trello board](https://trello.
 
 # Special thanks
 
+[Koen](https://github.com/161563) for helping out with with Vulkan versioning/synchronization and GPU allocation.
 [Lagmeester4000](https://github.com/lagmeester4000) for reviewing CPU memory allocation code.
 [Velddev](https://github.com/velddev) for creating a new logo.
 

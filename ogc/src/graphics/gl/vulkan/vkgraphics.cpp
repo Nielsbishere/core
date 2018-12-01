@@ -335,8 +335,6 @@ void Graphics::init(Window *w){
 	//Initialize resource commands
 	ext.stagingCmdList = create("Resource command list", CommandListInfo());
 
-	ext.stagingCmdList->begin();
-
 }
 
 
@@ -403,8 +401,6 @@ void Graphics::initSurface(Window *w) {
 	memset(&swapchainInfo, 0, sizeof(swapchainInfo));
 	
 	//Try to support mailbox present mode if triple buffering is enabled
-	
-	Log::println(String("Attempting ") + buffering);
 
 	if(buffering > capabilities.maxImageCount && capabilities.maxImageCount > 0) buffering = capabilities.maxImageCount;
 	if(buffering < capabilities.minImageCount) buffering = capabilities.minImageCount;
@@ -431,8 +427,6 @@ void Graphics::initSurface(Window *w) {
 	
 	if(buffering == 1 && mode != desire)
 		Log::throwError<Graphics, 0x8>("Immediate presentMode is required for single buffering");
-
-	Log::println(String("Option: ") + buffering);
 
 	swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainInfo.minImageCount = buffering;
@@ -471,7 +465,7 @@ void Graphics::initSurface(Window *w) {
 	for (u32 i = 0; i < buffering; ++i) {
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 		vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, vkAllocator, ext.presentFence.data() + i), "Couldn't create the present fence");
-		vkName(ext, ext.presentFence[i], VK_OBJECT_TYPE_FENCE, String("Present stall fence version ") + i);
+		vkName(ext, ext.presentFence[i], VK_OBJECT_TYPE_FENCE, String("Present stall fence #") + i);
 	}
 
 	//Create semaphore
@@ -486,12 +480,12 @@ void Graphics::initSurface(Window *w) {
 
 	for (u32 i = 0; i < buffering; ++i) {
 		vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, ext.submitSemaphore.data() + i), "Couldn't create semaphore");
-		vkName(ext, ext.submitSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Submit stall semaphore version ") + i);
+		vkName(ext, ext.submitSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Submit stall semaphore #") + i);
 	}
 
 	for (u32 i = 0; i < buffering; ++i) {
 		vkCheck<0x1A>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, ext.swapchainSemaphore.data() + i), "Couldn't create semaphore");
-		vkName(ext, ext.swapchainSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Swapchain stall semaphore version ") + i);
+		vkName(ext, ext.swapchainSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Swapchain stall semaphore #") + i);
 	}
 
 	Log::println(String("Successfully created swapchain (with buffering option ") + buffering + ") " + capabilities.minImageCount + " " + capabilities.maxImageCount);
@@ -545,6 +539,8 @@ void Graphics::initSurface(Window *w) {
 	use(backBuffer);
 
 	Log::println("Successfully created back buffer");
+
+	ext.stagingBuffers.resize(buffering);
 }
 
 void Graphics::destroySurface() {
@@ -591,6 +587,28 @@ void Graphics::begin() {
 
 	renderTimer.lap("vkWaitForFences");
 
+	//Clean up staging buffers from previous frame
+
+	std::vector<VkGBuffer> &stagingBuffers = ext.stagingBuffers[ext.current];
+
+	if (stagingBuffers.size() != 0) {
+
+		for (u32 i = 0, j = (u32) stagingBuffers.size(); i < j; ++i) {
+
+			VkGBuffer &buffer = stagingBuffers[i];
+
+			for(VkBuffer &vkBuffer : buffer.resource)
+				vkDestroyBuffer(ext.device, vkBuffer, vkAllocator);
+
+			vkFreeMemory(ext.device, buffer.memory, vkAllocator);
+		}
+
+		stagingBuffers.clear();
+
+	}
+
+	renderTimer.lap("Free staging buffers");
+
 	//Reset fences
 
 	vkCheck<0x12>(vkResetFences(ext.device, 1, ext.presentFence.data() + ext.current), "Couldn't reset fences");
@@ -615,10 +633,36 @@ void Graphics::end() {
 
 	//Submit staging commands; if possible
 
-	for (GraphicsObject *go : get<GBuffer>())
+	std::vector<GraphicsObject*> gbuffers = get<GBuffer>();
+	std::vector<GraphicsObject*> textures = get<Texture>();
+
+	bool shouldStage = false;
+
+	for (GraphicsObject *go : gbuffers)		//Check GPU buffers for updates (staging)
+		if (((GBuffer*)go)->shouldStage()) {
+			shouldStage = true;
+			break;
+		}
+
+	if(!shouldStage)
+		for (GraphicsObject *go : textures)		//Check textures for updates
+			if (((Texture*)go)->shouldStage()) {
+				shouldStage = true;
+				break;
+			}
+
+	if (shouldStage)						//Start staging commands
+		ext.stagingCmdList->begin();
+
+	for (GraphicsObject *go : gbuffers)		//Push GPU buffers (some aren't staged)
 		((GBuffer*)go)->push();
 
-	if (ext.stagingBuffers.size() != 0) {
+	if (shouldStage) {						//Push textures (all are staged)
+		for (GraphicsObject *go : textures)
+			((Texture*)go)->push();
+	}
+
+	if(shouldStage) {						//Put staging commands into command buffer
 		ext.stagingCmdList->end();
 		commandBuffer.push_back(ext.stagingCmdList->getExtension().cmd(ext));
 	}
@@ -669,26 +713,6 @@ void Graphics::end() {
 	vkCheck<0x14>(result, "Couldn't present image");
 
 	renderTimer.lap("vkQueuePresentKHR");
-
-	//Free staging buffers
-
-	if (ext.stagingBuffers.size() != 0) {
-
-		//TODO: Do this more elegantly
-		vkWaitForFences(ext.device, 1, ext.presentFence.data() + ext.current, true, u64_MAX);
-
-		for (u32 i = 0; i < (u32)ext.stagingBuffers.size(); ++i) {
-			vkDestroyBuffer(ext.device, ext.stagingBuffers[i].resource, vkAllocator);
-			vkFreeMemory(ext.device, ext.stagingBuffers[i].memory, vkAllocator);
-		}
-
-		ext.stagingBuffers.clear();
-
-	}
-
-	renderTimer.lap("Staging");
-
-	//Quick and easy frame counter
 
 	if (ext.frames % 100 == 0) {
 		Log::println(String("Frame #") + ext.frames + ":");

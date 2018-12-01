@@ -37,10 +37,10 @@ void Shader::update() {
 		std::vector<VkWriteDescriptorSet> descriptorSet(info.registers.size() * g->getBuffering());
 		memset(descriptorSet.data(), 0, sizeof(VkWriteDescriptorSet) * descriptorSet.size());
 
-		std::vector<VkDescriptorBufferInfo> buffers(info.buffer.size());
+		std::vector<VkDescriptorBufferInfo> buffers(info.buffer.size() * g->getBuffering());
 		memset(buffers.data(), 0, sizeof(VkDescriptorBufferInfo) * buffers.size());
 
-		u32 samplers = 0, images = 0;
+		u32 samplers = 0, images = 0, bufferCount = (u32) info.buffer.size();
 
 		for (ShaderRegister &reg : info.registers) {
 			if (reg.type == ShaderRegisterType::Sampler) ++samplers;
@@ -85,7 +85,29 @@ void Shader::update() {
 				if (buf == nullptr)
 					Log::throwError<Shader, 0x0>("Shader mentions an invalid buffer");
 
-				bufferInfo->buffer = buf != nullptr ? buf->getExtension().resource : VK_NULL_HANDLE;
+				std::vector<VkBuffer> resources = buf->getExtension().resource;
+
+				if (resources.size() != 1 && buf != nullptr) {
+
+					for (u32 z = 0; z < g->getBuffering(); ++z) {
+
+						VkDescriptorBufferInfo *buffer = bufferInfo + z * bufferCount;
+						buffer->range = (VkDeviceSize) shaderBuffer->getSize();
+						buffer->buffer = resources[z];
+
+						VkWriteDescriptorSet &descriptorz = descriptorSet[i + z * info.registers.size()];
+
+						descriptorz = descriptor;
+						descriptorz.pBufferInfo = buffer;
+						descriptorz.dstSet = ext.descriptorSet[z];
+
+					}
+
+					versioned = true;
+
+				} else versioned = false;
+
+				bufferInfo->buffer = buf != nullptr ? resources[0] : VK_NULL_HANDLE;
 				bufferInfo->range = (VkDeviceSize) shaderBuffer->getSize();
 
 				++j;

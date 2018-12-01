@@ -182,9 +182,9 @@ RenderTarget *Graphics::create(String name, RenderTargetInfo info) {
 		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], TextureUsage::Render_target);
 
 		for (u32 j = 0; j < buffering; ++j)
-			++(vtextures[j] = create(name + " target " + i + " version " + j, texInfo))->refCount;
+			++(vtextures[j] = create(name + " - " + i + " #" + j, texInfo))->refCount;
 
-		++(textures[i] = create(name + " target " + i, VersionedTextureInfo(vtextures)))->refCount;
+		++(textures[i] = create(name + " - " + i, VersionedTextureInfo(vtextures)))->refCount;
 
 	}
 

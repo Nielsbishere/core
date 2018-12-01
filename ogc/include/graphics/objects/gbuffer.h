@@ -62,6 +62,8 @@ namespace oi {
 			//Push changes to GPU
 			void push();
 
+			bool shouldStage();
+
 		private:
 
 			GBufferInfo info;

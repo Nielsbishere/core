@@ -92,6 +92,8 @@ namespace oi {
 			TextureList *parent;
 			TextureHandle handle = u32_MAX;
 
+			bool isChanged = false;
+
 			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : parent(nullptr), res(res), format(format), usage(usage) {}
 			TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()) {}
 
@@ -116,11 +118,18 @@ namespace oi {
 
 			void initParent(TextureList *parent);
 
+			void flush();
+
 		protected:
 
 			~Texture();
 			Texture(TextureInfo info);
 			bool init(bool isOwned = true);
+
+			bool shouldStage();
+
+			//Push changes to GPU
+			void push();
 
 		private:
 

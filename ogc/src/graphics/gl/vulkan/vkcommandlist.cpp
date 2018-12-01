@@ -92,7 +92,7 @@ bool CommandList::init() {
 	VkCommandBufferAllocateInfo allocInfo;
 	memset(&allocInfo, 0, sizeof(allocInfo));
 
-	ext.cmds.resize(info.isReusable ? 1 : g->getBuffering());
+	ext.cmds.resize( g->getBuffering());
 
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandBufferCount = (u32) ext.cmds.size();
@@ -102,7 +102,7 @@ bool CommandList::init() {
 	vkCheck<0x0, CommandList>(vkAllocateCommandBuffers(glext.device, &allocInfo, ext.cmds.data()), "Couldn't allocate command list");
 
 	for (u32 i = 0; i < allocInfo.commandBufferCount; ++i)
-		vkName(glext, ext.cmds[i], VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " version " + i);
+		vkName(glext, ext.cmds[i], VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " #" + i);
 
 	return true;
 }
@@ -131,7 +131,7 @@ bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 		if (b->getType() != GBufferType::VBO)
 			return Log::throwError<CommandList, 0x1>("CommandList::bind requires VBOs as first argument");
 		else
-			vkBuffer[i++] = b->getExtension().resource;
+			vkBuffer[i++] = b->getExtension().resource[0];
 
 	VkDeviceSize zero = 0;
 
@@ -143,7 +143,7 @@ bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 		if (ibo->getType() != GBufferType::IBO)
 			return Log::throwError<CommandList, 0x2>("CommandList::bind requires a valid IBO as second argument");
 
-		vkCmdBindIndexBuffer(ext_cmd, ibo->getExtension().resource, 0, VkIndexType::VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(ext_cmd, ibo->getExtension().resource[0], 0, VkIndexType::VK_INDEX_TYPE_UINT32);
 
 	}
 
@@ -170,20 +170,25 @@ void CommandList::draw(DrawList *drawList) {
 
 	constexpr u32 arraysCmd = (u32) sizeof(VkDrawIndirectCommand), indexedCmd = (u32) sizeof(VkDrawIndexedIndirectCommand);
 
+	const DrawListInfo &drawListInfo = drawList->getInfo();
+	const MeshBufferInfo &meshBufferInfo = drawListInfo.meshBuffer->getInfo();
+
+	VkBuffer &resource = drawListInfo.drawBuffer->getExtension().resource[g->getExtension().current];
+
 	if (g->getExtension().pfeatures.multiDrawIndirect) {
 
-		if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
-			vkCmdDrawIndirect(ext_cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), arraysCmd);
+		if (meshBufferInfo.maxIndices == 0)
+			vkCmdDrawIndirect(ext_cmd, resource, 0, drawList->getBatches(), arraysCmd);
 		else
-			vkCmdDrawIndexedIndirect(ext_cmd, drawList->getInfo().drawBuffer->getExtension().resource, 0, drawList->getBatches(), indexedCmd);
+			vkCmdDrawIndexedIndirect(ext_cmd, resource, 0, drawList->getBatches(), indexedCmd);
 
 	} else {
 
 		for (u32 i = 0; i < drawList->getBatches(); ++i)
-			if (drawList->getInfo().meshBuffer->getInfo().maxIndices == 0)
-				vkCmdDrawIndirect(ext_cmd, drawList->getInfo().drawBuffer->getExtension().resource, arraysCmd * i, 1, arraysCmd);
+			if (meshBufferInfo.maxIndices == 0)
+				vkCmdDrawIndirect(ext_cmd, resource, arraysCmd * i, 1, arraysCmd);
 			else
-				vkCmdDrawIndexedIndirect(ext_cmd, drawList->getInfo().drawBuffer->getExtension().resource, indexedCmd * i, 1, indexedCmd);
+				vkCmdDrawIndexedIndirect(ext_cmd, resource, indexedCmd * i, 1, indexedCmd);
 
 	}
 
