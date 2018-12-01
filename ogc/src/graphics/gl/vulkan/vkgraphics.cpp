@@ -178,7 +178,7 @@ void Graphics::init(Window *w){
 	for (auto lay : clayers)
 		Log::println(String("\t\t") + lay);
 
-	vkCheck<0x1>(vkCreateInstance(&instanceInfo, vkAllocator, &ext.instance), "Couldn't obtain Vulkan instance");
+	vkCheck<0xA>(vkCreateInstance(&instanceInfo, vkAllocator, &ext.instance), "Couldn't obtain Vulkan instance");
 	initialized = true;
 	
 	Log::println("Successfully initialized Graphics with Vulkan context");
@@ -197,7 +197,7 @@ void Graphics::init(Window *w){
 
 	vkExtension(vkCreateDebugReportCallbackEXT);
 
-	vkCheck<0x19>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
+	vkCheck<0xB>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
 
 	Log::println("Successfully created debug report callback");
 
@@ -285,7 +285,7 @@ void Graphics::init(Window *w){
 	}
 
 	if (ext.queueFamilyIndex == u32_MAX)
-		Log::throwError<Graphics, 0x1F>("Couldn't intialize family queue");
+		Log::throwError<VkGraphics, 0x0>("Couldn't intialize family queue");
 
 	float queuePriorities[] = { 1.f };
 	constexpr u32 queueCount = (u32)(sizeof(queuePriorities) / sizeof(float));
@@ -299,7 +299,7 @@ void Graphics::init(Window *w){
 	deviceInfo.queueCreateInfoCount = queueCount;
 	deviceInfo.pQueueCreateInfos = queues;
 	
-	vkCheck<0x2>(vkCreateDevice(*gpu, &deviceInfo, vkAllocator, &ext.device), "Couldn't obtain device");
+	vkCheck<0xC>(vkCreateDevice(*gpu, &deviceInfo, vkAllocator, &ext.device), "Couldn't obtain device");
 	
 	vkGetDeviceQueue(ext.device, ext.queueFamilyIndex, 0, &ext.queue);
 
@@ -326,7 +326,7 @@ void Graphics::init(Window *w){
 	poolInfo.queueFamilyIndex = ext.queueFamilyIndex;
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-	vkCheck<0x16>(vkCreateCommandPool(ext.device, &poolInfo, vkAllocator, &ext.pool), "Couldn't create command pool");
+	vkCheck<0xD>(vkCreateCommandPool(ext.device, &poolInfo, vkAllocator, &ext.pool), "Couldn't create command pool");
 	vkName(ext, ext.pool, VK_OBJECT_TYPE_COMMAND_POOL, "Graphics command pool");
 
 	//Get memory properties
@@ -352,14 +352,14 @@ void Graphics::initSurface(Window *w) {
 	void *platformBegin = &surfaceInfo.__VK_SURFACE_HANDLE__;			//This is the start where platform dependent data starts
 	memcpy(platformBegin, w->getSurfaceData(), w->getSurfaceSize());	//Memcpy the bytes from the window's representation of the surface
 
-	vkCheck<0x3>(__VK_SURFACE_CREATE__(ext.instance, &surfaceInfo, vkAllocator, &ext.surface), "Couldn't obtain surface");
+	vkCheck<0xE>(__VK_SURFACE_CREATE__(ext.instance, &surfaceInfo, vkAllocator, &ext.surface), "Couldn't obtain surface");
 
 	//Check if the surface is supported
 
 	VkBool32 supported = false;
 
-	if (!vkCheck<0x4>(vkGetPhysicalDeviceSurfaceSupportKHR(ext.pdevice, 0, ext.surface, &supported), "Surface wasn't supported") || !supported)
-		Log::throwError<Graphics, 0x5>("Surface wasn't supported");
+	if (!vkCheck<0xF>(vkGetPhysicalDeviceSurfaceSupportKHR(ext.pdevice, 0, ext.surface, &supported), "Surface wasn't supported") || !supported)
+		Log::throwError<VkGraphics, 0x1>("Surface wasn't supported");
 
 	//Get the format we should display
 
@@ -367,7 +367,7 @@ void Graphics::initSurface(Window *w) {
 	vkGetPhysicalDeviceSurfaceFormatsKHR(ext.pdevice, ext.surface, &formatCount, NULL);
 
 	if (formatCount == 0)
-		Log::throwError<Graphics, 0x6>("Couldn't get surface format");
+		Log::throwError<VkGraphics, 0x2>("Couldn't get surface format");
 
 	VkSurfaceFormatKHR *formats = new VkSurfaceFormatKHR[formatCount];
 	vkGetPhysicalDeviceSurfaceFormatsKHR(ext.pdevice, ext.surface, &formatCount, formats);
@@ -388,10 +388,10 @@ void Graphics::initSurface(Window *w) {
 	Vec2u size = { capabilities.currentExtent.width, capabilities.currentExtent.height };
 
 	if (size == Vec2u::max())
-		Log::throwError<Graphics, 0x7>("Size is undefined; this is not supported!");
+		Log::throwError<VkGraphics, 0x3>("Size is undefined; this is not supported!");
 
 	if (size != w->getInfo().getSize())
-		Log::throwError<Graphics, 0x8>(String("Render size didn't match ") + size);
+		Log::throwError<VkGraphics, 0x4>(String("Render size didn't match ") + size);
 
 	Log::println(String("Successfully created surface (") + size + ")");
 	
@@ -426,7 +426,7 @@ void Graphics::initSurface(Window *w) {
 	}
 	
 	if(buffering == 1 && mode != desire)
-		Log::throwError<Graphics, 0x8>("Immediate presentMode is required for single buffering");
+		Log::throwError<VkGraphics, 0x5>("Immediate presentMode is required for single buffering");
 
 	swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainInfo.minImageCount = buffering;
@@ -443,7 +443,7 @@ void Graphics::initSurface(Window *w) {
 	swapchainInfo.compositeAlpha = (VkCompositeAlphaFlagBitsKHR) capabilities.supportedCompositeAlpha;
 	swapchainInfo.presentMode = mode;
 
-	vkCheck<0x9>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, vkAllocator, &ext.swapchain), "Couldn't create swapchain");
+	vkCheck<0x10>(vkCreateSwapchainKHR(ext.device, &swapchainInfo, vkAllocator, &ext.swapchain), "Couldn't create swapchain");
 	vkName(ext, ext.swapchain, VK_OBJECT_TYPE_SWAPCHAIN_KHR, "Back buffer swapchain");
 
 	vkGetSwapchainImagesKHR(ext.device, ext.swapchain, &buffering, nullptr);
@@ -464,7 +464,7 @@ void Graphics::initSurface(Window *w) {
 	ext.presentFence.resize(buffering);
 	for (u32 i = 0; i < buffering; ++i) {
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		vkCheck<0xE>(vkCreateFence(ext.device, &fenceInfo, vkAllocator, ext.presentFence.data() + i), "Couldn't create the present fence");
+		vkCheck<0x11>(vkCreateFence(ext.device, &fenceInfo, vkAllocator, ext.presentFence.data() + i), "Couldn't create the present fence");
 		vkName(ext, ext.presentFence[i], VK_OBJECT_TYPE_FENCE, String("Present stall fence #") + i);
 	}
 
@@ -479,12 +479,12 @@ void Graphics::initSurface(Window *w) {
 	ext.swapchainSemaphore.resize(buffering);
 
 	for (u32 i = 0; i < buffering; ++i) {
-		vkCheck<0x17>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, ext.submitSemaphore.data() + i), "Couldn't create semaphore");
+		vkCheck<0x12>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, ext.submitSemaphore.data() + i), "Couldn't create submit semaphore");
 		vkName(ext, ext.submitSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Submit stall semaphore #") + i);
 	}
 
 	for (u32 i = 0; i < buffering; ++i) {
-		vkCheck<0x1A>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, ext.swapchainSemaphore.data() + i), "Couldn't create semaphore");
+		vkCheck<0x13>(vkCreateSemaphore(ext.device, &semaphoreInfo, vkAllocator, ext.swapchainSemaphore.data() + i), "Couldn't create swapchain semaphore");
 		vkName(ext, ext.swapchainSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Swapchain stall semaphore #") + i);
 	}
 
@@ -503,7 +503,7 @@ void Graphics::initSurface(Window *w) {
 		tex->setHash<Texture>();
 
 		if(!tex->init(false))
-			Log::throwError<Graphics, 0xA>("Couldn't initialize swapchain image view");
+			Log::throwError<VkGraphics, 0x6>("Couldn't initialize swapchain image view");
 
 		add(tex);
 		use(tex);
@@ -533,7 +533,7 @@ void Graphics::initSurface(Window *w) {
 	backBuffer->name = "Swapchain";
 
 	if(!backBuffer->init(false))
-		Log::throwError<Graphics, 0xC>("Couldn't initialize back buffer (render target)");
+		Log::throwError<VkGraphics, 0x7>("Couldn't initialize back buffer (render target)");
 
 	add(backBuffer);
 	use(backBuffer);
@@ -577,13 +577,13 @@ void Graphics::begin() {
 
 	//Get next image
 
-	vkCheck<0x10>(vkAcquireNextImageKHR(ext.device, ext.swapchain, u64_MAX, ext.swapchainSemaphore[next], VK_NULL_HANDLE, &ext.current), "Couldn't acquire next image");
+	vkCheck<0x14>(vkAcquireNextImageKHR(ext.device, ext.swapchain, u64_MAX, ext.swapchainSemaphore[next], VK_NULL_HANDLE, &ext.current), "Couldn't acquire next image");
 
 	renderTimer.lap("vkAcquireNextImageKHR");
 
 	//Wait for previous frame
 
-	vkCheck<0x11>(vkWaitForFences(ext.device, 1, ext.presentFence.data() + ext.current, VK_TRUE, u64_MAX), "Couldn't wait for fences");
+	vkCheck<0x15>(vkWaitForFences(ext.device, 1, ext.presentFence.data() + ext.current, VK_TRUE, u64_MAX), "Couldn't wait for fences");
 
 	renderTimer.lap("vkWaitForFences");
 
@@ -611,7 +611,7 @@ void Graphics::begin() {
 
 	//Reset fences
 
-	vkCheck<0x12>(vkResetFences(ext.device, 1, ext.presentFence.data() + ext.current), "Couldn't reset fences");
+	vkCheck<0x16>(vkResetFences(ext.device, 1, ext.presentFence.data() + ext.current), "Couldn't reset fences");
 
 	renderTimer.lap("vkResetFences");
 
@@ -690,7 +690,7 @@ void Graphics::end() {
 	submitInfo.pWaitSemaphores = ext.swapchainSemaphore.data() + ext.current;
 	submitInfo.pWaitDstStageMask = &stageWait;
 
-	vkCheck<0x18>(vkQueueSubmit(ext.queue, 1, &submitInfo, ext.presentFence[ext.current]), "Couldn't submit queue");
+	vkCheck<0x17>(vkQueueSubmit(ext.queue, 1, &submitInfo, ext.presentFence[ext.current]), "Couldn't submit queue");
 
 	renderTimer.lap("vkQueueSubmit");
 
@@ -709,8 +709,8 @@ void Graphics::end() {
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = ext.submitSemaphore.data() + ext.current;
 
-	vkCheck<0xF>(vkQueuePresentKHR(ext.queue, &presentInfo), "Couldn't present image");
-	vkCheck<0x14>(result, "Couldn't present image");
+	vkCheck<0x18>(vkQueuePresentKHR(ext.queue, &presentInfo), "Couldn't present image");
+	vkCheck<0x19>(result, "Couldn't present image");
 
 	renderTimer.lap("vkQueuePresentKHR");
 
@@ -740,7 +740,7 @@ CommandList *Graphics::create(String name, CommandListInfo info) {
 	cl->name = name;
 
 	if (!cl->init())
-		Log::throwError<Graphics, 0x15>("Couldn't create command list");
+		Log::throwError<VkGraphics, 0x8>("Couldn't create command list");
 
 	add(cl);
 	return cl;

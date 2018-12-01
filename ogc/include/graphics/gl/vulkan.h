@@ -122,7 +122,7 @@ namespace oi {
 			
 		};
 
-		template<u32 errorId, typename T = gc::Graphics>
+		template<u32 errorId, typename T = VkGraphics>
 		bool vkCheck(VkResult result, String msg) {
 
 			if (result >= VK_SUCCESS) return true;
@@ -182,7 +182,7 @@ namespace oi {
 			return Log::throwError<T, errorId>(msg);
 		}
 
-		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
+		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x9>("Couldn't get Vulkan extension");
 
 		template<typename T>
 		void vkName(VkGraphics &g, T val, VkObjectType type, String name) {

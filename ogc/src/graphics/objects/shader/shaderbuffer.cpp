@@ -144,7 +144,7 @@ ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
 		buffer = g->create(getName() + " buffer", GBufferInfo(info.type.getValue() - 1, info.size));
 		g->use(buffer);
 	} else
-		Log::throwError<ShaderBuffer, 0x0>("Can't set the buffer when it's already set");
+		Log::throwError<ShaderBuffer, 0x0>("Can't instantiate the buffer when it's already set");
 
 	return this;
 
@@ -153,7 +153,7 @@ ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
 void ShaderBuffer::setBuffer(u32 objects, GBuffer *gb) {
 
 	if (buffer != nullptr)
-		Log::throwError<ShaderBuffer, 0x1>("Can't set the buffer when it's already set");
+		Log::throwError<ShaderBuffer, 0x1>("Can't set the buffer when it already contains data");
 
 	setObjectCount(objects);
 
@@ -191,7 +191,7 @@ GBuffer *ShaderBuffer::getBuffer() {
 void ShaderBuffer::set(Buffer buf) {
 
 	if (buffer == nullptr || buf.size() == 0U)
-		Log::throwError<ShaderBuffer, 0x4>("ShaderBuffer::copy requires a buffer to be set and ShaderBuffer has to be open");
+		Log::throwError<ShaderBuffer, 0x3>("ShaderBuffer::copy requires a buffer to be set");
 
 	buffer->set(buf);
 
@@ -253,7 +253,7 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 			}
 
 			if ((sbo = sbo->find(str)) == nullptr)
-				Log::throwError<ShaderBufferVar, 0x7>(String("Couldn't find the path \"") + path + "\"");
+				Log::throwError<ShaderBufferVar, 0x1>(String("Couldn't find the path \"") + path + "\"");
 			else
 				offset += sbo->offset;
 

@@ -35,7 +35,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 		ShaderStageInfo &istage = info.stages[0];
 
 		if (istage.type != ShaderStageType::Compute_shader)
-			Log::throwError<oiSH, 0x3>("oiSH::convert couldn't be executed; only one stage; and not Compute.");
+			Log::throwError<oiSH, 0x3>("oiSH::convert couldn't be executed; it only has one stage. Which is only allowed for compute");
 
 		if (istage.code.size() == 0)
 			Log::throwError<oiSH, 0x4>("oiSH::convert couldn't be executed; no bytecode");
@@ -88,10 +88,10 @@ SHFile oiSH::convert(ShaderInfo info) {
 		for (ShaderStageInfo &istage : info.stages) {
 
 			if(istage.type == ShaderStageType::Compute_shader)
-				Log::throwError<oiSH, 0x4>("oiSH::convert couldn't be executed; Graphics shaders can't contain Compute module.");
+				Log::throwError<oiSH, 0x5>("oiSH::convert couldn't be executed; Graphics shaders can't contain Compute module");
 
 			if(istage.code.size() == 0)
-				Log::throwError<oiSH, 0x5>("oiSH::convert couldn't be executed; no bytecode");
+				Log::throwError<oiSH, 0x6>("oiSH::convert couldn't be executed; no bytecode");
 
 			SHStage &ostage = output.stage[i];
 
@@ -145,7 +145,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 		ShaderRegister &reg = info.registers[i];
 
 		if (reg.type.getValue() == 0U)
-			Log::throwError<oiSH, 0x6>("Invalid register type");
+			Log::throwError<oiSH, 0x7>("Invalid register type");
 
 		output.registers[i] = {
 
@@ -282,7 +282,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 			u32 buf = r.representation;
 
 			if (buf == 0U) 
-				Log::throwError<oiSH, 0x1>("ShaderRegister of type Buffer (SSBO or UBO) doesn't reference a buffer");
+				Log::throwError<oiSH, 0x8>("ShaderRegister of type Buffer (SSBO or UBO) doesn't reference a buffer");
 
 			--buf;
 

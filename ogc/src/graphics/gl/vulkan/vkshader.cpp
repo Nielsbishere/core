@@ -73,7 +73,7 @@ void Shader::update() {
 			if (dynamic_cast<ShaderBuffer*>(res) != nullptr) {
 
 				if (reg.type != ShaderRegisterType::UBO && reg.type != ShaderRegisterType::SSBO)
-					Log::throwError<Shader, 0x1>("A ShaderBuffer has been placed on a register not meant for SBOs");
+					Log::throwError<VkShader, 0x1>("A ShaderBuffer has been placed on a register not meant for buffers");
 
 				VkDescriptorBufferInfo *bufferInfo = buffers.data() + j;
 				descriptor.pBufferInfo = bufferInfo;
@@ -83,7 +83,7 @@ void Shader::update() {
 				GBuffer *buf = shaderBuffer->getBuffer();
 
 				if (buf == nullptr)
-					Log::throwError<Shader, 0x0>("Shader mentions an invalid buffer");
+					Log::throwError<VkShader, 0x0>("Shader mentions an invalid buffer");
 
 				std::vector<VkBuffer> resources = buf->getExtension().resource;
 
@@ -115,7 +115,7 @@ void Shader::update() {
 			} else if(dynamic_cast<Sampler*>(res) != nullptr){
 
 				if (reg.type != ShaderRegisterType::Sampler)
-					Log::throwError<Shader, 0x2>("A Sampler has been placed on a register not meant for samplers");
+					Log::throwError<VkShader, 0x2>("A Sampler has been placed on a register not meant for samplers");
 
 				Sampler *samp = (Sampler*)res;
 
@@ -129,7 +129,7 @@ void Shader::update() {
 			} else if(dynamic_cast<Texture*>(res) != nullptr) {
 
 				if (reg.type != ShaderRegisterType::Texture2D || reg.size != 1)
-					Log::throwError<Shader, 0x3>("A Texture has been placed on a register not meant for textures or it has to use a TextureList");
+					Log::throwError<VkShader, 0x3>("A Texture has been placed on a register not meant for textures or it has to use a TextureList");
 
 				Texture *tex = (Texture*) res;
 
@@ -144,12 +144,12 @@ void Shader::update() {
 			} else if (dynamic_cast<TextureList*>(res) != nullptr) {
 
 				if (reg.type != ShaderRegisterType::Texture2D || reg.size == 1)
-					Log::throwError<Shader, 0x4>("A TextureList has been placed on a register not meant for textures or it has to use a Texture");
+					Log::throwError<VkShader, 0x4>("A TextureList has been placed on a register not meant for textures or it has to use a Texture");
 
 				TextureList *tex = (TextureList*)res;
 
 				if (tex->size() != reg.size)
-					Log::throwError<Shader, 0x5>("A TextureList had invalid size!");
+					Log::throwError<VkShader, 0x5>("A TextureList had invalid size!");
 
 				VkDescriptorImageInfo *image = imageInfo.data() + l;
 				descriptor.pImageInfo = image;
@@ -165,7 +165,7 @@ void Shader::update() {
 			} else if (dynamic_cast<VersionedTexture*>(res) != nullptr) {
 
 				if (reg.type != ShaderRegisterType::Texture2D)
-					Log::throwError<Shader, 0x3>("A VersionedTexture has been placed on a register not meant for textures");
+					Log::throwError<VkShader, 0x6>("A VersionedTexture has been placed on a register not meant for textures");
 
 				VersionedTexture *tex = (VersionedTexture*)res;
 
@@ -194,7 +194,7 @@ void Shader::update() {
 				++l;
 
 			} else
-				Log::throwError<Shader, 0x4>("Shader mentions an invalid resource");
+				Log::throwError<VkShader, 0x7>("Shader mentions an invalid resource");
 
 			if (!versioned) {
 
@@ -275,7 +275,7 @@ bool Shader::init() {
 	descInfo.bindingCount = (u32) descriptorSet.size();
 	descInfo.pBindings = descriptorSet.data();
 
-	vkCheck<0x1, VkShader>(vkCreateDescriptorSetLayout(gext.device, &descInfo, vkAllocator, &ext.setLayout), "Couldn't create descriptor set layout");
+	vkCheck<0x8, VkShader>(vkCreateDescriptorSetLayout(gext.device, &descInfo, vkAllocator, &ext.setLayout), "Couldn't create descriptor set layout");
 	vkName(gext, ext.setLayout, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, getName() + " descriptor set layout");
 
 	//Create pipeline layout
@@ -287,7 +287,7 @@ bool Shader::init() {
 	layoutInfo.setLayoutCount = 1U;
 	layoutInfo.pSetLayouts = &ext.setLayout;
 
-	vkCheck<0x0, VkShader>(vkCreatePipelineLayout(gext.device, &layoutInfo, vkAllocator, &ext.layout), "Couldn't create shader pipeline layout");
+	vkCheck<0x9, VkShader>(vkCreatePipelineLayout(gext.device, &layoutInfo, vkAllocator, &ext.layout), "Couldn't create shader pipeline layout");
 	vkName(gext, ext.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, getName() + " pipeline layout");
 
 	//Create descriptor pool
@@ -314,7 +314,7 @@ bool Shader::init() {
 	poolInfo.pPoolSizes = descriptorPool.data();
 	poolInfo.maxSets = g->getBuffering();
 
-	vkCheck<0x2, VkShader>(vkCreateDescriptorPool(gext.device, &poolInfo, vkAllocator, &ext.descriptorPool), "Couldn't create descriptor pool");
+	vkCheck<0xA, VkShader>(vkCreateDescriptorPool(gext.device, &poolInfo, vkAllocator, &ext.descriptorPool), "Couldn't create descriptor pool");
 	vkName(gext, ext.descriptorPool, VK_OBJECT_TYPE_DESCRIPTOR_POOL, getName() + " descriptor pool");
 
 	//Create descriptor set (versioned)
@@ -334,7 +334,7 @@ bool Shader::init() {
 
 	ext.descriptorSet.resize(g->getBuffering());
 
-	vkCheck<0x3, VkShader>(vkAllocateDescriptorSets(gext.device, &setInfo, ext.descriptorSet.data()), "Couldn't create descriptor sets");
+	vkCheck<0xB, VkShader>(vkAllocateDescriptorSets(gext.device, &setInfo, ext.descriptorSet.data()), "Couldn't create descriptor sets");
 
 	for (u32 j = 0, k = (u32)ext.descriptorSet.size(); j < k; ++j)
 		vkName(gext, ext.descriptorSet[j], VK_OBJECT_TYPE_DESCRIPTOR_SET, getName() + " descriptor set " + j);

@@ -33,7 +33,7 @@ bool Texture::init(bool isOwned) {
 		}
 
 		if (info.format == TextureFormat::Depth)
-			return Log::throwError<Texture, 0x0>("Couldn't get depth texture; no optimal format available");
+			return Log::throwError<VkTexture, 0x0>("Couldn't get depth texture; no optimal format available");
 
 		useStencil = info.format.getIndex() > TextureFormat::D32;
 	}
@@ -64,7 +64,7 @@ bool Texture::init(bool isOwned) {
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		vkCheck<0x1, Texture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
+		vkCheck<0x4, VkTexture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
 		vkName(graphics, ext.resource, VK_OBJECT_TYPE_IMAGE, getName());
 
 		//Allocate memory (TODO: by GraphicsExt)
@@ -87,12 +87,12 @@ bool Texture::init(bool isOwned) {
 			}
 
 		if (memoryIndex == u32_MAX)
-			Log::throwError<VkGBuffer, 0x0>(String("Couldn't find a valid memory type for a VkTexture: ") + getName());
+			Log::throwError<VkTexture, 0x1>(String("Couldn't find a valid memory type for a VkTexture: ") + getName());
 
 		memoryInfo.memoryTypeIndex = memoryIndex;
 
-		vkCheck<0x1, VkGBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
-		vkCheck<0x2, VkGBuffer>(vkBindImageMemory(graphics.device, ext.resource, ext.memory, 0), String("Couldn't bind memory to texture ") + getName());
+		vkCheck<0x5, VkTexture>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
+		vkCheck<0x6, VkTexture>(vkBindImageMemory(graphics.device, ext.resource, ext.memory, 0), String("Couldn't bind memory to texture ") + getName());
 
 	}
 	
@@ -109,7 +109,7 @@ bool Texture::init(bool isOwned) {
 	viewInfo.subresourceRange.levelCount = info.mipLevels;
 	viewInfo.subresourceRange.layerCount = 1;
 
-	vkCheck<0x2, Texture>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext.view), "Couldn't create image view");
+	vkCheck<0x7, VkTexture>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext.view), "Couldn't create image view");
 	vkName(graphics, ext.view, VK_OBJECT_TYPE_IMAGE_VIEW, getName() + " view");
 
 	//Prepare texture for update
@@ -117,11 +117,11 @@ bool Texture::init(bool isOwned) {
 	if (info.dat.size() != 0U) {
 
 		if (info.dat.size() != info.res.x * info.res.y * Graphics::getFormatSize(info.format))
-			return Log::throwError<Texture, 0x4>("The buffer was of incorrect size");
+			return Log::throwError<VkTexture, 0x2>("The buffer was of incorrect size");
 
-		info.isChanged = true;
+		flush(Vec2u(), info.res);
 
-	} else info.isChanged = false;
+	}
 
 	if (info.parent != nullptr)
 		info.handle = info.parent->alloc(this);
@@ -159,6 +159,34 @@ void Texture::push() {
 
 	GraphicsExt &graphics = g->getExtension();
 
+	//Prepare data for transfer
+
+	Vec2u changedLength = info.changedEnd - info.changedStart;
+
+	u32 stride = getStride();
+	u32 size = changedLength.x * changedLength.y * stride;
+	bool fullTexture = changedLength == info.res;
+
+	Buffer dat = fullTexture ? info.dat : Buffer(size);
+
+	if (!fullTexture) {
+
+		if (changedLength.x == info.res.x)		//Copy rows (fast)
+			memcpy(dat.addr(), info.dat.addr() + info.changedStart.y * changedLength.x * stride, size);
+		else {
+
+			//Copy rows (slow)
+			for(u32 i = 0; i < changedLength.y; ++i)
+				memcpy(
+					dat.addr() + i * changedLength.x * stride,
+					info.dat.addr() + ((info.changedStart.y + i) * info.res.x + info.changedStart.x) * stride,
+					changedLength.x * stride
+				);
+
+		}
+
+	}
+
 	//Construct staging buffer with data
 
 	GBufferExt gbext;
@@ -168,13 +196,13 @@ void Texture::push() {
 	memset(&stagingInfo, 0, sizeof(stagingInfo));
 
 	stagingInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	stagingInfo.size = info.dat.size();
+	stagingInfo.size = size;
 	stagingInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	stagingInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	stagingInfo.queueFamilyIndexCount = 1;
 	stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-	vkCheck<0x3, Texture>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.data()), "Couldn't send texture data to GPU");
+	vkCheck<0x8, VkTexture>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.data()), "Couldn't send texture data to GPU");
 	vkName(graphics, gbext.resource[0], VK_OBJECT_TYPE_IMAGE, getName() + " staging buffer");
 
 	//Allocate memory (TODO: by GraphicsExt)
@@ -197,26 +225,26 @@ void Texture::push() {
 		}
 
 	if (memoryIndex == u32_MAX)
-		Log::throwError<VkGBuffer, 0x3>(String("Couldn't find a valid memory type for a texture staging buffer: ") + getName());
+		Log::throwError<VkTexture, 0x3>(String("Couldn't find a valid memory type for a texture staging buffer: ") + getName());
 
 	memoryInfo.memoryTypeIndex = memoryIndex;
 
-	vkCheck<0x4, VkGBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &gbext.memory), "Couldn't allocate memory");
-	vkCheck<0x5, VkGBuffer>(vkBindBufferMemory(graphics.device, gbext.resource[0], gbext.memory, 0), String("Couldn't bind memory to staging buffer ") + getName());
+	vkCheck<0x9, VkTexture>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &gbext.memory), "Couldn't allocate memory");
+	vkCheck<0xA, VkTexture>(vkBindBufferMemory(graphics.device, gbext.resource[0], gbext.memory, 0), String("Couldn't bind memory to staging buffer ") + getName());
 
 	//Copy data to staging buffer
 
 	void *stagingData;
 
-	vkCheck<0x5, Texture>(vkMapMemory(graphics.device, gbext.memory, 0, info.dat.size(), 0, &stagingData), "Couldn't map texture staging buffer");
-	memcpy(stagingData, info.dat.addr(), info.dat.size());
+	vkCheck<0xB, VkTexture>(vkMapMemory(graphics.device, gbext.memory, 0, size, 0, &stagingData), "Couldn't map texture staging buffer");
+	memcpy(stagingData, dat.addr(), size);
 	vkUnmapMemory(graphics.device, gbext.memory);
 
 	//Copy data to cmd list
 
 	CommandListExt &cmd = graphics.stagingCmdList->getExtension();
 
-	///Transition to write
+	//Transition to write
 
 	VkImageMemoryBarrier barrier;
 	memset(&barrier, 0, sizeof(barrier));
@@ -232,18 +260,19 @@ void Texture::push() {
 
 	vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-	///Copy it into the texture
+	//Copy it into the texture
 
 	VkBufferImageCopy region;
 	memset(&region, 0, sizeof(region));
 
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.imageSubresource.layerCount = 1U;
-	region.imageExtent = { info.res.x, info.res.y, 1 };
+	region.imageOffset = { (i32) info.changedStart.x, (i32) info.changedStart.y, 0 };
+	region.imageExtent = { changedLength.x, changedLength.y, 1 };
 
 	vkCmdCopyBufferToImage(cmd.cmds[0], gbext.resource[0], ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	///Now generate mipmaps
+	//Generate mipmaps
 
 	memset(&barrier, 0, sizeof(barrier));
 
@@ -257,7 +286,7 @@ void Texture::push() {
 
 	for (u32 i = 1; i < info.mipLevels; ++i) {
 
-		///Transition mipmap source from DST_OPTIMAL to SRC_OPTIMAL
+		//Transition mipmap source from DST_OPTIMAL to SRC_OPTIMAL
 
 		barrier.subresourceRange.baseMipLevel = i - 1;
 		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -267,7 +296,7 @@ void Texture::push() {
 
 		vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-		///Create mipmap from mip i - 1 into i
+		//Create mipmap from mip i - 1 into i
 
 		VkImageBlit blit;
 		memset(&blit, 0, sizeof(blit));
@@ -289,9 +318,9 @@ void Texture::push() {
 
 	}
 
-	///Last mip is in DST_OPTIMAL and ones before that in SRC_OPTIMAL
-	///So transition them back to SHADER_READ_OPTIMAL
-	///Two barriers; 0 to mipLevels - 1 from SRC to SHADER_READ and mipLevels - 1 from DST to SHADER_READ
+	//Last mip is in DST_OPTIMAL and ones before that in SRC_OPTIMAL
+	//So transition them back to SHADER_READ_OPTIMAL
+	//Two barriers; 0 to mipLevels - 1 from SRC to SHADER_READ and mipLevels - 1 from DST to SHADER_READ
 
 	memset(&barrier, 0, sizeof(barrier));
 
@@ -321,7 +350,11 @@ void Texture::push() {
 
 	graphics.stagingBuffers[graphics.current].push_back(gbext);
 
-	info.isChanged = false;
+	if (!fullTexture)
+		dat.deconstruct();
+
+	info.changedStart = Vec2u(u32_MAX, u32_MAX);
+	info.changedStart = Vec2u();
 
 }
 

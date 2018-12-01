@@ -18,7 +18,7 @@ void MeshBuffer::flush(const MeshAllocation &allocation) {
 MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 
 	if ((indices == 0) != (info.ibo == nullptr)) {
-		Log::throwError<MeshBuffer, 0x1>("Please only allocate 0 indices when there is no index buffer, or use indices higher when there is an index buffer");
+		Log::throwError<MeshBuffer, 0x0>("Please only allocate 0 indices when there is no index buffer, or use indices when there is an index buffer");
 		return {};
 	}
 
@@ -32,7 +32,7 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 		result.baseIndex = alloc.start;
 
 		if (alloc.size == 0) {
-			Log::throwError<MeshBuffer, 0x2>("Couldn't allocate indices");
+			Log::throwError<MeshBuffer, 0x1>("Couldn't allocate indices");
 			return {};
 		}
 
@@ -44,7 +44,7 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 	result.baseVertex = alloc.start;
 
 	if(alloc.size == 0) {
-		Log::throwError<MeshBuffer, 0x3>("Couldn't allocate vertices");
+		Log::throwError<MeshBuffer, 0x2>("Couldn't allocate vertices");
 		return {};
 	}
 

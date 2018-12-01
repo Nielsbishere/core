@@ -21,7 +21,7 @@ Pipeline::~Pipeline() {
 bool Pipeline::init() {
 
 	if (info.shader == nullptr)
-		return Log::throwError<Pipeline, 0x2>("Pipeline requires a shader");
+		return Log::throwError<VkPipeline, 0x0>("Pipeline requires a shader");
 
 	GraphicsExt &gext = g->getExtension();
 
@@ -34,7 +34,7 @@ bool Pipeline::init() {
 	if (info.shader->getInfo().stage.size() > 1) {
 
 		if (info.renderTarget == nullptr || info.pipelineState == nullptr || info.meshBuffer == nullptr)
-			return Log::throwError<Pipeline, 0x3>("Graphics pipeline requires a render target, pipeline state and mesh buffer");
+			return Log::throwError<VkPipeline, 0x1>("Graphics pipeline requires a render target, pipeline state and mesh buffer");
 
 		//Init viewport and scissor
 
@@ -131,17 +131,17 @@ bool Pipeline::init() {
 					if (var.name == ename) {
 
 						if (!Graphics::isCompatible(var.type, format))
-							return Log::throwError<PipelineExt, 0x1>(String("Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; ") + info.shader->getName() + "'s " + var.name + " and " + info.meshBuffer->getName() + "'s " + ename);
+							return Log::throwError<VkPipeline, 0x2>(String("Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; ") + info.shader->getName() + "'s " + var.name + " and " + info.meshBuffer->getName() + "'s " + ename);
 
 						break;
 					}
 					else ++j;
 
 				if(j == (u32) shinfo.inputs.size())
-					return Log::throwError<PipelineExt, 0x0>(String("Couldn't create pipeline; no match found in shader input from vertex input; ") + ename);
+					return Log::throwError<VkPipeline, 0x3>(String("Couldn't create pipeline; no match found in shader input from vertex input; ") + ename);
 
 				if(attribute[j].format != 0)
-					return Log::throwError<PipelineExt, 0x2>(String("Couldn't create pipeline; vertex input (") + ename + ") is already set. Don't use duplicate vertex inputs");
+					return Log::throwError<VkPipeline, 0x4>(String("Couldn't create pipeline; vertex input (") + ename + ") is already set. Don't use duplicate vertex inputs");
 
 				attribute[j] = { j, i, TextureFormatExt(format.getName()).getValue(), offset };
 
@@ -172,17 +172,17 @@ bool Pipeline::init() {
 		for (const ShaderOutput so : info.shader->getInfo().outputs) {
 
 			if (so.id >= rt->getTargets())
-				Log::throwError<Pipeline, 0x4>("Invalid pipeline; Shader referenced a shader output to an unknown output");
+				Log::throwError<VkPipeline, 0x5>("Invalid pipeline; Shader referenced a shader output to an unknown output");
 			
 			if(!Graphics::isCompatible(so.type, rt->getTarget(so.id)->getFormat()))
-				Log::throwError<Pipeline, 0x5>("Invalid pipeline; Shader referenced an incompatible output format");
+				Log::throwError<VkPipeline, 0x6>("Invalid pipeline; Shader referenced an incompatible output format");
 
 		}
 
 
 		//Create the pipeline
 
-		vkCheck<0x0, Pipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
+		vkCheck<0x7, VkPipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
 
 	} else {
 	
@@ -203,7 +203,7 @@ bool Pipeline::init() {
 
 		//Create the pipeline
 
-		vkCheck<0x1, Pipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
+		vkCheck<0x8, VkPipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
 
 	}
 

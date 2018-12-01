@@ -164,7 +164,7 @@ namespace oi {
 			t->template setHash<T>();
 
 			if (!t->init())
-				return (T*) Log::throwError<Graphics, 0xB>("Couldn't init GraphicsObject");
+				return (T*) Log::throwError<Graphics, 0x0>("Couldn't init GraphicsObject");
 
 			add(t);
 			return t;

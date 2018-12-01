@@ -92,7 +92,7 @@ namespace oi {
 			TextureList *parent;
 			TextureHandle handle = u32_MAX;
 
-			bool isChanged = false;
+			Vec2u changedStart = Vec2u(u32_MAX, u32_MAX), changedEnd = Vec2u();
 
 			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : parent(nullptr), res(res), format(format), usage(usage) {}
 			TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()) {}
@@ -109,6 +109,8 @@ namespace oi {
 			TextureFormat getFormat();
 			TextureUsage getUsage();
 			Vec2u getSize();
+			u32 getStride();
+			u32 getCpuSize();
 			bool isOwned();
 
 			TextureHandle getHandle();
@@ -118,7 +120,31 @@ namespace oi {
 
 			void initParent(TextureList *parent);
 
-			void flush();
+			//Set pixel of a texture with layout info.format
+			//NOTE: This recreates mips and texture data every time, so use it rarely if ever
+			//NOTE: Only available with textures with data
+			bool set(Vec2u pixel, Buffer value);
+
+			//Set pixels of a texture with layout info.format
+			//NOTE: This recreates mips and texture data every time, so use it rarely if ever
+			//NOTE: Only available with textures with data
+			bool setPixels(Vec2u start, Vec2u length, Buffer values);
+
+			//Get pixel of a texture into buffer with layout info.format
+			//NOTE: Only available with textures with data
+			bool getPixel(Vec2u pixel, CopyBuffer &output);
+
+			//Get pixels of a texture into buffer with layout info.format
+			//NOTE: Only available with textures with data
+			bool getPixels(Vec2u start, Vec2u length, CopyBuffer &output);
+
+			//Write texture to disk
+			//NOTE: Only available with textures with data
+			void write(String path);
+
+			//Read texture from disk
+			//NOTE: Only available with textures with data
+			void read(String path);
 
 		protected:
 
@@ -130,6 +156,8 @@ namespace oi {
 
 			//Push changes to GPU
 			void push();
+
+			void flush(Vec2u start, Vec2u length);
 
 		private:
 

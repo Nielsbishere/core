@@ -62,8 +62,6 @@ namespace oi {
 			CommandList(CommandListInfo info);
 			bool init();
 
-			void flush();
-
 		private:
 
 			CommandListInfo info;

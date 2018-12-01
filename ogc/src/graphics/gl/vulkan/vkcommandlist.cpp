@@ -99,7 +99,7 @@ bool CommandList::init() {
 	allocInfo.commandPool = glext.pool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-	vkCheck<0x0, CommandList>(vkAllocateCommandBuffers(glext.device, &allocInfo, ext.cmds.data()), "Couldn't allocate command list");
+	vkCheck<0x2, VkCommandList>(vkAllocateCommandBuffers(glext.device, &allocInfo, ext.cmds.data()), "Couldn't allocate command list");
 
 	for (u32 i = 0; i < allocInfo.commandBufferCount; ++i)
 		vkName(glext, ext.cmds[i], VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " #" + i);
@@ -129,7 +129,7 @@ bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 
 	for (GBuffer *b : vbos)
 		if (b->getType() != GBufferType::VBO)
-			return Log::throwError<CommandList, 0x1>("CommandList::bind requires VBOs as first argument");
+			return Log::throwError<VkCommandList, 0x0>("CommandList::bind requires VBOs as first argument");
 		else
 			vkBuffer[i++] = b->getExtension().resource[0];
 
@@ -141,29 +141,13 @@ bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 	if (ibo != nullptr) {
 
 		if (ibo->getType() != GBufferType::IBO)
-			return Log::throwError<CommandList, 0x2>("CommandList::bind requires a valid IBO as second argument");
+			return Log::throwError<VkCommandList, 0x1>("CommandList::bind requires a valid IBO as second argument");
 
 		vkCmdBindIndexBuffer(ext_cmd, ibo->getExtension().resource[0], 0, VkIndexType::VK_INDEX_TYPE_UINT32);
 
 	}
 
 	return true;
-}
-
-void CommandList::flush() {
-
-	end();
-
-	VkSubmitInfo submitInfo;
-	memset(&submitInfo, 0, sizeof(submitInfo));
-
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1U;
-	submitInfo.pCommandBuffers = &ext_cmd;
-
-	vkCheck<0x4, CommandList>(vkQueueSubmit(g->getExtension().queue, 1, &submitInfo, VK_NULL_HANDLE), "Couldn't submit queue");
-
-	g->finish();
 }
 
 void CommandList::draw(DrawList *drawList) {

@@ -65,7 +65,7 @@ bool GBuffer::init() {
 		bufferInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	for (u32 i = 0, j = (u32)ext.resource.size(); i < j; ++i) {
-		vkCheck<0x1, GBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, ext.resource.data() + i), "Failed to create buffer");
+		vkCheck<0x2, VkGBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, ext.resource.data() + i), "Failed to create buffer");
 		vkName(graphics, ext.resource[i], VK_OBJECT_TYPE_BUFFER, getName() + " #" + i);
 	}
 
@@ -101,10 +101,10 @@ bool GBuffer::init() {
 	
 	memoryInfo.memoryTypeIndex = memoryIndex;
 	
-	vkCheck<0x1, VkGBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
+	vkCheck<0x3, VkGBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
 
 	for(u32 i = 0, j = (u32) ext.resource.size(); i < j; ++i)
-		vkCheck<0x2, VkGBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.gpuLength * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
+		vkCheck<0x4, VkGBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.gpuLength * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
 
 	//Set that it should update
 
@@ -160,7 +160,7 @@ void GBuffer::push() {
 		bufferInfo.queueFamilyIndexCount = 1;
 		bufferInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-		vkCheck<0x0, GBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, stagingBuffer.resource.data()), "Failed to create staging buffer");
+		vkCheck<0x5, GBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, stagingBuffer.resource.data()), "Failed to create staging buffer");
 		vkName(graphics, stagingBuffer.resource[0], VK_OBJECT_TYPE_BUFFER, getName() + " staging buffer");
 
 		//Allocate memory (TODO: by GraphicsExt)
@@ -183,17 +183,17 @@ void GBuffer::push() {
 			}
 
 		if (memoryIndex == u32_MAX)
-			Log::throwError<VkGBuffer, 0x3>(String("Couldn't find a valid memory type for a staging buffer for VkGBuffer: ") + getName());
+			Log::throwError<VkGBuffer, 0x1>(String("Couldn't find a valid memory type for a staging buffer for VkGBuffer: ") + getName());
 
 		memoryInfo.memoryTypeIndex = memoryIndex;
 
-		vkCheck<0x4, VkGBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &stagingBuffer.memory), "Couldn't allocate memory");
-		vkCheck<0x5, VkGBuffer>(vkBindBufferMemory(graphics.device, stagingBuffer.resource[0], stagingBuffer.memory, 0), String("Couldn't bind memory to buffer ") + getName());
+		vkCheck<0x6, VkGBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &stagingBuffer.memory), "Couldn't allocate memory");
+		vkCheck<0x7, VkGBuffer>(vkBindBufferMemory(graphics.device, stagingBuffer.resource[0], stagingBuffer.memory, 0), String("Couldn't bind memory to buffer ") + getName());
 
 		//Copy data to staging buffer
 
 		u8 *ptr;
-		vkCheck<0x2, GBuffer>(vkMapMemory(graphics.device, stagingBuffer.memory, 0, len, 0, (void**)&ptr), "Failed to map staging buffer");
+		vkCheck<0x8, VkGBuffer>(vkMapMemory(graphics.device, stagingBuffer.memory, 0, len, 0, (void**)&ptr), "Failed to map staging buffer");
 
 		memcpy(ptr, getAddress() + off, len);
 
@@ -231,7 +231,7 @@ void GBuffer::push() {
 
 	//Map memory
 	u8 *addr;
-	vkCheck<0x2, GBuffer>(vkMapMemory(g->getExtension().device, ext.memory, off + boffset, len, 0, (void**)&addr), "Couldn't map memory");
+	vkCheck<0x9, GBuffer>(vkMapMemory(g->getExtension().device, ext.memory, off + boffset, len, 0, (void**)&addr), "Couldn't map memory");
 
 	//Copy buffer
 	memcpy(addr, getAddress() + off, len);

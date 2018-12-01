@@ -4,10 +4,12 @@
 #include "window/windowmanager.h"
 using namespace oi::wc;
 
+struct AWindowManager {};
+
 void WindowManager::waitAll() {
 	
 	if(getWindows() != 1)
-		Log::throwError<WindowManager, 0x0>("Only one window supported for Android");
+		Log::throwError<AWindowManager, 0x0>("Only one window supported for Android");
 	
 	initAll();
 	
