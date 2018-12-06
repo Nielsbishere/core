@@ -1,4 +1,4 @@
-# Log calls
+# Important log calls
 
 When errors occur, it might be hard to locate, but with ocore, fatal errors have error codes. All calls to Log are documented in this document, including fatal errors with error codes and classes and error/warning/print text.
 
@@ -58,6 +58,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Invalid pipeline; Shader referenced an incompatible output format |                 | 0x6  | The RenderTarget outputs are incompatible with the shader outputs |
 | | Couldn't create graphics pipeline | | 0x7 | The pipeline settings were invalid, internal errors have been logged |
 | | Couldn't create compute pipeline | | 0x8 | see 0x7 |
+| graphics<br />gl<br />vulkan<br />vkpipelinestate.cpp | PipelineState creation failed; sample count has to be base2 | VkPipelineState | 0x0 | When specifying sample count (for MSAA), it has to be base2; 1,2,4,8,16,etc. |
 | graphics<br />gl<br />vulkan<br />vkshader.cpp          | Shader mentions an invalid buffer                            | VkShader        | 0x0  | When creating the Vulkan descriptor set, the shader found that there was no ShaderBuffer where a buffer was expected |
 |                                                         | A ShaderBuffer has been placed on a register not meant for buffers |                 | 0x1  | When creating the Vulkan descriptor set, the shader found that there was a ShaderBuffer where it wasn't expected |
 |                                                         | A Sampler has been placed on a register not meant for samplers |                 | 0x2  | When creating the Vulkan descriptor set, the shader found that there was a Sampler where it wasn't expected |
@@ -89,22 +90,40 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 #### Errors
 
-| File                           | Message                         | Description                                                  |
-| ------------------------------ | ------------------------------- | ------------------------------------------------------------ |
-| graphics<br />gl<br />vulkan.h | VkResult: Out of host memory    | The object couldn't be allocated because the CPU didn't have any memory left |
-|                                | VkResult: Out of device memory  | The object couldn't be allocated because the GPU didn't have any memory left |
-|                                | VkResult: Initialization failed | The creation info passed was possibly invalid, initialization failed. |
-|                                | VkResult: Device lost           | Access to the GPU was lost                                   |
-|                                | VkResult: Memory map failed     | Couldn't map memory; not enough driver memory?               |
-|                                | VkResult: Layer not present     |                                                              |
-|                                | VkResult: Extension not present |                                                              |
-|                                | VkResult: Feature not present   |                                                              |
-|                                | VkResult: Incompatible driver   | Driver doesn't support Vulkan or the current version         |
-|                                | VkResult: Too many objects      | There were too many objects on the GPU, so none could be created |
-|                                | VkResult: Format not supported  | Requested (texture) format can't be created                  |
-|                                | VkResult: Fragmented pool       | Nothing can be allocated into the pool; it was fragmented    |
-|                                |                                 |                                                              |
-|                                |                                 |                                                              |
+| File                                                | Message                                                      | Description                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| graphics<br />gl<br />vulkan.h                      | VkResult: Out of host memory                                 | The object couldn't be allocated because the CPU didn't have any memory left |
+|                                                     | VkResult: Out of device memory                               | The object couldn't be allocated because the GPU didn't have any memory left |
+|                                                     | VkResult: Initialization failed                              | The creation info passed was possibly invalid, initialization failed. |
+|                                                     | VkResult: Device lost                                        | Access to the GPU was lost                                   |
+|                                                     | VkResult: Memory map failed                                  | Couldn't map memory; not enough driver memory?               |
+|                                                     | VkResult: Layer not present                                  |                                                              |
+|                                                     | VkResult: Extension not present                              |                                                              |
+|                                                     | VkResult: Feature not present                                |                                                              |
+|                                                     | VkResult: Incompatible driver                                | Driver doesn't support Vulkan or the current version         |
+|                                                     | VkResult: Too many objects                                   | There were too many objects on the GPU, so none could be created |
+|                                                     | VkResult: Format not supported                               | Requested (texture) format can't be created                  |
+|                                                     | VkResult: Fragmented pool                                    | Nothing can be allocated into the pool; it was fragmented    |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+|                                                     |                                                              |                                                              |
+
+#### Warnings
+
+| File                                           | Message                                                      | Description                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| graphics<br />gl<br />vulkan<br />vkgraphics.cpp | Left over object {name} ({type}) #{i} and refCount {refCount} | g->destroy(graphicsObject); should be called on destroy. There were left-over graphics objects detected |
+|                                                  | Couldn't find a discrete GPU; so instead picked the first    | No dedicated GPU is available, so the program will select the integrated |
+|                                                  | Compute shader has a PipelineState which is set. This won't get used and it is advised that you set it to nullptr | When setting up a Pipeline, PipelineState and RenderTarget aren't used for compute shaders. |
+|                                                  | Compute shader has a RenderTarget which is set. This won't get used and it is advised that you set it to nullptr | ^                                                            |
+| graphics<br />gl<br />vulkan<br />vksampler.cpp  | Sampler aniso value was invalid; because it is not be supported. Resetting it | Anisotropic filtering isn't supported on the device.         |
 
 ### Fatal errors
 
@@ -138,7 +157,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | oiSH::convert couldn't be executed; no bytecode              |                 | 0x6  | The shader stage doesn't have any bytecode attached          |
 |                                                         | Invalid register type                                        |                 | 0x7  | The shader register type could not be detected               |
 |                                                         | ShaderRegister of type Buffer (SSBO or UBO) doesn't reference a buffer |                 | 0x8  | A shader register of type SSBO or UBO has to reference to an oiSB file |
-| graphics<br />objects<br />shader<br />shader.cpp       | Shader::set({path}) failed; the path couldn't be found       | Shader          | 0x0  |                                                              |
+| graphics<br />objects<br />shader<br />shader.cpp       | Shader::set({path}) failed; the path couldn't be found       | Shader          | 0x0  | The shader registers don't include the current path          |
 |                                                         | Shader::set({path}) failed; invalid type (type is ShaderBuffer, but type provided isn't) |                 | 0x1  | Shader::set was expecting a ShaderBuffer, but a different type was sent |
 |                                                         | Shader::set({path}) failed; invalid type (type is Texture or VersionedTexture, but type provided isn't) |                 | 0x2  | Shader::set was expecting a Texture or VersionedTexture, but a different type was sent |
 |                                                         | Shader::set({path}) failed; invalid type (type is Sampler, but type provided isn't) |                 | 0x3  | Shader::set was expecting a Sampler but a different type was sent |
@@ -155,6 +174,53 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Texture::setPixels can only be applied to loaded textures    |                 | 0x5  | Setting data into a render target, depth buffer or output texture is not supported |
 |                                                         | Texture::flush out of bounds                                 |                 | 0x6  | The pixels given are out of bounds                           |
 
+### Errors
+
+| File                                                | Message                                                      | Description                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| graphics<br />format<br />fbx.h                     | Couldn't read FbxProperty; Buffer didn't store the (full size) binary object | The type specified wasn't included into the buffer           |
+|                                                     | Couldn't read FbxPropertyArray; couldn't uncompress array    | Fbx specified that it uses compression, but the array was compressed the wrong way. |
+|                                                     | Couldn't read FbxPropertyArray; one of the elements was invalid | One of the elements in the array was invalid                 |
+|                                                     | FbxCheckPropertyValue couldn't find the requested type       | The Fbx type didn't match the variable provided to FbxCheckPropertyValue |
+|                                                     | FbxCheckProperty couldn't find the right property; out of bounds | Couldn't find the property with type in the range requested  |
+|                                                     | Fbx::findNodes failed; propertyIds should have the same elements as type arguments | When providing findNodes, the propertyIds size should be equal to the number of arguments |
+| graphics<br />format<br />fbx.cpp                   | Couldn't read FbxProperty; buffer was null                   | The FbxProperty that was requested couldn't be read because the buffer attached was too small |
+|                                                     | Couldn't allocate FbxProperty; invalid type                  | Property's type requested couldn't be allocated              |
+|                                                     | Couldn't read FbxProperty                                    | Property's data was invalid                                  |
+|                                                     | Couldn't read FbxNode; invalid buffer size                   | ^                                                            |
+|                                                     | Couldn't read FbxNode's name; invalid buffer size            | ^                                                            |
+|                                                     | Couldn't read FbxNode's properties ({name})                  | Node's properties are invalid                                |
+|                                                     | Couldn't read FbxNode's child nodes ({name})                 | Child nodes are invalid                                      |
+|                                                     | Couldn't read an fbx node                                    | Node was invalid; or had invalid children or properties.     |
+|                                                     | Couldn't read Fbx; invalid buffer size                       | Fbx's size didn't match with the header                      |
+|                                                     | Couldn't read Fbx; invalid header                            | Fbx was invalid; it has to be in format Kaydara FBX Binary; not ASCII. |
+|                                                     | Couldn't read from file                                      | File couldn't be opened or read                              |
+|                                                     | Couldn't convert geometry object; there was no string object for name | Geometry objects have to be named                            |
+|                                                     | Couldn't find the vertices of a geometry object ({name})     | Geometry objects require vertices                            |
+|                                                     | The geometry object {name} is duplicated. This is not supported | Geometry object names have to be unique                      |
+|                                                     | The geometry object \{name} has invalid positional data      | Geometry objects require positional data                     |
+|                                                     | The geometry object {name} has more than 1 normal set. This is not supported | Currently only one normal map per geometry object is supported |
+|                                                     | The geometry object {name} doesn't have a valid normal set   | Geometry objects require a valid normal set if present       |
+|                                                     | The geometry object {name} has more than 1 UV set. This is not supported | Currently only one UV set per geometry object is supported   |
+|                                                     | The geometry object {name} had an invalid UV set             | Geometry objects require a valid UV set if present           |
+|                                                     | Fbx conversion failed (or it didn't contain any meshes)      | Fbx::convertMeshes expects meshes to be included into the Fbx file |
+|                                                     | Couldn't write oiRM file to disk                             | Conversion to oiRM failed                                    |
+| graphics<br />helper<br />bakemanager.cpp           | {in} couldn't bake obj model                                 | Obj::convert failed; file doesn't exist or is the wrong format |
+|                                                     | {in} couldn't bake fbx model                                 | Fbx::convertMeshes failed, file doesn't exist or is wrong format |
+|                                                     | {path} couldn't bake fbx model                               | One of the meshes was invalid                                |
+|                                                     | {out} couldn't compile shader                                | Shader compilation failed (see error log)                    |
+|                                                     | {out} couldn't write oiSH file                               | Conversion to oiSH format failed                             |
+| graphics<br />objects<br />render<br />drawlist.cpp | Every MeshBuffer requires a different DrawList. The drawcall mentioned a Mesh that wasn't in the same MeshBuffer | DrawList::draw can only be called with a Mesh in the same MeshBuffer |
+|                                                     | The batches exceeded the maximum amount. Please increase this or decrease draw calls | DrawListInfo specifies the maximum number of draw calls; but beware that increasing this too high will bring performance issues. |
+|                                                     | Couldn't create DrawList; it needs at least 1 object         | maxBatches can't be 0                                        |
+|                                                     | Couldn't create DrawList; object buffer or mesh buffer was invalid | meshBuffer can't be nullptr                                  |
+|                                                     | Couldn't reserve draw list                                   | The GPU object associated with the draw list couldn't be created |
+
+### Warnings
+
+| File                   | Message                                            | Description                                 |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------- |
+| graphics<br />graphics.h | Graphics::add called on an already existing object | A Graphics object tried to add itself twice |
 
 ## owc
 
@@ -162,30 +228,88 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 #### Fatal errors
 
-| `File`                                         | Message                               | Class          | Id   | Description                                                 |
+| File                                         | Message                               | Class          | Id   | Description                                                 |
 | ---------------------------------------------- | ------------------------------------- | -------------- | ---- | ----------------------------------------------------------- |
 | platforms<br />android<br />awindowmanager.cpp | Only one window supported for Android | AWindowManager | 0x0  | Android doesn't support multiple windows in one application |
+
+#### Errors
+
+| File                                       | Message                                         | Description                                                  |
+| -------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
+| platforms<br />android<br />afilemanager.cpp | Couldn't open folder for query                  | File path invoked doesn't meet requirement FileAccess::QUERY, which means the path is incorrect or contains incorrect characters |
+|                                              | Couldn't open file for query                    | ^                                                            |
+|                                              | Couldn't get mkdir permissions                  | File path invoked doesn't meet requirement FileAccess::WRITE, which means that the path can't be written to (so mkdir isn't allowed). This is mostly for files located in res/ |
+|                                              | {err}<br />Couldn't mkdir \{path}               | Occurs when mkdir fails internally; like when there's no permissions for internal file system |
+|                                              | Couldn't open file for read                     | File path invoked doesn't meet requirement FileAccess::READ, which means that the path can't be read |
+|                                              | Couldn't read from file {path}                  | Asset or file couldn't be opened from read                   |
+|                                              | Couldn't open file for write                    | File path invoked doesn't meet requirement FileAccess::WRITE, which means that the path can't be written to (so mkdir isn't allowed). This is mostly for files located in res/ but could also be mod/, since some environments don't allow modification of assets (like release builds) |
+|                                              | Couldn't mkdir                                  | mkdir function failed, the previous error(s) specify what went wrong |
+|                                              | {err}<br />Couldn't write string to file {path} | File couldn't be opened for write                            |
+|                                              | Couldn't find the specified folder              | Folder doesn't exist                                         |
+|                                              | Couldn't find the specified file                | File doesn't exist                                           |
+
+### Warnings
+
+| File                                      | Message                                                      | Description                                                  |
+| ------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| platforms<br />android<br />acontroller.cpp | Controller::vibrate isn't supported on Android               | Not all controllers support vibrate, therefore, Android doesn't |
+| platforms<br />android<br />awindow.cpp     | Motion event not supported; {source} {action} {x} {y}        | Motion input event was used, while it isn't supported by the Android layer |
+|                                             | fullScreen action is handled by Android, not the application | A WindowAction::FULL_SCREEN request was denied, because the application isn't in charge of sizing the window |
+|                                             | setFocus action is not supported on Android                  | A WindowAction::IN_FOCUS request was denied, because the application isn't in charge of showing the window |
 
 ### Windows
 
 #### Fatal errors
 
-| `File`                                  | Message                      | Class   | Id   | Description                                                  |
+| File                                  | Message                      | Class   | Id   | Description                                                  |
 | --------------------------------------- | ---------------------------- | ------- | ---- | ------------------------------------------------------------ |
 | platforms<br />windows<br />wwindow.cpp | Couldn't init Windows class  | WWindow | 0x0  | RegisterClassEx failed, meaning the window couldn't be created for this system |
 |                                         | Couldn't init Windows window |         | 0x1  | CreateWindowEx failed, meaning that the window data is invalid |
 
+#### Errors
+
+| File                                       | Message                                                      | Description                                                  |
+| -------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| platforms<br />windows<br />wfilemanager.cpp | Couldn't open file: {file}                                   | File doesn't exist                                           |
+|                                              | Mkdir requires write access                                  | File path invoked doesn't meet requirement FileAccess::WRITE, which means that the path can't be written to (so mkdir isn't allowed). This is mostly for files located in res/ |
+|                                              | Couldn't mkdir {path} ({HRESULT})                            | Occurs when mkdir fails internally; like when there's no permissions for internal file system |
+|                                              | Couldn't open folder for query                               | File path invoked doesn't meet requirement FileAccess::QUERY, which means the path is incorrect or contains incorrect characters |
+|                                              | Couldn't open file for read                                  | File path invoked doesn't meet requirement FileAccess::READ, which means that the path can't be read |
+|                                              | Couldn't open file for write                                 | File path invoked doesn't meet requirement FileAccess::WRITE, which means that the path can't be written to (so mkdir isn't allowed). This is mostly for files located in res/ but could also be mod/, since some environments don't allow modification of assets (like release builds) |
+|                                              | Can't write to file; mkdir failed                            | mkdir function failed, the previous error(s) specify what went wrong |
+|                                              | Couldn't find the specified folder<br />**or**<br />Couldn't find directory | Folder doesn't exist                                         |
+|                                              | Couldn't find the specified file                             | File doesn't exist                                           |
+| platforms<br />windows<br />wwindow.cpp      | {HRESULT}                                                    | Occurs on WWindow error 0x0, prints the HRESULT when it can't init the Windows class |
+
 ### Fatal errors
 
-| `File`                        | Message                        | Class         | Id   | Description                                  |
+| File                        | Message                        | Class         | Id   | Description                                  |
 | ----------------------------- | ------------------------------ | ------------- | ---- | -------------------------------------------- |
 | window<br />windowmanager.cpp | Window out of bounds exception | WindowManager | 0x0  | WindowManager::operator[i] was out of bounds |
+
+### Errors
+
+| File                      | Message                                                | Description                                                  |
+| --------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| file<br />filemanager.cpp   | File path can only be direct                           | File path can't contain backslash, ./ or ../; file paths are direct. |
+|                             | File path has to start with a valid prefix             | File has to start with res/ out/ or mod/; as specified by owc documentation. (owc-validated path) |
+|                             | Couldn't open file for read; it doesn't exist ({path}) | File couldn't be found                                       |
+|                             | File path couldn't give the required access            | The file access requested couldn't be given                  |
+| input<br />inputmanager.cpp | Couldn't read binding; invalid identifier              | Serialization from JSON failed; json["bindings"] contained an invalid binding name |
+|                             | Couldn't read axis; invalid identifier                 | Serialization from JSON failed; json["axes"] contained an invalid axis name |
+|                             | Couldn't read axis; invalid axis effect                | Serialization from JSON failed; json["axes"] contained an invalid axis effect (x, y, z) |
+| format<br />oisl.cpp        | Couldn't open file                                     | File was empty or invalid                                    |
+|                             | Couldn't read file                                     | File format was invalid                                      |
+|                             | Invalid oiSL file                                      | File didn't have a header                                    |
+|                             | Invalid oiSL (header) file                             | File didn't have a valid header (or had an invalid version)  |
+|                             | Invalid oiSL file                                      | File is too small to contain all strings                     |
+|                             | Couldn't write to file                                 | Written oiSL was incorrect or the file path was invalid      |
 
 ## ostlc
 
 ### Fatal errors
 
-| `File`                        | Message                                                      | Class                               | Id   | Description                                                  |
+| File                        | Message                                                      | Class                               | Id   | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ | ----------------------------------- | ---- | ------------------------------------------------------------ |
 | utils<br />json.h             | `Invalid JSONNodeObj<T>`                                     | JSONNodeObj                         | 0x0  | JSONNodeObj::set failed, because the json value had an invalid type |
 |                               | `Invalid JSONNodeObj<T>`                                     |                                     | 0x1  | JSONNodeObj::get failed, because the json value had an invalid type |
@@ -199,3 +323,18 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                               | Couldn't decode the string; keyset requires at least 1 char  |                                     | 0x1  | String::decode requires at least 1 char in the keyset        |
 |                               | Couldn't encode the string; perChar can't be bigger than 32 bits |                                     | 0x2  | String::encode can't handle integers bigger than 32 bits     |
 |                               | Couldn't encode the string; keyset requires at least 1 char  |                                     | 0x3  | String::encode requires at least 1 char in the keyset        |
+
+### Errors
+
+| File                        | Message                                                      | Description                                                  |
+| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| types<br />buffer.cpp         | Couldn't read bitset from buffer; not enough bytes           | Buffer::read(Bitset&, u32), couldn't read buffer into bitset; not enough bits to fill bitset |
+|                               | Couldn't uncompress buffer                                   | zlib uncompress failed; output was invalid length or input was invalid format |
+|                               | Couldn't uncompress buffer; requested size wasn't equal to the actual size | ^                                                            |
+|                               | Couldn't compress buffer                                     | zlib compress failed; output was invalid length or input was invalid format |
+| types<br />buffer.h           | Couldn't read a type from a buffer; not enough space         | Buffer::read(T&) failed, the buffer was smaller than sizeof(T) |
+|                               | Couldn't read a vector from a buffer; not enough space       | `Buffer::read(std::vector<T>&, u32 size)` failed, the buffer was smaller than sizeof(T) * size |
+|                               | Couldn't read vector from a buffer; missing size             | `Buffer::read(std::vector<T>&)` failed, the buffer didn't contain array size |
+|                               | Couldn't read vector from a buffer; missing data             | `Buffer::read(std::vector<T>&)` failed, the buffer didn't contain sizeof(T) * size |
+| memory<br />objectallocator.h | Invalid dealloc; out of range or not allocated               | ObjectAllocator::deallocate(u32) or (T*) didn't detect the object |
+|                               | Invalid find; out of range or not allocated                  | ^                                                            |

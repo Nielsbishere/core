@@ -25,7 +25,7 @@ void DrawList::clear() {
 void DrawList::draw(Mesh *m, u32 instances) {
 
 	if (m->getInfo().buffer != info.meshBuffer) {
-		Log::error("Every MeshBuffer requires a different DrawList. The drawcall mentioned a Mesh that wasn't in the same MeshBuffer.");
+		Log::error("Every MeshBuffer requires a different DrawList. The drawcall mentioned a Mesh that wasn't in the same MeshBuffer");
 		return;
 	}
 
@@ -34,7 +34,7 @@ void DrawList::draw(Mesh *m, u32 instances) {
 	if (it == info.objects.end()) {
 
 		if (getBatches() == getMaxBatches()) {
-			Log::error("The batches exceeded the maximum amount. Please increase this or decrease draw calls.");
+			Log::error("The batches exceeded the maximum amount. Please increase this or decrease draw calls");
 			return;
 		}
 

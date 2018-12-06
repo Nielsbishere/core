@@ -10,7 +10,7 @@ PipelineState::~PipelineState() {}
 bool PipelineState::init() {
 
 	if (std::pow(2, (u32) std::log2(info.samples)) != info.samples)
-		return Log::error("PipelineState creation failed; sample count has to be base2");
+		return Log::throwError<VkPipelineState, 0x0>("PipelineState creation failed; sample count has to be base2");
 
 	//Assembler
 

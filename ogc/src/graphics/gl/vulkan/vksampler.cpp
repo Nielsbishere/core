@@ -16,7 +16,7 @@ bool Sampler::init() {
 	GraphicsExt gext = g->getExtension();
 
 	if ((!g->getExtension().pfeatures.samplerAnisotropy && info.aniso != 1.f) || info.aniso < 1.f) {
-		Log::warn("Sampler aniso value was invalid; because it is not be supported. Resetting it.");
+		Log::warn("Sampler aniso value was invalid; because it is not be supported. Resetting it");
 		info.aniso = 1U;
 	}
 
