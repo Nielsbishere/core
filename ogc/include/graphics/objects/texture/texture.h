@@ -120,19 +120,10 @@ namespace oi {
 
 			void initParent(TextureList *parent);
 
-			//Set pixel of a texture with layout info.format
-			//NOTE: This recreates mips and texture data every time, so use it rarely if ever
-			//NOTE: Only available with textures with data
-			bool set(Vec2u pixel, Buffer value);
-
 			//Set pixels of a texture with layout info.format
 			//NOTE: This recreates mips and texture data every time, so use it rarely if ever
 			//NOTE: Only available with textures with data
 			bool setPixels(Vec2u start, Vec2u length, Buffer values);
-
-			//Get pixel of a texture into buffer with layout info.format
-			//NOTE: Only available with textures with data
-			bool getPixel(Vec2u pixel, CopyBuffer &output);
 
 			//Get pixels of a texture into buffer with layout info.format
 			//NOTE: Only available with textures with data

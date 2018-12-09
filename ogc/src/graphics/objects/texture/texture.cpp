@@ -21,24 +21,6 @@ void Texture::initParent(TextureList *parent) {
 		info.parent = parent;
 }
 
-bool Texture::set(Vec2u pixel, Buffer value) {
-
-	if(info.dat.size() == 0)
-		return Log::throwError<Texture, 0x2>("Texture::set can only be applied to loaded textures");
-
-	if (pixel.x >= info.res.x || pixel.y >= info.res.y)
-		return Log::throwError<Texture, 0x0>("Texture::set was out of bounds");
-
-	u32 stride = getStride();
-
-	if(value.size() < stride)
-		return Log::throwError<Texture, 0x1>("Texture::set invalid format");
-
-	memcpy(info.dat.addr() + pixel.y * info.res.x * stride + pixel.x * stride, value.addr(), stride);
-	flush(pixel, Vec2u(1, 1));
-	return true;
-}
-
 bool Texture::setPixels(Vec2u start, Vec2u length, Buffer values) {
 
 	if (info.dat.size() == 0)
