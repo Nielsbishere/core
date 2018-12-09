@@ -260,9 +260,6 @@ void MainInterface::initScene() {
 	objects[0].diffuse = water->getHandle();	//Water
 	objects[1].diffuse = rock->getHandle();		//Planet
 
-	//Update the materials
-	materialList->flush();
-
 	//Set our shader samplers
 	shader->set("samp", sampler);
 	shader0->set("samp", sampler);
@@ -283,7 +280,6 @@ void MainInterface::initScene() {
 	directionalLights->set("light/dir", Vec3(-1, 0, -1));
 	directionalLights->set("light/intensity", 16.f);
 	directionalLights->set("light/col", Vec3(1.f));
-	directionalLights->flush();
 
 }
 
@@ -399,14 +395,12 @@ void MainInterface::update(f32 dt) {
 	perExecution->set("time", (f32)getRuntime());
 	perExecution->set("power", 1.f);
 	perExecution->set("view", view->getHandle());
-	perExecution->flush();
 
 	//Setup post processing settings
 	ShaderBuffer *postProcessing = shader0->get<ShaderBuffer>("PostProcessingSettings");
 
 	postProcessing->set("exposure", exposure);
 	postProcessing->set("gamma", gamma);
-	postProcessing->flush();
 
 }
 

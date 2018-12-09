@@ -108,6 +108,8 @@ namespace oi {
 				return *(T*) buf.addr();
 			}
 
+			Buffer getBuffer() { return buf; }
+
 		private:
 
 			ShaderBufferObject &obj;
@@ -141,10 +143,7 @@ namespace oi {
 			//The length of the GBuffer should match the ShaderBuffer's length
 			void setBuffer(u32 objects, GBuffer *g);
 
-			void copy(Buffer buf);			//Copy a buffer
-			void flush();					//Flush buffer to GPU
-
-			void set(Buffer buf);			//copy(buf); flush();
+			void set(Buffer buf);			//Copy a buffer
 
 			template<typename T>
 			T &get(String path);
@@ -177,7 +176,14 @@ namespace oi {
 
 		template<typename T>
 		void ShaderBuffer::set(String path, T t) {
-			get<T>(path) = t;
+
+			ShaderBufferVar var = get(path);
+			var.cast<T>() = t;
+
+			if (buffer != nullptr) {
+				u32 start = u32(var.getBuffer().addr() - buffer->getAddress());
+				buffer->flush(Vec2u(start, start + var.getBuffer().size()));
+			}
 		}
 
 	}

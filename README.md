@@ -82,7 +82,7 @@ This will generate a folder; builds/Windows/build, which includes the x86 and x6
 ### Dependencies
 
 Android [SDK](https://developer.android.com/studio/install) & [NDK](https://developer.android.com/ndk/)  
-[Apache ANT](https://ant.apache.org/bindownload.cgi)  
+Java
 [Enable developer mode and USB debugging](https://android.gadgethacks.com/how-to/android-basics-enable-developer-options-usb-debugging-0161948/)
 
 ### Environment variables
@@ -90,24 +90,28 @@ Android [SDK](https://developer.android.com/studio/install) & [NDK](https://deve
 Before you can use Android, you have to ensure that all variables are set correctly;
 
 **ANDROID_NDK (ndk directory)**
+**ANDROID_SDK (sdk directory)**
+**JAVA_HOME (jdk directory)**
 
 ### Setting up build env
 
 ```sh
 # Setup a debug environment for all android ABIs, API lvl 24, windows environment
-make_android.sh -cmake -abi=windows-x86_64
+# Builds apk too
+make_android.sh -cmake -apk -abi=windows-x86_64
 
 # Setup for linux environment
+# Which only compiles (doesn't create APK)
 make_android.sh -cmake
 
-# Release environment for windows; with only .oiRM models, .oiSH shaders, textures and settings
-make_android.sh -cmake -abi=windows-x86_64 -release -exclude_ext_formats
+# Release apk environment for windows; with only .oiRM models, .oiSH shaders, textures and settings
+make_android.sh -cmake -apk -abi=windows-x86_64 -release -exclude_ext_formats
 
 # Exclude debug info from shaders
-make_android.sh -cmake -strip_debug_info
+make_android.sh -cmake -apk -strip_debug_info
 
 # Only build arm64-v8a debug for linux-x86_64
-make_android.sh -cmake -abi=arm64-v8a
+make_android.sh -cmake -apk -abi=arm64-v8a
 
 # Get more info about the command
 make_android.sh -help
@@ -116,19 +120,59 @@ On Linux, this might require you to `chmod +x make_android.sh` before you use it
 
 #### Running & building apk
 
-Building an APK file requires you to build architectures; arm64-v8a, armeabi-v7a, x86_64, x86. This means long compile times. Try to pick the ABI of your choosing (check your emulator or phone) and set the environment to build for that. However, you can also pick one for shorter compile times (testing purposes). The only reason you'd not specify `-abi=x` is to build an APK that will run on all Android 7.0+ environments. By adding `-run` to the make_android command, it will try to run it automatically on a device; this could be attached or an emulator that is currently active. 
+Building a full APK file requires you to build architectures; arm64-v8a, armeabi-v7a, x86_64, x86, which means long compile times. Try to pick the ABI of your choosing (check your emulator or phone) and set the environment to build for that. When you specify `-abi=x`; it will mean that the APK will not run on all Android 7.0+ environments. By adding `-run` to the make_android command, it will try to run it automatically on a device; this could be attached or an emulator that is currently active. The apk flag will build your resources and sources into an apk file; without this it will only compile.
+
+At the end of creating an APK; it will require you to create your own private cert for signing. Please make sure to make a backup of your ".keystore" file located in builds/Android if you want to keep updating this app and using the cert for release builds (like if you accidently remove the keystore). This step is **required** when you want to run your apk on any device, or publish it on the Play Store. Unsigned apks can't run on most devices (security) and won't get accepted into the Play Store. When you lose this cert, you can't update your apps anymore!
+
+If there is no keystore setup yet, it will take you through the steps of setting it up. If you want to use an existing keystore, you can do that as well; as long as it has 1 entry.
+
+```
+# Step one; set your keystore password (at least 6 chars)
+Enter keystore password: This is a test
+Re-enter new password: This is a test
+
+# Step two; enter the following info
+What is your first and last name?
+  [Unknown]:  John Doe
+What is the name of your organizational unit?
+  [Unknown]:  Lunar
+What is the name of your organization?
+  [Unknown]:  Osomi
+What is the name of your City or Locality?
+  [Unknown]:  Central City
+What is the name of your State or Province?
+  [Unknown]:  Ohio
+What is the two-letter country code for this unit?
+  [Unknown]:  OH
+Is CN=John Doe, OU=Osomi, O=Osomi, L=Central City, ST=Ohio, C=OH correct?
+  [no]:  yes
+  
+# Step three; set the password for the cert
+Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
+        for: CN=John Doe, OU=Osomi, O=Osomi, L=Central City, ST=Ohio, C=OH
+Enter key password for <mykey>
+        (RETURN if same as keystore password):
+[Storing ../../.keystore]
+```
+
+If the keystore is setup (or you copied your own keystore inside of the Android build directory and named it .keystore). It will ask you for the password for the keystore.
+
+```
+Keystore password for signer #1:
+This is a test
+```
 
 ## Baking all resources
 
 If you want to bake the resources of your project (to get native resources), you can use the prepare_resources command:
 
-```bat
+```sh
 # script
-prepare_resources
+./prepare_resources.sh
 
 # manual
 cd app
-"../oibaker"
+"../oibaker.exe"
 cd ../
 ```
 
@@ -155,3 +199,10 @@ There's also documentation about the file formats used; [oiSL](docs/oiSL.md) (St
 
 # Viewing progress
 You can view progress and planned features on [our trello board](https://trello.com/b/US4bChrI/osomi-core).
+
+# Special thanks
+
+[Koen](https://github.com/161563) for helping out with with Vulkan versioning/synchronization and GPU allocation.
+[Lagmeester4000](https://github.com/lagmeester4000) for reviewing CPU memory allocation code.
+[Velddev](https://github.com/velddev) for creating a new logo.
+

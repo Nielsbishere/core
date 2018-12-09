@@ -41,7 +41,6 @@ namespace oi {
 
 			MaterialStruct *alloc(MaterialStruct info);
 			bool dealloc(MaterialStruct *ptr);
-			void flush();
 
 			MaterialStruct *operator[](MaterialHandle handle);
 			const MaterialStruct *operator[](MaterialHandle handle) const;
@@ -58,7 +57,7 @@ namespace oi {
 			MaterialList(MaterialListInfo info);
 			bool init();
 
-			void notify();
+			void notify(MaterialStruct *material);
 
 		private:
 

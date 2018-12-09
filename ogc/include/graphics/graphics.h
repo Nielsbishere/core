@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include "types/vector.h"
+#include "utils/timer.h"
 #include "graphics/gl/generic.h"
 #include "memory/blockallocator.h"
 
@@ -84,7 +85,7 @@ namespace oi {
 
 			static Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
 
-			[[nodiscard]] RenderTarget *getBackBuffer();
+			RenderTarget *getBackBuffer();
 			u32 getBuffering();
 			void printObjects();
 
@@ -113,7 +114,10 @@ namespace oi {
 			bool initialized = false;
 			u32 buffering = 0, heapSize = 0;
 
+			Timer renderTimer;
+
 			RenderTarget *backBuffer = nullptr;
+
 			oi::BlockAllocator allocator;
 			GraphicsExt ext;
 
@@ -160,7 +164,7 @@ namespace oi {
 			t->template setHash<T>();
 
 			if (!t->init())
-				return (T*) Log::throwError<Graphics, 0xB>("Couldn't init GraphicsObject");
+				return (T*) Log::throwError<Graphics, 0x0>("Couldn't init GraphicsObject");
 
 			add(t);
 			return t;

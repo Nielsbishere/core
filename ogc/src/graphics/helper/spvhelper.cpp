@@ -278,7 +278,7 @@ bool SpvHelper::addResources(spirv_cross::Compiler &comp, ShaderStageType type, 
 		return Log::error("Couldn't add textures");
 
 	if (!SpvHelper::addSamplers(comp, res, info, stageAccess))
-		return Log::error("Couldn't add textures");
+		return Log::error("Couldn't add samplers");
 
 	return true;
 

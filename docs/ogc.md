@@ -891,6 +891,8 @@ bool isOwned();
 
 TextureHandle getHandle();
 void initParent(TextureList *parent);		//Set parent if it is null
+
+void flush();								//If the texture has been updated
 ```
 
 ## Sampler
@@ -1018,7 +1020,7 @@ A CommandList contains all commands to send to the GPU.
 
 ### CommandListInfo
 
-The command list doesn't require any additional arguments and stores no data.
+A command list is mostly API dependent, so it doesn't require any additional information.
 
 ### Functions
 
@@ -1138,7 +1140,6 @@ GBuffer *buffer = nullptr;	//Buffer that stores material structs
 ```cpp
 MaterialStruct *alloc(MaterialStruct info);		//Allocate a struct into buffer
 bool dealloc(MaterialStruct *ptr);				//Deallocate
-void flush();									//Update buffer
 
 MaterialStruct *operator[](MaterialHandle handle);				//Get by handle
 const MaterialStruct *operator[](MaterialHandle handle) const;	//^ const
@@ -1581,13 +1582,27 @@ std::vector<ShaderOutput> output;		//Outputs of the stage
 
 ### GBufferInfo
 
-#### Constructor / data
+#### Constructor (buffer)
 
 ```cpp
 GBufferType type;		//The type of the buffer
 Buffer buffer;			//The data of the buffer
+```
 
-u32 size;				//Constructor only; creates an empty buffer
+#### Constructor (size)
+
+```cpp
+GBufferType type;		//The type of the buffer
+u32 size;				//Empty buffer with size
+```
+
+#### Data
+
+```cpp
+GBufferType type;
+Buffer buffer;
+
+bool hasData;			//Whether or not there's data initialized (buffer constructor)
 ```
 
 ### GBufferType OEnum
@@ -1609,10 +1624,9 @@ u32 getSize();
 u8 *getAddress();
 Buffer getBuffer();
 
-bool set(Buffer buf);	//copy(buf); flush();
+bool set(Buffer buf);				//Copies data to CPU buffer
 
-void flush();			//Push data to GPU
-bool copy(Buffer buf);	//Copy the buffer to the CPU buffer
+void flush(Vec2u range);			//Push data to GPU
 ```
 
 # Reading external formats
@@ -1950,19 +1964,18 @@ void MainInterface::initScene() {
 	objects[0].diffuse = water->getHandle();	//Water
 	objects[1].diffuse = rock->getHandle();		//Planet
 
-	//Update the materials
-	materialList->flush();
-
 	//Set our shader samplers
 	shader->set("samp", sampler);
 	shader0->set("samp", sampler);
 
 	//Set our view data to our view buffer
-    //Set our material data to material buffer
-    //Set our object data to our object buffer
 	shader->get<ShaderBuffer>("Views")->setBuffer(0, views->getBuffer());
+    
+    //Set our material data to material buffer
 	shader->get<ShaderBuffer>("Materials")->
         setBuffer(materialList->getSize(), materialList->getBuffer());
+    
+    //Set our object data to our object buffer
 	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
 
 	//Setup lighting; 1 point, directional and spot light
@@ -1975,7 +1988,6 @@ void MainInterface::initScene() {
 	directionalLights->set("light/dir", Vec3(-1, 0, -1));
 	directionalLights->set("light/intensity", 16.f);
 	directionalLights->set("light/col", Vec3(1.f));
-	directionalLights->flush();
 
 }
 ```
@@ -2011,7 +2023,6 @@ void MainInterface::update(f32 dt) {
 	perExecution->set("time", (f32)getRuntime());
 	perExecution->set("power", 1.f);
     perExecution->set("view", view->getHandle());
-	perExecution->flush();
 
 	//Setup post processing settings
 	ShaderBuffer *postProcessing = 
@@ -2019,7 +2030,6 @@ void MainInterface::update(f32 dt) {
 
 	postProcessing->set("exposure", exposure);
 	postProcessing->set("gamma", gamma);
-	postProcessing->flush();
 ```
 
 ## Shader code (GLSL)
@@ -2096,8 +2106,7 @@ struct PerObject {
 	Matrix m;
 	Matrix mvp;
 
-	Vec2u padding;
-    ViewHandle view;
+	Vec3u padding;
 	MaterialHandle material;
 
 };
@@ -2123,13 +2132,10 @@ out gl_PerVertex {
 
 void main() {
 
-    //Get mutli-draw indirect rendering data
 	PerObject obj = obj.arr[gl_InstanceIndex];
 
-    //Output clip space
     gl_Position = obj.mvp * Vec4(inPosition, 1);
 
-    //Output position, uv, normal and material
 	pos = (obj.m * Vec4(inPosition, 1)).xyz;
 	uv = inUv;
 	normal = normalize(obj.m * Vec4(normalize(inNormal), 0)).xyz;
@@ -2157,8 +2163,9 @@ layout(binding = 1) uniform PerExecution {
 	Vec3 ambient;
 	f32 time;
 
-	Vec3 padding;
+	Vec2u padding;
 	f32 power;
+	u32 view;
 	
 } exc;
 
@@ -2168,19 +2175,27 @@ layout(binding = 3) uniform sampler samp;
 layout(binding = 4) uniform texture2D tex[2];
 
 layout(std430, binding = 5) buffer DirectionalLights {
+
 	Light light[];
+
 } dir;
 
 layout(std430, binding = 6) buffer PointLights {
+
 	Light light[];
+
 } point;
 
 layout(std430, binding = 7) buffer SpotLights {
+
 	Light light[];
+
 } spot;
 
 layout(std430, binding = 8) buffer Materials {
+
 	MaterialStruct mat[];
+
 };
 
 Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
@@ -2189,8 +2204,7 @@ Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 
 void main() {
 
-	//Right now only support default view
-	Camera cam = viewData.cameras[viewData.views[0].camera];
+	Camera cam = viewData.cameras[viewData.views[exc.view].camera];
 
     //Get camera position
 	Vec3 cpos = normalize(cam.position - pos);
@@ -2199,34 +2213,68 @@ void main() {
 	LightResult lr = { Vec3(0, 0, 0), 0, Vec3(0, 0, 0), 0 };
 	
 	for(int i = 0; i < dir.light.length(); i++){
-		LightResult res = 
-            calculateDirectional(dir.light[i], pos, normal, cpos, exc.power);
+		LightResult res = calculateDirectional(dir.light[i], pos, normal, cpos, exc.power);
 		lr.diffuse += res.diffuse;
 		lr.specular += res.specular;
 	}
 	
 	for(int j = 0; j < point.light.length(); j++){
-		LightResult res = 
-            calculatePoint(point.light[j], pos, normal, cpos, exc.power);
+		LightResult res = calculatePoint(point.light[j], pos, normal, cpos, exc.power);
 		lr.diffuse += res.diffuse;
 		lr.specular += res.specular;
 	}
 	
 	for(int k = 0; k < spot.light.length(); k++){
-		LightResult res = 
-            calculateSpot(spot.light[k], pos, normal, cpos, exc.power);
+		LightResult res = calculateSpot(spot.light[k], pos, normal, cpos, exc.power);
 		lr.diffuse += res.diffuse;
 		lr.specular += res.specular;
 	}
-
+	
     //Get material
 	MaterialStruct m = mat[material];
     
     //Get diffuse texture
 	Vec3 dif = sample2D(samp, m.t_diffuse, uv).rgb;
     
-    //Write lighting result to back buffer
-    outColor = Vec4(calculateLighting(lr, dif, exc.ambient, m), 1);
+    //Write lighting result to render target
+    outColor = Vec4(calculateLighting(lr, dif, exc.ambient, m) * ((sin(exc.time) * 0.5 + 0.5) * 0.5 + 0.5), 1);
 
 }
 ```
+
+# Extensions and features
+
+"Extensions" are API dependent structs that can contain functions for the API dependent details. This is an extension of the normal graphics object and allows the API implementation to store extra data.
+
+"Features" are hardware dependent features that don't have to be available at the moment. An example of this could be raytracing, if the feature isn't enabled, the objects can't be created. You can check the feature through Graphics by using `Graphics::checkFeature(GraphicsFeatures::Raytracing)` which returns a GraphicsFeatureSupport enum; 'None' when it's not supported (like non-NV devices), 'CPU_emulated' when the GPU can't handle it, 'GPU_emulated' when the GPU can handle it (but not natively) or 'GPU_accelerated' when the GPU can handle it. An example: Raytracing can return 'None' on non NVIDIA devices, CPU_emulated on NV devices (below shader level 6.0), GPU_emulated on NV devices (non RTX) and GPU_accelerated on RTX devices.
+
+The following list contains the types for Vulkan and OpenGL implementation; though the OpenGL implementation is just an example (and doesn't exist). The raytracing and VR features are also just a prototype and don't have an implementation yet. The type can be either class, GO (graphics object) or OE (Osomi Enum). OE doesn't directly map to the types given, but rather through an intermediate enum, just like the classes and GO.
+
+| Base                  | Vulkan                                                       | OpenGL | Type  |
+| --------------------- | ------------------------------------------------------------ | ------ | ----- |
+| Graphics              | VkInstance<br />VkPhysicalDevice<br />VkDevice<br />VkSurfaceKHR<br />VkQueue<br />VkSwapchainKHR<br />VkCommandPool<br />VkPhysicalDeviceFeatures<br />VkPhysicalDeviceMemoryProperties<br />VkColorSpaceKHR<br />VkFormat<br />VkFence[] present<br />VkSemaphore[] submit<br />VkSemaphore[] swapchain<br />CommandList*<br />`VkGBuffer[][]` staging<br />u32 current<br />u32 frames<br />u32 queueFamily<br />VkDebugReportCallbackEXT (debug)<br />PFN_vkSetDebugUtilsObjectNameEXT (debug Windows) | GLnull | class |
+| RenderTarget          | VkRenderPass<br />VkFramebuffer[]                            | GLuint | GO    |
+| Texture               | VkImage<br />VkDeviceMemory<br />VkImageView                 | GLuint | GO    |
+| GBuffer               | VkBuffer[]<br />VkDeviceMemory<br />u32                      | GLuint | GO    |
+| ShaderStage           | VkShaderModule<br />VkPipelineShaderStageCreateInfo          | GLuint | GO    |
+| Shader                | VkShaderStage*[]<br />VkPipelineLayout<br />VkDescriptorSetLayout<br />VkDescriptorPool<br />VkDescriptorSet[] | GLuint | GO    |
+| CommandList           | VkCommandPool<br />VkCommandBuffer[]                         | GLnull | GO    |
+| PipelineState         | VkPipelineInputAssemblyStateCreateInfo<br />VkPipelineRasterizationStateCreateInfo<br />VkPipelineColorBlendAttachmentState<br />VkPipelineColorBlendStateCreateInfo<br />VkPipelineDepthStencilStateCreateInfo<br />VkPipelineMultisampleStateCreateInfo | GLnull | GO    |
+| TextureFormat         | VkFormat                                                     | GLenum | OE    |
+| TextureUsage          | VkImageLayout                                                | GLnull | OE    |
+| ShaderStageType       | VkShaderStageFlagBits                                        | GLenum | OE    |
+| TopologyMode          | VkPrimitiveTopology                                          | GLenum | OE    |
+| FillMode              | VkPolygonMode                                                | GLenum | OE    |
+| CullMode              | VkCullModeFlags                                              | GLenum | OE    |
+| WindMode              | VkFrontFace                                                  | GLenum | OE    |
+| GBufferType           | VkGBufferType                                                | GLenum | OE    |
+| ShaderRegisterType    | VkDescriptorType                                             | GLnull | OE    |
+| ShaderRegisterAccess  | VkShaderStageFlags                                           | GLnull | OE    |
+| SamplerWrapping       | VkSamplerAddressMode                                         | GLenum | OE    |
+| SamplerMin            | VkFilter<br />VkSamplerMipmapMode                            | GLenum | OE    |
+| SamplerMag            | VkFilter                                                     | GLenum | OE    |
+| RayAccelerationFt     | VkAccelerationStructureNV                                    | -      | GO    |
+| RayShaderStageTypeFt  | see ShaderStageType                                          | -      | OE    |
+| RayGBufferTypeFt      | see GBufferType                                              | -      | OE    |
+| MeshShaderStageTypeFt | see ShaderStageType                                          | -      | OE    |
+| XRViewportFt          | ???                                                          | -      | GO    |

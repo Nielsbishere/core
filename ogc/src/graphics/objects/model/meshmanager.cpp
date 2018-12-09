@@ -102,17 +102,16 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 				minfo.meshBuffer = findBuffer(rmdat.first, minfo);
 
 				if (minfo.meshBuffer == nullptr)
-					return (Mesh*)Log::error(String("Couldn't write mesh into meshBuffer \"") + minfo.name + "\" (" + minfo.meshBuffer->getName() + "); couldn't find or allocate MeshBuffer");
+					return (Mesh*)Log::error(String("Couldn't write mesh into meshBuffer \"") + minfo.name + "\" couldn't find or allocate MeshBuffer");
 
-			}
-			else if (!validateBuffer(minfo, rmdat.first))
+			} else if (!validateBuffer(minfo, rmdat.first))
 				return (Mesh*)Log::error(String("Couldn't write mesh into meshBuffer \"") + minfo.name + "\" (" + minfo.meshBuffer->getName() + ")");
 
 			MeshInfo mi = rmdat.second;
 			mi.buffer = minfo.meshBuffer;
 
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->flush();
+			mi.buffer->flush(mi.allocation);
 
 			info.meshAllocations[minfo.name] = minfo;
 
@@ -149,7 +148,7 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 			mi.ibo = minfo.ibo;
 
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->flush();
+			mi.buffer->flush(mi.allocation);
 
 			info.meshAllocations[minfo.name] = minfo;
 
@@ -260,7 +259,7 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 		} else if (validateBuffer(mai, oiRMs[i].first))
 			batches[mai.meshBuffer].push_back({ i, &oiRMs[i].second });
 		else
-			Log::error(String("Couldn't read mesh into meshBuffer \"") + mai.name + "\" (" + mai.meshBuffer->getName() + ")");
+			Log::error(String("Couldn't write mesh into meshBuffer \"") + mai.name + "\" (" + mai.meshBuffer->getName() + ")");
 
 	}
 
@@ -283,9 +282,8 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 			mai.mesh = meshes[id] = g->create(mai.name, *mi);
 			info.meshAllocations[mai.name] = mai;
 
+			meshBuffer->flush(mi->allocation);
 		}
-
-		meshBuffer->flush();
 
 	}
 

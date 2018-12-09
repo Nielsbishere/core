@@ -42,4 +42,3 @@ endif()
 # Configure android project
 configure_file("${ANDROID_DIR}/AndroidManifest.xml" "${APK_DIR}/AndroidManifest.xml")
 configure_file("${ANDROID_DIR}/strings.xml" "${APK_DIR}/res/values/strings.xml")
-configure_file("${ANDROID_DIR}/build.xml" "${APK_DIR}/build.xml")

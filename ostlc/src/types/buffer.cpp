@@ -249,7 +249,7 @@ Buffer Buffer::compress() const {
 	uLong outLen = buf.length;
 
 	if (::compress((Bytef*) buf.data, &outLen, (Bytef*) data, length) != Z_OK)
-		return Log::error("Couldn't uncompress buffer");
+		return Log::error("Couldn't compress buffer");
 
 	Buffer output((u32)outLen);
 	memcpy(output.data, buf.data, outLen);
@@ -265,7 +265,7 @@ bool Buffer::compress(Buffer output) const {
 	uLong outLen = output.length;
 
 	if (::compress((Bytef*)output.data, &outLen, (Bytef*)data, length) != Z_OK)
-		return Log::error("Couldn't uncompress buffer");
+		return Log::error("Couldn't compress buffer");
 
 	return true;
 

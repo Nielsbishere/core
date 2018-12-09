@@ -17,7 +17,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 	}
 
 	if (bibo.size() != 4 * indices) {
-		Log::error("Couldn't generate oiRM file; the vbo was of invalid size");
+		Log::error("Couldn't generate oiRM file; the ibo was of invalid size");
 		return RMFile();
 	}
 
@@ -307,7 +307,7 @@ V0_0_1:
 							aindices[i] = n + 2;
 							aindices[i + 1] = n + 1;
 							aindices[i + 2] = n;
-						} else if (b0 && !b1) {			//RevIndInc2
+						} else if (b0 && b1) {			//RevIndInc2
 							aindices[i] = n + 3;
 							aindices[i + 1] = n + 2;
 							aindices[i + 2] = n;
@@ -705,7 +705,6 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 					++opOff;
 					++i10;
 					test += 3;
-					prev = false;
 				}
 
 				if (i01 == 0 && i10 == 0 && i11 == 0) {		//Operations don't have any effect; so don't use them

@@ -11,11 +11,11 @@ MaterialStruct *MaterialList::alloc(MaterialStruct minfo) {
 		if (operator[](i)->id == u32_MAX) {
 			minfo.id = i;
 			*operator[](i) = minfo;
-			notify();
+			notify(operator[](i));
 			return info.buffer->getBuffer().addr<MaterialStruct>() + i;
 		}
 
-	return (MaterialStruct*) Log::error("Couldn't allocate material");;
+	return (MaterialStruct*) Log::error("Couldn't allocate material");
 }
 
 bool MaterialList::dealloc(MaterialStruct *str) {
@@ -30,15 +30,17 @@ bool MaterialList::dealloc(MaterialStruct *str) {
 
 }
 
-void MaterialList::flush() {
-	if (info.notified) {
-		getBuffer()->flush();
-		info.notified = false;
-	}
-}
+void MaterialList::notify(MaterialStruct *material) {
 
-void MaterialList::notify() {
-	info.notified = true;
+	size_t dif = size_t((u8*)material - info.buffer->getAddress());
+
+	if (dif >= info.buffer->getSize())
+		return;
+
+	u32 udif = (u32)dif;
+
+	info.buffer->flush(Vec2u(udif, udif + (u32)sizeof(MaterialStruct)));
+
 }
 
 MaterialStruct *MaterialList::operator[](MaterialHandle handle) { return info.buffer->getBuffer().addr<MaterialStruct>() + (handle >= getSize() ? getSize() - 1 : handle); }

@@ -98,7 +98,7 @@ Shader *Graphics::create(String name, ShaderInfo info) {
 		SHFile file;
 
 		if (!oiSH::read(info.path, file))
-			return (Shader*)Log::throwError<Graphics, 0x1A>("Couldn't read shader");
+			return (Shader*)Log::throwError<Graphics, 0x1>("Couldn't read shader");
 
 		String path = info.path;
 
@@ -145,10 +145,10 @@ Texture *Graphics::create(String name, TextureInfo info) {
 		//Set up a buffer to load
 
 		if (info.loadFormat == TextureLoadFormat::Undefined)
-			return (Texture*) Log::throwError<Graphics, 0x1C>("Couldn't load texture; Texture load format is invalid");
+			return (Texture*) Log::throwError<Graphics, 0x3>("Couldn't load texture; Texture load format is invalid");
 
 		if (!wc::FileManager::get()->read(info.path, info.dat))										//Temporarily store the file data into info.dat
-			return (Texture*)Log::throwError<Graphics, 0x1B>("Couldn't load texture from disk");
+			return (Texture*)Log::throwError<Graphics, 0x2>("Couldn't load texture from disk");
 
 		int width, height, comp;
 
@@ -182,9 +182,9 @@ RenderTarget *Graphics::create(String name, RenderTargetInfo info) {
 		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], TextureUsage::Render_target);
 
 		for (u32 j = 0; j < buffering; ++j)
-			++(vtextures[j] = create(name + " target " + i + " version " + j, texInfo))->refCount;
+			++(vtextures[j] = create(name + " - " + i + " #" + j, texInfo))->refCount;
 
-		++(textures[i] = create(name + " target " + i, VersionedTextureInfo(vtextures)))->refCount;
+		++(textures[i] = create(name + " - " + i, VersionedTextureInfo(vtextures)))->refCount;
 
 	}
 

@@ -46,8 +46,8 @@ struct FileIncluder : glslang::TShader::Includer {
 	//Include from res/shaders
 	IncludeResult *includeSystem(const char *headerName, const char*, size_t inclusionDepth) override { 
 
-		if (inclusionDepth >= 32)
-			return (IncludeResult*)Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 32 nested includes");
+		if (inclusionDepth >= 256)
+			return (IncludeResult*)Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 256 nested includes");
 
 		currentFile = std::string("res/shaders/") + headerName;
 		
@@ -67,8 +67,8 @@ struct FileIncluder : glslang::TShader::Includer {
 	//Include from relative dir
 	IncludeResult *includeLocal(const char *headerName, const char *includerName, size_t inclusionDepth) override {
 
-		if (inclusionDepth >= 32)
-			return (IncludeResult*) Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 32 nested includes");
+		if (inclusionDepth >= 256)
+			return (IncludeResult*) Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 256 nested includes");
 
 		String includePath = String(includerName).getPath();
 
@@ -168,7 +168,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 				for (glslang::TShader *stage : shaderStages)
 					delete stage;
 
-				return Log::error(String("Couldn't add stage to shader; glsl had the wrong extension \"") + s + "\"");
+				return Log::error(String("Couldn't add stage to shader; wrong extension \"") + s + "\"");
 			}
 
 			basePath = s.getPath();
@@ -182,7 +182,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 			for (glslang::TShader *stage : shaderStages)
 				delete stage;
 
-			return Log::error(String("Couldn't add stage to shader; glsl had the wrong extension \"") + ext + "\"");
+			return Log::error(String("Couldn't add stage to shader; wrong extension \"") + ext + "\"");
 		}
 
 		EShLanguage shaderType = EShLangCompute;
@@ -209,7 +209,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 			for (glslang::TShader *stage : shaderStages)
 				delete stage;
 
-			return Log::error(String("Couldn't add stage to shader; glsl had the wrong extension \"") + ext + "\"");
+			return Log::error(String("Couldn't add stage to shader; wrong extension \"") + ext + "\"");
 
 		}
 
@@ -336,6 +336,7 @@ ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies
 			break;
 
 		default:
+
 			Log::error("Couldn't add stage to shader; the ShaderSourceType isn't supported yet");
 			return {};
 

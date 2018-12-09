@@ -16,7 +16,7 @@ bool Sampler::init() {
 	GraphicsExt gext = g->getExtension();
 
 	if ((!g->getExtension().pfeatures.samplerAnisotropy && info.aniso != 1.f) || info.aniso < 1.f) {
-		Log::warn("Sampler aniso value was invalid; because it is not be supported. Resetting it.");
+		Log::warn("Sampler aniso value was invalid; because it is not be supported. Resetting it");
 		info.aniso = 1U;
 	}
 
@@ -31,7 +31,7 @@ bool Sampler::init() {
 	samplerInfo.anisotropyEnable = info.aniso > 1.f;
 	samplerInfo.maxLod = 32.f;
 
-	vkCheck<0x0, Sampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, vkAllocator, &ext), "Couldn't create sampler object");
+	vkCheck<0x0, VkSampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, vkAllocator, &ext), "Couldn't create sampler object");
 	vkName(gext, ext, VK_OBJECT_TYPE_SAMPLER, getName());
 
 	return true;

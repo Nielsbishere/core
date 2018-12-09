@@ -23,7 +23,7 @@ bool ShaderStage::init() {
 	createInfo.codeSize = info.code.size();
 	createInfo.pCode = (uint32_t*) info.code.addr();
 
-	vkCheck<0x1, ShaderStage>(vkCreateShaderModule(graphics.device, &createInfo, vkAllocator, &ext.shader), "Shader stage creation failed");
+	vkCheck<0x0, VkShaderStage>(vkCreateShaderModule(graphics.device, &createInfo, vkAllocator, &ext.shader), "Shader stage creation failed");
 	vkName(graphics, ext.shader, VK_OBJECT_TYPE_SHADER_MODULE, getName());
 
 	VkPipelineShaderStageCreateInfo &stageInfo = ext.pipeline;

@@ -492,10 +492,10 @@ String String::decode(Buffer buf, String charset, u8 perChar, u32 length) {
 Buffer String::encode(String charset, u8 perChar) const {
 	
 	if (perChar > 32)
-		Log::throwError<String, 0x2>("Couldn't decode the string; perChar can't be bigger than 32 bits");
+		Log::throwError<String, 0x2>("Couldn't encode the string; perChar can't be bigger than 32 bits");
 
 	if (charset.size() == 0)
-		Log::throwError<String, 0x3>("Couldn't decode the string; keyset requires at least 1 char");
+		Log::throwError<String, 0x3>("Couldn't encode the string; keyset requires at least 1 char");
 
 	u32 size = (u32) std::ceil(source.size() * perChar / 8.f);
 

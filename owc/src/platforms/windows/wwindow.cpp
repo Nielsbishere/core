@@ -213,7 +213,7 @@ void Window::initPlatform() {
 	if (!RegisterClassExA(&wc)) {
 		HRESULT res = GetLastError();
 		Log::error(res);
-		Log::throwError<Window, 0x0>("Couldn't init Windows class");
+		Log::throwError<WWindow, 0x0>("Couldn't init Windows class");
 	}
 
 	int nStyle = WS_OVERLAPPED | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
@@ -224,7 +224,7 @@ void Window::initPlatform() {
 	ext.window = CreateWindowExA(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext.instance, NULL);
 
 	if (ext.window == NULL)
-		Log::throwError<Window, 0x1>("Couldn't init Windows window");
+		Log::throwError<WWindow, 0x1>("Couldn't init Windows window");
 
 	RECT rect;
 	GetClientRect(ext.window, &rect);

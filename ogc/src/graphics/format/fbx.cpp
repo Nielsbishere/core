@@ -312,7 +312,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 		}
 
 		if (meshes.find(name) != meshes.end()) {
-			lastError = String("The geometry object \"") + name + "\" is duplicated. This is not supported.";
+			lastError = String("The geometry object \"") + name + "\" is duplicated. This is not supported";
 			goto failed;
 		}
 
@@ -320,7 +320,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 		FbxIntArray *posOrder = vertexOrder[0]->getProperty(0)->cast<FbxIntArray>();
 
 		if (pos == nullptr || posOrder == nullptr) {
-			lastError = String("The geometry object \"") + name + "\" has invalid positional data.";
+			lastError = String("The geometry object \"") + name + "\" has invalid positional data";
 			goto failed;
 		}
 
@@ -342,7 +342,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 			i32 k = j < 0 ? (-j - 1) : j;
 
 			if ((u32)k >= pos->size() / 3) {
-				lastError = String("The geometry object \"") + name + "\" has invalid positional data.";
+				lastError = String("The geometry object \"") + name + "\" has invalid positional data";
 				goto failed;
 			}
 
@@ -360,21 +360,21 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 		if (normals.size() > 0) {
 
 			if (normals.size() != 1) {
-				lastError = String("The geometry object \"") + name + "\" has more than 1 normal set. This is not supported.";
+				lastError = String("The geometry object \"") + name + "\" has more than 1 normal set. This is not supported";
 				goto failed;
 			}
 
 			FbxNodes normalDat = normals[0]->findNodes("Normals");
 
 			if (normalDat.size() != 1 || normalDat[0]->getProperties() == 0) {
-				lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal set.";
+				lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal set";
 				goto failed;
 			}
 
 			FbxDoubleArray *normalp = normalDat[0]->getProperty(0)->cast<FbxDoubleArray>();
 
 			if (normalp == nullptr) {
-				lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal array.";
+				lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal set";
 				goto failed;
 			}
 
@@ -390,7 +390,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 		if (uvs.size() > 0) {
 
 			if (uvs.size() != 1) {
-				lastError = String("The geometry object \"") + name + "\" has more than 1 uv set. This is not supported.";
+				lastError = String("The geometry object \"") + name + "\" has more than 1 uv set. This is not supported";
 				goto failed;
 			}
 
@@ -398,14 +398,14 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 			FbxNodes uvIndn = uvs[0]->findNodes("UVIndex");
 
 			if (uvDatn.size() != 1 || uvIndn.size() != 1 || uvDatn[0]->getProperties() == 0 || uvIndn[0]->getProperties() == 0) {
-				lastError = String("The geometry object \"") + name + "\" had an invalid UV set.";
+				lastError = String("The geometry object \"") + name + "\" had an invalid UV set";
 				goto failed;
 			}
 
 			FbxDoubleArray *uvData = uvDatn[0]->getProperty(0)->cast<FbxDoubleArray>();
 
 			if (uvData == nullptr) {
-				lastError = String("The geometry object \"") + name + "\" had an invalid UV array.";
+				lastError = String("The geometry object \"") + name + "\" had an invalid UV set";
 				goto failed;
 			}
 

@@ -16,30 +16,9 @@ namespace oi {
 		class Graphics;
 		class CommandList;
 
-		struct VkGraphics {
+		struct VkGraphics;
 
-			VkInstance instance = VK_NULL_HANDLE;
-			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
-			VkPhysicalDeviceMemoryProperties pmemory{};
-			VkPhysicalDeviceFeatures pfeatures{};
-			VkDevice device = VK_NULL_HANDLE;
-			VkSurfaceKHR surface = VK_NULL_HANDLE;
-			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
-			VkQueue queue = VK_NULL_HANDLE;
-			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-			VkSwapchainKHR swapchain = VK_NULL_HANDLE;
-			VkFence present = VK_NULL_HANDLE;
-			u32 current = 0;
-			VkCommandPool pool = VK_NULL_HANDLE;
-			VkSemaphore semaphore = VK_NULL_HANDLE;
-			VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
-			u32 queueFamilyIndex = u32_MAX;
-
-			#ifdef __WINDOWS__
-			PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
-			#endif
-
-		};
+		class GBufferType;
 
 		struct VkRenderTarget {
 
@@ -54,14 +33,17 @@ namespace oi {
 			VkDeviceMemory memory = VK_NULL_HANDLE;
 			VkImageView view = VK_NULL_HANDLE;
 
-			CommandList *cmdList = nullptr;
-
 		};
 
 		struct VkGBuffer {
 
-			VkBuffer resource = VK_NULL_HANDLE;
+			std::vector<VkBuffer> resource;
 			VkDeviceMemory memory = VK_NULL_HANDLE;
+			u32 gpuLength = 0;
+
+			static bool isVersioned(GBufferType type);
+			static bool isStaged(GBufferType type);
+			static bool isCoherent(GBufferType type);
 
 		};
 
@@ -86,7 +68,9 @@ namespace oi {
 		struct VkCommandList {
 
 			VkCommandPool pool = VK_NULL_HANDLE;
-			VkCommandBuffer cmd = VK_NULL_HANDLE;
+			std::vector<VkCommandBuffer> cmds;
+
+			VkCommandBuffer &cmd(VkGraphics &g);
 
 		};
 
@@ -101,7 +85,44 @@ namespace oi {
 
 		};
 
-		template<u32 errorId, typename T = gc::Graphics>
+		struct VkGraphics {
+
+			VkInstance instance = VK_NULL_HANDLE;
+			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
+			VkDevice device = VK_NULL_HANDLE;
+			VkSurfaceKHR surface = VK_NULL_HANDLE;
+			VkQueue queue = VK_NULL_HANDLE;
+			VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+			VkCommandPool pool = VK_NULL_HANDLE;
+
+			VkPhysicalDeviceFeatures pfeatures{};
+			VkPhysicalDeviceMemoryProperties pmemory{};
+
+			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+
+			std::vector<VkFence> presentFence;
+			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
+
+			CommandList *stagingCmdList;
+			std::vector<std::vector<VkGBuffer>> stagingBuffers;
+
+			u32 current = 0, frames = 0;
+			u32 queueFamilyIndex = u32_MAX;
+
+			#ifdef __DEBUG__
+
+				VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
+
+				#ifdef __WINDOWS__
+					PFN_vkSetDebugUtilsObjectNameEXT debugNames = nullptr;
+				#endif
+
+			#endif
+			
+		};
+
+		template<u32 errorId, typename T = VkGraphics>
 		bool vkCheck(VkResult result, String msg) {
 
 			if (result >= VK_SUCCESS) return true;
@@ -161,35 +182,7 @@ namespace oi {
 			return Log::throwError<T, errorId>(msg);
 		}
 
-		#define vkAllocate(type, ext, needed) 																								\
-		VkMemoryAllocateInfo memoryInfo;																									\
-		memset(&memoryInfo, 0, sizeof(memoryInfo));																							\
-																																			\
-		VkMemoryRequirements requirements;																									\
-		vkGet##type##MemoryRequirements(graphics.device, ext.resource, &requirements);														\
-																																			\
-		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;																			\
-		memoryInfo.allocationSize = requirements.size;																						\
-																																			\
-		VkMemoryPropertyFlags required = needed;																							\
-																																			\
-		uint32_t memoryIndex = u32_MAX;																										\
-																																			\
-		for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)																		\
-			if ((requirements.memoryTypeBits & (1 << i)) && (graphics.pmemory.memoryTypes[i].propertyFlags & required) == required) {		\
-				memoryIndex = i;																											\
-				break;																														\
-			}																																\
-																																			\
-		if (memoryIndex == u32_MAX)																											\
-			Log::throwError<VkGraphics, 0x3>("Couldn't find a valid memory type for a(n) " #type);											\
-																																			\
-		memoryInfo.memoryTypeIndex = memoryIndex;																							\
-																																			\
-		vkCheck<0x0, VkGraphics>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");		\
-		vkCheck<0x1, VkGraphics>(vkBind##type##Memory(graphics.device, ext.resource, ext.memory, 0), "Couldn't bind " #type " memory");
-		
-		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x0>("Couldn't get Vulkan extension");
+		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x9>("Couldn't get Vulkan extension");
 
 		template<typename T>
 		void vkName(VkGraphics &g, T val, VkObjectType type, String name) {

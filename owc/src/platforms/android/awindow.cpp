@@ -211,7 +211,7 @@ int32_t AWindow::handleInput(struct android_app *app, AInputEvent *event){
 					mouse->axes[2] = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_VSCROLL, 0);
 
 				} else
-					Log::warn(String("Motion event not supported; ") + source + " " + action + " " + " " + x + " " + y);
+					Log::warn(String("Motion event not supported; ") + source + " " + action + " " + x + " " + y);
 			}
 			return 0;
 

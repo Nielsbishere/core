@@ -117,6 +117,9 @@ namespace oi {
 
 					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) vec.data(), getArrayLength() * (u32) sizeof(T) + 1));
 
+					if (!result)
+						return Log::error("Couldn't read FbxPropertyArray; couldn't uncompress array");
+
 					buf = buf.offset(getCompressedLength());
 					offset += getCompressedLength();
 					return result;

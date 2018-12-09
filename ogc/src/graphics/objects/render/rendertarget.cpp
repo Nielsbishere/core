@@ -13,7 +13,7 @@ Texture *RenderTarget::getDepth() { return info.depth; }
 VersionedTexture *RenderTarget::getTarget(u32 target) {
 
 	if (target >= getTargets())
-		return (VersionedTexture*) Log::error("Target out of range; please check target()");
+		return (VersionedTexture*) Log::error("Target out of range; please check getTargets()");
 
 	return info.textures[target];
 }

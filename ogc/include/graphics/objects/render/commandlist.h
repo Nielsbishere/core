@@ -16,7 +16,13 @@ namespace oi {
 		class Mesh;
 		class DrawList;
 
-		struct CommandListInfo { typedef CommandList ResourceType; };
+		struct CommandListInfo { 
+
+			typedef CommandList ResourceType; 
+
+			CommandListInfo() {}
+		
+		};
 
 		struct RenderTargetClear {
 
@@ -55,8 +61,6 @@ namespace oi {
 			~CommandList();
 			CommandList(CommandListInfo info);
 			bool init();
-
-			void flush();
 
 		private:
 

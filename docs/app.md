@@ -5,6 +5,7 @@ The required libraries (ostlc; Osomi STandard Library Core and owc; Osomi Window
 The optional libraries use owc (and ostlc) to add functionality that could also be created by the end-user, but are convenient to have. This includes rendering (ogc; Osomi Graphics Core), besides future implementations, such as sockets.  
 A standalone is where you don't use the entrypoints and use it as an executable (pc only) instead of an application. An example of this is oish_gen (OsomI SHader generator) and oirm_gen (OsomI Raw Model generator).  
 Now, the app is the entrypoint that is accessed by all platform-dependent entrypoints. It is where you setup all important requirements for the application you're using. Normally, this is where you setup a window.
+
 # Example code
 ```cpp
 void Application::instantiate(WindowHandleExt *param){
@@ -31,8 +32,8 @@ public:
 	void renderScene() override;
 	void onInput(oi::wc::InputDevice *device, oi::wc::Binding b, bool down) override;
 	
-	void load(oi::String path) override {}
-	void save(oi::String path) override {}
+	void load(oi::String path) override;
+	void save(oi::String path) override;
 
 	void update(f32 dt) override;
 	void initSceneSurface() override;

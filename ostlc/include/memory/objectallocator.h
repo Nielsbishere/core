@@ -20,7 +20,10 @@ namespace oi {
 		}
 
 		//ObjectAllocator doesn't handle allocation
-		ObjectAllocator(u32 size, Buffer buf) : buf(buf), occ(size) { if (buf.size() != size * objSize) Log::throwError<ObjectAllocator, 0x0>("ObjectAllocator buffer should match size * sizeof(T)"); }
+		ObjectAllocator(u32 size, Buffer buf) : buf(buf), occ(size) { 
+			if (buf.size() != size * objSize) 
+				Log::throwError<ObjectAllocator, 0x0>("ObjectAllocator buffer should match size * sizeof(T)"); 
+		}
 
 		~ObjectAllocator() {
 			if (owned) buf.deconstruct();

@@ -38,12 +38,13 @@ declFlag release release
 declFlag exclude_ext_formats exexfo
 declFlag help helpMe
 declFlag strip_debug_info strip
-declFlag disable_parallel noparallel
+declFlag apk apk
 declFlag run run
 declFlag cmake cmake
 declParam abi abi
 declParam lvl lvl
 declParam dev dev
+declParam jobs jobs
 
 if [ "$dev" == "windows-x86_64" ]
 then
@@ -65,11 +66,11 @@ then
 	echo - Android SDK
 	echo - Android NDK set up as environment variable ANDROID_NDK
 	echo - MinGW Makefiles 64-bit
-	echo - Apache Ant
 	echo - Vulkan SDK
 	echo
 	echo "Command line args:"
 	echo "-cmake Reloads or initializes the CMake data"
+	echo "-apk Creates apk file; otherwise only compiles"
 	echo "-run Runs the build"
 	echo "-abi=all Android ABI (all if not specified)"
 	echo "-lvl=24 Android API level (24 or higher)"
@@ -77,7 +78,7 @@ then
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	echo "-strip_debug_info Strips debug info (shaders)"
-	echo "-disable_parallel To disable parallel compilation (for travis build)"
+	echo "-jobs=2 To set the max compilation jobs for parallel"
 	exit
 fi
 
@@ -92,9 +93,9 @@ build(){
 	cd builds/Android/$1
 	
 	if ! [ "$gen" == "" ] ; then
-		cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
+		cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared $cmakeParams
 	else
-		cmake "../../../" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared
+		cmake "../../../" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared $cmakeParams
 	fi
 
 
@@ -103,8 +104,10 @@ build(){
 }
 
 
-if ! [ $noparallel ] ; then
+if ! [ $jobs ] ; then
 	params="-j"
+else
+	params="-j$jobs"
 fi
 
 if [ "$abi" == "all" ]
@@ -141,22 +144,20 @@ then
 
 	rm -rf build
 	mkdir -p build
-	mkdir -p build/libs
-	mkdir -p build/libs/arm64-v8a
-	mkdir -p build/libs/x86_64
-	mkdir -p build/libs/armeabi-v7a
-	mkdir -p build/libs/x86
+	mkdir -p build/lib
+	mkdir -p build/lib/arm64-v8a
+	mkdir -p build/lib/x86_64
+	mkdir -p build/lib/armeabi-v7a
+	mkdir -p build/lib/x86
 
 	# Dependencies
 
 	if ! [ $release ]
 	then
-		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/* build/libs
-		rm -rf build/libs/mips
-		rm -rf build/libs/mips64
+		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/* build/lib
 	fi
 
-	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/* build/libs
+	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/* build/lib
 
 	# Prepare assets, src and AndroidManifest, build.xml
 
@@ -180,17 +181,17 @@ else
 
 	rm -rf build
 	mkdir -p build
-	mkdir -p build/libs
-	mkdir -p build/libs/$abi
+	mkdir -p build/lib
+	mkdir -p build/lib/$abi
 
 	# Dependencies
 
 	if ! [ $release ]
 	then
-		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$abi/* build/libs/$abi
+		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$abi/* build/lib/$abi
 	fi
 
-	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$abi/* build/libs/$abi
+	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$abi/* build/lib/$abi
 
 	# Prepare src and AndroidManifest, build.xml
 
@@ -225,71 +226,91 @@ fi
 
 # Copy results
 
-cp -r ../../app/res/* build/assets/res
+if [ $apk ] ; then
 
-# Filter out some extensions
-
-if [ $exexfo ]
-then
-	cd build/assets/res
-	find . -type f -name '*.oiBM' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.fbx' -exec rm -f {} +
-	find . -type f -name '*.obj' -exec rm -f {} +
-	find . -type f -name '*.glsl' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.hlsl' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.vert' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.frag' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.geom' -exec rm -f {} +	>> build_android.sh
-	find . -type f -name '*.comp' -exec rm -f {} +	>> build_android.sh
-	cd ../../../
-fi
-
-if [ "$abi" == "all" ]
-then
-
-	# Copy build results
-
-	cp arm64-v8a/lib/libapp_android.so build/libs/arm64-v8a/libapp_android.so
-	cp x86_64/lib/libapp_android.so build/libs/x86_64/libapp_android.so
-	cp armeabi-v7a/lib/libapp_android.so build/libs/armeabi-v7a/libapp_android.so
-	cp x86/lib/libapp_android.so build/libs/x86/libapp_android.so
-
-else
-
-	# Copy build results
-
-	cp $abi/lib/libapp_android.so build/libs/$abi/libapp_android.so
-
-fi
-
-cd build
-
-if [ $release ]
-then
-	ant release
-	# jarsigner -verbose -keystore ~/my-release-key.keystore bin/app_android-unsigned.apk myalias
-	zipalign -v -f 4 bin/app_android-unsigned.apk bin/app_android.apk
-else
-	ant debug
-fi
-
-# run script
-
-if [ $run ] ; then
-
-	cd bin
+	cp -r ../../app/res/* build/assets/res
 	
-	if [ $release ]
+	# Filter out some extensions
+	
+	if [ $exexfo ]
 	then
-		adb install -r app_android.apk
-	else
-		adb install -r app_android-debug.apk
+		cd build/assets/res
+		find . -type f -name '*.oiBM' -exec rm -f {} +
+		find . -type f -name '*.fbx' -exec rm -f {} +
+		find . -type f -name '*.obj' -exec rm -f {} +
+		find . -type f -name '*.glsl' -exec rm -f {} +
+		find . -type f -name '*.hlsl' -exec rm -f {} +
+		find . -type f -name '*.vert' -exec rm -f {} +
+		find . -type f -name '*.frag' -exec rm -f {} +
+		find . -type f -name '*.geom' -exec rm -f {} +
+		find . -type f -name '*.comp' -exec rm -f {} +
+		cd ../../../
 	fi
 	
+	if [ "$abi" == "all" ]
+	then
+	
+		# Copy build results
+	
+		cp arm64-v8a/lib/libapp_android.so build/lib/arm64-v8a/libapp_android.so
+		cp x86_64/lib/libapp_android.so build/lib/x86_64/libapp_android.so
+		cp armeabi-v7a/lib/libapp_android.so build/lib/armeabi-v7a/libapp_android.so
+		cp x86/lib/libapp_android.so build/lib/x86/libapp_android.so
+	
+	else
+	
+		# Copy build results
+	
+		cp $abi/lib/libapp_android.so build/lib/$abi/libapp_android.so
+	
+	fi
+	
+	rm -rf build/lib/mips
+	rm -rf build/lib/mips64
+	
+	cd build
+	
+	# Create APK and add libs
+	
+	mkdir -p bin
+	
+	aapt package -f -I "${ANDROID_SDK}/platforms/android-$lvl/android.jar" -M AndroidManifest.xml -A assets -S res -m -F bin/app-unsigned.apk
+	
+	libs=$(find . -type f -name '*.so' | sed 's/\\/\//g')
+	
+	for lib in $(echo ${libs//.\//} | tr " " "\n")
+	do
+	aapt add bin/app-unsigned.apk $lib
+	done
+	
+	# Align and sign APK
+	
+	cd bin
+	zipalign -v -f 4 app-unsigned.apk app.apk
+	
+	if ! [ -e "../../.keystore" ] ; then
+		"${JAVA_HOME}/bin/keytool" -genkeypair -v -keystore ../../.keystore -keyalg RSA -keysize 2048 -validity 10000
+	fi
+	
+	if [ "$dev" == "windows-x86_64" ] ; then
+		apksigner.bat sign --ks ../../.keystore --min-sdk-version 24 app.apk
+	else
+		apksigner.sh sign --ks ../../.keystore --min-sdk-version 24 app.apk
+	fi
+
+	cd ../
+	
+fi
+	
+# run script
+
+cd bin
+
+if [ $run ] ; then
+	adb install -r app.apk
 	adb shell am start -n net.osomi.Osomi_Core/android.app.NativeActivity
 	adb logcat -c
 	adb logcat -s "oi_Log"
-
 fi
 
 cd ../../../../
