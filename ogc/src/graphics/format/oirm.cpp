@@ -17,7 +17,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 	}
 
 	if (bibo.size() != 4 * indices) {
-		Log::error("Couldn't generate oiRM file; the vbo was of invalid size");
+		Log::error("Couldn't generate oiRM file; the ibo was of invalid size");
 		return RMFile();
 	}
 

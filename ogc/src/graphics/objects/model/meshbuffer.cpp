@@ -125,7 +125,7 @@ MeshBuffer::~MeshBuffer() {
 bool MeshBuffer::init() {
 
 	if (info.maxVertices == 0)
-		return Log::error("MeshBufferInfo.maxVertices can't be zero.");
+		return Log::error("MeshBufferInfo.maxVertices can't be zero");
 
 	info.vertices = new VirtualBlockAllocator(info.maxVertices);
 	

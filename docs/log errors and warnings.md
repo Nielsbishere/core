@@ -176,45 +176,122 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 ### Errors
 
-| File                                                | Message                                                      | Description                                                  |
-| --------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| graphics<br />format<br />fbx.h                     | Couldn't read FbxProperty; Buffer didn't store the (full size) binary object | The type specified wasn't included into the buffer           |
-|                                                     | Couldn't read FbxPropertyArray; couldn't uncompress array    | Fbx specified that it uses compression, but the array was compressed the wrong way. |
-|                                                     | Couldn't read FbxPropertyArray; one of the elements was invalid | One of the elements in the array was invalid                 |
-|                                                     | FbxCheckPropertyValue couldn't find the requested type       | The Fbx type didn't match the variable provided to FbxCheckPropertyValue |
-|                                                     | FbxCheckProperty couldn't find the right property; out of bounds | Couldn't find the property with type in the range requested  |
-|                                                     | Fbx::findNodes failed; propertyIds should have the same elements as type arguments | When providing findNodes, the propertyIds size should be equal to the number of arguments |
-| graphics<br />format<br />fbx.cpp                   | Couldn't read FbxProperty; buffer was null                   | The FbxProperty that was requested couldn't be read because the buffer attached was too small |
-|                                                     | Couldn't allocate FbxProperty; invalid type                  | Property's type requested couldn't be allocated              |
-|                                                     | Couldn't read FbxProperty                                    | Property's data was invalid                                  |
-|                                                     | Couldn't read FbxNode; invalid buffer size                   | ^                                                            |
-|                                                     | Couldn't read FbxNode's name; invalid buffer size            | ^                                                            |
-|                                                     | Couldn't read FbxNode's properties ({name})                  | Node's properties are invalid                                |
-|                                                     | Couldn't read FbxNode's child nodes ({name})                 | Child nodes are invalid                                      |
-|                                                     | Couldn't read an fbx node                                    | Node was invalid; or had invalid children or properties.     |
-|                                                     | Couldn't read Fbx; invalid buffer size                       | Fbx's size didn't match with the header                      |
-|                                                     | Couldn't read Fbx; invalid header                            | Fbx was invalid; it has to be in format Kaydara FBX Binary; not ASCII. |
-|                                                     | Couldn't read from file                                      | File couldn't be opened or read                              |
-|                                                     | Couldn't convert geometry object; there was no string object for name | Geometry objects have to be named                            |
-|                                                     | Couldn't find the vertices of a geometry object ({name})     | Geometry objects require vertices                            |
-|                                                     | The geometry object {name} is duplicated. This is not supported | Geometry object names have to be unique                      |
-|                                                     | The geometry object \{name} has invalid positional data      | Geometry objects require positional data                     |
-|                                                     | The geometry object {name} has more than 1 normal set. This is not supported | Currently only one normal map per geometry object is supported |
-|                                                     | The geometry object {name} doesn't have a valid normal set   | Geometry objects require a valid normal set if present       |
-|                                                     | The geometry object {name} has more than 1 UV set. This is not supported | Currently only one UV set per geometry object is supported   |
-|                                                     | The geometry object {name} had an invalid UV set             | Geometry objects require a valid UV set if present           |
-|                                                     | Fbx conversion failed (or it didn't contain any meshes)      | Fbx::convertMeshes expects meshes to be included into the Fbx file |
-|                                                     | Couldn't write oiRM file to disk                             | Conversion to oiRM failed                                    |
-| graphics<br />helper<br />bakemanager.cpp           | {in} couldn't bake obj model                                 | Obj::convert failed; file doesn't exist or is the wrong format |
-|                                                     | {in} couldn't bake fbx model                                 | Fbx::convertMeshes failed, file doesn't exist or is wrong format |
-|                                                     | {path} couldn't bake fbx model                               | One of the meshes was invalid                                |
-|                                                     | {out} couldn't compile shader                                | Shader compilation failed (see error log)                    |
-|                                                     | {out} couldn't write oiSH file                               | Conversion to oiSH format failed                             |
-| graphics<br />objects<br />render<br />drawlist.cpp | Every MeshBuffer requires a different DrawList. The drawcall mentioned a Mesh that wasn't in the same MeshBuffer | DrawList::draw can only be called with a Mesh in the same MeshBuffer |
-|                                                     | The batches exceeded the maximum amount. Please increase this or decrease draw calls | DrawListInfo specifies the maximum number of draw calls; but beware that increasing this too high will bring performance issues. |
-|                                                     | Couldn't create DrawList; it needs at least 1 object         | maxBatches can't be 0                                        |
-|                                                     | Couldn't create DrawList; object buffer or mesh buffer was invalid | meshBuffer can't be nullptr                                  |
-|                                                     | Couldn't reserve draw list                                   | The GPU object associated with the draw list couldn't be created |
+| File                                                    | Message                                                      | Description                                                  |
+| ------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| graphics<br />format<br />fbx.h                         | Couldn't read FbxProperty; Buffer didn't store the (full size) binary object | The type specified wasn't included into the buffer           |
+|                                                         | Couldn't read FbxPropertyArray; couldn't uncompress array    | Fbx specified that it uses compression, but the array was compressed the wrong way. |
+|                                                         | Couldn't read FbxPropertyArray; one of the elements was invalid | One of the elements in the array was invalid                 |
+|                                                         | FbxCheckPropertyValue couldn't find the requested type       | The Fbx type didn't match the variable provided to FbxCheckPropertyValue |
+|                                                         | FbxCheckProperty couldn't find the right property; out of bounds | Couldn't find the property with type in the range requested  |
+|                                                         | Fbx::findNodes failed; propertyIds should have the same elements as type arguments | When providing findNodes, the propertyIds size should be equal to the number of arguments |
+| graphics<br />format<br />fbx.cpp                       | Couldn't read FbxProperty; buffer was null                   | The FbxProperty that was requested couldn't be read because the buffer attached was too small |
+|                                                         | Couldn't allocate FbxProperty; invalid type                  | Property's type requested couldn't be allocated              |
+|                                                         | Couldn't read FbxProperty                                    | Property's data was invalid                                  |
+|                                                         | Couldn't read FbxNode; invalid buffer size                   | ^                                                            |
+|                                                         | Couldn't read FbxNode's name; invalid buffer size            | ^                                                            |
+|                                                         | Couldn't read FbxNode's properties ({name})                  | Node's properties are invalid                                |
+|                                                         | Couldn't read FbxNode's child nodes ({name})                 | Child nodes are invalid                                      |
+|                                                         | Couldn't read an fbx node                                    | Node was invalid; or had invalid children or properties.     |
+|                                                         | Couldn't read Fbx; invalid buffer size                       | Fbx's size didn't match with the header                      |
+|                                                         | Couldn't read Fbx; invalid header                            | Fbx was invalid; it has to be in format Kaydara FBX Binary; not ASCII. |
+|                                                         | Couldn't read from file                                      | File couldn't be opened or read                              |
+|                                                         | Couldn't convert geometry object; there was no string object for name | Geometry objects have to be named                            |
+|                                                         | Couldn't find the vertices of a geometry object ({name})     | Geometry objects require vertices                            |
+|                                                         | The geometry object {name} is duplicated. This is not supported | Geometry object names have to be unique                      |
+|                                                         | The geometry object \{name} has invalid positional data      | Geometry objects require positional data                     |
+|                                                         | The geometry object {name} has more than 1 normal set. This is not supported | Currently only one normal map per geometry object is supported |
+|                                                         | The geometry object {name} doesn't have a valid normal set   | Geometry objects require a valid normal set if present       |
+|                                                         | The geometry object {name} has more than 1 UV set. This is not supported | Currently only one UV set per geometry object is supported   |
+|                                                         | The geometry object {name} had an invalid UV set             | Geometry objects require a valid UV set if present           |
+|                                                         | Fbx conversion failed (or it didn't contain any meshes)      | Fbx::convertMeshes expects meshes to be included into the Fbx file |
+|                                                         | Couldn't write oiRM file to disk                             | Conversion to oiRM failed                                    |
+| graphics<br />helper<br />bakemanager.cpp               | {in} couldn't bake obj model                                 | Obj::convert failed; file doesn't exist or is the wrong format |
+|                                                         | {in} couldn't bake fbx model                                 | Fbx::convertMeshes failed, file doesn't exist or is wrong format |
+|                                                         | {path} couldn't bake fbx model                               | One of the meshes was invalid                                |
+|                                                         | {out} couldn't compile shader                                | Shader compilation failed (see error log)                    |
+|                                                         | {out} couldn't write oiSH file                               | Conversion to oiSH format failed                             |
+| graphics<br />objects<br />render<br />drawlist.cpp     | Every MeshBuffer requires a different DrawList. The drawcall mentioned a Mesh that wasn't in the same MeshBuffer | DrawList::draw can only be called with a Mesh in the same MeshBuffer |
+|                                                         | The batches exceeded the maximum amount. Please increase this or decrease draw calls | DrawListInfo specifies the maximum number of draw calls; but beware that increasing this too high will bring performance issues. |
+|                                                         | Couldn't create DrawList; it needs at least 1 object         | maxBatches can't be 0                                        |
+|                                                         | Couldn't create DrawList; object buffer or mesh buffer was invalid | meshBuffer can't be nullptr                                  |
+|                                                         | Couldn't reserve draw list                                   | The GPU object associated with the draw list couldn't be created |
+| graphics<br />objects<br />gbuffer.cpp                  | GBuffer::set please use a buffer that matches the gbuffer's size | When calling GBuffer::set it requires the flushed buffer to be in range [0, buf.size()> |
+| graphics<br />objects<br />model<br />materiallist.cpp  | Couldn't allocate material                                   | There was no space left for the material; free old materials or allocate material list with a bigger size |
+|                                                         | Couldn't deallocate struct; out of bounds                    | The MaterialStruct supplied isn't part of the MaterialList   |
+|                                                         | Material list max size can't be zero                         | Max size of MaterialList must be at least 1                  |
+| graphics<br />objects<br />model<br />mesh.cpp          | Couldn't initialize Mesh; the Mesh didn't have the same IBO settings as the MeshBuffer | Meshes with(out) IBOs can only be allocated in MeshBuffers with(out) IBOs |
+|                                                         | Couldn't initialize Mesh; there weren't enough vertex buffers | Meshes require the same format as the MeshBuffer they were allocated into |
+|                                                         | Couldn't initialize Mesh; one of the vertex buffers was incorrect | ^                                                            |
+|                                                         | Couldn't initialize Mesh; one of the vertex buffers vertices didn't match another | One of the vertex buffers specified had an invalid size; compared to other vertex buffers; the number of vertices didn't match |
+|                                                         | Couldn't initialize Mesh; no space left in the MeshBuffer    | The MeshBuffer was full and couldn't allocate the Mesh; deallocate other meshes or increase the MeshBuffer size |
+| graphics<br />objects<br />model<br />meshbuffer.cpp    | MeshBufferInfo.maxVertices can't be zero                     | A MeshBuffer requires more than 1 vertex                     |
+| graphics<br />objects<br />model<br />meshmanager.cpp   | Couldn't get Mesh by path "{path}"                           | The path provided wasn't loaded as a Mesh into MeshManager   |
+|                                                         | Mesh isn't allowed to create a new MeshBuffer                | The MeshAllocationHint required to use a MeshBuffer, but the MeshBuffer was already full |
+|                                                         | Couldn't read mesh from file "{name}"                        | The mesh path provided was invalid; the file didn't contain oiRM data or doesn't exist |
+|                                                         | Couldn't write mesh into meshBuffer "{name}" couldn't find or allocate MeshBuffer | The Mesh couldn't find any suitable MeshBuffer to allocate into |
+|                                                         | Couldn't write mesh into meshBuffer "{name}" ({meshBufferName}) | The Mesh had invalid format and/or couldn't be allocated into the MeshBuffer |
+|                                                         | Couldn't write mesh into meshBuffer; when submitting raw data, be sure to use a valid buffer | MeshBuffer can't be nullptr when manually allocating meshes  |
+|                                                         | Couldn't write mesh into meshBuffer; when submitting raw data, the number of buffers (vbos, ibo) has to be the same | Both the MeshBuffer and Mesh have to have the same draw type (indices or vertices) |
+|                                                         | Couldn't write mesh into meshBuffer; when submitting raw data, the vbo layouts have to be the same | Mesh and MeshBuffer have to use the same vertex layouts      |
+|                                                         | Couldn't load model "{name}"                                 | The mesh path provided was invalid; the file didn't contain oiRM data or doesn't exist |
+| graphics<br />format<br />obj.cpp                       | Couldn't convert Obj; missing an object                      | Obj file requires the 'o' tag to define an object            |
+|                                                         | Obj conversion failed                                        | Obj to oiRM conversion failed; Obj couldn't be read or oiRM couldn't be created |
+|                                                         | Couldn't write oiRM file to disk                             | oiRM couldn't be converted to buffer and/or written to path  |
+|                                                         | Couldn't read from file                                      | The obj file didn't exist or was empty                       |
+| graphics<br />format<br />oirm.cpp                      | Couldn't generate oiRM file; the vbo was of invalid size     | oiRM::generate failed; the vbo provided was of incorrect size/format |
+|                                                         | Couldn't generate oiRM file; the ibo was of invalid size     | oiRM::generate failed; the ibo provided was of incorrect size/format |
+|                                                         | Couldn't open file                                           | File was empty or doesn't exist                              |
+|                                                         | Couldn't read file                                           | File format is incorrect                                     |
+|                                                         | Couldn't read oiRM file; invalid header                      | File had incorrect header and couldn't be identified as oiRM file |
+|                                                         | Invalid oiRM (header) file                                   | oiRM version couldn't be identified; try to use the latest version (see oirm.h) |
+|                                                         | Couldn't read oiRM file; invalid size                        | Estimated size didn't match file size                        |
+|                                                         | Couldn't read oiRM file; invalid vertex length               | Vertex buffer couldn't be detected in file                   |
+|                                                         | Couldn't read oiRM file; invalid keyset                      | Keyset for compression couldn't be found                     |
+|                                                         | Couldn't read oiRM file; invalid keyCount                    | Keyset count couldn't be found                               |
+|                                                         | Couldn't read oiRM file; invalid bitset                      | The compression bitsets weren't included in the file         |
+|                                                         | Couldn't read oiRM file; invalid index buffer length         | Index buffer wasn't included in file                         |
+|                                                         | Couldn't read oiRM file; invalid operation bitset length     | The triangle operations weren't included in file             |
+|                                                         | Couldn't read oiRM file; invalid operationData bitset length | The triangle operation data wasn't included in file          |
+|                                                         | Couldn't read oiRM file; invalid misc length                 | The misc included in the file was invalid; data couldn't be found |
+|                                                         | Couldn't read oiRM file; invalid oiSL                        | oiSL file wasn't included at the end of the oiRM file        |
+|                                                         | Couldn't write to file                                       | oiRM conversion to binary data failed                        |
+| graphics<br />format<br />oisb.cpp                      | Couldn't open file                                           | File was empty or doesn't exist                              |
+|                                                         | Couldn't read file                                           | File format is incorrect                                     |
+|                                                         | Invalid oiSB file                                            | File had incorrect header and/or size and couldn't be identified as oiSB file |
+|                                                         | Invalid oiSB (header) file                                   | oiSB version couldn't be identified; try to use the latest version (see oisb.h) |
+|                                                         | Invalid oiSB file; invalid arraySize                         | Couldn't read the array sizes attached to the oiSB file      |
+|                                                         | Invalid oiSB file; invalid array                             | The contents of the array attached to oiSB file were invalid |
+|                                                         | Couldn't write to file                                       | oiSB couldn't be converted or couldn't be written to file    |
+| graphics<br />format<br />oish.cpp                      | Couldn't open file                                           | File was empty or doesn't exist                              |
+|                                                         | Couldn't read file                                           | File format is incorrect                                     |
+|                                                         | Invalid oiSH file                                            | File had incorrect header and/or size and couldn't be identified as oiSH file |
+|                                                         | Invalid oiSH (header) file                                   | oiSH version couldn't be identified; try to use the latest version (see oish.h) |
+|                                                         | Invalid oiSH file; invalid size                              |                                                              |
+|                                                         | Invalid oiSH (oiSL) file                                     | The oiSL in the oiSH file was incorrect                      |
+|                                                         | Invalid oiSH (oiSB) file                                     | One of the oiSBs in the oiSH file was incorrect              |
+|                                                         | Couldn't write to file                                       | oiSH couldn't be converted or couldn't be written to file    |
+| graphics<br />format<br />oishcompiler.cpp              | Couldn't compile to oiSH file                                | Output file of the oiSH was invalid                          |
+|                                                         | Couldn't read included file "{name}" there were more than 256 nested includes | Using more than 256 nested includes is prohibited and is probably the cause of a circular dependency |
+|                                                         | Couldn't read included file "{name}" aka {fileName}          | The included file wasn't present or had incorrect data       |
+|                                                         | Please supply a valid include base path                      | `#include ""` requires the includer to have a valid base path; this means it has to be compiled from file (not memory), if it is loaded from memory, it can only include global files |
+|                                                         | Couldn't compile; shader type wasn't set to GLSL but it contained a GLSL source file | One of the shader stages was not GLSL, which is prohibited by the compiler (rename the file(s) shader name) |
+|                                                         | Couldn't compile; shader type wasn't set to HLSL but it contained a HLSL source file | One of the shader stages was not HLSL, which is prohibited by the compiler (rename the file(s) shader name) |
+|                                                         | Couldn't add stage to shader; wrong extension "{ext}"        | The shader stage extension couldn't be recognized (.frag, .vert, .geom, .comp) |
+|                                                         | {error}<br />Couldn't add stage to shader; couldn't preprocess shader | Preprocessing of the shader stage failed                     |
+|                                                         | {error}<br />Couldn't add stage to shader; couldn't parse shader | Compilation of the shader stage failed                       |
+|                                                         | Couldn't add stage to shader; couldn't convert to spirv      | Conversion of shader stage to SPV failed                     |
+|                                                         | Couldn't link shader                                         | One of the shader stages didn't match up and couldn't be linked |
+|                                                         | Couldn't add stage to shader; spirv was invalid or had the wrong extension | The SPV file couldn't be read or the shader stage couldn't be identified from file path |
+|                                                         | Couldn't convert shader source file(s) to SPV                | GLSL or HLSL conversion to SPV failed                        |
+|                                                         | Couldn't add stage to shader; the ShaderSourceType isn't supported yet | The implementation of the shader stage type doesn't exist    |
+|                                                         | Couldn't add stage to shader                                 | A shader stage couldn't be added because it was invalid      |
+| graphics<br />objects<br />render<br />rendertarget.cpp | Target out of range; please check getTargets()               | RenderTarget::getTarget out of bounds exception              |
+| graphics<br />helper<br />spvhelper.cpp                 | Invalid register access                                      | The shader register access couldn't be determined; which only occurs in invalid shaders |
+|                                                         | Couldn't add buffers                                         | One of the buffers' reflection data was invalid              |
+|                                                         | Couldn't add textures                                        | One of the textures' reflection data was invalid             |
+|                                                         | Couldn't add samplers                                        | One of the samplers' reflection data was invalid             |
+|                                                         | SPIR-V Bytecode invalid                                      | Bytecode had invalid length; opcodes should be 4-byte integers |
+|                                                         | Couldn't add stage resources to shader                       | One or multiple resources of the shader were invalid         |
 
 ### Warnings
 

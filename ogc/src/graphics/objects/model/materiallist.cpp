@@ -15,7 +15,7 @@ MaterialStruct *MaterialList::alloc(MaterialStruct minfo) {
 			return info.buffer->getBuffer().addr<MaterialStruct>() + i;
 		}
 
-	return (MaterialStruct*) Log::error("Couldn't allocate material");;
+	return (MaterialStruct*) Log::error("Couldn't allocate material");
 }
 
 bool MaterialList::dealloc(MaterialStruct *str) {

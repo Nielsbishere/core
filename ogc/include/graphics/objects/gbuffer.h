@@ -47,7 +47,7 @@ namespace oi {
 			GBufferExt &getExtension();
 			const GBufferInfo &getInfo();
 
-			bool set(Buffer buf);
+			bool set(Buffer buf, u32 offset = 0);
 
 			//Flush tells the GPU to update a range of the buffer
 			//These changes get pushed by Graphics

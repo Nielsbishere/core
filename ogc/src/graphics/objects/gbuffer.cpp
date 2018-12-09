@@ -12,12 +12,12 @@ Buffer GBuffer::getBuffer() { return info.buffer; }
 GBufferExt &GBuffer::getExtension() { return ext; }
 const GBufferInfo &GBuffer::getInfo() { return info; }
 
-bool GBuffer::set(Buffer buf) {
+bool GBuffer::set(Buffer buf, u32 offset) {
 
-	if (buf.size() > info.buffer.size())
+	if (buf.size() + offset > info.buffer.size())
 		return Log::error("GBuffer::set please use a buffer that matches the gbuffer's size");
 
-	memcpy(info.buffer.addr(), buf.addr(), buf.size());
-	flush(Vec2u(0, buf.size()));
+	memcpy(info.buffer.addr() + offset, buf.addr(), buf.size());
+	flush(Vec2u(0, buf.size()) + offset);
 	return true;
 }

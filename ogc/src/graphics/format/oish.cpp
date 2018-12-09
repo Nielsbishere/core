@@ -342,7 +342,7 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 		u32 registers = (u32)(header.registers * sizeof(SHRegister));
 
 		if (buf.size() < stages)
-			return Log::error("Invalid oiSH file; too small");
+			return Log::error("Invalid oiSH file; invalid size");
 
 		file.stage.assign((SHStage*)buf.addr(), (SHStage*)(buf.addr() + stages));
 		buf = buf.offset(stages);
@@ -355,7 +355,7 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 			u32 outputs = (u32)(stage.outputs * sizeof(SHOutput));
 
 			if(buf.size() < registers + ivars + outputs)
-				return Log::error("Invalid oiSH file; too small");
+				return Log::error("Invalid oiSH file; invalid size");
 
 			std::vector<SHInput> &input = file.stageInputs[stage.type];
 			std::vector<SHOutput> &output = file.stageOutputs[stage.type];
