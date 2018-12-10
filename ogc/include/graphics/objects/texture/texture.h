@@ -131,11 +131,11 @@ namespace oi {
 
 			//Write texture to disk
 			//NOTE: Only available with textures with data
-			void write(String path);
+			void write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
 			//Read texture from disk
 			//NOTE: Only available with textures with data
-			void read(String path);
+			bool read(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
 		protected:
 

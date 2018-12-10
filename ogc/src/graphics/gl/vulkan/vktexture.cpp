@@ -354,7 +354,7 @@ void Texture::push() {
 		dat.deconstruct();
 
 	info.changedStart = Vec2u(u32_MAX, u32_MAX);
-	info.changedStart = Vec2u();
+	info.changedEnd = Vec2u();
 
 }
 

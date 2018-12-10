@@ -1,7 +1,6 @@
 
 #pragma warning(push)
 #pragma warning(disable: 4100)
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 #pragma warning(pop)
 
@@ -157,12 +156,13 @@ Texture *Graphics::create(String name, TextureInfo info) {
 		//Convert data to image info
 
 		u8 *ptr = (u8*) stbi_load_from_memory((const stbi_uc*) info.dat.addr(), (int) info.dat.size(), &width, &height, &comp, perChannel);
-		stbi_image_free(info.dat.addr());
+		info.dat.deconstruct();
 		info.dat = Buffer::construct(ptr, (u32) perChannel * width * height);
 
 		info.res = { (u32) width, (u32) height };
 
 		info.mipLevels = (u32) std::floor(std::log2(std::max(info.res.x, info.res.y))) + 1U;
+
 	} else 
 		info.mipLevels = 1U;
 

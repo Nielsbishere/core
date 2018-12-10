@@ -254,6 +254,7 @@ void Graphics::init(Window *w){
 	delete[] properties;
 
 	vkGetPhysicalDeviceFeatures(ext.pdevice, &ext.pfeatures);
+	vkGetPhysicalDeviceProperties(ext.pdevice, &ext.pproperties);
 
 	//Setup device
 	

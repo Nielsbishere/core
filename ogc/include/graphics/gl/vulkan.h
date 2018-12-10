@@ -96,6 +96,7 @@ namespace oi {
 			VkCommandPool pool = VK_NULL_HANDLE;
 
 			VkPhysicalDeviceFeatures pfeatures{};
+			VkPhysicalDeviceProperties pproperties{};
 			VkPhysicalDeviceMemoryProperties pmemory{};
 
 			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;

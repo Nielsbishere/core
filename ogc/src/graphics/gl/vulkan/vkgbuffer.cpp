@@ -248,6 +248,7 @@ void GBuffer::push() {
 			len
 		};
 
+		//TODO: Align this properly
 		vkFlushMappedMemoryRanges(g->getExtension().device, 1, &range);
 	}
 
