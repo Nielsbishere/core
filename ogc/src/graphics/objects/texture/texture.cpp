@@ -6,6 +6,7 @@
 #pragma warning(disable: 4100)
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
 #include "stb/stb_image.h"
 #include "stb/stb_image_write.h"
 #pragma warning(pop)
@@ -40,7 +41,7 @@ bool Texture::setPixels(Vec2u start, Vec2u length, Buffer values) {
 	if (info.dat.size() == 0)
 		return Log::throwError<Texture, 0x5>("Texture::setPixels can only be applied to loaded textures");
 
-	if (start.x + length.x >= info.res.x || start.y + length.y >= info.res.y)
+	if (start.x + length.x > info.res.x || start.y + length.y > info.res.y)
 		return Log::throwError<Texture, 0x3>("Texture::setPixels was out of bounds");
 
 	u32 stride = getStride();
@@ -131,9 +132,9 @@ bool Texture::read(String path, Vec2u start, Vec2u length) {
 		return (Texture*) Log::error("Couldn't load texture from disk");
 
 	int width, height, comp;
-	int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
+	u32 perChannel = (info.loadFormat.getValue() - 1) % 4 + 1;
 
-	u8 *ptr = (u8*)stbi_load_from_memory((const stbi_uc*)temp.addr(), (int)temp.size(), &width, &height, &comp, perChannel);
+	u8 *ptr = (u8*)stbi_load_from_memory((const stbi_uc*)temp.addr(), (int)temp.size(), &width, &height, &comp, (int) perChannel);
 
 	if (ptr == nullptr)
 		return Log::throwError<Texture, 0xD>("Texture::read couldn't read data from file");
@@ -146,6 +147,30 @@ bool Texture::read(String path, Vec2u start, Vec2u length) {
 	if (length.y == 0)
 		length.y = (u32)height;
 
+	Vec2u loadedSize((u32)width, (u32)height);
+
+	if (length != loadedSize) {
+
+		Buffer copy;
+
+		if (length.x == (u32)width)
+			copy = Buffer(ptr, length.y * length.x * perChannel);
+		else {
+			copy = Buffer(length.y * length.x * perChannel);
+
+			for(u32 j = 0; j < length.y; ++j)
+				memcpy(copy.addr() + j * length.x * perChannel, ptr + j * (u32) width * perChannel, (u32) width * perChannel);
+		}
+
+		free(ptr);
+
+		if (!setPixels(start, length, copy))
+			return Log::throwError<Texture, 0xA>("Texture::read couldn't copy pixels into texture");
+
+		copy.deconstruct();
+		return true;
+	}
+
 	if(!setPixels(start, length, Buffer::construct(ptr, (u32) width * height * perChannel)))
 		return Log::throwError<Texture, 0xA>("Texture::read couldn't copy pixels into texture");
 
@@ -155,7 +180,9 @@ bool Texture::read(String path, Vec2u start, Vec2u length) {
 
 bool Texture::init(bool isOwned) {
 
-	if (info.path != "") {
+	int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
+
+	if (info.mipFilter != TextureMipFilter::None) {
 
 		//Set up a buffer to load
 
@@ -167,19 +194,27 @@ bool Texture::init(bool isOwned) {
 
 		int width, height, comp;
 
-		int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
-
 		//Convert data to image info
 
 		u8 *ptr = (u8*)stbi_load_from_memory((const stbi_uc*)info.dat.addr(), (int)info.dat.size(), &width, &height, &comp, perChannel);
 		info.dat.deconstruct();
-		info.dat = Buffer::construct(ptr, (u32)perChannel * width * height);
+		info.dat = Buffer(ptr, (u32)perChannel * width * height);
+		stbi_image_free(ptr);
 
 		info.res = { (u32)width, (u32)height };
 		info.mipLevels = info.mipFilter == TextureMipFilter::None ? 1U : (u32)std::floor(std::log2(std::max(info.res.x, info.res.y))) + 1U;
 
 	} else
 		info.mipLevels = 1U;
+
+	if (info.dat.size() == 0 && info.usage == TextureUsage::Image) {
+
+		if (info.loadFormat == TextureLoadFormat::Undefined)
+			return Log::throwError<Texture, 0x12>("Couldn't create CPU buffer for texture; invalid format");
+
+		info.dat = Buffer((u32)perChannel * info.res.x * info.res.y);
+
+	}
 
 	return initData(isOwned);
 }

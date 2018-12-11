@@ -182,6 +182,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Texture::write currently only accepts png files              |                 | 0xF  |                                                              |
 |                                                         | Couldn't load texture; Texture load format is invalid        |                 | 0x10 | The texture load format given was undefined                  |
 |                                                         | Couldn't load texture from disk                              |                 | 0x11 | The texture path given had invalid data or the file doesn't exist |
+|                                                         | Couldn't create CPU buffer for texture; invalid format       |                 | 0x12 | When creating an empty texture, use                          |
 
 ### Errors
 

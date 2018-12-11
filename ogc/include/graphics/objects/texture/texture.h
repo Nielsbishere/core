@@ -97,8 +97,9 @@ namespace oi {
 
 			Vec2u changedStart = Vec2u(u32_MAX, u32_MAX), changedEnd = Vec2u();
 
-			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : parent(nullptr), res(res), format(format), usage(usage) {}
-			TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8, TextureMipFilter mipFilter = TextureMipFilter::Linear) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()), mipFilter(mipFilter) {}
+			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : parent(nullptr), res(res), format(format), usage(usage), mipFilter(TextureMipFilter::None) {}
+			explicit TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8, TextureMipFilter mipFilter = TextureMipFilter::Linear) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()), mipFilter(mipFilter) {}
+			explicit TextureInfo(TextureList *parent, Vec2u res, TextureLoadFormat format, TextureMipFilter mipFilter) : parent(parent), res(res), path(""), usage(TextureUsage::Image), loadFormat(format), format(format.getName()), mipFilter(mipFilter) {}
 
 		};
 

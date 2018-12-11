@@ -132,8 +132,7 @@ bool Texture::initData(bool isOwned) {
 
 Texture::~Texture() {
 	
-	if (info.dat.size() != 0)
-		free(info.dat.addr());
+	info.dat.deconstruct();
 
 	if(info.parent != nullptr)
 		info.parent->dealloc(this);
