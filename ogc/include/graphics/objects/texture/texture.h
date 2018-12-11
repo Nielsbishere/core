@@ -57,6 +57,8 @@ namespace oi {
 
 		);
 
+		UEnum(TextureMipFilter, None = 0, Nearest = 1, Linear = 2);
+
 		enum class TextureFormatStorage {
 			INT,
 			UINT,
@@ -86,6 +88,7 @@ namespace oi {
 			String path;
 			Buffer dat;
 			TextureLoadFormat loadFormat = TextureLoadFormat::Undefined;
+			TextureMipFilter mipFilter = TextureMipFilter::Linear;
 
 			u32 mipLevels = 1U;													//Automatic detection. No need to set it
 
@@ -95,7 +98,7 @@ namespace oi {
 			Vec2u changedStart = Vec2u(u32_MAX, u32_MAX), changedEnd = Vec2u();
 
 			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : parent(nullptr), res(res), format(format), usage(usage) {}
-			TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()) {}
+			TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8, TextureMipFilter mipFilter = TextureMipFilter::Linear) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()), mipFilter(mipFilter) {}
 
 		};
 
@@ -131,7 +134,7 @@ namespace oi {
 
 			//Write texture to disk
 			//NOTE: Only available with textures with data
-			void write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
+			bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
 			//Read texture from disk
 			//NOTE: Only available with textures with data

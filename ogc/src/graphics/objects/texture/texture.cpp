@@ -5,7 +5,9 @@
 #pragma warning(push)
 #pragma warning(disable: 4100)
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image.h"
+#include "stb/stb_image_write.h"
 #pragma warning(pop)
 
 using namespace oi::gc;
@@ -86,24 +88,53 @@ bool Texture::getPixels(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 }
 
-//void Texture::write(String path, Vec2u start, Vec2u length) {
-//
-//}
+bool Texture::write(String path, Vec2u start, Vec2u length) {
+
+	if (info.loadFormat == TextureLoadFormat::Undefined || info.dat.size() == 0)
+		return Log::throwError<Texture, 0xB>("Texture::write can only be applied to loaded textures");
+
+	if(path.getExtension() != "png")
+		return Log::throwError<Texture, 0xF>("Texture::write currently only accepts png files");
+
+	CopyBuffer pixels;
+
+	if(!getPixels(start, length, pixels))
+		return Log::throwError<Texture, 0xC>("Texture::write couldn't read pixels");
+
+	int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
+
+	int pngLength = 0;
+	u8 *png = stbi_write_png_to_mem(pixels.addr(), 0, (int)length.x, (int)length.y, perChannel, &pngLength);
+
+	if(png == nullptr)
+		return Log::throwError<Texture, 0xE>("Texture::write couldn't write texture to png");
+
+	bool written = FileManager::get()->write(path, Buffer::construct(png, (u32) pngLength));
+	if (!written)
+		Log::error(String("Texture::write couldn't write to output path ") + path);
+
+	free(png);
+	return written;
+}
 
 bool Texture::read(String path, Vec2u start, Vec2u length) {
 
-	if (info.dat.size() == 0)
+	if (info.loadFormat == TextureLoadFormat::Undefined || info.dat.size() == 0)
 		return Log::throwError<Texture, 0x9>("Texture::read can only be applied to loaded textures");
 
 	Buffer temp;
 
-	if (!wc::FileManager::get()->read(info.path, temp))
+	if (!FileManager::get()->read(path, temp))
 		return (Texture*) Log::error("Couldn't load texture from disk");
 
 	int width, height, comp;
 	int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
 
 	u8 *ptr = (u8*)stbi_load_from_memory((const stbi_uc*)temp.addr(), (int)temp.size(), &width, &height, &comp, perChannel);
+
+	if (ptr == nullptr)
+		return Log::throwError<Texture, 0xD>("Texture::read couldn't read data from file");
+
 	temp.deconstruct();
 
 	if (length.x == 0)

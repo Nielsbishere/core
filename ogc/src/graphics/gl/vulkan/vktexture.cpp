@@ -244,6 +244,12 @@ void Texture::push() {
 
 	CommandListExt &cmd = graphics.stagingCmdList->getExtension();
 
+	if (info.mipLevels == 0)
+		info.mipLevels = 1;
+
+	u32 mipLevels = info.mipLevels;
+	VkFilter filter = info.mipFilter != TextureMipFilter::Nearest ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+
 	//Transition to write
 
 	VkImageMemoryBarrier barrier;
@@ -254,7 +260,7 @@ void Texture::push() {
 	barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.image = ext.resource;
 	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	barrier.subresourceRange.levelCount = info.mipLevels == 0 ? 1 : info.mipLevels;
+	barrier.subresourceRange.levelCount = mipLevels;
 	barrier.subresourceRange.layerCount = 1;
 	barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -284,7 +290,7 @@ void Texture::push() {
 
 	u32 mipWidth = info.res.x, mipHeight = info.res.y;
 
-	for (u32 i = 1; i < info.mipLevels; ++i) {
+	for (u32 i = 1; i < mipLevels; ++i) {
 
 		//Transition mipmap source from DST_OPTIMAL to SRC_OPTIMAL
 
@@ -311,7 +317,7 @@ void Texture::push() {
 		blit.dstSubresource.mipLevel = i;
 		blit.dstSubresource.layerCount = 1U;
 
-		vkCmdBlitImage(cmd.cmds[0], ext.resource, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+		vkCmdBlitImage(cmd.cmds[0], ext.resource, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, ext.resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, filter);
 
 		if (mipWidth > 1) mipWidth >>= 1U;
 		if (mipHeight > 1) mipHeight >>= 1U;
@@ -331,7 +337,7 @@ void Texture::push() {
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.image = ext.resource;
 	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	barrier.subresourceRange.levelCount = info.mipLevels - 1U;
+	barrier.subresourceRange.levelCount = mipLevels - 1U;
 	barrier.subresourceRange.layerCount = 1;
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -340,11 +346,11 @@ void Texture::push() {
 	barrier0.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier0.subresourceRange.levelCount = 1U;
 	barrier0.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier0.subresourceRange.baseMipLevel = info.mipLevels - 1U;
+	barrier0.subresourceRange.baseMipLevel = mipLevels - 1U;
 
 	VkImageMemoryBarrier barriers[] = { barrier, barrier0 };
 
-	vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, info.mipLevels == 1 ? 1U : 2U, info.mipLevels == 1 ? barriers + 1 : barriers);
+	vkCmdPipelineBarrier(cmd.cmds[0], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, mipLevels == 1 ? 1U : 2U, info.mipLevels == 1 ? barriers + 1 : barriers);
 
 	//Clean up staging buffer and free memory
 

@@ -177,6 +177,11 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Texture::getPixels was out of bounds                         |                 | 0x8  | Texture region given was invalid                             |
 |                                                         | Texture::read can only be applied to loaded textures         |                 | 0x9  | Texture read is not available on                             |
 |                                                         | Texture::read couldn't copy pixels into texture              |                 | 0xA  | Texture data couldn't be copied into texture                 |
+|                                                         | Texture::write can only be applied to loaded textures        |                 | 0xB  | Texture should have data and have a correct load format      |
+|                                                         | Texture::write couldn't read pixels                          |                 | 0xC  | Read pixel data failed                                       |
+|                                                         | Texture::read couldn't read data from file                   |                 | 0xD  | The file data was an invalid format                          |
+|                                                         | Texture::write couldn't write texture to png                 |                 | 0xE  | The texture data was invalid or couldn't be written to png   |
+|                                                         | Texture::write currently only accepts png files              |                 | 0xF  |                                                              |
 
 ### Errors
 
@@ -297,6 +302,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | SPIR-V Bytecode invalid                                      | Bytecode had invalid length; opcodes should be 4-byte integers |
 |                                                         | Couldn't add stage resources to shader                       | One or multiple resources of the shader were invalid         |
 | graphics<br />objects<br />texture<br />texture.cpp     | Couldn't load texture from disk                              | File was invalid or couldn't be read                         |
+|                                                         | Texture::write couldn't write to output path {path}          | The output path given was invalid or couldn't be opened for write |
 
 ### Warnings
 

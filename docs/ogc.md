@@ -779,9 +779,10 @@ A Texture is an array of attributes. This can be loaded from a file, written to 
 #### Constructor (from file)
 
 ```cpp
-TextureList *parent,			//The holder of the Texture; can be nullptr
-String path,					//Load from file
-TextureFormat format = sRGB8	//What type of format to load; TextureLoadFormat
+TextureList *parent,				//The holder of the Texture; can be nullptr
+String path,						//Load from file
+TextureLoadFormat format = sRGB8	//What type of format to load; TextureLoadFormat
+TextureMipFilter mipFilter = Linear;//How the mips get generated (linear or nearest)
 ```
 
 ##### TextureLoadFormat OEnum
@@ -795,6 +796,14 @@ sR8 = 5,
 sRG8 = 6,
 sRGB8 = 7,
 sRGBA8 = 8
+```
+
+##### TextureMipFilter UEnum
+
+```cpp
+None = 0,
+Nearest = 1,
+Linear = 2
 ```
 
 #### Constructor (empty)
@@ -814,13 +823,15 @@ TextureUsage usage;
 
 String path;
 Buffer dat;							//Loaded data from disk (if applicable)
-TextureLoadFormat loadFormat 
-= TextureLoadFormat::Undefined;		//Loaded format
+TextureLoadFormat loadFormat = TextureLoadFormat::Undefined;
+TextureMipFilter mipFilter = TextureMipFilter::Linear
 
 u32 mipLevels = 1U;					//Automatically detected miplevels
 
 TextureList *parent;				//Owner responsible for the handle
 TextureHandle handle = u32_MAX;		//u32_MAX if parent nullptr; otherwise valid
+
+vec2u changedStart, changedEnd;		//If it's updated, this specifies the changed range
 ```
 
 ### TextureFormat OEnum
@@ -893,7 +904,17 @@ TextureHandle getHandle();
 void initParent(TextureList *parent);		//Set parent if it is null
 
 void flush();								//If the texture has been updated
+
+bool setPixels(Vec2u start, Vec2u length, Buffer values);
+bool getPixels(Vec2u start, Vec2u length, CopyBuffer &output);
+
+bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
+bool read(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 ```
+
+getPixels allows you to read the current texture data (even of render targets and depth buffers), which could be used for screenshots. setPixels allows you to update the current texture data (only of images); this is useful with textures that can't immediately push all user-data, like 3D volume textures and 2D tilemaps. Both functions allow you to specify a start and length of the data; the Buffer passed to setPixels has to be the exact same format as the texture (`length.y * length.x * stride`).
+
+read and write allow you to export/import textures from disk into the current texture, allowing you to 'take a screenshot' and load user data.
 
 ## Sampler
 
