@@ -132,8 +132,6 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | graphics<br />format<br />fbx                           | Couldn't cast to FbxProperty                                 | FbxProperty     | 0x0  | An FbxProperty doesn't match the requested type              |
 | graphics<br />graphics.h                                | Couldn't init GraphicsObject                                 | Graphics        | 0x0  | The GraphicsObject init failed                               |
 | graphics<br />graphics.cpp                              | Couldn't read shader                                         |                 | 0x1  | The shader data in the oiSH was unreadable or the file doesn't exist |
-|                                                         | Couldn't load texture from disk                              |                 | 0x2  | The texture path given had invalid data or the file doesn't exist |
-|                                                         | Couldn't load texture; Texture load format is invalid        |                 | 0x3  | The texture load format given was undefined                  |
 | graphics<br />format<br />oish.h                        | Invalid constructor used; SPV isn't text but binary          | ShaderSource    | 0x0  | Constructor with String is not allowed for SPIRV; only the CopyBuffer constructor |
 | graphics<br />objects<br />shader<br />shaderbuffer.h   | Couldn't cast ShaderBufferVar with format {format} ({name})  | ShaderBufferVar | 0x0  | A shader buffer variable doesn't match the format given      |
 | graphics<br />objects<br />shader<br />shaderbuffer.cpp | Couldn't find the path "{path}"                              |                 | 0x1  | The path provided to ShaderBuffer::get or ShaderBuffer::set was invalid |
@@ -182,6 +180,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Texture::read couldn't read data from file                   |                 | 0xD  | The file data was an invalid format                          |
 |                                                         | Texture::write couldn't write texture to png                 |                 | 0xE  | The texture data was invalid or couldn't be written to png   |
 |                                                         | Texture::write currently only accepts png files              |                 | 0xF  |                                                              |
+|                                                         | Couldn't load texture; Texture load format is invalid        |                 | 0x10 | The texture load format given was undefined                  |
+|                                                         | Couldn't load texture from disk                              |                 | 0x11 | The texture path given had invalid data or the file doesn't exist |
 
 ### Errors
 

@@ -146,6 +146,8 @@ namespace oi {
 			Texture(TextureInfo info);
 			bool init(bool isOwned = true);
 
+			bool initData(bool isOwned);
+
 			bool shouldStage();
 
 			//Push changes to GPU

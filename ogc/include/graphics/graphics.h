@@ -62,7 +62,6 @@ namespace oi {
 			void end();
 			void finish();
 
-			Texture *create(String name, TextureInfo info);
 			RenderTarget *create(String name, RenderTargetInfo info);
 			CommandList *create(String name, CommandListInfo info);
 			Shader *create(String name, ShaderInfo info);

@@ -1,9 +1,3 @@
-
-#pragma warning(push)
-#pragma warning(disable: 4100)
-#include "stb/stb_image.h"
-#pragma warning(pop)
-
 #include "file/filemanager.h"
 #include "graphics/graphics.h"
 #include "graphics/format/oish.h"
@@ -12,10 +6,6 @@
 #include "graphics/objects/shader/pipeline.h"
 #include "graphics/objects/shader/pipelinestate.h"
 #include "graphics/objects/render/rendertarget.h"
-
-#undef min
-#undef max
-
 using namespace oi::gc;
 using namespace oi;
 
@@ -134,39 +124,6 @@ Shader *Graphics::create(String name, ShaderInfo info) {
 ShaderStage *Graphics::create(String name, ShaderStageInfo info) {
 	info.code = Buffer(info.code.addr(), info.code.size());
 	return init<ShaderStage>(name, info);
-}
-
-
-Texture *Graphics::create(String name, TextureInfo info) {
-
-	if (info.path != "") {
-
-		//Set up a buffer to load
-
-		if (info.loadFormat == TextureLoadFormat::Undefined)
-			return (Texture*) Log::throwError<Graphics, 0x3>("Couldn't load texture; Texture load format is invalid");
-
-		if (!wc::FileManager::get()->read(info.path, info.dat))										//Temporarily store the file data into info.dat
-			return (Texture*)Log::throwError<Graphics, 0x2>("Couldn't load texture from disk");
-
-		int width, height, comp;
-
-		int perChannel = (int) (info.loadFormat.getValue() - 1) % 4 + 1;
-
-		//Convert data to image info
-
-		u8 *ptr = (u8*) stbi_load_from_memory((const stbi_uc*) info.dat.addr(), (int) info.dat.size(), &width, &height, &comp, perChannel);
-		info.dat.deconstruct();
-		info.dat = Buffer::construct(ptr, (u32) perChannel * width * height);
-
-		info.res = { (u32) width, (u32) height };
-
-		info.mipLevels = (u32) std::floor(std::log2(std::max(info.res.x, info.res.y))) + 1U;
-
-	} else 
-		info.mipLevels = 1U;
-
-	return init<Texture>(name, info);
 }
 
 RenderTarget *Graphics::create(String name, RenderTargetInfo info) {

@@ -10,6 +10,9 @@
 #include "stb/stb_image_write.h"
 #pragma warning(pop)
 
+#undef min
+#undef max
+
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
@@ -148,6 +151,37 @@ bool Texture::read(String path, Vec2u start, Vec2u length) {
 
 	free(ptr);
 	return true;
+}
+
+bool Texture::init(bool isOwned) {
+
+	if (info.path != "") {
+
+		//Set up a buffer to load
+
+		if (info.loadFormat == TextureLoadFormat::Undefined)
+			return Log::throwError<Texture, 0x10>("Couldn't load texture; Texture load format is invalid");
+
+		if (!wc::FileManager::get()->read(info.path, info.dat))										//Temporarily store the file data into info.dat
+			return Log::throwError<Texture, 0x11>("Couldn't load texture from disk");
+
+		int width, height, comp;
+
+		int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
+
+		//Convert data to image info
+
+		u8 *ptr = (u8*)stbi_load_from_memory((const stbi_uc*)info.dat.addr(), (int)info.dat.size(), &width, &height, &comp, perChannel);
+		info.dat.deconstruct();
+		info.dat = Buffer::construct(ptr, (u32)perChannel * width * height);
+
+		info.res = { (u32)width, (u32)height };
+		info.mipLevels = info.mipFilter == TextureMipFilter::None ? 1U : (u32)std::floor(std::log2(std::max(info.res.x, info.res.y))) + 1U;
+
+	} else
+		info.mipLevels = 1U;
+
+	return initData(isOwned);
 }
 
 bool Texture::shouldStage() {
