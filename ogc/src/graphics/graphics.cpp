@@ -1,11 +1,5 @@
-#include "file/filemanager.h"
 #include "graphics/graphics.h"
-#include "graphics/format/oish.h"
 #include "graphics/objects/texture/versionedtexture.h"
-#include "graphics/objects/shader/shader.h"
-#include "graphics/objects/shader/pipeline.h"
-#include "graphics/objects/shader/pipelinestate.h"
-#include "graphics/objects/render/rendertarget.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -93,87 +87,6 @@ void Graphics::printObjects() {
 	for (auto a : objects)
 		for (auto b : a.second)
 			Log::println(b->getName() + " (" + b->getTypeName() + ") refCount " + b->refCount);
-}
-
-Shader *Graphics::create(String name, ShaderInfo info) {
-
-	if (info.stages.size() == 0) {
-
-		SHFile file;
-
-		if (!oiSH::read(info.path, file))
-			return (Shader*)Log::throwError<Graphics, 0x1>("Couldn't read shader");
-
-		String path = info.path;
-
-		info = oiSH::convert(this, file);
-
-	} else {
-	
-		for (ShaderStageInfo &inf : info.stages) {
-			if (inf.type == ShaderStageType::Vertex_shader)
-				info.inputs = inf.input;
-			else if (inf.type == ShaderStageType::Fragment_shader)
-				info.outputs = inf.output;
-		}
-
-		if (info.stage.size() == 0) {
-
-			info.stage.resize(info.stages.size());
-
-			for (u32 i = 0, j = (u32)info.stages.size(); i < j; ++i)
-				info.stage[i] = create(info.path + " " + info.stages[i].type.getName(), info.stages[i]);
-
-		}
-	
-	}
-
-	Shader *s = init<Shader>(name, info);
-
-	for (ShaderStage *ss : s->getInfo().stage)
-		++ss->refCount;
-
-	return s;
-}
-
-ShaderStage *Graphics::create(String name, ShaderStageInfo info) {
-	info.code = Buffer(info.code.addr(), info.code.size());
-	return init<ShaderStage>(name, info);
-}
-
-RenderTarget *Graphics::create(String name, RenderTargetInfo info) {
-
-	info.depth = info.depthFormat == TextureFormat::Undefined ? nullptr : create(name + " depth", TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
-
-	std::vector<VersionedTexture*> &textures = info.textures;
-	std::vector<Texture*> vtextures(buffering);
-	textures.resize(info.targets);
-
-	for (u32 i = 0; i < info.targets; ++i) {
-
-		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], TextureUsage::Render_target);
-
-		for (u32 j = 0; j < buffering; ++j)
-			++(vtextures[j] = create(name + " - " + i + " #" + j, texInfo))->refCount;
-
-		++(textures[i] = create(name + " - " + i, VersionedTextureInfo(vtextures)))->refCount;
-
-	}
-
-	return init<RenderTarget>(name, info);
-}
-
-Pipeline *Graphics::create(String name, PipelineInfo info) {
-
-	++info.shader->refCount;
-
-	if(info.renderTarget != nullptr)
-		++info.renderTarget->refCount;
-
-	if (info.pipelineState != nullptr)
-		++info.pipelineState->refCount;
-
-	return init<Pipeline>(name, info);
 }
 
 bool Graphics::remove(GraphicsObject *go) {

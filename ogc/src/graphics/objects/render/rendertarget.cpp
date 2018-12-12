@@ -1,6 +1,7 @@
 #include "utils/log.h"
 #include "graphics/graphics.h"
 #include "graphics/objects/render/rendertarget.h"
+#include "graphics/objects/texture/versionedtexture.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -25,3 +26,29 @@ RenderTargetExt &RenderTarget::getExtension() { return ext; }
 const RenderTargetInfo RenderTarget::getInfo() { return info; }
 
 RenderTarget::RenderTarget(RenderTargetInfo info) : info(info){}
+
+bool RenderTarget::init(bool isOwned) {
+
+	if (!isOwned)
+		return initData(isOwned);
+
+	info.depth = info.depthFormat == TextureFormat::Undefined ? nullptr : g->create(getName() + " depth", TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
+
+	std::vector<VersionedTexture*> &textures = info.textures;
+	std::vector<Texture*> vtextures(g->getBuffering());
+	textures.resize(info.targets);
+
+	for (u32 i = 0; i < info.targets; ++i) {
+
+		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], TextureUsage::Render_target);
+
+		for (u32 j = 0; j < g->getBuffering(); ++j)
+			g->use(vtextures[j] = g->create(getName() + " - " + i + " #" + j, texInfo));
+
+		g->use(textures[i] = g->create(getName() + " - " + i, VersionedTextureInfo(vtextures)));
+
+	}
+
+	return initData(false);
+
+}

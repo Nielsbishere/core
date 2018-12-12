@@ -63,12 +63,6 @@ namespace oi {
 			void end();
 			void finish();
 
-			RenderTarget *create(String name, RenderTargetInfo info);
-			CommandList *create(String name, CommandListInfo info);
-			Shader *create(String name, ShaderInfo info);
-			ShaderStage *create(String name, ShaderStageInfo info);
-			Pipeline *create(String name, PipelineInfo info);
-
 			template<typename T2>
 			typename T2::ResourceType *create(String name, T2 info) {
 				return init<typename T2::ResourceType, T2>(name, info);

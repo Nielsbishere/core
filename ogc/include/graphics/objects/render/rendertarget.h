@@ -51,6 +51,8 @@ namespace oi {
 			RenderTarget(RenderTargetInfo info);
 			bool init(bool isOwned = true);
 
+			bool initData(bool isOwned);
+
 		private:
 
 			bool owned = true;

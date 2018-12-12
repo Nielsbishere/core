@@ -18,7 +18,7 @@ Pipeline::~Pipeline() {
 	vkDestroyPipeline(g->getExtension().device, ext, vkAllocator);
 }
 
-bool Pipeline::init() {
+bool Pipeline::initData() {
 
 	if (info.shader == nullptr)
 		return Log::throwError<VkPipeline, 0x0>("Pipeline requires a shader");

@@ -89,6 +89,8 @@ bool CommandList::init() {
 
 	GraphicsExt &glext = g->getExtension();
 
+	ext.pool = glext.pool;
+
 	VkCommandBufferAllocateInfo allocInfo;
 	memset(&allocInfo, 0, sizeof(allocInfo));
 

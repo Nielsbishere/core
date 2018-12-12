@@ -22,7 +22,7 @@ RenderTarget::~RenderTarget() {
 	g->destroy(info.depth);
 }
 
-bool RenderTarget::init(bool isOwned) {
+bool RenderTarget::initData(bool isOwned) {
 
 	owned = isOwned;
 

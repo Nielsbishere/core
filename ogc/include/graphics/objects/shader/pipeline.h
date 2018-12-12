@@ -47,6 +47,8 @@ namespace oi {
 			Pipeline(PipelineInfo info);
 			bool init();
 
+			bool initData();
+
 		private:
 
 			PipelineInfo info;

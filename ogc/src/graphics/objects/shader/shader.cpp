@@ -1,7 +1,9 @@
 #include "graphics/objects/shader/shader.h"
+#include "graphics/graphics.h"
 #include "graphics/objects/texture/sampler.h"
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/texture/texturelist.h"
+#include "graphics/format/oish.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -49,4 +51,43 @@ bool Shader::set(String path, GraphicsResource *res) {
 
 	it->second = res;
 	return true;
+}
+
+bool Shader::init() {
+
+	if (info.stages.size() == 0) {
+
+		SHFile file;
+
+		if (!oiSH::read(info.path, file))
+			return (Shader*)Log::throwError<Graphics, 0x1>("Couldn't read shader");
+
+		String path = info.path;
+
+		info = oiSH::convert(g, file);
+
+	} else {
+
+		for (ShaderStageInfo &inf : info.stages) {
+			if (inf.type == ShaderStageType::Vertex_shader)
+				info.inputs = inf.input;
+			else if (inf.type == ShaderStageType::Fragment_shader)
+				info.outputs = inf.output;
+		}
+
+		if (info.stage.size() == 0) {
+
+			info.stage.resize(info.stages.size());
+
+			for (u32 i = 0, j = (u32)info.stages.size(); i < j; ++i)
+				info.stage[i] = g->create(info.path + " " + info.stages[i].type.getName(), info.stages[i]);
+
+		}
+
+	}
+
+	for (ShaderStage *ss : info.stage)
+		g->use(ss);
+
+	return initData();
 }

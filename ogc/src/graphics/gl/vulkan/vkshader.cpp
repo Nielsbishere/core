@@ -220,7 +220,7 @@ void Shader::update() {
 
 }
 
-bool Shader::init() {
+bool Shader::initData() {
 
 	GraphicsExt &gext = g->getExtension();
 

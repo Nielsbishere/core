@@ -731,22 +731,6 @@ void Graphics::finish() {
 	ext.frames = 0;
 }
 
-CommandList *Graphics::create(String name, CommandListInfo info) {
-
-	CommandList *cl = new CommandList(info);
-
-	cl->getExtension().pool = ext.pool;
-	cl->g = this;
-	cl->setHash<CommandList>();
-	cl->name = name;
-
-	if (!cl->init())
-		Log::throwError<VkGraphics, 0x8>("Couldn't create command list");
-
-	add(cl);
-	return cl;
-}
-
 void Window::updateAspect() {
 
 	GraphicsInterface *irf = dynamic_cast<GraphicsInterface*>(wi);

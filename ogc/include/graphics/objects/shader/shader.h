@@ -59,6 +59,8 @@ namespace oi {
 			Shader(ShaderInfo info);
 			bool init();
 
+			bool initData();
+
 		private:
 
 			ShaderInfo info;
