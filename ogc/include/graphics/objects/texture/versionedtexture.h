@@ -34,6 +34,9 @@ namespace oi {
 
 			Texture *getVersion(u32 i);
 
+			bool getPixels(Vec2u start, Vec2u length, CopyBuffer &output);
+			bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
+
 			const VersionedTextureInfo getInfo();
 
 		protected:

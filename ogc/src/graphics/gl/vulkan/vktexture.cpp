@@ -14,11 +14,7 @@ bool Texture::initData(bool isOwned) {
 
 	VkGraphics &graphics = g->getExtension();
 
-	bool useStencil = false, useDepth = false;
-
 	if (info.format == TextureFormat::Depth) {
-
-		useDepth = true;
 
 		std::vector<VkTextureFormat> priorities = { VkTextureFormat::D32S8, VkTextureFormat::D24S8, VkTextureFormat::D32, VkTextureFormat::D16 };
 
@@ -35,8 +31,9 @@ bool Texture::initData(bool isOwned) {
 		if (info.format == TextureFormat::Depth)
 			return Log::throwError<VkTexture, 0x0>("Couldn't get depth texture; no optimal format available");
 
-		useStencil = info.format.getIndex() > TextureFormat::D32;
 	}
+
+	bool useDepth = Graphics::isDepthFormat(info.format), useStencil = Graphics::hasStencil(info.format);
 
 	VkTextureFormat format = info.format.getName();
 	VkFormat format_inter = (VkFormat) format.getValue().value;
@@ -49,8 +46,6 @@ bool Texture::initData(bool isOwned) {
 
 		VkImageCreateInfo imageInfo;
 		memset(&imageInfo, 0, sizeof(imageInfo));
-
-		useDepth = info.format.getValue() >= TextureFormat::D16 && info.format.getValue() <= TextureFormat::D32S8;
 
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -128,6 +123,135 @@ bool Texture::initData(bool isOwned) {
 
 	Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	return true;
+}
+
+bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
+
+	if (!owned || info.usage != TextureUsage::Image)
+		return Log::throwError<VkTexture, 0x19>("Couldn't get pixels; resource has to be owned by the application (render target or depth buffer isn't allowed)");
+
+	VkGraphics &graphics = g->getExtension();
+
+	//Create command list
+
+	VkCommandBufferAllocateInfo commandInfo;
+	memset(&commandInfo, 0, sizeof(commandInfo));
+
+	commandInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandInfo.commandPool = graphics.pool;
+	commandInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandInfo.commandBufferCount = 1;
+
+	VkCommandBuffer cmd;
+	vkCheck<0x10, VkTexture>(vkAllocateCommandBuffers(graphics.device, &commandInfo, &cmd), "Couldn't allocate intermediate command list");
+	vkName(graphics, cmd, VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " intermediate commands");
+
+	//Create submit fence
+
+	VkFenceCreateInfo fenceInfo;
+	memset(&fenceInfo, 0, sizeof(fenceInfo));
+
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+	VkFence fence;
+	vkCheck<0x11, VkTexture>(vkCreateFence(graphics.device, &fenceInfo, vkAllocator, &fence), "Couldn't allocate intermediate fence");
+
+	//Get image layout & aspect
+
+	VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	if(info.usage == TextureUsage::Render_depth)
+		aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | (Graphics::hasStencil(info.format) ? VK_IMAGE_ASPECT_STENCIL_BIT : 0);
+
+	//Create intermediate buffer
+
+	u32 stride = (info.loadFormat.getValue() - 1) % 4 + 1;
+
+	VkBufferCreateInfo bufferInfo;
+	memset(&bufferInfo, 0, sizeof(bufferInfo));
+
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = length.y * length.x * stride;
+	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	bufferInfo.queueFamilyIndexCount = 1;
+	bufferInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
+
+	VkBuffer dst;
+
+	vkCheck<0x14, VkTexture>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &dst), "Failed to create intermediate buffer");
+	vkName(graphics, dst, VK_OBJECT_TYPE_BUFFER, getName() + " intermediate");
+
+	//Allocate memory (TODO: by GraphicsExt)
+
+	VkDeviceMemory dstMemory;
+
+	VkMemoryAllocateInfo memoryInfo;
+	memset(&memoryInfo, 0, sizeof(memoryInfo));
+
+	VkMemoryRequirements requirements;
+	vkGetBufferMemoryRequirements(graphics.device, dst, &requirements);
+
+	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memoryInfo.allocationSize = requirements.size;
+
+	uint32_t memoryIndex = u32_MAX;
+
+	for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)
+		if ((requirements.memoryTypeBits & (1 << i)) && (graphics.pmemory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0) {
+			memoryIndex = i;
+			break;
+		}
+
+	if (memoryIndex == u32_MAX)
+		Log::throwError<VkTexture, 0x15>(String("Couldn't find a valid memory type for a VkBuffer: ") + getName() + " intermediate");
+
+	memoryInfo.memoryTypeIndex = memoryIndex;
+
+	vkCheck<0x16, VkTexture>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &dstMemory), "Couldn't allocate memory");
+	vkCheck<0x17, VkTexture>(vkBindBufferMemory(graphics.device, dst, dstMemory, 0), String("Couldn't bind memory to buffer ") + getName() + " intermediate");
+
+	//Copy to intermediate buffer
+
+	VkBufferImageCopy region;
+	memset(&region, 0, sizeof(region));
+
+	region.imageSubresource = { aspectMask, 0, 0, 1 };
+	region.imageOffset = { (i32)start.x, (i32)start.y, 0 };
+	region.imageExtent = { length.x, length.y, 1 };
+
+	vkCmdCopyImageToBuffer(cmd, ext.resource, layout, dst, 1, &region);
+
+	//Flush command list
+
+	VkSubmitInfo submitInfo;
+	memset(&submitInfo, 0, sizeof(submitInfo));
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmd;
+
+	vkCheck<0x12, VkTexture>(vkQueueSubmit(graphics.queue, 1, &submitInfo, fence), "Couldn't submit intermediate commands");
+	vkCheck<0x13, VkTexture>(vkWaitForFences(graphics.device, 1, &fence, true, u64_MAX), "Couldn't wait for intermediate fences");
+
+	//Destroy command buffer and fence
+
+	vkDestroyFence(graphics.device, fence, vkAllocator);
+	vkFreeCommandBuffers(graphics.device, graphics.pool, 1, &cmd);
+
+	//Copy buffer to copy buffer
+	void *memory;
+	vkCheck<0x18, VkTexture>(vkMapMemory(graphics.device, dstMemory, 0, VK_WHOLE_SIZE, 0, &memory), "Couldn't map intermediate memory");
+	output = CopyBuffer((u8*)memory, requirements.size);
+	vkUnmapMemory(graphics.device, dstMemory);
+
+	//Destroy buffer
+
+	vkFreeMemory(graphics.device, dstMemory, vkAllocator);
+	vkDestroyBuffer(graphics.device, dst, vkAllocator);
+
+	return true;
+
 }
 
 Texture::~Texture() {

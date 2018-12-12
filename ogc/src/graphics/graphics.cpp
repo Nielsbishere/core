@@ -13,6 +13,21 @@ bool Graphics::isDepthFormat(TextureFormat format) {
 	return format.getValue() >= TextureFormat::D16 && format.getValue() <= TextureFormat::Depth;
 }
 
+bool Graphics::hasStencil(TextureFormat format) {
+	return format.getName().contains("S");
+}
+
+TextureLoadFormat Graphics::getLoadFormat(TextureFormat format) {
+
+	if (format.getValue() >= TextureFormat::BGRA8)
+		return format.getName().replace("BGR", "RGB");
+
+	if (isDepthFormat(format))
+		return format.getName().replace("D", "R");
+
+	return format.getName();
+}
+
 u32 Graphics::getChannelSize(TextureFormat format) {
 
 	const TextureFormat_s &val = format.getValue();

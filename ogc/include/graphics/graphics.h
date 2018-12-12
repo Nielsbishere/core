@@ -32,6 +32,7 @@ namespace oi {
 		class GraphicsResource;
 
 		enum class TextureFormatStorage;
+		class TextureLoadFormat;
 
 		DEnum(TopologyMode, u32,
 			Points = 0, Line = 1, Line_strip = 2, Triangle = 3, Triangle_strip = 4, Triangle_fan = 5,
@@ -76,11 +77,13 @@ namespace oi {
 			GraphicsExt &getExtension();
 
 			static bool isDepthFormat(TextureFormat format);
+			static bool hasStencil(TextureFormat format);
 			static u32 getChannelSize(TextureFormat format);						//Returns size of one channel in bytes
 			static u32 getChannels(TextureFormat format);							//Returns number of channels
 			static u32 getFormatSize(TextureFormat format);							//Returns size of pixel
 			static TextureFormatStorage getFormatStorage(TextureFormat format);		//The type of a texture (float, uint, int)
 			static bool isCompatible(TextureFormat a, TextureFormat b);				//Textures are compatible if they match channels and format storage
+			static TextureLoadFormat getLoadFormat(TextureFormat format);
 
 			static Vec4d convertColor(Vec4d color, TextureFormat format);			//Convert color to the correct params
 

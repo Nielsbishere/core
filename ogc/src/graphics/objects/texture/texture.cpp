@@ -18,6 +18,15 @@ using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;
 
+TextureInfo::TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) :
+	parent(nullptr), res(res), format(format), usage(usage), mipFilter(TextureMipFilter::None), loadFormat(Graphics::getLoadFormat(format)) {}
+
+TextureInfo::TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat, TextureMipFilter mipFilter) : 
+	parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()), mipFilter(mipFilter) {}
+
+TextureInfo::TextureInfo(TextureList *parent, Vec2u res, TextureLoadFormat format, TextureMipFilter mipFilter) : 
+	parent(parent), res(res), path(""), usage(TextureUsage::Image), loadFormat(format), format(format.getName()), mipFilter(mipFilter) {}
+
 TextureFormat Texture::getFormat() { return info.format; }
 TextureUsage Texture::getUsage() { return info.usage; }
 Vec2u Texture::getSize() { return info.res; }
@@ -66,7 +75,7 @@ bool Texture::setPixels(Vec2u start, Vec2u length, Buffer values) {
 bool Texture::getPixels(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 	if (info.dat.size() == 0)
-		return Log::throwError<Texture, 0x7>("Texture::getPixels can only be applied to loaded textures");
+		return getPixelsGpu(start, length, output);
 
 	if (start.x + length.x >= info.res.x || start.y + length.y >= info.res.y)
 		return Log::throwError<Texture, 0x8>("Texture::getPixels was out of bounds");
@@ -94,7 +103,10 @@ bool Texture::getPixels(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 bool Texture::write(String path, Vec2u start, Vec2u length) {
 
-	if (info.loadFormat == TextureLoadFormat::Undefined || info.dat.size() == 0)
+	if (length == Vec2u())
+		length = info.res;
+
+	if (info.loadFormat == TextureLoadFormat::Undefined)
 		return Log::throwError<Texture, 0xB>("Texture::write can only be applied to loaded textures");
 
 	if(path.getExtension() != "png")
@@ -102,8 +114,10 @@ bool Texture::write(String path, Vec2u start, Vec2u length) {
 
 	CopyBuffer pixels;
 
-	if(!getPixels(start, length, pixels))
+	if(info.dat.size() != 0 && !getPixels(start, length, pixels))
 		return Log::throwError<Texture, 0xC>("Texture::write couldn't read pixels");
+	else if(!getPixelsGpu(start, length, pixels))
+		return Log::throwError<Texture, 0x7>("Texture::write couldn't read (GPU) pixels");
 
 	int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
 

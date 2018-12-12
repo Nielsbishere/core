@@ -81,9 +81,23 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't bind memory to texture {name} | | 0x6 | Memory allocated was a different type than what the texture expected |
 | | Couldn't create image view | | 0x7 | The image was invalid or the image view couldn't be created |
 | | Couldn't send texture data to GPU | | 0x8 | Couldn't create staging buffer |
-| | Couldn't allocate memory | | 0x9 | No space could be allocated for the staging buffer; GPU was out of memory or didn't have correct memory space |
-| | Couldn't bind memory to staging buffer {name} | | 0xA | see 0x6 |
+| | Couldn't allocate memory | | 0x9 | see 0x5 (initData) |
+| | Couldn't bind memory to staging buffer {name} | | 0xA | see 0x6 (initData) |
 | | Couldn't map texture staging buffer | | 0xB | The memory for the staging buffer couldn't be unmapped |
+| | Couldn't create intermediate image | | 0xC | see 0x4 (getPixelsGpu) |
+| | Couldn't find a valid memory type for a VkTexture: {name} intermediate | | 0xD | see 0x3 (getPixelsGpu) |
+| | Couldn't allocate memory | | 0xE | see 0x5 (getPixelsGpu) |
+| | Couldn't bind memory to texture {name} intermediate | | 0xF | see 0x6 (getPixelsGpu) |
+| | Couldn't allocate intermediate command list | | 0x10 | The command list created for copying the data to the CPU couldn't be created |
+| | Couldn't allocate intermediate fence | | 0x11 | The fence required for the copy operation couldn't be created |
+| | Couldn't submit intermediate commands | | 0x12 | The command buffer used for the copy operation couldn't be submitted |
+| | Couldn't wait for intermediate fences | | 0x13 | The fence required for the copy operation couldn't be waited for |
+| | Failed to create intermediate buffer | | 0x14 | Couldn't create the intermediate buffer |
+| | Couldn't find a valid memory type for a VkBuffer: {name} intermediate | | 0x15 | The intermediate buffer couldn't be created |
+| | Couldn't allocate memory | | 0x16 |  |
+| | Couldn't bind memory to buffer {name} intermediate | | 0x17 |  |
+| | Couldn't map intermediate memory | | 0x18 |  |
+| | Couldn't get pixels; resource has to be owned by the application (render target or depth buffer) | | 0x19 |  |
 | graphics<br />gl<br />vulkan<br />vkrendertarget.cpp | Couldn't create render pass for render target | VkRenderTarget | 0x0 | Render pass settings were invalid, internal errors have been logged |
 | | Couldn't create framebuffers for render target | | 0x1 | Framebuffer settings were invalid, internal errors have been logged |
 | graphics<br />gl<br />vulkan<br />vksampler.cpp | Couldn't create sampler object | VkSampler | 0x0 | Sampler settings were invalid |
@@ -171,7 +185,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Texture::setPixels invalid format                            |                 | 0x4  | The data size should match info.format of the texture        |
 |                                                         | Texture::setPixels can only be applied to loaded textures    |                 | 0x5  | Setting data into a render target, depth buffer or output texture is not supported |
 |                                                         | Texture::flush out of bounds                                 |                 | 0x6  | The pixels given are out of bounds                           |
-|                                                         | Texture::getPixels can only be applied to loaded textures    |                 | 0x7  | Texture get is only available to in-memory textures          |
+|                                                         | Texture::write couldn't read (GPU) pixels                    |                 | 0x7  | The texture data couldn't be retrieved from GPU              |
 |                                                         | Texture::getPixels was out of bounds                         |                 | 0x8  | Texture region given was invalid                             |
 |                                                         | Texture::read can only be applied to loaded textures         |                 | 0x9  | Texture read is not available on                             |
 |                                                         | Texture::read couldn't copy pixels into texture              |                 | 0xA  | Texture data couldn't be copied into texture                 |

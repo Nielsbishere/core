@@ -97,9 +97,9 @@ namespace oi {
 
 			Vec2u changedStart = Vec2u(u32_MAX, u32_MAX), changedEnd = Vec2u();
 
-			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage) : parent(nullptr), res(res), format(format), usage(usage), mipFilter(TextureMipFilter::None) {}
-			explicit TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8, TextureMipFilter mipFilter = TextureMipFilter::Linear) : parent(parent), path(path), usage(TextureUsage::Image), loadFormat(loadFormat), format(loadFormat.getName()), mipFilter(mipFilter) {}
-			explicit TextureInfo(TextureList *parent, Vec2u res, TextureLoadFormat format, TextureMipFilter mipFilter) : parent(parent), res(res), path(""), usage(TextureUsage::Image), loadFormat(format), format(format.getName()), mipFilter(mipFilter) {}
+			TextureInfo(Vec2u res, TextureFormat format, TextureUsage usage);
+			explicit TextureInfo(TextureList *parent, String path, TextureLoadFormat loadFormat = TextureLoadFormat::sRGBA8, TextureMipFilter mipFilter = TextureMipFilter::Linear);
+			explicit TextureInfo(TextureList *parent, Vec2u res, TextureLoadFormat format, TextureMipFilter mipFilter);
 
 		};
 
@@ -124,21 +124,10 @@ namespace oi {
 
 			void initParent(TextureList *parent);
 
-			//Set pixels of a texture with layout info.format
-			//NOTE: This recreates mips and texture data every time, so use it rarely if ever
-			//NOTE: Only available with textures with data
 			bool setPixels(Vec2u start, Vec2u length, Buffer values);
-
-			//Get pixels of a texture into buffer with layout info.format
-			//NOTE: Only available with textures with data
 			bool getPixels(Vec2u start, Vec2u length, CopyBuffer &output);
 
-			//Write texture to disk
-			//NOTE: Only available with textures with data
 			bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
-
-			//Read texture from disk
-			//NOTE: Only available with textures with data
 			bool read(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
 		protected:
@@ -146,6 +135,8 @@ namespace oi {
 			~Texture();
 			Texture(TextureInfo info);
 			bool init(bool isOwned = true);
+
+			bool getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output);
 
 			bool initData(bool isOwned);
 
