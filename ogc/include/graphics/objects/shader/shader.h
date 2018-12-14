@@ -29,6 +29,8 @@ namespace oi {
 			std::unordered_map<String, ShaderBufferInfo> buffer;
 			std::unordered_map<String, GraphicsResource*> shaderRegister;
 
+			Vec3u computeThreads;
+
 			ShaderInfo(String path) : path(path) {}
 			ShaderInfo() : ShaderInfo("") {}
 

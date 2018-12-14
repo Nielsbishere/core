@@ -85,9 +85,7 @@ namespace oi {
 		const oi::String getName() const { return getNames()[index]; }								\
 																									\
 		static std::vector<name##_s> getValues() {													\
-			auto vec = std::vector<name##_s>(length);												\
-			vec.assign(ilist, ilist + length - 1);													\
-			return vec;																				\
+			return std::vector<name##_s>(ilist, ilist + length - 1);								\
 		}																							\
 																									\
 		static const std::vector<oi::String> &getNames() {											\

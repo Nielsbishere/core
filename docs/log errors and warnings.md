@@ -310,12 +310,13 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Couldn't add stage to shader; the ShaderSourceType isn't supported yet | The implementation of the shader stage type doesn't exist    |
 |                                                         | Couldn't add stage to shader                                 | A shader stage couldn't be added because it was invalid      |
 | graphics<br />objects<br />render<br />rendertarget.cpp | Target out of range; please check getTargets()               | RenderTarget::getTarget out of bounds exception              |
-| graphics<br />helper<br />spvhelper.cpp                 | Invalid register access                                      | The shader register access couldn't be determined; which only occurs in invalid shaders |
-|                                                         | Couldn't add buffers                                         | One of the buffers' reflection data was invalid              |
+| graphics<br />helper<br />spvhelper.cpp                 | Couldn't add buffers                                         | One of the buffers' reflection data was invalid              |
 |                                                         | Couldn't add textures                                        | One of the textures' reflection data was invalid             |
 |                                                         | Couldn't add samplers                                        | One of the samplers' reflection data was invalid             |
 |                                                         | SPIR-V Bytecode invalid                                      | Bytecode had invalid length; opcodes should be 4-byte integers |
 |                                                         | Couldn't add stage resources to shader                       | One or multiple resources of the shader were invalid         |
+|                                                         | Compute shaders require attribute "layout(local_size_x = X, local_size_y = Y, local_size_z = Z) in;" | The compute shader didn't specify a local thread size        |
+|                                                         | Compute shaders require at least 1 thread in one axis; even in 1D or 2D operations | X, Y or Z in the local_size of a compute shader have to be non-zero uints |
 | graphics<br />objects<br />texture<br />texture.cpp     | Couldn't load texture from disk                              | File was invalid or couldn't be read                         |
 |                                                         | Texture::write couldn't write to output path {path}          | The output path given was invalid or couldn't be opened for write |
 

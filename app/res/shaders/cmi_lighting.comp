@@ -1,0 +1,96 @@
+#include <lighting.glsl>
+
+layout(binding = 0) uniform Global {
+
+	Vec3 ambient;
+	f32 time;
+
+	Vec2u resolution;
+	f32 power;
+	u32 view;
+	
+} global;
+
+layout(binding = 1) uniform Views_noalloc { ViewBuffer viewData; };
+
+layout(binding = 2) uniform sampler samp;
+layout(binding = 3) uniform texture2D tex[2];
+
+layout(std430, binding = 4) buffer DirectionalLights {
+
+	Light light[];
+
+} dir;
+
+layout(std430, binding = 5) buffer PointLights {
+
+	Light light[];
+
+} point;
+
+layout(std430, binding = 6) buffer SpotLights {
+
+	Light light[];
+
+} spot;
+
+layout(std430, binding = 7) buffer Materials {
+
+	MaterialStruct mat[];
+
+};
+
+layout(binding = 8, rgba16f) uniform image2D outputTexture;
+
+Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
+	return texture(sampler2D(tex[handle], s), uv);
+}
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main() {
+
+	Vec2u coords = gl_GlobalInvocationID.xy;
+
+	Vec2 globalUv = Vec2(coords) / global.resolution;
+
+	Camera cam = viewData.cameras[viewData.views[global.view].camera];
+
+	Vec3 pos = Vec3(0, 0, 0);		//TODO: Sample
+	Vec2 uv = Vec2(0, 0);			//TODO: Sample
+	Vec3 normal = Vec3(0, 0, 1);	//TODO: Sample
+	u32 material = 0;				//TODO: Sample
+
+    //Get camera position
+	Vec3 cpos = normalize(cam.position - pos);
+
+    //Calculate lighting result
+	LightResult lr = { Vec3(0, 0, 0), 0, Vec3(0, 0, 0), 0 };
+	
+	for(int i = 0; i < dir.light.length(); i++){
+		LightResult res = calculateDirectional(dir.light[i], pos, normal, cpos, global.power);
+		lr.diffuse += res.diffuse;
+		lr.specular += res.specular;
+	}
+	
+	for(int j = 0; j < point.light.length(); j++){
+		LightResult res = calculatePoint(point.light[j], pos, normal, cpos, global.power);
+		lr.diffuse += res.diffuse;
+		lr.specular += res.specular;
+	}
+	
+	for(int k = 0; k < spot.light.length(); k++){
+		LightResult res = calculateSpot(spot.light[k], pos, normal, cpos, global.power);
+		lr.diffuse += res.diffuse;
+		lr.specular += res.specular;
+	}
+	
+    //Get material
+	MaterialStruct m = mat[material];
+    
+    //Get diffuse texture
+	Vec3 dif = sample2D(samp, m.t_diffuse, uv).rgb;
+    
+    //Write lighting result to render target
+    imageStore(outputTexture, Vec2i(coords), Vec4(calculateLighting(lr, dif, global.ambient, m) * ((sin(global.time) * 0.5 + 0.5) * 0.5 + 0.5), 1));
+
+}

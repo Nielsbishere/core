@@ -5,32 +5,89 @@ This file format exists to wrap around shaders, giving the end-user more info th
 ```cpp
 struct SHHeader {
 
-	char header[4];   //oiSH
+	char header[4];		//oiSH
 
-	u8 version;       //SHHeaderVersion_s
-	u8 type;          //SHStageTypeFlag
+	u8 version;			//SHVersion
+	u16 type;			//SHStageTypeFlag
 	u8 shaders;
-	u8 padding = 0;
 
 	u8 buffers;
 	u8 registers;
 	u16 codeSize;
 
+	u16 groupX;
+	u16 groupY;
+
+	u16 groupZ;
+	u16 p1 = 0;
+
 };
 ```
-'version' is currently v0_1 (1), but it could change when newer shaders or shader concepts are released.  
-'type' is which shader stages are included; 0 (COMPUTE), 1 (VERTEX), 2 (FRAGMENT), 3 (GEOMETRY).  
+'version' is currently v0_1, but it could change when newer shaders or shader concepts are released.  
+'type' is which shader stages are included; See SHStageTypeFlag for more. 
 'shaders' the number of shaders included.  
 'buffers' how many buffers exist.  
 'registers' how many registers (buffers, textures & samplers) exist.  
 'codeSize' the size of the code block (all stages bytecode combined).
+'groupX', 'groupY' and 'groupZ' are the local_size constants for a compute shader.
+
+### Version
+
+```cpp
+enum class SHVersion : u8 {
+	Undefined = 0,
+	v0_1 = 1
+};
+```
+
+### Shader stage types
+
+```cpp
+enum class SHStageTypeFlag : u16 {
+
+	//Compute
+
+	COMPUTE = 0x0000,
+
+	//Graphics
+
+	VERTEX = 0x0001,
+	FRAGMENT = 0x0002,
+	GEOMETRY = 0x0004,
+	TESSELATION = 0x0008,
+	TESSELATION_EVALUATION = 0x0010,
+
+	//0x0020
+	//0x0040
+	//0x0080
+
+	//Extended graphics pipeline
+
+	MESH = 0x0100,
+	TASK = 0x0200,
+	
+	//Raytracing
+
+	RAY_GEN = 0x0400,
+	ANY_HIT = 0x0800,
+	CLOSEST_HIT = 0x1000,
+	MISS = 0x2000,
+	INTERSECTION = 0x4000,
+	CALLABLE = 0x8000
+
+};
+```
+
+The types beyond geometry shaders can't be compiled yet and are reserved for future implementation; if shader compilation to those types is created, the ogc implementation will follow.
+
 ## Stage
+
 Per shader stage, the following struct will be inserted.
 ```cpp
 struct SHStage {
 
 	u8 flags;
-	u8 type;			//ShaderStageType
+	u8 type;				//ShaderStageType: ceil(log2(SHStageTypeFlag + 1))
 	u16 nameIndex;
 
 	u16 codeIndex;
@@ -39,24 +96,25 @@ struct SHStage {
 	u8 inputs;
 	u8 outputs;
 	u16 padding = 0;
-      
+    
 };
 ```
 'flags' is reserved for future use.  
-'type' is the shader stage type that represents this (Undefined = 0, Vertex = 1, Fragment = 2, Geometry = 3, Compute = 4).
+'type' is the shader stage type that represents this (See section shader stage types).
 'nameIndex' is where the name is located in the oiSL file.  
 'codeIndex' is the offset in the code block.  
 'codeLength' is the length in the code block.  
 'inputs' is the number of shader inputs.  
 'outputs' is the number of shader outputs.  
 For each stage, there's a `std::vector<SHInput>` and `std::vector<SHOutput>`. These are the in/out variables per stage.
+
 ### Input vars
 ```cpp
 struct SHInput {
-	u16 nameIndex;
-	u8 padding = 0;
 	u8 type;			//TextureFormat
-};
+	u8 padding = 0;
+	u16 nameIndex;
+}
 ```
 Every input var is 4 bytes; an index to the name and the TextureFormat of the attribute.
 ### Output vars
@@ -73,20 +131,23 @@ A register is like a uniform; it stays the same for the execution. This can be a
 ```cpp
 struct SHRegister {
 
-	u8 typeAccess;        //ShaderRegisterType << 4 | SHRegisterAccess
-	u8 id;                //Register id
-	u16 representation;   //If type is buffer; represents which buffer to use.
+	u8 type;				//ShaderRegisterType
+	u8 id;					//Register id
+	u16 representation;		//Represents which buffer to use
 
 	u16 nameIndex;
-	u16 size;             //If the type is an array (array of textures for example)
-      
+	u16 size;				//If the type is an array (array of textures for example)
+
+	u16 access;				//ShaderStageType
+	u16 padding = 0;
 };
 ```
-'typeAccess' uses the upper 4 bits for the ShaderRegisterType (Undefined (0), UBO (1), SSBO(2), Texture(3), Image(4), Sampler(5)). And the lower 4 bits for the ShaderRegisterAccess Compute (1), Vertex (2), Geometry (4), Fragment (8).  
+'type' the ShaderRegisterType (Undefined (0), UBO (1), SSBO(2), Texture(3), Image(4), Sampler(5)).   
 'id' is the register id.  
 'representation' is the index of the embedded resource (+ 1). With buffer, this is the id of the buffer info it should use. However, this might be used with immutable samplers in the future.  
 'nameIndex' is where the name is stored in the oiSL file.  
 'size' is the size of the array (for example, texture array). But is mostly always 1.
+
 ### Layout
 The SHFile is laid out like following:
 ```cpp
@@ -128,4 +189,4 @@ ShaderSource spvShader = ShaderSource("spv",
 ```
 This can then be sent to 'convert' to get a SHFile or 'compile' to get a ShaderInfo struct.
 ## Using the standalone tool
-The oish_gen tool is made for allowing you to convert hlsl and glsl to oiSH automatically. Just put your shaders into a res/shaders directory and run the exe from the root, this will convert all shader files into a oiSH file.
+The oibaker tool is made for allowing you to convert hlsl and glsl to oiSH automatically. Just put your shaders into a res/shaders directory and run the exe from the app folder root, this will convert all shader files into a .oiSH file.

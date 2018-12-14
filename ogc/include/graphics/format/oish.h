@@ -11,36 +11,69 @@ namespace oi {
 		class Graphics;
 		struct ShaderInfo;
 
-		DEnum(SHHeaderVersion, u8,
-			Undefined = 0, v0_1 = 1
-		);
+		enum class SHVersion : u8 {
+			Undefined = 0,
+			v0_1 = 1
+		};
 
-		enum class SHStageTypeFlag {
-			COMPUTE = 0,
-			VERTEX = 1,
-			FRAGMENT = 2,
-			GEOMETRY = 4
+		enum class SHStageTypeFlag : u16 {
+
+			//Compute
+
+			COMPUTE = 0x0000,
+
+			//Graphics
+
+			VERTEX = 0x0001,
+			FRAGMENT = 0x0002,
+			GEOMETRY = 0x0004,
+			TESSELATION = 0x0008,
+			TESSELATION_EVALUATION = 0x0010,
+
+			//0x0020
+			//0x0040
+			//0x0080
+
+			//Extended graphics pipeline
+
+			MESH = 0x0100,
+			TASK = 0x0200,
+			
+			//Raytracing
+
+			RAY_GEN = 0x0400,
+			ANY_HIT = 0x0800,
+			CLOSEST_HIT = 0x1000,
+			MISS = 0x2000,
+			INTERSECTION = 0x4000,
+			CALLABLE = 0x8000
+
 		};
 
 		struct SHHeader {
 
 			char header[4];		//oiSH
 
-			u8 version;			//SHHeaderVersion_s
-			u8 type;			//SHStageTypeFlag
+			u8 version;			//SHVersion
+			u16 type;			//SHStageTypeFlag
 			u8 shaders;
-			u8 padding = 0;
 
 			u8 buffers;
 			u8 registers;
 			u16 codeSize;
+
+			u16 groupX;
+			u16 groupY;
+
+			u16 groupZ;
+			u16 p1 = 0;
 
 		};
 
 		struct SHStage {
 
 			u8 flags;
-			u8 type;			//ShaderStageType
+			u8 type;				//ShaderStageType: ceil(log2(SHStageTypeFlag + 1))
 			u16 nameIndex;
 
 			u16 codeIndex;
@@ -57,9 +90,9 @@ namespace oi {
 
 		struct SHInput {
 
-			u16 nameIndex;
-			u8 padding = 0;
 			u8 type;			//TextureFormat
+			u8 padding = 0;
+			u16 nameIndex;
 
 			SHInput(u8 type, u16 nameIndex) : type(type), nameIndex(nameIndex) {}
 			SHInput() : SHInput(0, 0) {}
@@ -76,24 +109,20 @@ namespace oi {
 
 		};
 
-		enum class SHRegisterAccess { 
-			COMPUTE = 1, VERTEX = 2, GEOMETRY = 4, FRAGMENT = 8 
-		};
-
 		struct SHRegister {
 
-			u8 typeAccess;			//ShaderRegisterType << 4 | SHRegisterAccess
+			u8 type;				//ShaderRegisterType
 			u8 id;					//Register id
 			u16 representation;		//If type is buffer or sampler; represents which buffer to use, same with sampler.
 
 			u16 nameIndex;
 			u16 size;				//If the type is an array (array of textures for example)
 
-			SHRegister(u8 type, u8 access, u8 id, u16 representation, u16 nameIndex, u16 size) : typeAccess(((type & 0xF) << 4) | (access & 0xF)), id(id), representation(representation), nameIndex(nameIndex), size(size) {}
-			SHRegister() : SHRegister(0, 0, 0, 0, 0, 0) {}
+			u16 access;				//ShaderStageType
+			u16 padding = 0;
 
-			u8 getType() { return typeAccess >> 4; }
-			u8 getAccess() { return typeAccess & 0xF; }
+			SHRegister(u8 type, u16 access, u8 id, u16 representation, u16 nameIndex, u16 size) : type(type), id(id), representation(representation), nameIndex(nameIndex), size(size), access(access) {}
+			SHRegister() : SHRegister(0, 0, 0, 0, 0, 0) {}
 
 		};
 

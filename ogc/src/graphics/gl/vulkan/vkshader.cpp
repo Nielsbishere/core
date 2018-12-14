@@ -259,7 +259,25 @@ bool Shader::initData() {
 		descInfo.descriptorCount = reg.size;
 		descInfo.descriptorType = ShaderRegisterTypeExt(info.registers[i].type.getName()).getValue();
 		descInfo.pImmutableSamplers = nullptr;
-		descInfo.stageFlags = ShaderRegisterAccessExt(info.registers[i].access.getName()).getValue();
+		descInfo.stageFlags = 0;
+
+		auto values = ShaderStageType::getValues();
+
+		for (ShaderStageType type : values) {
+
+			u32 typeId = type.getValue();
+			u32 typeFlag = typeId == 0 ? 0 : 1 << (typeId - 1);
+
+			if (((u32)reg.access & typeFlag) == 0 && reg.access != ShaderAccessType::COMPUTE)
+				continue;
+
+			VkShaderStageType shaderType(type.getName());
+			descInfo.stageFlags |= shaderType.getValue();
+
+			if (reg.access == ShaderAccessType::COMPUTE)
+				break;
+
+		}
 
 		orderedRegisters[ShaderRegisterTypeExt(reg.type.getName()).getValue()].add(reg);
 

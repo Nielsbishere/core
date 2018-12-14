@@ -9,10 +9,31 @@
 namespace oi {
 
 	namespace gc {
-		
+
 		class Graphics;
 
-		DEnum(ShaderStageType, u32, Undefined = 0, Vertex_shader = 1, Fragment_shader = 2, Geometry_shader = 3, Compute_shader = 4);
+		UEnum(ShaderStageType,
+
+			Compute_shader = 0,
+
+			Vertex_shader = 1,
+			Fragment_shader = 2,
+			Geometry_shader = 3,
+			Tesselation_shader = 4,
+			Tesselation_evaluation_shader = 5,
+
+			Mesh_shader = 9,
+			Task_shader = 10,
+
+			Ray_gen_shader = 11,
+			Any_hit_shader = 12,
+			Closest_hit_shader = 13,
+			Miss_shader = 14,
+			Intersection_shader = 15,
+			Callable_shader = 16,
+
+			Undefined = 17
+		);
 
 		class ShaderStage;
 
@@ -54,5 +75,4 @@ namespace oi {
 		};
 
 	}
-
 }

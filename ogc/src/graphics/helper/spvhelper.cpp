@@ -151,7 +151,7 @@ void SpvHelper::getBuffer(spirv_cross::Compiler &comp, Resource &r, ShaderRegist
 
 }
 
-bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess stageAccess) {
+bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderAccessType stageAccess) {
 
 	std::vector<Resource> buf = res.uniform_buffers;
 	buf.insert(buf.end(), res.storage_buffers.begin(), res.storage_buffers.end());
@@ -173,16 +173,8 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 		if (itt == info.registers.end()) {
 			info.registers.push_back(ShaderRegister(stype, stageAccess, name, 1, binding));
 			itt = info.registers.end() - 1;
-		} else {
-
-			ShaderRegisterAccess access = itt->access.getValue() | stageAccess.getValue();
-
-			if (access == ShaderRegisterAccess::Undefined)
-				return Log::error("Invalid register access");
-
-			itt->access = access;
-
-		}
+		} else 
+			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);
 		
 		auto it = info.buffer.find(name);
 
@@ -198,7 +190,7 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 
 }
 
-bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess stageAccess) {
+bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderAccessType stageAccess) {
 
 	for (Resource &r : res.separate_images) {
 
@@ -213,16 +205,8 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		if (itt == info.registers.end()) {
 			info.registers.push_back(ShaderRegister(ShaderRegisterType::Texture2D, stageAccess, r.name, size, binding));
 			itt = info.registers.end() - 1;
-		} else {
-
-			ShaderRegisterAccess access = itt->access.getValue() | stageAccess.getValue();
-
-			if (access == ShaderRegisterAccess::Undefined)
-				return Log::error("Invalid register access");
-
-			itt->access = access;
-
-		}
+		} else
+			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);
 
 	}
 
@@ -230,7 +214,7 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 
 }
 
-bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderRegisterAccess stageAccess) {
+bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderAccessType stageAccess) {
 
 	for (Resource &r : res.separate_samplers) {
 
@@ -241,16 +225,8 @@ bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		if (itt == info.registers.end()) {
 			info.registers.push_back(ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1, binding));
 			itt = info.registers.end() - 1;
-		} else {
-
-			ShaderRegisterAccess access = itt->access.getValue() | stageAccess.getValue();
-
-			if (access == ShaderRegisterAccess::Undefined)
-				return Log::error("Invalid register access");
-
-			itt->access = access;
-
-		}
+		} else
+			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);
 
 	}
 
@@ -261,7 +237,7 @@ bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &in
 bool SpvHelper::addResources(spirv_cross::Compiler &comp, ShaderStageType type, ShaderInfo &info, std::vector<ShaderInput> &input, std::vector<ShaderOutput> &output) {
 
 	ShaderResources res = comp.get_shader_resources();
-	ShaderRegisterAccess stageAccess = type.getName().replace("_shader", "");
+	ShaderAccessType stageAccess = type == ShaderStageType::Compute_shader ? ShaderAccessType::COMPUTE : (ShaderAccessType)(1 << (type.getValue() - 1));
 
 	//Get the inputs
 	SpvHelper::getStageInputs(comp, res, input);
@@ -298,6 +274,22 @@ bool SpvHelper::addStage(CopyBuffer b, ShaderStageType type, ShaderInfo &info, b
 	if (!SpvHelper::addResources(comp, type, info, input, output))
 		return Log::error("Couldn't add stage resources to shader");
 
+	if (type == ShaderStageType::Compute_shader) {
+
+		info.computeThreads = {
+			comp.get_execution_mode_argument(spv::ExecutionMode::ExecutionModeLocalSize, 0),
+			comp.get_execution_mode_argument(spv::ExecutionMode::ExecutionModeLocalSize, 1),
+			comp.get_execution_mode_argument(spv::ExecutionMode::ExecutionModeLocalSize, 2)
+		};
+
+		if(info.computeThreads == Vec3u(1))
+			return Log::error("Compute shaders require attribute \"layout(local_size_x = X, local_size_y = Y, local_size_z = Z) in;\"");
+
+		if(info.computeThreads.x == 0 || info.computeThreads.y == 0 || info.computeThreads.z == 0)
+			return Log::error("Compute shaders require at least 1 thread in one axis; even in 1D or 2D operations");
+
+	}
+
 	if (stripDebug) {
 		bytecode = std::vector<uint32_t>((u32*)b.addr(), (u32*)(b.addr() + b.size()));
 		spv::spirvbin_t{}.remap(bytecode, spv::spirvbin_base_t::STRIP);
@@ -305,6 +297,5 @@ bool SpvHelper::addStage(CopyBuffer b, ShaderStageType type, ShaderInfo &info, b
 	}
 
 	info.stages.push_back(ShaderStageInfo(b, type, input, output));
-
 	return true;
 }

@@ -43,7 +43,6 @@ namespace oi {
 		typedef VkNull DepthModeExt;
 		typedef VkGBufferType GBufferTypeExt;
 		typedef VkShaderRegisterType ShaderRegisterTypeExt;
-		typedef VkShaderRegisterAccess ShaderRegisterAccessExt;
 		typedef VkSamplerWrapping SamplerWrappingExt;
 		typedef VkSamplerMin SamplerMinExt;
 		typedef VkSamplerMag SamplerMagExt;

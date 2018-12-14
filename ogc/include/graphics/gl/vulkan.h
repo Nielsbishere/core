@@ -250,8 +250,6 @@ namespace oi {
 
 		);
 
-		DEnum(VkShaderStageType, VkShaderStageFlagBits, Vertex_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT, Fragment_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT, Geometry_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT, Compute_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT);
-
 		DEnum(VkTopologyMode, VkPrimitiveTopology, 
 			
 			Points = VK_PRIMITIVE_TOPOLOGY_POINT_LIST, Line = VK_PRIMITIVE_TOPOLOGY_LINE_LIST, Line_strip = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, Triangle = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, Triangle_strip = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, Triangle_fan = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
@@ -271,17 +269,25 @@ namespace oi {
 			Sampler = VK_DESCRIPTOR_TYPE_SAMPLER
 		);
 
-		DEnum(VkShaderRegisterAccess, VkShaderStageFlags,
+		DEnum(VkShaderStageType, VkShaderStageFlagBits,
 
-			Compute = VK_SHADER_STAGE_COMPUTE_BIT,
-			Vertex = VK_SHADER_STAGE_VERTEX_BIT,
-			Geometry = VK_SHADER_STAGE_GEOMETRY_BIT,
-			Fragment = VK_SHADER_STAGE_FRAGMENT_BIT,
+			Compute_shader = VK_SHADER_STAGE_COMPUTE_BIT,
 
-			Vertex_fragment = Vertex.value | Fragment.value,
-			Vertex_geometry_fragment = Vertex.value | Geometry.value | Fragment.value,
-			Vertex_geometry = Vertex.value | Geometry.value,
-			Geometry_fragment = Geometry.value | Fragment.value
+			Vertex_shader = VK_SHADER_STAGE_VERTEX_BIT,
+			Fragment_shader = VK_SHADER_STAGE_FRAGMENT_BIT,
+			Geometry_shader = VK_SHADER_STAGE_GEOMETRY_BIT,
+			Tesselation_shader = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+			Tesselation_evaLUATION_shader = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+
+			Mesh_shader = VK_SHADER_STAGE_MESH_BIT_NV,
+			Task_shader = VK_SHADER_STAGE_TASK_BIT_NV,
+
+			Ray_gen_shader = VK_SHADER_STAGE_RAYGEN_BIT_NVX,
+			Any_hit_shader = VK_SHADER_STAGE_ANY_HIT_BIT_NVX,
+			Closest_hit_shader = VK_SHADER_STAGE_CLOSEST_HIT_BIT_NVX,
+			Miss_shader = VK_SHADER_STAGE_MISS_BIT_NVX,
+			Intersection_shader = VK_SHADER_STAGE_INTERSECTION_BIT_NVX,
+			Callable_shader = VK_SHADER_STAGE_CALLABLE_BIT_NVX
 
 		);
 

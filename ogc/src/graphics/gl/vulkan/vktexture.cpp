@@ -242,7 +242,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	//Copy buffer to copy buffer
 	void *memory;
 	vkCheck<0x18, VkTexture>(vkMapMemory(graphics.device, dstMemory, 0, VK_WHOLE_SIZE, 0, &memory), "Couldn't map intermediate memory");
-	output = CopyBuffer((u8*)memory, requirements.size);
+	output = CopyBuffer((u8*)memory, (u32) requirements.size);
 	vkUnmapMemory(graphics.device, dstMemory);
 
 	//Destroy buffer
