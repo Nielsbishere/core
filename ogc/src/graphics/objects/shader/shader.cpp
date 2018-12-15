@@ -34,22 +34,27 @@ bool Shader::set(String path, GraphicsResource *res) {
 
 		bool isBuffer = (type == ShaderRegisterType::SSBO || type == ShaderRegisterType::UBO);
 
-		if (isBuffer && dynamic_cast<ShaderBuffer*>(res) == nullptr)
+		if (isBuffer && !res->isType<ShaderBuffer>())
 			return Log::throwError<Shader, 0x1>(String("Shader::set(") + path + ") failed; invalid type (type is ShaderBuffer, but type provided isn't)");
-		else if((type == ShaderRegisterType::Texture2D || type == ShaderRegisterType::Image) && dynamic_cast<Texture*>(res) == nullptr && dynamic_cast<VersionedTexture*>(res) == nullptr && dynamic_cast<TextureList*>(res) == nullptr)
-			return Log::throwError<Shader, 0x2>(String("Shader::set(") + path + ") failed; invalid type (type is Texture or VersionedTexture, but type provided isn't)");
-		else if(type == ShaderRegisterType::Sampler && dynamic_cast<Sampler*>(res) == nullptr)
+		else if(type == ShaderRegisterType::Texture2D && !res->isType<Texture>() && !res->isType<VersionedTexture>() && !res->isType<TextureList>())
+			return Log::throwError<Shader, 0x2>(String("Shader::set(") + path + ") failed; invalid type (type is Texture, TextureList or VersionedTexture, but type provided isn't)");
+		else if(type == ShaderRegisterType::Sampler && !res->isType<Sampler>())
 			return Log::throwError<Shader, 0x3>(String("Shader::set(") + path + ") failed; invalid type (type is Sampler, but type provided isn't)");
+		else if(type == ShaderRegisterType::Image && (!res->isType<VersionedTexture>() || ((VersionedTexture*)res)->getUsage() != TextureUsage::Compute_target))
+			return Log::throwError<Shader, 0x6>(String("Shader::set(") + path + ") failed; invalid type (type is Image, but type provided isn't)");
 
-		if (dynamic_cast<TextureList*>(res) != nullptr && ((TextureList*)res)->size() != sreg.size)
+		if (res->isType<TextureList>() && ((TextureList*)res)->size() != sreg.size)
 			return Log::throwError<Shader, 0x4>(String("Shader::set(") + path + ") failed; TextureList size incompatible with shader");
 
 	}
 
-	if (it->second != res)
+	if (it->second != res) {
 		changed = true;
+		g->destroyObject(it->second);
+	}
 
 	it->second = res;
+	g->use(it->second);
 	return true;
 }
 
@@ -60,7 +65,7 @@ bool Shader::init() {
 		SHFile file;
 
 		if (!oiSH::read(info.path, file))
-			return (Shader*)Log::throwError<Graphics, 0x1>("Couldn't read shader");
+			return (Shader*)Log::throwError<Shader, 0x5>("Couldn't read shader");
 
 		String path = info.path;
 
@@ -88,6 +93,9 @@ bool Shader::init() {
 
 	for (ShaderStage *ss : info.stage)
 		g->use(ss);
+
+	for (auto &gr : info.shaderRegister)
+		g->use(gr.second);
 
 	return initData();
 }

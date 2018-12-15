@@ -12,6 +12,8 @@ ShaderStageType SpvHelper::pickType(const String &s) {
 	if (s == ".frag" || s == "frag") return ShaderStageType::Fragment_shader;
 	if (s == ".geom" || s == "geom") return ShaderStageType::Geometry_shader;
 	if (s == ".comp" || s == "comp") return ShaderStageType::Compute_shader;
+	if (s == ".tesc" || s == "tesc") return ShaderStageType::Tesselation_shader;
+	if (s == ".tese" || s == "tese") return ShaderStageType::Tesselation_evaluation_shader;
 	return ShaderStageType::Undefined;
 }
 
@@ -192,10 +194,17 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 
 bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderAccessType stageAccess) {
 
-	for (Resource &r : res.separate_images) {
+	std::vector<Resource> images = res.separate_images;
+	images.insert(images.end(), res.storage_images.begin(), res.storage_images.end());
+
+	u32 textures = (u32) res.separate_images.size();
+
+	for (u32 i = 0, j = (u32)images.size(); i < j; ++i) {
+
+		Resource &r = images[i];
 
 		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
-		//bool isWriteable = comp.get_decoration(r.id, spv::DecorationNonWritable) == 0U;
+		bool isWriteable = i >= textures;
 
 		const std::vector<u32> &arr = comp.get_type(r.type_id).array;
 		u32 size = arr.size() == 0 ? 1 : arr[0];
@@ -203,7 +212,7 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
 		if (itt == info.registers.end()) {
-			info.registers.push_back(ShaderRegister(ShaderRegisterType::Texture2D, stageAccess, r.name, size, binding));
+			info.registers.push_back(ShaderRegister(!isWriteable ? ShaderRegisterType::Texture2D : ShaderRegisterType::Image, stageAccess, r.name, size, binding));
 			itt = info.registers.end() - 1;
 		} else
 			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);

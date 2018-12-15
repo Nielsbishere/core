@@ -70,7 +70,7 @@ void Shader::update() {
 
 			GraphicsResource *res = info.shaderRegister[reg.name];
 			
-			if (dynamic_cast<ShaderBuffer*>(res) != nullptr) {
+			if (res->isType<ShaderBuffer>()) {
 
 				if (reg.type != ShaderRegisterType::UBO && reg.type != ShaderRegisterType::SSBO)
 					Log::throwError<VkShader, 0x1>("A ShaderBuffer has been placed on a register not meant for buffers");
@@ -112,7 +112,7 @@ void Shader::update() {
 
 				++j;
 
-			} else if(dynamic_cast<Sampler*>(res) != nullptr){
+			} else if(res->isType<Sampler>()){
 
 				if (reg.type != ShaderRegisterType::Sampler)
 					Log::throwError<VkShader, 0x2>("A Sampler has been placed on a register not meant for samplers");
@@ -126,7 +126,7 @@ void Shader::update() {
 
 				++k;
 
-			} else if(dynamic_cast<Texture*>(res) != nullptr) {
+			} else if(res->isType<Texture>()) {
 
 				if (reg.type != ShaderRegisterType::Texture2D || reg.size != 1)
 					Log::throwError<VkShader, 0x3>("A Texture has been placed on a register not meant for textures or it has to use a TextureList");
@@ -141,7 +141,7 @@ void Shader::update() {
 
 				++l;
 
-			} else if (dynamic_cast<TextureList*>(res) != nullptr) {
+			} else if (res->isType<TextureList>()) {
 
 				if (reg.type != ShaderRegisterType::Texture2D || reg.size == 1)
 					Log::throwError<VkShader, 0x4>("A TextureList has been placed on a register not meant for textures or it has to use a Texture");
@@ -162,9 +162,9 @@ void Shader::update() {
 
 				l += reg.size;
 
-			} else if (dynamic_cast<VersionedTexture*>(res) != nullptr) {
+			} else if (res->isType<VersionedTexture>()) {
 
-				if (reg.type != ShaderRegisterType::Texture2D)
+				if (reg.type != ShaderRegisterType::Texture2D && reg.type != ShaderRegisterType::Image)
 					Log::throwError<VkShader, 0x6>("A VersionedTexture has been placed on a register not meant for textures");
 
 				VersionedTexture *tex = (VersionedTexture*)res;

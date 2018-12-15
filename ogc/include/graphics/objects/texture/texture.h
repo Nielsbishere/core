@@ -53,7 +53,8 @@ namespace oi {
 		DEnum(TextureUsage, u32, Undefined = 0,
 
 			Render_target = 1, Render_depth = 2,
-			Image = 3
+			Compute_target = 3,
+			Image = 4
 
 		);
 

@@ -13,6 +13,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | graphics<br />gl<br />vulkan<br />vkcommandlist.cpp     | CommandList::bind requires VBOs as first argument            | VkCommandList   | 0x0  | CommandList::bind requires the GBuffer*[] given to be of type GBufferType::VBO |
 |                                                         | CommandList::bind requires a valid IBO as second argument    |                 | 0x1  | CommandList::bind requires the GBuffer* given to be of type GBufferType::IBO |
 | | Couldn't allocate command list | | 0x2 | The command pool allocated doesn't have enough space for the command buffers |
+| |  | | 0x3 |  |
+| |  | | 0x4 |  |
 | graphics<br />gl<br />vulkan<br />vkgbuffer.cpp         | Couldn't find a valid memory type for a VkGBuffer: {name}    | VkGBuffer       | 0x0  | The buffer created can't find space on the GPU to allocate the buffer into |
 |                                                         | Couldn't find a valid memory type for a staging buffer for VkGBuffer: {name} |                 | 0x1  | The staging buffer required for updating the buffer's data couldn't be allocated (see 0x0) |
 | | Failed to create buffer | | 0x2 | vkCreateBuffer returned an error, more details are printed before this error message |
@@ -101,6 +103,9 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | graphics<br />gl<br />vulkan<br />vkrendertarget.cpp | Couldn't create render pass for render target | VkRenderTarget | 0x0 | Render pass settings were invalid, internal errors have been logged |
 | | Couldn't create framebuffers for render target | | 0x1 | Framebuffer settings were invalid, internal errors have been logged |
 | graphics<br />gl<br />vulkan<br />vksampler.cpp | Couldn't create sampler object | VkSampler | 0x0 | Sampler settings were invalid |
+| graphics<br />gl<br />vulkan<br />vkcomputelist.cpp | ComputeList::dispatch was out of bounds | VkComputeList | 0x0 | The dispatch groups given were too big and couldn't be handled by the GPU |
+|  | Compute shader is invalid; the total group count is out of bounds |  | 0x1 | The total of the local group size `(x * y * z)` was bigger than the maximum that can be handled by the GPU |
+|  | Compute shader is invalid; group size is out of bounds |  | 0x2 | The local size given in the compute shader couldn't be handled by the GPU |
 
 #### Errors
 
@@ -174,6 +179,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Shader::set({path}) failed; invalid type (type is Texture or VersionedTexture, but type provided isn't) |                 | 0x2  | Shader::set was expecting a Texture or VersionedTexture, but a different type was sent |
 |                                                         | Shader::set({path}) failed; invalid type (type is Sampler, but type provided isn't) |                 | 0x3  | Shader::set was expecting a Sampler but a different type was sent |
 |                                                         | Shader::set({path}) failed; TextureList size incompatible with shader |                 | 0x4  | Shader::set was expecting a TextureList but a different type, or one with a different size was passed |
+|                                                         | Couldn't read shader                                         |                 | 0x5  | The oiSH provided was invalid                                |
+|                                                         | Shader::set({path}) failed; invalid type (type is Image, but type provided isn't) |                 | 0x6  | Type was expected to be VersionedTexture, but wasn't or wasn't created with compute target usage |
 | graphics<br />objects<br />shader<br />shaderbuffer.cpp | Can't instantiate the buffer when it's already set           | ShaderBuffer    | 0x0  | ShaderBuffer::instantiate is only allowed when the buffer is not set yet |
 |                                                         | Can't set the buffer when it already contains data           |                 | 0x1  | ShaderBuffer::setBuffer is only allowed when the buffer is not set yet |
 |                                                         | GBuffer size should match ShaderBuffer size                  |                 | 0x2  | The buffer provided to ShaderBuffer::setBuffer didn't match the expected size |
@@ -319,6 +326,9 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Compute shaders require at least 1 thread in one axis; even in 1D or 2D operations | X, Y or Z in the local_size of a compute shader have to be non-zero uints |
 | graphics<br />objects<br />texture<br />texture.cpp     | Couldn't load texture from disk                              | File was invalid or couldn't be read                         |
 |                                                         | Texture::write couldn't write to output path {path}          | The output path given was invalid or couldn't be opened for write |
+| graphics<br />objects<br />shader<br />computelist.cpp  | Couldn't create ComputeList; it needs at least 1 object      | The contents of the compute list have to be at least 1       |
+|                                                         | Couldn't create ComputeList; compute pipeline was invalid    | The pipeline given to the ComputeList isn't a compute pipeline or is null |
+|                                                         | Couldn't reserve compute list                                | The buffer for the compute data couldn't be created          |
 
 ### Warnings
 

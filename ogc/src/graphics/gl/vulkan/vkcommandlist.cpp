@@ -5,6 +5,7 @@
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/drawlist.h"
+#include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/shader/pipeline.h"
 #include "graphics/objects/shader/shader.h"
 #include "graphics/objects/texture/versionedtexture.h"
@@ -33,6 +34,31 @@ void CommandList::begin() {
 }
 
 void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
+
+	if (target->isComputeTarget()) {
+
+		u32 frame = g->getExtension().current;
+
+		VkImageMemoryBarrier imageBarrier;
+		memset(&imageBarrier, 0, sizeof(imageBarrier));
+
+		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imageBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
+
+		for (u32 i = 0; i < target->getTargets(); ++i)
+			(barriers[i] = imageBarrier).image = target->getTarget(i)->getVersion(frame)->getExtension().resource;
+
+		vkCmdPipelineBarrier(ext_cmd, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, target->getTargets(), barriers);
+		delete[] barriers;
+
+		return;
+	}
 
 	RenderTargetExt &rtext = target->getExtension();
 
@@ -77,8 +103,29 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
 }
 
-void CommandList::end(RenderTarget*) {
-	vkCmdEndRenderPass(ext_cmd);
+void CommandList::end(RenderTarget *target) {
+	if (!target->isComputeTarget()) {
+		vkCmdEndRenderPass(ext_cmd);
+	} else {
+
+		VkImageMemoryBarrier imageBarrier;
+		memset(&imageBarrier, 0, sizeof(imageBarrier));
+
+		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imageBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
+
+		for (u32 i = 0; i < target->getTargets(); ++i)
+			(barriers[i] = imageBarrier).image = target->getTarget(i)->getVersion(g->getExtension().current)->getExtension().resource;
+
+		vkCmdPipelineBarrier(ext_cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, target->getTargets(), barriers);
+		delete[] barriers;
+	}
 }
 
 void CommandList::end() {
@@ -111,8 +158,13 @@ bool CommandList::init() {
 
 void CommandList::bind(Pipeline *pipeline) {
 
-	if(pipeline->getInfo().meshBuffer != boundMB)
-		bind(boundMB = pipeline->getInfo().meshBuffer);
+	if (pipeline->getInfo().meshBuffer != boundMB) {
+
+		boundMB = pipeline->getInfo().meshBuffer;
+
+		if (boundMB != nullptr)
+			bind(boundMB);
+	}
 
 	VkPipelineBindPoint pipelinePoint = pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
 	vkCmdBindPipeline(ext_cmd, pipelinePoint, pipeline->getExtension());
@@ -178,6 +230,10 @@ void CommandList::draw(DrawList *drawList) {
 
 	}
 
+}
+
+void CommandList::dispatch(ComputeList *computeList) {
+	vkCmdDispatchIndirect(ext_cmd, computeList->getDispatchBuffer()->getExtension().resource[g->getExtension().current], 0);
 }
 
 #endif

@@ -11,7 +11,8 @@ RenderTarget::~RenderTarget() {
 
 	VkGraphics &gext = g->getExtension();
 
-	vkDestroyRenderPass(gext.device, ext.renderPass, vkAllocator);
+	if(ext.renderPass != VK_NULL_HANDLE)
+		vkDestroyRenderPass(gext.device, ext.renderPass, vkAllocator);
 
 	for (VkFramebuffer fb : ext.frameBuffer)
 		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
@@ -22,111 +23,113 @@ RenderTarget::~RenderTarget() {
 	g->destroy(info.depth);
 }
 
-bool RenderTarget::initData(bool isOwned) {
-
-	owned = isOwned;
+bool RenderTarget::initData() {
 
 	u32 buffering = g->getBuffering();
 
 	VkGraphics &gext = g->getExtension();
 
-	//Set up attachments
+	if (!info.isComputeTarget) {
 
-	std::vector<VkAttachmentDescription> attachments(info.targets + 1);
+		//Set up attachments
 
-	for (u32 i = 0; i < (u32)attachments.size(); ++i) {
+		std::vector<VkAttachmentDescription> attachments(info.targets + 1);
 
-		VkAttachmentDescription &desc = attachments[i];
-		memset(&desc, 0, sizeof(desc));
+		for (u32 i = 0; i < (u32)attachments.size(); ++i) {
 
-		TextureFormat format = i == 0 ? getDepth()->getFormat() : getTarget(i - 1)->getFormat();
-		bool isDepth = i == 0;
+			VkAttachmentDescription &desc = attachments[i];
+			memset(&desc, 0, sizeof(desc));
 
-		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			TextureFormat format = i == 0 ? getDepth()->getFormat() : getTarget(i - 1)->getFormat();
+			bool isDepth = i == 0;
 
-		if (!(isDepth || getTarget(i - 1)->isOwned()))
-			finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;									//Back buffer
+			VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		desc.format = (VkFormat) VkTextureFormat(format.getName()).getValue().value;
-		desc.samples = VK_SAMPLE_COUNT_1_BIT;
-		desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		desc.finalLayout = finalLayout;
+			if (!(isDepth || getTarget(i - 1)->isOwned()))
+				finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;									//Back buffer
 
-		if (isDepth) {
-			desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-		}
-	}
+			desc.format = (VkFormat)VkTextureFormat(format.getName()).getValue().value;
+			desc.samples = VK_SAMPLE_COUNT_1_BIT;
+			desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			desc.finalLayout = finalLayout;
 
-	//Set up subpasses
-
-	VkSubpassDescription subpass;
-	memset(&subpass, 0, sizeof(subpass));
-
-	std::vector<VkAttachmentReference> colorAttachment(info.targets);
-	
-	for (u32 i = 0; i < info.targets; ++i)
-		colorAttachment[i] = { i + 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.pColorAttachments = colorAttachment.data();
-	subpass.colorAttachmentCount = (u32) colorAttachment.size();
-
-	Texture *depth;
-	VkAttachmentReference depthRef;
-
-	if ((depth = getDepth()) == nullptr) subpass.pDepthStencilAttachment = nullptr;
-	else {
-		depthRef = { 0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
-		subpass.pDepthStencilAttachment = &depthRef;
-	}
-
-	//Create render pass
-
-	VkRenderPassCreateInfo passInfo;
-	memset(&passInfo, 0, sizeof(passInfo));
-
-	passInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	passInfo.pAttachments = attachments.data();
-	passInfo.attachmentCount = (u32) attachments.size();
-	passInfo.pSubpasses = &subpass;
-	passInfo.subpassCount = 1;
-
-	vkCheck<0x0, VkRenderTarget>(vkCreateRenderPass(gext.device, &passInfo, vkAllocator, &ext.renderPass), "Couldn't create render pass for render target");
-	vkName(gext, ext.renderPass, VK_OBJECT_TYPE_RENDER_PASS, getName());
-
-	Log::println("Successfully created render pass for render target");
-
-	//Create framebuffers
-
-	ext.frameBuffer.resize(buffering);
-
-	for (u32 i = 0; i < buffering; ++i) {
-
-		VkFramebufferCreateInfo fbInfo;
-		memset(&fbInfo, 0, sizeof(fbInfo));
-
-		std::vector<VkImageView> fbAttachment(info.targets + 1);
-		fbAttachment[0] = getDepth()->getExtension().view;
-
-		for (u32 j = 0; j < info.targets; ++j) {
-			Texture *t = getTarget(j)->getVersion(i);
-			VkTexture &tex = t->getExtension();
-			fbAttachment[j + 1] = tex.view;
+			if (isDepth) {
+				desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+			}
 		}
 
-		fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		fbInfo.renderPass = ext.renderPass;
-		fbInfo.width = info.res.x;
-		fbInfo.height = info.res.y;
-		fbInfo.layers = 1;
-		fbInfo.attachmentCount = info.targets + 1;
-		fbInfo.pAttachments = fbAttachment.data();
+		//Set up subpasses
 
-		vkCheck<0x1, VkRenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
-		vkName(gext, ext.frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
+		VkSubpassDescription subpass;
+		memset(&subpass, 0, sizeof(subpass));
+
+		std::vector<VkAttachmentReference> colorAttachment(info.targets);
+
+		for (u32 i = 0; i < info.targets; ++i)
+			colorAttachment[i] = { i + 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.pColorAttachments = colorAttachment.data();
+		subpass.colorAttachmentCount = (u32)colorAttachment.size();
+
+		Texture *depth;
+		VkAttachmentReference depthRef;
+
+		if ((depth = getDepth()) == nullptr) subpass.pDepthStencilAttachment = nullptr;
+		else {
+			depthRef = { 0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+			subpass.pDepthStencilAttachment = &depthRef;
+		}
+
+		//Create render pass
+
+		VkRenderPassCreateInfo passInfo;
+		memset(&passInfo, 0, sizeof(passInfo));
+
+		passInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		passInfo.pAttachments = attachments.data();
+		passInfo.attachmentCount = (u32)attachments.size();
+		passInfo.pSubpasses = &subpass;
+		passInfo.subpassCount = 1;
+
+		vkCheck<0x0, VkRenderTarget>(vkCreateRenderPass(gext.device, &passInfo, vkAllocator, &ext.renderPass), "Couldn't create render pass for render target");
+		vkName(gext, ext.renderPass, VK_OBJECT_TYPE_RENDER_PASS, getName());
+
+		Log::println("Successfully created render pass for render target");
+
+		//Create framebuffers
+
+		ext.frameBuffer.resize(buffering);
+
+		for (u32 i = 0; i < buffering; ++i) {
+
+			VkFramebufferCreateInfo fbInfo;
+			memset(&fbInfo, 0, sizeof(fbInfo));
+
+			std::vector<VkImageView> fbAttachment(info.targets + 1);
+			fbAttachment[0] = getDepth()->getExtension().view;
+
+			for (u32 j = 0; j < info.targets; ++j) {
+				Texture *t = getTarget(j)->getVersion(i);
+				VkTexture &tex = t->getExtension();
+				fbAttachment[j + 1] = tex.view;
+			}
+
+			fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			fbInfo.renderPass = ext.renderPass;
+			fbInfo.width = info.res.x;
+			fbInfo.height = info.res.y;
+			fbInfo.layers = 1;
+			fbInfo.attachmentCount = info.targets + 1;
+			fbInfo.pAttachments = fbAttachment.data();
+
+			vkCheck<0x1, VkRenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
+			vkName(gext, ext.frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
+
+		}
 
 	}
 

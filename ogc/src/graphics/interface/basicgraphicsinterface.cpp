@@ -14,7 +14,8 @@ BasicGraphicsInterface::~BasicGraphicsInterface() {
 	g.destroy(cameraFrustum);
 	g.destroy(camera);
 	g.destroy(views);
-	g.destroy(sampler);
+	g.destroy(linearSampler);
+	g.destroy(nearestSampler);
 	g.destroy(pipelineState);
 	g.destroy(cmdList);
 }
@@ -22,34 +23,45 @@ BasicGraphicsInterface::~BasicGraphicsInterface() {
 void BasicGraphicsInterface::initScene() {
 
 	//Command list
+
 	cmdList = g.create("Default command list", CommandListInfo());
 	g.use(cmdList);
 
 	//Setup our pipeline state (with default settings)
+
 	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
 	g.use(pipelineState);
 
-	//Allocate sampler
-	sampler = g.create("Default sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
-	g.use(sampler);
+	//Allocate samplers
+
+	linearSampler = g.create("Linear sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
+	g.use(linearSampler);
+
+	nearestSampler = g.create("Nearest sampler", SamplerInfo(SamplerMin::Nearest, SamplerMag::Nearest, SamplerWrapping::Clamp_border));
+	g.use(nearestSampler);
 
 	//Setup our view buffer
+
 	views = g.create("Default view buffer", ViewBufferInfo());
 	g.use(views);
 
 	//Setup our camera
+
 	camera = g.create("Default camera", CameraInfo(views, Vec3(3), Vec4(0, 0, 0, 1)));
 	g.use(camera);
 
 	//Setup our viewport
+
 	cameraFrustum = g.create("Default viewport", CameraFrustumInfo(views, Vec2u(1), 1, 40, 0.1f, 100));
 	g.use(cameraFrustum);
 
 	//Setup our view
+
 	view = g.create("Default view", ViewInfo(views, camera, cameraFrustum));
 	g.use(view);
 
 	//Setup our mesh manager
+
 	meshManager = g.create("Default mesh manager", MeshManagerInfo(400'000, 500'000));
 	g.use(meshManager);
 

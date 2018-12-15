@@ -13,6 +13,7 @@ namespace oi {
 		class MeshBuffer;
 		class Mesh;
 		class DrawList;
+		class ComputeList;
 		class RenderTarget;
 		class Material;
 		class MaterialList;
@@ -88,12 +89,13 @@ protected:
 
 private:
 	
-	oi::gc::Shader *shader, *shader0;
-	oi::gc::Pipeline *pipeline, *pipeline0;
+	oi::gc::Shader *shader, *shader0, *cmiLighting;
+	oi::gc::Pipeline *pipeline, *pipeline0, *cmiLightingPipeline;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
 	std::vector<oi::gc::Mesh*> meshes;
 	oi::gc::DrawList *drawList, *drawList0;
-	oi::gc::RenderTarget *renderTarget;
+	oi::gc::ComputeList *cmiLightingDispatch;
+	oi::gc::RenderTarget *renderTarget, *cmiLightingTarget;
 	oi::gc::MaterialList *materialList;
 	oi::gc::TextureList *textureList;
 	oi::gc::Material *water, *rock;

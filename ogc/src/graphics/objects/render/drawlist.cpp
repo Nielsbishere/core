@@ -7,7 +7,7 @@ using namespace oi;
 
 const DrawListInfo DrawList::getInfo() { return info; }
 u32 DrawList::getBatches() { return (u32) info.objects.size(); }
-u32 DrawList::getMaxBatches() { return (u32) info.maxBatches; }
+u32 DrawList::getMaxBatches() { return info.maxBatches; }
 GBuffer *DrawList::getBuffer() { return info.drawBuffer; }
 
 void DrawList::flush() {

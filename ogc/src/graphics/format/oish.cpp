@@ -244,7 +244,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 		ShaderRegister &reg = registers[i] = ShaderRegister(r.type, (ShaderAccessType) r.access, file.stringlist.names[r.nameIndex], (u32) r.size, r.id);
 
-		if (reg.type.getValue() == 0 || (u32) reg.access == 0)
+		if (reg.type.getValue() == 0)
 			Log::throwError<oiSH, 0x0>(String("ShaderRegister ") + reg.name + " is invalid");
 	}
 

@@ -91,6 +91,6 @@ void main() {
 	Vec3 dif = sample2D(samp, m.t_diffuse, uv).rgb;
     
     //Write lighting result to render target
-    imageStore(outputTexture, Vec2i(coords), Vec4(calculateLighting(lr, dif, global.ambient, m) * ((sin(global.time) * 0.5 + 0.5) * 0.5 + 0.5), 1));
+    imageStore(outputTexture, Vec2i(coords), Vec4(calculateLighting(lr, dif, global.ambient, m) * ((sin(global.time) * 0.5 + 0.5) * 0.5 + 0.5), 1) + Vec4(globalUv, 0, 1));
 
 }

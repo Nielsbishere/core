@@ -143,5 +143,6 @@ bool Graphics::destroyObject(GraphicsObject *go) {
 }
 
 void Graphics::use(GraphicsObject *go) {
-	if (contains(go)) ++go->refCount;
+	if (go != nullptr && contains(go)) 
+		++go->refCount;
 }

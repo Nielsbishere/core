@@ -14,6 +14,7 @@
 #include "graphics/objects/model/material.h"
 #include "graphics/objects/model/meshmanager.h"
 #include "graphics/objects/render/drawlist.h"
+#include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/view/viewbuffer.h"
@@ -186,13 +187,16 @@ void MainInterface::initScene() {
 	Log::println("Started main interface!");
 
 	//Setup our input manager
+
 	getInputManager().load("res/settings/input.json");
 
 	//Setup our shader (forward phong shading)
+
 	shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
 	g.use(shader);
 
 	//Setup our post process shader (tone mapping & gamma correction)
+
 	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.oiSH"));
 	g.use(shader0);
 
@@ -200,6 +204,7 @@ void MainInterface::initScene() {
 	//Second: Allocate sword into existing MeshBuffer
 	//Third: Allocate sphere into existing MeshBuffer
 	//Last: Allocate quad into new MeshBuffer (same size as mesh)
+
 	std::vector<MeshAllocationInfo> info = {
 		{ "res/models/anvil.oiRM", MeshAllocationHint::ALLOCATE_DEFAULT },
 		{ "res/models/sword.oiRM" },
@@ -208,17 +213,21 @@ void MainInterface::initScene() {
 	};
 
 	//Load our models
+
 	meshes = meshManager->loadAll(info);
 	meshes.push_back(nullptr);				//Reserve planet
 
 	//Get our mesh buffers
+
 	meshBuffer = meshes[0]->getBuffer();
 	meshBuffer0 = meshes[3]->getBuffer();
 
 	//Read in planet model
+
 	refreshPlanetMesh(true);
 
 	//Set up our draw list
+
 	drawList = g.create("Draw list (main geometry)", DrawListInfo(meshBuffer, 256, false));
 	g.use(drawList);
 
@@ -226,19 +235,23 @@ void MainInterface::initScene() {
 	g.use(drawList0);
 
 	//Setup our post processing pass to draw a quad
+
 	drawList0->draw(meshes[3], 1);
 	drawList0->flush();
 
 	//Setup geometry draw calls
+
 	drawList->draw(meshes[2], 1);		//Reserve objects[0] for the sphere/water
 	drawList->draw(meshes[4], 1);		//Reserve objects[1] for the planet
 	drawList->flush();
 
 	//Allocate our textures into a TextureList
+
 	textureList = g.create("Textures", TextureListInfo(2));
 	shader->set("tex", textureList);
 
 	//Allocate textures
+
 	trock = g.create("rock", TextureInfo(textureList, "res/textures/rock_dif.png"));
 	g.use(trock);
 
@@ -246,10 +259,12 @@ void MainInterface::initScene() {
 	g.use(twater);
 
 	//Create the material list
+
 	materialList = g.create("Materials", MaterialListInfo(textureList, 2));
 	g.use(materialList);
 
 	//Setup our materials
+
 	rock = g.create("Rock material", MaterialInfo(materialList));
 	rock->setDiffuse(trock);
 
@@ -257,29 +272,54 @@ void MainInterface::initScene() {
 	water->setDiffuse(twater);
 
 	//Set our materials in our objects array
+
 	objects[0].diffuse = water->getHandle();	//Water
 	objects[1].diffuse = rock->getHandle();		//Planet
 
 	//Set our shader samplers
-	shader->set("samp", sampler);
-	shader0->set("samp", sampler);
+
+	shader->set("samp", linearSampler);
+	shader0->set("samp", linearSampler);
 
 	//Set our view data to our view buffer
 	//Set our material data to material buffer
 	//Set our object data to our object buffer
+
 	shader->get<ShaderBuffer>("Views")->setBuffer(0, views->getBuffer());
 	shader->get<ShaderBuffer>("Materials")->setBuffer(materialList->getSize(), materialList->getBuffer());
 	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
 
 	//Setup lighting; 1 point, directional and spot light
-	shader->get<ShaderBuffer>("PointLights")->instantiate(1);
-	shader->get<ShaderBuffer>("SpotLights")->instantiate(1);
+
+	ShaderBuffer *pointLights = shader->get<ShaderBuffer>("PointLights")->instantiate(1);
+	ShaderBuffer *spotLights = shader->get<ShaderBuffer>("SpotLights")->instantiate(1);
 	ShaderBuffer *directionalLights = shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
 
 	//Pass directional data (no point/spot lights)
+
 	directionalLights->set("light/dir", Vec3(-1, 0, -1));
 	directionalLights->set("light/intensity", 16.f);
 	directionalLights->set("light/col", Vec3(1.f));
+
+	//Clustered material indirect lighting
+
+	cmiLighting = g.create("CMI lighting", ShaderInfo("res/shaders/cmi_lighting.oiSH"));
+	g.use(cmiLighting);
+
+	cmiLighting->set("tex", textureList);
+	cmiLighting->set("samp", linearSampler);
+
+	cmiLighting->set("DirectionalLights", directionalLights);
+	cmiLighting->set("PointLights", pointLights);
+	cmiLighting->set("SpotLights", spotLights);
+	cmiLighting->set("Views", shader->get<ShaderBuffer>("Views"));
+	cmiLighting->set("Materials", shader->get<ShaderBuffer>("Materials"));
+
+	cmiLightingPipeline = g.create("CMI lighting pipeline", PipelineInfo(cmiLighting));
+	g.use(cmiLightingPipeline);
+
+	cmiLightingDispatch = g.create("CMI lighting compute list", ComputeListInfo(cmiLightingPipeline, 1));
+	g.use(cmiLightingDispatch);
 
 }
 
@@ -295,6 +335,12 @@ void MainInterface::renderScene(){
 		cmdList->bind(pipeline);
 		cmdList->draw(drawList);
 		cmdList->end(renderTarget);
+
+	//Clustered Material Indirect Rendering
+	cmdList->begin(cmiLightingTarget);
+	cmdList->bind(cmiLightingPipeline);
+	cmdList->dispatch(cmiLightingDispatch);
+	cmdList->end(cmiLightingTarget);
 
 	//Render to backbuffer
 
@@ -314,9 +360,13 @@ void MainInterface::initSceneSurface(Vec2u res){
 
 	if (pipeline != nullptr) {
 		g.destroy(renderTarget);
+		g.destroy(cmiLightingTarget);
 		g.destroy(pipeline);
 		g.destroy(pipeline0);
 	}
+
+	if (res == Vec2u())
+		return;
 
 	//Recreate render targets and pipelines
 
@@ -334,6 +384,18 @@ void MainInterface::initSceneSurface(Vec2u res){
 	//renderTarget -> Post processing pipeline -> back buffer
 	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0));
 	g.use(pipeline0);
+
+	//Resize compute parameters
+	Vec2u targetRes = cmiLightingDispatch->dispatchThreads(res);
+	cmiLightingDispatch->flush();
+
+	cmiLightingTarget = g.create("CMI lighting target", RenderTargetInfo(targetRes, { TextureFormat::RGBA16f }));
+	g.use(cmiLightingTarget);
+
+	cmiLighting->set("outputTexture", cmiLightingTarget->getTarget(0));
+
+	ShaderBuffer *global = cmiLighting->get<ShaderBuffer>("Global");
+	global->set("resolution", res);
 
 }
 	
@@ -362,14 +424,9 @@ void MainInterface::update(f32 dt) {
 	nextMouse.y = getParent()->getInputHandler().getMouse()->getAxis(MouseAxis::Y);
 
 	if (getParent()->getInputHandler().getMouse()->isDown(MouseButton::Left)) {
-
 		Vec2 delta = nextMouse - prevMouse;
-
 		exposure += delta.x / 3;
 		gamma += delta.y / 3;
-
-		Log::println(String(gamma) + ", " + exposure);
-
 	}
 
 	prevMouse = nextMouse;
@@ -396,6 +453,13 @@ void MainInterface::update(f32 dt) {
 	perExecution->set("power", 1.f);
 	perExecution->set("view", view->getHandle());
 
+	//Update global shader buffer
+	ShaderBuffer *global = cmiLighting->get<ShaderBuffer>("Global");
+	global->set("ambient", Vec3(1));
+	global->set("time", (f32)getRuntime());
+	global->set("power", 1.f);
+	global->set("view", view->getHandle());
+
 	//Setup post processing settings
 	ShaderBuffer *postProcessing = shader0->get<ShaderBuffer>("PostProcessingSettings");
 
@@ -412,11 +476,14 @@ MainInterface::~MainInterface(){
 	g.destroy(twater);
 	g.destroy(textureList);
 	g.destroy(materialList);
+	g.destroy(cmiLightingDispatch);
 	g.destroy(drawList);
 	g.destroy(drawList0);
 	g.destroy(renderTarget);
 	g.destroy(pipeline);
 	g.destroy(pipeline0);
+	g.destroy(cmiLightingPipeline);
 	g.destroy(shader);
 	g.destroy(shader0);
+	g.destroy(cmiLighting);
 }

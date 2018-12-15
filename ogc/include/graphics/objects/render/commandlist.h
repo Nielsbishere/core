@@ -15,6 +15,7 @@ namespace oi {
 		class MeshBuffer;
 		class Mesh;
 		class DrawList;
+		class ComputeList;
 
 		struct CommandListInfo { 
 
@@ -50,6 +51,8 @@ namespace oi {
 
 			void bind(Pipeline *pipeline);
 			void draw(DrawList *drawList);
+
+			void dispatch(ComputeList *computeList);
 
 			CommandListExt &getExtension();
 

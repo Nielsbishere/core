@@ -1793,7 +1793,8 @@ void renderScene() override;
 
 ```cpp
 PipelineState *pipelineState;		//{ All, Alpha, Back, CCW, 1.f, 1 }
-Sampler *sampler;					//{ Linear, Linear, Repeat }
+Sampler *linearSampler;				//{ Linear, Linear, Repeat }
+Sampler *nearestSampler;			//{ Nearest, Nearest, Clamp_border }
 ViewBuffer *views;					//{ }
 Camera *camera;						//{ views, Vec3(3), Vec4(0, 0, 0, 1) }
 CameraFrustum *cameraFrustum;		//{ views, Vec2u(1), 1, 40, 0.1f, 100 }

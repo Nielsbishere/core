@@ -16,9 +16,10 @@ bool Texture::initData(bool isOwned) {
 
 	if (info.format == TextureFormat::Depth) {
 
-		std::vector<VkTextureFormat> priorities = { VkTextureFormat::D32S8, VkTextureFormat::D24S8, VkTextureFormat::D32, VkTextureFormat::D16 };
+		static const std::vector<VkTextureFormat> priorities = 
+						{ VkTextureFormat::D32S8, VkTextureFormat::D24S8, VkTextureFormat::D32, VkTextureFormat::D16 };
 
-		for (VkTextureFormat &f : priorities) {
+		for (const VkTextureFormat &f : priorities) {
 			VkFormatProperties fprop;
 			vkGetPhysicalDeviceFormatProperties(graphics.pdevice, (VkFormat) f.getValue().value, &fprop);
 
@@ -55,9 +56,29 @@ bool Texture::initData(bool isOwned) {
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.mipLevels = info.mipLevels;
 		imageInfo.arrayLayers = 1;
-		imageInfo.usage = (info.usage == TextureUsage::Image ? VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT : (useDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) | VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		
+		switch (info.usage.getValue()) {
+
+		case TextureUsage::Image.value:
+			imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+			break;
+
+		case TextureUsage::Compute_target.value:
+			imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+			break;
+
+		case TextureUsage::Render_depth.value:
+			imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			break;
+
+		default:
+			imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			break;
+
+		}
 
 		vkCheck<0x4, VkTexture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
 		vkName(graphics, ext.resource, VK_OBJECT_TYPE_IMAGE, getName());

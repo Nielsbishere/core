@@ -246,6 +246,7 @@ namespace oi {
 		DEnum(VkTextureUsage, VkImageLayout, Undefined = VK_IMAGE_LAYOUT_UNDEFINED,
 
 			Render_target = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, Render_depth = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+			Compute_target = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			Image = VK_IMAGE_LAYOUT_UNDEFINED
 
 		);
