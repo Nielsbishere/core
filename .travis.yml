@@ -17,10 +17,8 @@ install:
   - cd $HOME/build/OsomiLunar/ocore
   - sudo apt remove clang -y
   - sudo apt-get install clang -y
-  - sudo apt remove cmake
-  - curl https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.tar.gz --output cmake.tar.gz
-  - tar -xzf cmake.tar.gz
-  - mv cmake-3.13.0-rc3-Linux-x86_64 cmake
+  - apt remove cmake
+  - pip install cmake --upgrade
   - sudo apt-get install ant
   - export PATH="${PATH}:$HOME/build/OsomiLunar/ocore/cmake/bin"
   - curl https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip --output android_ndk.zip
