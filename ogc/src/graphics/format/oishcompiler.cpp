@@ -253,12 +253,13 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 		shader->setStrings(&postShaderSrc, 1);
 
 		if (!shader->parse(&resources, vulkanVersion, false, compileFlags)) {
+
 			Log::print(shader->getInfoLog(), LogLevel::ERROR);
 
 			for (glslang::TShader *stage : shaderStages)
 				delete stage;
 
-			return Log::error("Couldn't add stage to shader; couldn't parse shader");
+			return Log::error(String("Couldn't add stage to shader; couldn't parse shader \"") + source.src[ext] + "\"");
 		}
 
 		shaderProg.addShader(shader);

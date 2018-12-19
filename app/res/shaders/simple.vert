@@ -17,14 +17,13 @@ layout(std430, binding = 0) buffer Objects {
 	
 } obj;
 
-layout(location = 0) out Vec3 pos;
-layout(location = 1) out Vec2 uv;
-layout(location = 2) out Vec3 normal;
-layout(location = 3) flat out MaterialHandle material;
-
 layout(location = 0) in Vec3 inPosition;
 layout(location = 1) in Vec2 inUv;
 layout(location = 2) in Vec3 inNormal;
+
+layout(location = 0) out Vec2 uv;
+layout(location = 1) out Vec3 normal;
+layout(location = 2) flat out MaterialHandle material;
 
 out gl_PerVertex {
     Vec4 gl_Position;
@@ -36,7 +35,6 @@ void main() {
 
     gl_Position = obj.mvp * Vec4(inPosition, 1);
 
-	pos = (obj.m * Vec4(inPosition, 1)).xyz;
 	uv = inUv;
 	normal = normalize(obj.m * Vec4(normalize(inNormal), 0)).xyz;
 	material = obj.material;

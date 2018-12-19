@@ -17,7 +17,7 @@ bool Shader::set(String path, GraphicsResource *res) {
 	auto it = info.shaderRegister.find(path);
 
 	if (it == info.shaderRegister.end())
-		return Log::throwError<Shader, 0x0>(String("Shader::set(") + path + ") failed; the path couldn't be found");
+		return Log::warn(String("Shader::set(") + path + ") failed; the path couldn't be found");
 
 	if (res != nullptr) {
 

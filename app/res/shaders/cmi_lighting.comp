@@ -41,9 +41,19 @@ layout(std430, binding = 7) buffer Materials {
 };
 
 layout(binding = 8, rgba16f) uniform image2D outputTexture;
+layout(binding = 9) uniform texture2D uvNormal;
+layout(binding = 10) uniform sampler nearest;
 
 Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 	return texture(sampler2D(tex[handle], s), uv);
+}
+
+//Spheremap transform
+Vec3 unpackNormal(Vec2 enc) {
+    Vec2 fenc = enc * 4 - 2;
+    f32 f = dot(fenc, fenc);
+    f32 g = sqrt(1 - f / 4);
+    return Vec3(fenc * g, 1 - f / 2);
 }
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -55,9 +65,11 @@ void main() {
 
 	Camera cam = viewData.cameras[viewData.views[global.view].camera];
 
+	Vec4 uvn = texture(sampler2D(uvNormal, nearest), globalUv);
+
 	Vec3 pos = Vec3(0, 0, 0);		//TODO: Sample
-	Vec2 uv = Vec2(0, 0);			//TODO: Sample
-	Vec3 normal = Vec3(0, 0, 1);	//TODO: Sample
+	Vec2 uv = uvn.xy;
+	Vec3 normal = unpackNormal(uvn.zw);
 	u32 material = 0;				//TODO: Sample
 
     //Get camera position
@@ -91,6 +103,6 @@ void main() {
 	Vec3 dif = sample2D(samp, m.t_diffuse, uv).rgb;
     
     //Write lighting result to render target
-    imageStore(outputTexture, Vec2i(coords), Vec4(calculateLighting(lr, dif, global.ambient, m) * ((sin(global.time) * 0.5 + 0.5) * 0.5 + 0.5), 1) + Vec4(globalUv, 0, 1));
+    imageStore(outputTexture, Vec2i(coords), Vec4(calculateLighting(lr, dif, global.ambient, m), 1));
 
 }

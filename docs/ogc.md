@@ -662,11 +662,22 @@ If you disable depth, the depth texture will be nullptr. You can get the number 
 
 #### Constructor
 
+##### Graphics RenderTarget
+
 ```cpp
 Vec2u res, 							//The resolution of the render target
 TextureFormat depth, 				//Typically Depth, Undefined for disabled
 std::vector<TextureFormat> formats	//List of texture formats for the output
 ```
+
+##### Compute RenderTarget
+
+```cpp
+Vec2u res,							//The resolution of the render target
+std::vector<TextureFormat> formats	//List of texture formats for the output
+```
+
+This RenderTarget can only be used for compute shaders and don't affect graphics shaders. Therefore, you can use compute shaders like you would use graphics shaders; but you do have to manage the shader registers yourself. This also means that you could have unlimited compute render targets bound, as long as you make sure to unbind them.
 
 #### Data
 
@@ -677,7 +688,9 @@ TextureFormat depthFormat;
 std::vector<TextureFormat> formats;
 
 Texture *depth;								//The depth texture
-std::vector<VersionedTexture*> textures;	//The output textures
+std::vector<VersionedTexture*> textures;	//The output 
+
+bool isComputeTarget;	//Whether or not this should only be used for compute shaders
 ```
 
 ### Functions
@@ -691,6 +704,8 @@ VersionedTexture *getTarget(u32 i);
 
 Vec2u getSize();
 bool isOwned();
+
+bool isComputeTarget();
 ```
 
 ### Example
@@ -1034,6 +1049,87 @@ struct MyTestObject {	//9 lines; 144 bytes
 ```
 
 This means that `objects[0]` is the sphere's object info and `objects[1]` is the planet's object info.
+
+## ComputeList
+
+Similar to the DrawList counterpart. ComputeList is responsible for requesting compute shader dispatches. This allows you to request a bunch of different dispatches from the same compute shader. This could be used to manage particle emitters or update layers of a texture; as well as allowing multi-pass texture updates (that require waiting for the last result).
+
+### ComputeListInfo
+
+#### Constructor
+
+```cpp
+Pipeline *computePipeline;		//Pipeline with compute shader
+u32 maxDispatches;				//Maximum number of dispatches
+bool clearOnUse = false;		//If the compute list has to be cleared after use
+```
+
+#### Data
+
+```cpp
+Pipeline *computePipeline;
+u32 maxDispatches;
+bool clearOnUse;
+
+std::vector<Vec3u> dispatches;			//Stores the dispatched groups
+GBuffer *dispatchBuffer;				//Buffer for storing dispatches
+```
+
+### Functions
+
+```cpp
+//Getting dispatch information
+
+u32 getMaxDispatches();
+u32 getDispatches();
+GBuffer *getDispatchBuffer();
+
+//Clearing and pushing changes
+
+void clear();
+void flush();
+
+//Dispatch AT LEAST xyz threads
+//But dispatches more if xyz % getThreadsPerGroup() != 0
+
+u32 dispatchThreads(u32 threads);
+Vec2u dispatchThreads(Vec2u threads);
+Vec3u dispatchThreads(Vec3u threads);
+
+//Dispatch xyz groups of getThreadsPerGroup()
+
+u32 dispatchGroups(u32 groups);
+Vec2u dispatchGroups(Vec2u groups);
+Vec3u dispatchGroups(Vec3u groups);
+
+//The local size; threads per group
+
+Vec3u getThreadsPerGroup();
+```
+
+### Example
+
+```cpp
+cmdList->begin(computeTarget);
+cmdList->bind(computePipeline);
+cmdList->dispatch(computeList);
+cmdList->end(computeTarget);
+```
+
+The example above (located in render) prepares the compute target to be used in the dispatch call.
+
+```cpp
+Vec2u targetRes = computeList->dispatchThreads(res);
+computeList->flush();
+
+computeTarget = g.create("Compute target", 
+                         RenderTargetInfo(targetRes, { TextureFormat::RGBA16f }));
+g.use(computeTarget);
+
+computeShader->set("outputTexture", computeTarget->getTarget(0));
+```
+
+The example above (located in initSceneSurface) tries to dispatch res (resolution) number of threads. If this resolution doesn't match with the group size, it will dispatch more threads. To ensure this can still function optimally, the render target will use this size (so the compute shader can run over all threads the same way). But will have to be sampled with this limitation in mind. We send this RGBA16f target to the compute shader, so it can output to it.
 
 ## CommandList
 
@@ -1792,7 +1888,6 @@ void renderScene() override;
 ### Pre-initialized values
 
 ```cpp
-PipelineState *pipelineState;		//{ All, Alpha, Back, CCW, 1.f, 1 }
 Sampler *linearSampler;				//{ Linear, Linear, Repeat }
 Sampler *nearestSampler;			//{ Nearest, Nearest, Clamp_border }
 ViewBuffer *views;					//{ }

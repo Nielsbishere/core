@@ -16,7 +16,6 @@ BasicGraphicsInterface::~BasicGraphicsInterface() {
 	g.destroy(views);
 	g.destroy(linearSampler);
 	g.destroy(nearestSampler);
-	g.destroy(pipelineState);
 	g.destroy(cmdList);
 }
 
@@ -26,11 +25,6 @@ void BasicGraphicsInterface::initScene() {
 
 	cmdList = g.create("Default command list", CommandListInfo());
 	g.use(cmdList);
-
-	//Setup our pipeline state (with default settings)
-
-	pipelineState = g.create("Default pipeline state", PipelineStateInfo());
-	g.use(pipelineState);
 
 	//Allocate samplers
 

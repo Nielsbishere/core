@@ -174,8 +174,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | oiSH::convert couldn't be executed; no bytecode              |                 | 0x6  | The shader stage doesn't have any bytecode attached          |
 |                                                         | Invalid register type                                        |                 | 0x7  | The shader register type could not be detected               |
 |                                                         | ShaderRegister of type Buffer (SSBO or UBO) doesn't reference a buffer |                 | 0x8  | A shader register of type SSBO or UBO has to reference to an oiSB file |
-| graphics<br />objects<br />shader<br />shader.cpp       | Shader::set({path}) failed; the path couldn't be found       | Shader          | 0x0  | The shader registers don't include the current path          |
-|                                                         | Shader::set({path}) failed; invalid type (type is ShaderBuffer, but type provided isn't) |                 | 0x1  | Shader::set was expecting a ShaderBuffer, but a different type was sent |
+| graphics<br />objects<br />shader<br />shader.cpp       | Shader::set({path}) failed; invalid type (type is ShaderBuffer, but type provided isn't) |                 | 0x1  | Shader::set was expecting a ShaderBuffer, but a different type was sent |
 |                                                         | Shader::set({path}) failed; invalid type (type is Texture or VersionedTexture, but type provided isn't) |                 | 0x2  | Shader::set was expecting a Texture or VersionedTexture, but a different type was sent |
 |                                                         | Shader::set({path}) failed; invalid type (type is Sampler, but type provided isn't) |                 | 0x3  | Shader::set was expecting a Sampler but a different type was sent |
 |                                                         | Shader::set({path}) failed; TextureList size incompatible with shader |                 | 0x4  | Shader::set was expecting a TextureList but a different type, or one with a different size was passed |
@@ -309,7 +308,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Couldn't compile; shader type wasn't set to HLSL but it contained a HLSL source file | One of the shader stages was not HLSL, which is prohibited by the compiler (rename the file(s) shader name) |
 |                                                         | Couldn't add stage to shader; wrong extension "{ext}"        | The shader stage extension couldn't be recognized (.frag, .vert, .geom, .comp) |
 |                                                         | {error}<br />Couldn't add stage to shader; couldn't preprocess shader | Preprocessing of the shader stage failed                     |
-|                                                         | {error}<br />Couldn't add stage to shader; couldn't parse shader | Compilation of the shader stage failed                       |
+|                                                         | {error}<br />Couldn't add stage to shader; couldn't parse shader "{source}" | Compilation of the shader stage failed                       |
 |                                                         | Couldn't add stage to shader; couldn't convert to spirv      | Conversion of shader stage to SPV failed                     |
 |                                                         | Couldn't link shader                                         | One of the shader stages didn't match up and couldn't be linked |
 |                                                         | Couldn't add stage to shader; spirv was invalid or had the wrong extension | The SPV file couldn't be read or the shader stage couldn't be identified from file path |
@@ -335,6 +334,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | File                   | Message                                            | Description                                 |
 | ------------------------ | -------------------------------------------------- | ------------------------------------------- |
 | graphics<br />graphics.h | Graphics::add called on an already existing object | A Graphics object tried to add itself twice |
+| graphics<br />objects<br />shader<br />shader.cpp | Shader::set({path}) failed; the path couldn't be found | The shader path given couldn't be found |
 
 ## owc
 

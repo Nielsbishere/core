@@ -42,13 +42,13 @@ namespace oi {
 			void clear();
 			void flush();
 
-			u32 dispatchThreads(u32 threads);			//Tries to dispatch n threads, can dispatch more (group size) or less (max dispatches); returns number of dispatched threads
-			Vec2u dispatchThreads(Vec2u threads);		//Tries to dispatch xy threads, can dispatch more (group size) or less (max dispatches); returns number of dispatched threads
-			Vec3u dispatchThreads(Vec3u threads);		//Tries to dispatch xyz threads, can dispatch more (group size) or less (max dispatches); returns number of dispatched threads
+			u32 dispatchThreads(u32 threads);
+			Vec2u dispatchThreads(Vec2u threads);
+			Vec3u dispatchThreads(Vec3u threads);
 
-			u32 dispatchGroups(u32 groups);				//Tries to dispatch n groups, can dispatch less (max dispatches); returns number of dispatched threads
-			Vec2u dispatchGroups(Vec2u groups);			//Tries to dispatch xy groups, can dispatch less (max dispatches); returns number of dispatched threads
-			Vec3u dispatchGroups(Vec3u groups);			//Tries to dispatch xyz groups, can dispatch less (max dispatches); returns number of dispatched threads
+			u32 dispatchGroups(u32 groups);
+			Vec2u dispatchGroups(Vec2u groups);
+			Vec3u dispatchGroups(Vec3u groups);
 
 			Vec3u getThreadsPerGroup();
 

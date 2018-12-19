@@ -90,6 +90,7 @@ protected:
 private:
 	
 	oi::gc::Shader *shader, *shader0, *cmiLighting;
+	oi::gc::PipelineState *pipelineState;
 	oi::gc::Pipeline *pipeline, *pipeline0, *cmiLightingPipeline;
 	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
 	std::vector<oi::gc::Mesh*> meshes;

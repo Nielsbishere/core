@@ -192,6 +192,49 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 
 }
 
+UEnum(SpvImageFormat,
+	Undefined = 0,
+	RGBA32f = 1,
+	RGBA16f = 2,
+	R32f = 3,
+	RGBA8 = 4,
+	RGBA8Snorm = 5,
+	RG32f = 6,
+	RG16f = 7,
+	R11fG11fB10f = 8,
+	R16f = 9,
+	RGBA16 = 10,
+	RGB10A2 = 11,
+	RG16 = 12,
+	RG8 = 13,
+	R16 = 14,
+	R8 = 15,
+	RGBA16Snorm = 16,
+	RG16Snorm = 17,
+	RG8Snorm = 18,
+	R16Snorm = 19,
+	R8Snorm = 20,
+	RGBA32i = 21,
+	RGBA16i = 22,
+	RGBA8i = 23,
+	R32i = 24,
+	RG32i = 25,
+	RG16i = 26,
+	RG8i = 27,
+	R16i = 28,
+	R8i = 29,
+	RGBA32ui = 30,
+	RGBA16ui = 31,
+	RGBA8ui = 32,
+	R32ui = 33,
+	RGB10A2ui = 34,
+	RG32ui = 35,
+	RG16ui = 36,
+	RG8ui = 37,
+	R16ui = 38,
+	R8ui = 39
+);
+
 bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &info, ShaderAccessType stageAccess) {
 
 	std::vector<Resource> images = res.separate_images;
@@ -202,6 +245,8 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 	for (u32 i = 0, j = (u32)images.size(); i < j; ++i) {
 
 		Resource &r = images[i];
+
+		TextureFormat format = SpvImageFormat(comp.get_type(r.type_id).image.format).getName();
 
 		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
 		bool isWriteable = i >= textures;

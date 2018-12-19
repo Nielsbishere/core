@@ -65,18 +65,19 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	VkRenderPassBeginInfo beginInfo;
 	memset(&beginInfo, 0, sizeof(beginInfo));
 
-	std::vector<VkClearValue> clearValue(target->getTargets() + 1);
+	bool depthTarget = target->getDepth() != nullptr;
 
-	for (u32 i = 0; i < target->getTargets() + 1; ++i) {
+	std::vector<VkClearValue> clearValue(target->getTargets() + depthTarget);
+
+	for (u32 i = 0; i < target->getTargets() + depthTarget; ++i) {
 
 		VkClearValue &cl = clearValue[i];
-		TextureFormat format = i == 0 ? target->getDepth()->getFormat() : target->getTarget(i - 1)->getFormat();
+		TextureFormat format = i == 0 && depthTarget ? target->getDepth()->getFormat() : target->getTarget(i - depthTarget)->getFormat();
 
-		if (i == 0) {
+		if (i == 0 && depthTarget) {
 			cl.depthStencil.depth = clear.depthClear;
 			cl.depthStencil.stencil = clear.stencilClear;
-		}
-		else {
+		} else {
 
 			Vec4d color = g->convertColor(clear.colorClear, format);
 
@@ -233,7 +234,11 @@ void CommandList::draw(DrawList *drawList) {
 }
 
 void CommandList::dispatch(ComputeList *computeList) {
-	vkCmdDispatchIndirect(ext_cmd, computeList->getDispatchBuffer()->getExtension().resource[g->getExtension().current], 0);
+	for(u32 i = 0; i < computeList->getDispatches(); ++i)
+		vkCmdDispatchIndirect(ext_cmd, 
+			computeList->getDispatchBuffer()->getExtension().resource[g->getExtension().current], 
+			i * sizeof(VkDispatchIndirectCommand)
+		);
 }
 
 #endif
