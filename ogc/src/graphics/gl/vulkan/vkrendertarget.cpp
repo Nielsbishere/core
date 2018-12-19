@@ -34,22 +34,25 @@ bool RenderTarget::initData() {
 		//Set up attachments
 
 		Texture *depth = getDepth();
-
 		bool depthTarget = depth != nullptr;
 
-		std::vector<VkAttachmentDescription> attachments(info.targets + depthTarget);
+		u32 ctargets = info.targets;
+		u32 targets = ctargets + depthTarget;
 
-		for (u32 i = 0; i < (u32)attachments.size(); ++i) {
+		std::vector<VkAttachmentDescription> attachments(targets);
+
+		for (u32 i = 0; i < targets; ++i) {
 
 			VkAttachmentDescription &desc = attachments[i];
 			memset(&desc, 0, sizeof(desc));
 
-			TextureFormat format = i == 0 && depthTarget ? getDepth()->getFormat() : getTarget(i - depthTarget)->getFormat();
-			bool isDepth = i == 0 && depthTarget;
+			bool isDepth = depthTarget && i == ctargets;
+
+			TextureFormat format = isDepth ? getDepth()->getFormat() : getTarget(i)->getFormat();
 
 			VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			if (!(isDepth || getTarget(i - depthTarget)->isOwned()))
+			if (!(isDepth || getTarget(i)->isOwned()))
 				finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;									//Back buffer
 
 			desc.format = (VkFormat)VkTextureFormat(format.getName()).getValue().value;
@@ -70,20 +73,20 @@ bool RenderTarget::initData() {
 		VkSubpassDescription subpass;
 		memset(&subpass, 0, sizeof(subpass));
 
-		std::vector<VkAttachmentReference> colorAttachment(info.targets);
+		std::vector<VkAttachmentReference> colorAttachment(ctargets);
 
-		for (u32 i = 0; i < info.targets; ++i)
-			colorAttachment[i] = { i + depthTarget, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		for (u32 i = 0; i < ctargets; ++i)
+			colorAttachment[i] = { i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.pColorAttachments = colorAttachment.data();
-		subpass.colorAttachmentCount = (u32)colorAttachment.size();
+		subpass.colorAttachmentCount = ctargets;
 
 		VkAttachmentReference depthRef;
 
 		if (depth == nullptr) subpass.pDepthStencilAttachment = nullptr;
 		else {
-			depthRef = { 0, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+			depthRef = { ctargets, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 			subpass.pDepthStencilAttachment = &depthRef;
 		}
 
@@ -94,7 +97,7 @@ bool RenderTarget::initData() {
 
 		passInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		passInfo.pAttachments = attachments.data();
-		passInfo.attachmentCount = (u32)attachments.size();
+		passInfo.attachmentCount = targets;
 		passInfo.pSubpasses = &subpass;
 		passInfo.subpassCount = 1;
 
@@ -107,20 +110,20 @@ bool RenderTarget::initData() {
 
 		ext.frameBuffer.resize(buffering);
 
+		std::vector<VkImageView> fbAttachment(targets);
+
 		for (u32 i = 0; i < buffering; ++i) {
 
 			VkFramebufferCreateInfo fbInfo;
 			memset(&fbInfo, 0, sizeof(fbInfo));
 
-			std::vector<VkImageView> fbAttachment(info.targets + depthTarget);
-
 			if(depthTarget)
-				fbAttachment[0] = depth->getExtension().view;
+				fbAttachment[ctargets] = depth->getExtension().view;
 
 			for (u32 j = 0; j < info.targets; ++j) {
 				Texture *t = getTarget(j)->getVersion(i);
 				VkTexture &tex = t->getExtension();
-				fbAttachment[j + depthTarget] = tex.view;
+				fbAttachment[j] = tex.view;
 			}
 
 			fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -128,7 +131,7 @@ bool RenderTarget::initData() {
 			fbInfo.width = info.res.x;
 			fbInfo.height = info.res.y;
 			fbInfo.layers = 1;
-			fbInfo.attachmentCount = info.targets + depthTarget;
+			fbInfo.attachmentCount = targets;
 			fbInfo.pAttachments = fbAttachment.data();
 
 			vkCheck<0x1, VkRenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");

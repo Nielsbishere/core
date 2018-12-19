@@ -67,14 +67,19 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
 	bool depthTarget = target->getDepth() != nullptr;
 
-	std::vector<VkClearValue> clearValue(target->getTargets() + depthTarget);
+	u32 ctargets = target->getTargets();
+	u32 targets = ctargets + depthTarget;
 
-	for (u32 i = 0; i < target->getTargets() + depthTarget; ++i) {
+	std::vector<VkClearValue> clearValue(targets);
+
+	for (u32 i = 0; i < targets; ++i) {
+
+		bool isDepth = depthTarget && i == ctargets;
 
 		VkClearValue &cl = clearValue[i];
-		TextureFormat format = i == 0 && depthTarget ? target->getDepth()->getFormat() : target->getTarget(i - depthTarget)->getFormat();
+		TextureFormat format = isDepth ? target->getDepth()->getFormat() : target->getTarget(i)->getFormat();
 
-		if (i == 0 && depthTarget) {
+		if (isDepth) {
 			cl.depthStencil.depth = clear.depthClear;
 			cl.depthStencil.stencil = clear.stencilClear;
 		} else {
