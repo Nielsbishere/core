@@ -4,11 +4,17 @@
 
 #pragma warning(push)
 #pragma warning(disable: 4100)
+
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+
+#ifdef __WINDOWS__
 #define STBI_MSC_SECURE_CRT
+#endif
+
 #include "stb/stb_image.h"
 #include "stb/stb_image_write.h"
+
 #pragma warning(pop)
 
 #undef min

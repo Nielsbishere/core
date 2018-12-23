@@ -120,7 +120,7 @@ bool RenderTarget::initData() {
 			if(depthTarget)
 				fbAttachment[ctargets] = depth->getExtension().view;
 
-			for (u32 j = 0; j < info.targets; ++j) {
+			for (u32 j = 0; j < ctargets; ++j) {
 				Texture *t = getTarget(j)->getVersion(i);
 				VkTexture &tex = t->getExtension();
 				fbAttachment[j] = tex.view;

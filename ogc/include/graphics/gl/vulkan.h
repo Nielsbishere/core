@@ -270,27 +270,45 @@ namespace oi {
 			Sampler = VK_DESCRIPTOR_TYPE_SAMPLER
 		);
 
-		DEnum(VkShaderStageType, VkShaderStageFlagBits,
 
-			Compute_shader = VK_SHADER_STAGE_COMPUTE_BIT,
+		#ifdef __RAYTRACING__
+		
+			DEnum(VkShaderStageType, VkShaderStageFlagBits,
+	
+				Compute_shader = VK_SHADER_STAGE_COMPUTE_BIT,
+	
+				Vertex_shader = VK_SHADER_STAGE_VERTEX_BIT,
+				Fragment_shader = VK_SHADER_STAGE_FRAGMENT_BIT,
+				Geometry_shader = VK_SHADER_STAGE_GEOMETRY_BIT,
+				Tesselation_shader = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+				Tesselation_evaluation_shader = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+				
+				Mesh_shader = VK_SHADER_STAGE_MESH_BIT_NV,
+				Task_shader = VK_SHADER_STAGE_TASK_BIT_NV,
+		
+				Ray_gen_shader = VK_SHADER_STAGE_RAYGEN_BIT_NV,
+				Any_hit_shader = VK_SHADER_STAGE_ANY_HIT_BIT_NV,
+				Closest_hit_shader = VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV,
+				Miss_shader = VK_SHADER_STAGE_MISS_BIT_NV,
+				Intersection_shader = VK_SHADER_STAGE_INTERSECTION_BIT_NV,
+				Callable_shader = VK_SHADER_STAGE_CALLABLE_BIT_NV
+			);
+		
+		#else
 
-			Vertex_shader = VK_SHADER_STAGE_VERTEX_BIT,
-			Fragment_shader = VK_SHADER_STAGE_FRAGMENT_BIT,
-			Geometry_shader = VK_SHADER_STAGE_GEOMETRY_BIT,
-			Tesselation_shader = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
-			Tesselation_evaLUATION_shader = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
-
-			Mesh_shader = VK_SHADER_STAGE_MESH_BIT_NV,
-			Task_shader = VK_SHADER_STAGE_TASK_BIT_NV,
-
-			Ray_gen_shader = VK_SHADER_STAGE_RAYGEN_BIT_NVX,
-			Any_hit_shader = VK_SHADER_STAGE_ANY_HIT_BIT_NVX,
-			Closest_hit_shader = VK_SHADER_STAGE_CLOSEST_HIT_BIT_NVX,
-			Miss_shader = VK_SHADER_STAGE_MISS_BIT_NVX,
-			Intersection_shader = VK_SHADER_STAGE_INTERSECTION_BIT_NVX,
-			Callable_shader = VK_SHADER_STAGE_CALLABLE_BIT_NVX
-
-		);
+			DEnum(VkShaderStageType, VkShaderStageFlagBits,
+	
+				Compute_shader = VK_SHADER_STAGE_COMPUTE_BIT,
+	
+				Vertex_shader = VK_SHADER_STAGE_VERTEX_BIT,
+				Fragment_shader = VK_SHADER_STAGE_FRAGMENT_BIT,
+				Geometry_shader = VK_SHADER_STAGE_GEOMETRY_BIT,
+				Tesselation_shader = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+				Tesselation_evaluation_shader = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
+				
+			);
+			
+		#endif
 
 		DEnum(VkSamplerWrapping, VkSamplerAddressMode, 
 			Repeat = VK_SAMPLER_ADDRESS_MODE_REPEAT, Mirror_repeat = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, 

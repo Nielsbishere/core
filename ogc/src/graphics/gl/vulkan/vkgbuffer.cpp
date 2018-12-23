@@ -103,8 +103,10 @@ bool GBuffer::init() {
 	
 	vkCheck<0x3, VkGBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
 
-	for(u32 i = 0, j = (u32) ext.resource.size(); i < j; ++i)
+	for(u32 i = 0, j = (u32) ext.resource.size(); i < j; ++i){
+		vkGetBufferMemoryRequirements(graphics.device, ext.resource[i], &requirements);		//Some devices require the requirements to be checked
 		vkCheck<0x4, VkGBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.gpuLength * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
+	}
 
 	//Set that it should update
 
