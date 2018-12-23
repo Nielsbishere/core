@@ -51,8 +51,11 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
 		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
 
-		for (u32 i = 0; i < target->getTargets(); ++i)
-			(barriers[i] = imageBarrier).image = target->getTarget(i)->getVersion(frame)->getExtension().resource;
+		for (u32 i = 0; i < target->getTargets(); ++i) {
+			Texture *tex = target->getTarget(i)->getVersion(frame);
+			(barriers[i] = imageBarrier).image = tex->getExtension().resource;
+			tex->getExtension().layout = imageBarrier.newLayout;
+		}
 
 		vkCmdPipelineBarrier(ext_cmd, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, target->getTargets(), barriers);
 		delete[] barriers;
@@ -126,8 +129,11 @@ void CommandList::end(RenderTarget *target) {
 
 		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
 
-		for (u32 i = 0; i < target->getTargets(); ++i)
-			(barriers[i] = imageBarrier).image = target->getTarget(i)->getVersion(g->getExtension().current)->getExtension().resource;
+		for (u32 i = 0; i < target->getTargets(); ++i) {
+			Texture *tex = target->getTarget(i)->getVersion(g->getExtension().current);
+			(barriers[i] = imageBarrier).image = tex->getExtension().resource;
+			tex->getExtension().layout = imageBarrier.newLayout;
+		}
 
 		vkCmdPipelineBarrier(ext_cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, target->getTargets(), barriers);
 		delete[] barriers;

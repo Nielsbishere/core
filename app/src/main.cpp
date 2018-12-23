@@ -342,30 +342,32 @@ void MainInterface::initScene() {
 
 void MainInterface::renderScene(){
 
-	//Start rendering
+	//Start frame
+
 	cmdList->begin();
 
-	//Render to renderTarget
+	//Render to g-buffer
 
-		//Bind fbo and pipeline
-		cmdList->begin(renderTarget);
-		cmdList->bind(pipeline);
-		cmdList->draw(drawList);
-		cmdList->end(renderTarget);
+	cmdList->begin(renderTarget);
+	cmdList->bind(pipeline);
+	cmdList->draw(drawList);
+	cmdList->end(renderTarget);
 
 	//Clustered Material Indirect Rendering
+
 	cmdList->begin(cmiLightingTarget);
 	cmdList->bind(cmiLightingPipeline);
 	cmdList->dispatch(cmiLightingDispatch);
 	cmdList->end(cmiLightingTarget);
 
-	//Render to backbuffer
+	//Copy to back buffer & do post processing
 
-		//Execute our post processing shader
-		cmdList->begin(g.getBackBuffer());
-		cmdList->bind(pipeline0);
-		cmdList->draw(drawList0);
-		cmdList->end(g.getBackBuffer());
+	cmdList->begin(g.getBackBuffer());
+	cmdList->bind(pipeline0);
+	cmdList->draw(drawList0);
+	cmdList->end(g.getBackBuffer());
+
+	//Push frame
 
 	cmdList->end();
 

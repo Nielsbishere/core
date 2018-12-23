@@ -32,6 +32,7 @@ namespace oi {
 			VkImage resource = VK_NULL_HANDLE;
 			VkDeviceMemory memory = VK_NULL_HANDLE;
 			VkImageView view = VK_NULL_HANDLE;
+			VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;	//Only applicable to manual transitions; like compute shader
 
 		};
 

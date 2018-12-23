@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types/bitset.h"
 #include "graphics/gl/generic.h"
 #include "graphics/objects/graphicsobject.h"
 #include "graphics/objects/shader/shaderbuffer.h"
@@ -68,7 +69,7 @@ namespace oi {
 			ShaderInfo info;
 			ShaderExt ext;
 
-			bool changed = false;
+			Bitset changed;
 
 		};
 

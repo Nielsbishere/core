@@ -278,8 +278,8 @@ String Bitset::toString() const {
 
 u8 &Bitset::at(u32 bit) { return data[bit / 8]; }
 
-void Bitset::clear() {
-	memset(data, 0, bytes);
+void Bitset::clear(bool value) {
+	memset(data, value ? 0xFF : 0, bytes);
 }
 
 void Bitset::copy(const Bitset &other) {

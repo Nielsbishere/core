@@ -49,7 +49,7 @@ bool Shader::set(String path, GraphicsResource *res) {
 	}
 
 	if (it->second != res) {
-		changed = true;
+		changed.clear(true);
 		g->destroyObject(it->second);
 	}
 
@@ -97,5 +97,6 @@ bool Shader::init() {
 	for (auto &gr : info.shaderRegister)
 		g->use(gr.second);
 
+	changed = Bitset(g->getBuffering(), true);
 	return initData();
 }

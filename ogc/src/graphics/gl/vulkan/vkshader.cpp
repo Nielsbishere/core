@@ -30,87 +30,71 @@ Shader::~Shader() {
 
 void Shader::update() {
 
-	if (changed) {
+	VkGraphics &graphics = g->getExtension();
+	u32 frame = graphics.current;
 
-		//Update the entire descriptor set
+	//Update the descriptor set for this frame
 
-		std::vector<VkWriteDescriptorSet> descriptorSet(info.registers.size() * g->getBuffering());
+	if (changed[frame]) {
+
+		changed[frame] = false;
+
+		std::vector<VkWriteDescriptorSet> descriptorSet(info.registers.size());
 		memset(descriptorSet.data(), 0, sizeof(VkWriteDescriptorSet) * descriptorSet.size());
 
-		std::vector<VkDescriptorBufferInfo> buffers(info.buffer.size() * g->getBuffering());
+		std::vector<VkDescriptorBufferInfo> buffers(info.buffer.size());
 		memset(buffers.data(), 0, sizeof(VkDescriptorBufferInfo) * buffers.size());
 
-		u32 samplers = 0, images = 0, bufferCount = (u32) info.buffer.size();
+		u32 samplers = 0, images = 0;
 
 		for (ShaderRegister &reg : info.registers) {
 			if (reg.type == ShaderRegisterType::Sampler) ++samplers;
 			else if (reg.type == ShaderRegisterType::Image || reg.type == ShaderRegisterType::Texture2D) images += reg.size;
 		}
 
-		std::vector<VkDescriptorImageInfo> imageInfo(images * g->getBuffering());
-		memset(imageInfo.data(), 0, sizeof(VkDescriptorImageInfo) * images * g->getBuffering());
+		std::vector<VkDescriptorImageInfo> imageInfo(images);
+		memset(imageInfo.data(), 0, sizeof(VkDescriptorImageInfo) * images);
 
 		std::vector<VkDescriptorImageInfo> samplerInfo(samplers);
 		memset(samplerInfo.data(), 0, sizeof(VkDescriptorImageInfo) * samplers);
 
-		u32 i = 0, j = 0, k = 0, l = 0;
+		u32 bufferId = 0, samplerId = 0, imageId = 0;
 
-		for (ShaderRegister &reg : info.registers) {
+		for (u32 regId = 0, regs = (u32) info.registers.size(); regId < regs; ++regId) {
 
-			VkWriteDescriptorSet &descriptor = descriptorSet[i /* + 0 * info.registers.size() */];
+			ShaderRegister &reg = info.registers[regId];
+			VkWriteDescriptorSet &descriptor = descriptorSet[regId];
 
 			descriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptor.dstSet = ext.descriptorSet[0];
+			descriptor.dstSet = ext.descriptorSet[frame];
 			descriptor.dstBinding = reg.id;
 			descriptor.dstArrayElement = 0U;
 			descriptor.descriptorType = ShaderRegisterTypeExt(reg.type.getName()).getValue();
 			descriptor.descriptorCount = reg.size;
 
-			bool versioned = false;
-
 			GraphicsResource *res = info.shaderRegister[reg.name];
+
+			if(res == nullptr)
+				Log::throwError<VkShader, 0x7>("Shader mentions an invalid resource");
 			
-			if (res->isType<ShaderBuffer>()) {
+			if (res->isType<ShaderBuffer>() || res->isType<GBuffer>()) {
 
 				if (reg.type != ShaderRegisterType::UBO && reg.type != ShaderRegisterType::SSBO)
 					Log::throwError<VkShader, 0x1>("A ShaderBuffer has been placed on a register not meant for buffers");
 
-				VkDescriptorBufferInfo *bufferInfo = buffers.data() + j;
+				VkDescriptorBufferInfo *bufferInfo = buffers.data() + bufferId;
 				descriptor.pBufferInfo = bufferInfo;
 
-				ShaderBuffer *shaderBuffer = (ShaderBuffer*) res;
-
-				GBuffer *buf = shaderBuffer->getBuffer();
+				GBuffer *buf = res->isType<ShaderBuffer>() ? ((ShaderBuffer*)res)->getBuffer() : (GBuffer*)res;
 
 				if (buf == nullptr)
 					Log::throwError<VkShader, 0x0>("Shader mentions an invalid buffer");
 
 				std::vector<VkBuffer> resources = buf->getExtension().resource;
 
-				if (resources.size() != 1 && buf != nullptr) {
-
-					for (u32 z = 0; z < g->getBuffering(); ++z) {
-
-						VkDescriptorBufferInfo *buffer = bufferInfo + z * bufferCount;
-						buffer->range = (VkDeviceSize) shaderBuffer->getSize();
-						buffer->buffer = resources[z];
-
-						VkWriteDescriptorSet &descriptorz = descriptorSet[i + z * info.registers.size()];
-
-						descriptorz = descriptor;
-						descriptorz.pBufferInfo = buffer;
-						descriptorz.dstSet = ext.descriptorSet[z];
-
-					}
-
-					versioned = true;
-
-				} else versioned = false;
-
-				bufferInfo->buffer = buf != nullptr ? resources[0] : VK_NULL_HANDLE;
-				bufferInfo->range = (VkDeviceSize) shaderBuffer->getSize();
-
-				++j;
+				bufferInfo->buffer = buf != nullptr ? resources[frame % resources.size()] : VK_NULL_HANDLE;
+				bufferInfo->range = (VkDeviceSize) buf->getSize();
+				++bufferId;
 
 			} else if(res->isType<Sampler>()){
 
@@ -119,105 +103,57 @@ void Shader::update() {
 
 				Sampler *samp = (Sampler*)res;
 
-				VkDescriptorImageInfo *image = samplerInfo.data() + k;
+				VkDescriptorImageInfo *image = samplerInfo.data() + samplerId;
 				descriptor.pImageInfo = image;
 
 				image->sampler = samp->getExtension();
+				++samplerId;
 
-				++k;
+			} else if(res->isType<Texture>() || res->isType<VersionedTexture>()) {
 
-			} else if(res->isType<Texture>()) {
-
-				if (reg.type != ShaderRegisterType::Texture2D || reg.size != 1)
+				if ((reg.type != ShaderRegisterType::Texture2D && reg.type != ShaderRegisterType::Image) || reg.size != 1)
 					Log::throwError<VkShader, 0x3>("A Texture has been placed on a register not meant for textures or it has to use a TextureList");
 
-				Texture *tex = (Texture*) res;
+				if(reg.type == ShaderRegisterType::Image && res->isType<Texture>())
+					Log::throwError<VkShader, 0x6>("A Texture has been placed on a register not meant for textures");
 
-				VkDescriptorImageInfo *image = imageInfo.data() + l;
+				Texture *tex = res->isType<Texture>() ? (Texture*) res : ((VersionedTexture*)res)->getVersion(frame);
+
+				VkDescriptorImageInfo *image = imageInfo.data() + imageId;
 				descriptor.pImageInfo = image;
 
 				image->imageView = tex->getExtension().view;
-				image->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		//TODO: Change for Image
-
-				++l;
+				image->imageLayout = tex->getExtension().layout;
+				++imageId;
 
 			} else if (res->isType<TextureList>()) {
 
 				if (reg.type != ShaderRegisterType::Texture2D || reg.size == 1)
 					Log::throwError<VkShader, 0x4>("A TextureList has been placed on a register not meant for textures or it has to use a Texture");
 
-				TextureList *tex = (TextureList*)res;
+				TextureList *textures = (TextureList*)res;
 
-				if (tex->size() != reg.size)
+				if (textures->size() != reg.size)
 					Log::throwError<VkShader, 0x5>("A TextureList had invalid size!");
 
-				VkDescriptorImageInfo *image = imageInfo.data() + l;
+				VkDescriptorImageInfo *image = imageInfo.data() + imageId;
 				descriptor.pImageInfo = image;
 
 				for (u32 z = 0; z < reg.size; ++z) {
-					image->imageView = tex->get(z)->getExtension().view;
-					image->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		//TODO: Change for Image
+					Texture *tex = textures->get(z);
+					image->imageView = tex->getExtension().view;
+					image->imageLayout = tex->getExtension().layout;
 					++image;
 				}
 
-				l += reg.size;
-
-			} else if (res->isType<VersionedTexture>()) {
-
-				if (reg.type != ShaderRegisterType::Texture2D && reg.type != ShaderRegisterType::Image)
-					Log::throwError<VkShader, 0x6>("A VersionedTexture has been placed on a register not meant for textures");
-
-				VersionedTexture *tex = (VersionedTexture*)res;
-
-				versioned = true;
-
-				VkDescriptorImageInfo *image = imageInfo.data() + l;
-				descriptor.pImageInfo = image;
-
-				image->imageView = tex->getVersion(0)->getExtension().view;
-				image->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;		//TODO: Change for Image
-
-				for (u32 z = 1; z < g->getBuffering(); ++z) {
-
-					VkDescriptorImageInfo *image0 = image + z * images;
-					image0->imageLayout = image->imageLayout;
-					image0->imageView = tex->getVersion(z)->getExtension().view;
-
-					VkWriteDescriptorSet &descriptorz = descriptorSet[i + z * info.registers.size()];
-
-					descriptorz = descriptor;
-					descriptorz.pImageInfo = image0;
-					descriptorz.dstSet = ext.descriptorSet[z];
-
-				}
-
-				++l;
+				imageId += reg.size;
 
 			} else
-				Log::throwError<VkShader, 0x7>("Shader mentions an invalid resource");
-
-			if (!versioned) {
-
-				for (u32 z = 1; z < g->getBuffering(); ++z) {
-
-					VkWriteDescriptorSet &descriptorz = descriptorSet[i + z * info.registers.size()];
-
-					descriptorz = descriptor;
-					descriptorz.dstSet = ext.descriptorSet[z];
-
-				}
-
-			}
-
-			++i;
+				Log::throwError<VkShader, 0xC>("Shader mentions an invalid resource type");
 		}
 
 		vkUpdateDescriptorSets(g->getExtension().device, (u32) descriptorSet.size(), descriptorSet.data(), 0, nullptr);
-
-		changed = false;
-
 	}
-
 }
 
 bool Shader::initData() {
@@ -368,8 +304,6 @@ bool Shader::initData() {
 
 		set(sb.first, buffer);
 	}
-
-	changed = true;
 
 	return true;
 
