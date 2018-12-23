@@ -46,7 +46,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 		imageBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		imageBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
 		imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
 		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];

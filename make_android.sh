@@ -281,13 +281,13 @@ fi
 	
 # run script
 
-cd bin
-
 if [ $run ] ; then
+	cd bin
 	adb install -r app.apk
 	adb shell am start -n net.osomi.Osomi_Core/android.app.NativeActivity
 	adb logcat -c
 	adb logcat -s "oi_Log"
+	cd ../
 fi
 
-cd ../../../../
+cd ../../../
