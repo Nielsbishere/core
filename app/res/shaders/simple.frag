@@ -4,8 +4,9 @@ layout(location = 0) in Vec2 uv;
 layout(location = 1) in Vec3 normal;
 layout(location = 2) in flat u32 material;
 
-layout(location = 0) out Vec4 uvNormal;
-layout(location = 1) out u32 gmaterial;
+layout(location = 0) out Vec2 guv;
+layout(location = 1) out Vec2 gnormal;
+layout(location = 2) out u32 gmaterial;
 
 layout(early_fragment_tests) in;
 
@@ -17,6 +18,7 @@ Vec2 encodeNormal(Vec3 n) {
 
 //Output to G-Buffer
 void main() {
-	uvNormal = Vec4(uv, encodeNormal(normal));
+	guv = uv;
+	gnormal = encodeNormal(normal);
 	gmaterial = material + 1;
 }

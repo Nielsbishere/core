@@ -390,10 +390,11 @@ void MainInterface::initSceneSurface(Vec2u res){
 	//Recreate render targets and pipelines
 
 	//Create G-Buffer; 10 Bpp
-	//RGGB16f = uv & normal; 8 Bpp
+	//RG16f = uv; 4 Bpp
+	//RG16 = normal; 4 Bpp
 	//R16u = material id 2 Bpp
 	g.use(renderTarget = g.create("G-Buffer target", 
-		RenderTargetInfo(res, TextureFormat::Depth, { TextureFormat::RGBA16f, TextureFormat::R16u })
+		RenderTargetInfo(res, TextureFormat::Depth, { TextureFormat::RG16f, TextureFormat::RG16, TextureFormat::R16u })
 	));
 
 	//drawList -> Rendering pipeline -> renderTarget
@@ -413,8 +414,9 @@ void MainInterface::initSceneSurface(Vec2u res){
 	g.use(cmiLightingTarget);
 
 	cmiLighting->set("outputTexture", cmiLightingTarget->getTarget(0));
-	cmiLighting->set("uvNormal", renderTarget->getTarget(0));
-	cmiLighting->set("materials", renderTarget->getTarget(1));
+	cmiLighting->set("uvs", renderTarget->getTarget(0));
+	cmiLighting->set("normals", renderTarget->getTarget(1));
+	cmiLighting->set("materials", renderTarget->getTarget(2));
 	cmiLighting->set("depth", renderTarget->getDepth());
 
 	ShaderBuffer *global = cmiLighting->get<ShaderBuffer>("Global");

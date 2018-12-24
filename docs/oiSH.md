@@ -139,7 +139,8 @@ struct SHRegister {
 	u16 size;				//If the type is an array (array of textures for example)
 
 	u16 access;				//ShaderStageType
-	u16 padding = 0;
+    u8 format;				//TextureFormat; if ShaderRegisterType::Image
+	u8 padding = 0;
 };
 ```
 'type' the ShaderRegisterType (Undefined (0), UBO (1), SSBO(2), Texture(3), Image(4), Sampler(5)).   
@@ -147,6 +148,7 @@ struct SHRegister {
 'representation' is the index of the embedded resource (+ 1). With buffer, this is the id of the buffer info it should use. However, this might be used with immutable samplers in the future.  
 'nameIndex' is where the name is stored in the oiSL file.  
 'size' is the size of the array (for example, texture array). But is mostly always 1.
+'format' is the format of the register; currently only used for ShaderRegisterType::Image.
 
 ### Layout
 The SHFile is laid out like following:

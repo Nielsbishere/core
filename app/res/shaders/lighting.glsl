@@ -145,6 +145,13 @@ Vec3 calculateLighting(LightResult res, Vec3 col, Vec3 ambient, MaterialStruct m
 	return (res.diffuse * mat.diffuse + res.specular * mat.specular * mat.shininess + ambient * mat.ambient) * col;
 }
 
+Vec3 reconstructPosition(Vec2 uv, f32 depth, Matrix vpInv) {
+	Vec4 clipPos = Vec4(uv.x * 2 - 1, (1 - uv.y) * 2 - 1, depth, 1);
+	Vec4 worldPos = vpInv * clipPos;
+	worldPos /= worldPos.w;
+	return worldPos.xyz;
+}
+
 //Handle to a camera (0 - 127) (MAX_CAMERAS)
 #define CameraHandle uint
 
@@ -192,7 +199,7 @@ struct CameraFrustum {
 //cameras[camera] is the view's camera
 //frusta[cameraFrustum] is the view's frustum
 //views[view] is the view
-//80 bytes per view (camera and camera frustum data is re-used)
+//144 bytes per view (camera and camera frustum data is re-used)
 struct View {
 
 	CameraHandle camera;
@@ -201,6 +208,8 @@ struct View {
 
 	Matrix vp;
 
+	Matrix vpInv;
+
 };
 
 #define MAX_CAMERAS 128
@@ -208,7 +217,7 @@ struct View {
 #define MAX_VIEWS 256
 
 //ViewData (contains all cameras, frusta and viewports)
-//128 * (112 + 96) + 256 * 80 = 128 * 208 + 256 * 80 = 46 KiB = 64 KiB (min UBO max length) - 18 KiB
+//128 * (112 + 96) + 256 * 80 = 128 * 208 + 256 * 144 = 62 KiB = 64 KiB (min UBO max length) - 2 KiB
 struct ViewBuffer {
 
 	Camera cameras[MAX_CAMERAS];

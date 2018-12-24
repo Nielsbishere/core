@@ -41,10 +41,11 @@ layout(std430, binding = 7) buffer Materials {
 };
 
 layout(binding = 8, rgba16f) uniform image2D outputTexture;
-layout(binding = 9) uniform texture2D uvNormal;
+layout(binding = 9) uniform texture2D uvs;
 layout(binding = 10) uniform sampler nearest;
 layout(binding = 11) uniform utexture2D materials;
 layout(binding = 12) uniform texture2D depth;
+layout(binding = 13) uniform texture2D normals;
 
 Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 	return texture(sampler2D(tex[handle], s), uv);
@@ -63,17 +64,21 @@ void main() {
 
 	Vec2u coords = gl_GlobalInvocationID.xy;
 
-	Vec2 globalUv = Vec2(coords) / global.resolution;
+	if(coords.x >= global.resolution.x || coords.y >= global.resolution.y)		//TODO: Avoid this branching
+		return;
 
-	Camera cam = viewData.cameras[viewData.views[global.view].camera];
+	Vec2 globalUv = Vec2(coords) / Vec2(global.resolution - 1);
 
-	Vec4 sUvn = texture(sampler2D(uvNormal, nearest), globalUv);
+	View view = viewData.views[global.view];
+	Camera cam = viewData.cameras[view.camera];
+
+	Vec2 uv = texture(sampler2D(uvs, nearest), globalUv).xy;
+	Vec2 sNormal = texture(sampler2D(normals, nearest), globalUv).xy;
 	u32 sMaterial = texture(usampler2D(materials, nearest), globalUv).r;
 	f32 sDepth = texture(sampler2D(depth, nearest), globalUv).r;
 
-	Vec3 pos = Vec3(0, 0, sDepth * 5);		//TODO: Fix it
-	Vec2 uv = sUvn.xy;
-	Vec3 normal = unpackNormal(sUvn.zw);
+	Vec3 pos = reconstructPosition(globalUv, sDepth, view.vpInv);
+	Vec3 normal = unpackNormal(sNormal);
 	u32 material = max(1, sMaterial) - 1;
 
     //Get camera position

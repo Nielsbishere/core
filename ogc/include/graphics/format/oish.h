@@ -119,10 +119,11 @@ namespace oi {
 			u16 size;				//If the type is an array (array of textures for example)
 
 			u16 access;				//ShaderStageType
-			u16 padding = 0;
+			u8 format;				//TextureFormat; if ShaderRegisterType::Image
+			u8 padding = 0;
 
-			SHRegister(u8 type, u16 access, u8 id, u16 representation, u16 nameIndex, u16 size) : type(type), id(id), representation(representation), nameIndex(nameIndex), size(size), access(access) {}
-			SHRegister() : SHRegister(0, 0, 0, 0, 0, 0) {}
+			SHRegister(u8 type, u8 id, u16 representation, u16 nameIndex, u16 size, u16 access, u8 format) : type(type), id(id), representation(representation), nameIndex(nameIndex), size(size), access(access), format(format) {}
+			SHRegister() : SHRegister(0, 0, 0, 0, 0, 0, 0) {}
 
 		};
 

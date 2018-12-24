@@ -173,7 +173,7 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
 		if (itt == info.registers.end()) {
-			info.registers.push_back(ShaderRegister(stype, stageAccess, name, 1, binding));
+			info.registers.push_back(ShaderRegister(stype, stageAccess, name, 1, binding, TextureFormat::Undefined));
 			itt = info.registers.end() - 1;
 		} else 
 			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);
@@ -257,7 +257,7 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
 		if (itt == info.registers.end()) {
-			info.registers.push_back(ShaderRegister(!isWriteable ? ShaderRegisterType::Texture2D : ShaderRegisterType::Image, stageAccess, r.name, size, binding));
+			info.registers.push_back(ShaderRegister(!isWriteable ? ShaderRegisterType::Texture2D : ShaderRegisterType::Image, stageAccess, r.name, size, binding, format));
 			itt = info.registers.end() - 1;
 		} else
 			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);
@@ -277,7 +277,7 @@ bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
 		if (itt == info.registers.end()) {
-			info.registers.push_back(ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1, binding));
+			info.registers.push_back(ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1, binding, TextureFormat::Undefined));
 			itt = info.registers.end() - 1;
 		} else
 			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);

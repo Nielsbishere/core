@@ -40,7 +40,7 @@ bool Shader::set(String path, GraphicsResource *res) {
 			return Log::throwError<Shader, 0x2>(String("Shader::set(") + path + ") failed; invalid type (type is Texture, TextureList or VersionedTexture, but type provided isn't)");
 		else if(type == ShaderRegisterType::Sampler && !res->isType<Sampler>())
 			return Log::throwError<Shader, 0x3>(String("Shader::set(") + path + ") failed; invalid type (type is Sampler, but type provided isn't)");
-		else if(type == ShaderRegisterType::Image && (!res->isType<VersionedTexture>() || ((VersionedTexture*)res)->getUsage() != TextureUsage::Compute_target))
+		else if(type == ShaderRegisterType::Image && (!res->isType<VersionedTexture>() || ((VersionedTexture*)res)->getFormat() != sreg.format || ((VersionedTexture*)res)->getUsage() != TextureUsage::Compute_target))
 			return Log::throwError<Shader, 0x6>(String("Shader::set(") + path + ") failed; invalid type (type is Image, but type provided isn't)");
 
 		if (res->isType<TextureList>() && ((TextureList*)res)->size() != sreg.size)

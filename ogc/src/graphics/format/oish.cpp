@@ -127,12 +127,15 @@ SHFile oiSH::convert(ShaderInfo info) {
 		output.registers[i] = {
 
 			(u8)reg.type.getValue(),
-			(u8)reg.access,
 			(u8)reg.id,
 			(u16)0,
 
 			(u16)output.stringlist.add(reg.name),
-			(u16)reg.size
+			(u16)reg.size,
+
+			(u16)reg.access,
+			(u8)reg.format.getValue()
+
 		};
 
 	}
@@ -242,7 +245,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 	for (u32 i = 0; i < (u32)file.registers.size(); ++i) {
 		SHRegister &r = file.registers[i];
 
-		ShaderRegister &reg = registers[i] = ShaderRegister(r.type, (ShaderAccessType) r.access, file.stringlist.names[r.nameIndex], (u32) r.size, r.id);
+		ShaderRegister &reg = registers[i] = ShaderRegister(r.type, (ShaderAccessType) r.access, file.stringlist.names[r.nameIndex], (u32) r.size, r.id, TextureFormat::find(r.format));
 
 		if (reg.type.getValue() == 0)
 			Log::throwError<oiSH, 0x0>(String("ShaderRegister ") + reg.name + " is invalid");

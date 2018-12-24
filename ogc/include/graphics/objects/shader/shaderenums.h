@@ -68,9 +68,10 @@ namespace oi {
 			ShaderAccessType access;
 			String name;
 			u32 size, id;
+			TextureFormat format;
 
-			ShaderRegister(ShaderRegisterType type, ShaderAccessType access, String name, u32 size, u32 id) : type(type), access(access), name(name), size(size), id(id) {}
-			ShaderRegister() : ShaderRegister(0, ShaderAccessType::COMPUTE, "", 0, 0) { }
+			ShaderRegister(ShaderRegisterType type, ShaderAccessType access, String name, u32 size, u32 id, TextureFormat format) : type(type), access(access), name(name), size(size), id(id), format(format) {}
+			ShaderRegister() : ShaderRegister(0, ShaderAccessType::COMPUTE, "", 0, 0, TextureFormat::Undefined) { }
 
 		};
 
