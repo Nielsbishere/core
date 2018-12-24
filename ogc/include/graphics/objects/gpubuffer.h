@@ -8,44 +8,44 @@ namespace oi {
 
 	namespace gc {
 
-		DEnum(GBufferType, u32, UBO = 0, SSBO = 1, IBO = 2, VBO = 3, CBO = 4);
+		DEnum(GPUBufferType, u32, UBO = 0, SSBO = 1, IBO = 2, VBO = 3, CBO = 4);
 
-		class GBuffer;
+		class GPUBuffer;
 
-		struct GBufferInfo {
+		struct GPUBufferInfo {
 
-			typedef GBuffer ResourceType;
+			typedef GPUBuffer ResourceType;
 
-			GBufferType type;
+			GPUBufferType type;
 			Buffer buffer;
 
 			bool hasData;
 			std::vector<Vec2u> changes;
 
 			//Empty gpu buffer
-			GBufferInfo(GBufferType type, u32 size) : type(type), buffer(size), hasData(false) { buffer.clear(); }
+			GPUBufferInfo(GPUBufferType type, u32 size) : type(type), buffer(size), hasData(false) { buffer.clear(); }
 
 			//Filled gpu buffer
-			GBufferInfo(GBufferType type, Buffer buffer) : type(type), buffer(buffer), hasData(true) {}
+			GPUBufferInfo(GPUBufferType type, Buffer buffer) : type(type), buffer(buffer), hasData(true) {}
 
 		};
 
-		class GBuffer : public GraphicsObject {
+		class GPUBuffer : public GraphicsObject {
 
 			friend class Graphics;
 			friend class oi::BlockAllocator;
 
 		public:
 
-			GBufferType getType();
+			GPUBufferType getType();
 
 			u32 getSize();
 			u8 *getAddress();
 
 			Buffer getBuffer();
 
-			GBufferExt &getExtension();
-			const GBufferInfo &getInfo();
+			GPUBufferExt &getExtension();
+			const GPUBufferInfo &getInfo();
 
 			bool set(Buffer buf, u32 offset = 0);
 
@@ -55,8 +55,8 @@ namespace oi {
 
 		protected:
 
-			~GBuffer();
-			GBuffer(GBufferInfo info);
+			~GPUBuffer();
+			GPUBuffer(GPUBufferInfo info);
 			bool init();
 
 			//Push changes to GPU
@@ -66,8 +66,8 @@ namespace oi {
 
 		private:
 
-			GBufferInfo info;
-			GBufferExt ext;
+			GPUBufferInfo info;
+			GPUBufferExt ext;
 
 		};
 

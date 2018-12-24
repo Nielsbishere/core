@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/drawlist.h"
 #include "graphics/objects/model/mesh.h"
 using namespace oi::gc;
@@ -59,7 +59,7 @@ void DrawList::prepareDrawList() {
 }
 
 bool DrawList::createCBO() {
-	g->use(info.drawBuffer = g->create(getName() + " CBO", GBufferInfo(GBufferType::CBO, getMaxBatches() * u32(info.meshBuffer->getInfo().maxIndices != 0 ? sizeof(VkDrawIndexedIndirectCommand) : sizeof(VkDrawIndirectCommand)))));
+	g->use(info.drawBuffer = g->create(getName() + " CBO", GPUBufferInfo(GPUBufferType::CBO, getMaxBatches() * u32(info.meshBuffer->getInfo().maxIndices != 0 ? sizeof(VkDrawIndexedIndirectCommand) : sizeof(VkDrawIndirectCommand)))));
 	return true;
 }
 

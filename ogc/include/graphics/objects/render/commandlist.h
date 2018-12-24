@@ -11,7 +11,7 @@ namespace oi {
 		class Graphics;
 		class RenderTarget;
 		class Pipeline;
-		class GBuffer;
+		class GPUBuffer;
 		class MeshBuffer;
 		class Mesh;
 		class DrawList;
@@ -58,7 +58,7 @@ namespace oi {
 
 		protected:
 
-			bool bind(std::vector<GBuffer*> vertices, GBuffer *indices = nullptr);
+			bool bind(std::vector<GPUBuffer*> vertices, GPUBuffer *indices = nullptr);
 			bool bind(MeshBuffer *meshBuffer);
 
 			~CommandList();

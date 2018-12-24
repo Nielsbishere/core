@@ -10,13 +10,13 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 | File                                                  | Message                                                      | Class           | Id   | Description                                                  |
 | ---- | ---- | ---- | ---- | ---- |
-| graphics<br />gl<br />vulkan<br />vkcommandlist.cpp     | CommandList::bind requires VBOs as first argument            | VkCommandList   | 0x0  | CommandList::bind requires the GBuffer*[] given to be of type GBufferType::VBO |
-|                                                         | CommandList::bind requires a valid IBO as second argument    |                 | 0x1  | CommandList::bind requires the GBuffer* given to be of type GBufferType::IBO |
+| graphics<br />gl<br />vulkan<br />vkcommandlist.cpp     | CommandList::bind requires VBOs as first argument            | VkCommandList   | 0x0  | CommandList::bind requires the GPUBuffer*[] given to be of type GPUBufferType::VBO |
+|                                                         | CommandList::bind requires a valid IBO as second argument    |                 | 0x1  | CommandList::bind requires the GPUBuffer* given to be of type GPUBufferType::IBO |
 | | Couldn't allocate command list | | 0x2 | The command pool allocated doesn't have enough space for the command buffers |
 | |  | | 0x3 |  |
 | |  | | 0x4 |  |
-| graphics<br />gl<br />vulkan<br />vkgbuffer.cpp         | Couldn't find a valid memory type for a VkGBuffer: {name}    | VkGBuffer       | 0x0  | The buffer created can't find space on the GPU to allocate the buffer into |
-|                                                         | Couldn't find a valid memory type for a staging buffer for VkGBuffer: {name} |                 | 0x1  | The staging buffer required for updating the buffer's data couldn't be allocated (see 0x0) |
+| graphics<br />gl<br />vulkan<br />vkgpubuffer.cpp       | Couldn't find a valid memory type for a VkGPUBuffer: {name}  | VkGPUBuffer   | 0x0  | The buffer created can't find space on the GPU to allocate the buffer into |
+|                                                         | Couldn't find a valid memory type for a staging buffer for VkGPUBuffer: {name} |                 | 0x1  | The staging buffer required for updating the buffer's data couldn't be allocated (see 0x0) |
 | | Failed to create buffer | | 0x2 | vkCreateBuffer returned an error, more details are printed before this error message |
 | | Couldn't allocate memory | | 0x3 | vkAllocateMemory returned an error, more details are printed before this error message |
 | | Couldn't bind memory to buffer {name} #{version} | | 0x4 | vkBindBufferMemory returned an error, more details are printed before this error message |
@@ -73,7 +73,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't create shader pipeline layout | | 0x9 | Pipeline layout couldn't be created, internal errors were logged |
 | | Couldn't create descriptor pool | | 0xA | Descriptor pool couldn't be created, internal errors were logged |
 | | Couldn't create descriptor sets | | 0xB | Descriptor set couldn't be created, internal errors were logged |
-| | Shader mentions an invalid resource type | | 0xC | The type found in the shader couldn't be recognized as a valid GraphicsResource (keep in mind that GBuffers aren't allowed by themselves) |
+| | Shader mentions an invalid resource type | | 0xC | The type found in the shader couldn't be recognized as a valid GraphicsResource (keep in mind that GPUBuffers aren't allowed by themselves) |
 | graphics<br />gl<br />vulkan<br />vkshaderstage.cpp | Shader stage creation failed | VkShaderStage | 0x0 | Shader stage couldn't be created, internal errors were logged |
 | graphics<br />gl<br />vulkan<br />vktexture.cpp         | Couldn't get depth texture; no optimal format available      | VkTexture       | 0x0  | The GPU doesn't support depth buffers                        |
 |                                                         | Couldn't find a valid memory type for a VkTexture: {name}    |                 | 0x1  | The GPU couldn't find how to allocate the texture or didn't have enough space |
@@ -183,7 +183,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Shader::set({path}) failed; invalid type (type is Image, but type provided isn't) |                 | 0x6  | Type was expected to be VersionedTexture, but wasn't or wasn't created with compute target usage |
 | graphics<br />objects<br />shader<br />shaderbuffer.cpp | Can't instantiate the buffer when it's already set           | ShaderBuffer    | 0x0  | ShaderBuffer::instantiate is only allowed when the buffer is not set yet |
 |                                                         | Can't set the buffer when it already contains data           |                 | 0x1  | ShaderBuffer::setBuffer is only allowed when the buffer is not set yet |
-|                                                         | GBuffer size should match ShaderBuffer size                  |                 | 0x2  | The buffer provided to ShaderBuffer::setBuffer didn't match the expected size |
+|                                                         | GPUBuffer size should match ShaderBuffer size                |                 | 0x2  | The buffer provided to ShaderBuffer::setBuffer didn't match the expected size |
 |                                                         | ShaderBuffer::copy requires a buffer to be set               |                 | 0x3  | instantiate or setBuffer should be called if the buffer isn't set yet |
 | graphics<br />objects<br />texture<br />texture.cpp     | Texture::set was out of bounds                               | Texture         | 0x0  | Setting a pixel requires a position between 0,0 and info.res - 1 |
 |                                                         | Texture::set invalid format                                  |                 | 0x1  | The pixel size should match info.format of the texture       |
@@ -247,7 +247,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Couldn't create DrawList; it needs at least 1 object         | maxBatches can't be 0                                        |
 |                                                         | Couldn't create DrawList; object buffer or mesh buffer was invalid | meshBuffer can't be nullptr                                  |
 |                                                         | Couldn't reserve draw list                                   | The GPU object associated with the draw list couldn't be created |
-| graphics<br />objects<br />gbuffer.cpp                  | GBuffer::set please use a buffer that matches the gbuffer's size | When calling GBuffer::set it requires the flushed buffer to be in range [0, buf.size()> |
+| graphics<br />objects<br />gpubuffer.cpp                | GPUBuffer::set please use a buffer that matches the gpuBuffer's size | When calling GPUBuffer::set it requires the flushed buffer to be in range [0, buf.size()> |
 | graphics<br />objects<br />model<br />materiallist.cpp  | Couldn't allocate material                                   | There was no space left for the material; free old materials or allocate material list with a bigger size |
 |                                                         | Couldn't deallocate struct; out of bounds                    | The MaterialStruct supplied isn't part of the MaterialList   |
 |                                                         | Material list max size can't be zero                         | Max size of MaterialList must be at least 1                  |

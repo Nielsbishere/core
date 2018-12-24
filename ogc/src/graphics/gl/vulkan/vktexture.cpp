@@ -333,7 +333,7 @@ void Texture::push() {
 
 	//Construct staging buffer with data
 
-	GBufferExt gbext;
+	GPUBufferExt gbext;
 	gbext.resource.resize(1);
 
 	VkBufferCreateInfo stagingInfo;

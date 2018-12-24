@@ -1,5 +1,5 @@
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/shader/pipeline.h"
 #include "graphics/objects/shader/shader.h"
@@ -9,7 +9,7 @@ using namespace oi;
 const ComputeListInfo &ComputeList::getInfo() { return info; }
 u32 ComputeList::getDispatches() { return (u32)info.dispatches.size(); }
 u32 ComputeList::getMaxDispatches() { return info.maxDispatches; }
-GBuffer *ComputeList::getDispatchBuffer() { return info.dispatchBuffer; }
+GPUBuffer *ComputeList::getDispatchBuffer() { return info.dispatchBuffer; }
 
 void ComputeList::flush() {
 

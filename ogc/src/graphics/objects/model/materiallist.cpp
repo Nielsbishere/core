@@ -1,5 +1,5 @@
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/model/material.h"
 #include "graphics/objects/model/materiallist.h"
 using namespace oi;
@@ -50,7 +50,7 @@ u32 MaterialList::getSize() const { return (u32) info.size; }
 u32 MaterialList::getBufferSize() const { return getSize() * (u32) sizeof(MaterialStruct); }
 
 const MaterialListInfo MaterialList::getInfo() const { return info; }
-GBuffer *MaterialList::getBuffer() const { return info.buffer; }
+GPUBuffer *MaterialList::getBuffer() const { return info.buffer; }
 
 MaterialList::~MaterialList() { g->destroy(info.buffer); }
 MaterialList::MaterialList(MaterialListInfo info) : info(info) {}
@@ -60,7 +60,7 @@ bool MaterialList::init() {
 	if (getSize() == 0)
 		return Log::error("Material list max size can't be zero");
 
-	info.buffer = g->create(getName() + " GBuffer", GBufferInfo(GBufferType::SSBO, getBufferSize()));
+	info.buffer = g->create(getName() + " Buffer", GPUBufferInfo(GPUBufferType::SSBO, getBufferSize()));
 
 	for (u32 i = 0; i < getSize(); ++i)
 		::new(info.buffer->getBuffer().addr<MaterialStruct>() + i) MaterialStruct();

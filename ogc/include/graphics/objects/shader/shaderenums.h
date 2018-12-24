@@ -10,7 +10,7 @@ namespace oi {
 		class Graphics;
 
 		class ShaderStage;
-		class GBuffer;
+		class GPUBuffer;
 
 		struct ShaderInput {
 

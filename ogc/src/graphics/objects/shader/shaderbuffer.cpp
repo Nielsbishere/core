@@ -141,7 +141,7 @@ ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
 
 	if (buffer == nullptr) {
 		setObjectCount(objects);
-		buffer = g->create(getName() + " buffer", GBufferInfo(info.type.getValue() - 1, info.size));
+		buffer = g->create(getName() + " buffer", GPUBufferInfo(info.type.getValue() - 1, info.size));
 		g->use(buffer);
 	} else
 		Log::throwError<ShaderBuffer, 0x0>("Can't instantiate the buffer when it's already set");
@@ -150,7 +150,7 @@ ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
 
 }
 
-void ShaderBuffer::setBuffer(u32 objects, GBuffer *gb) {
+void ShaderBuffer::setBuffer(u32 objects, GPUBuffer *gb) {
 
 	if (buffer != nullptr)
 		Log::throwError<ShaderBuffer, 0x1>("Can't set the buffer when it already contains data");
@@ -158,7 +158,7 @@ void ShaderBuffer::setBuffer(u32 objects, GBuffer *gb) {
 	setObjectCount(objects);
 
 	if(gb == nullptr || gb->getSize() != info.size)
-		Log::throwError<ShaderBuffer, 0x2>("GBuffer size should match ShaderBuffer size");
+		Log::throwError<ShaderBuffer, 0x2>("GPUBuffer size should match ShaderBuffer size");
 
 	buffer = gb;
 
@@ -184,7 +184,7 @@ void ShaderBuffer::setObjectCount(u32 count) {
 
 }
 
-GBuffer *ShaderBuffer::getBuffer() {
+GPUBuffer *ShaderBuffer::getBuffer() {
 	return buffer;
 }
 
@@ -208,7 +208,7 @@ ShaderBuffer::~ShaderBuffer() {
 bool ShaderBuffer::init() {
 
 	if (info.allocate) {
-		buffer = g->create(getName() + " buffer", GBufferInfo(info.type.getValue() - 1, info.size));
+		buffer = g->create(getName() + " buffer", GPUBufferInfo(info.type.getValue() - 1, info.size));
 		g->use(buffer);
 	}
 

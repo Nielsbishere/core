@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 #include "graphics/graphics.h"
 #include "graphics/gl/vulkan.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/shader/pipeline.h"
 #include "graphics/objects/shader/shader.h"
@@ -27,7 +27,7 @@ void ComputeList::prepareComputeList() {
 }
 
 bool ComputeList::createCBO() {
-	g->use(info.dispatchBuffer = g->create(getName() + " CBO", GBufferInfo(GBufferType::CBO, getMaxDispatches() * u32(sizeof(VkDispatchIndirectCommand)))));
+	g->use(info.dispatchBuffer = g->create(getName() + " CBO", GPUBufferInfo(GPUBufferType::CBO, getMaxDispatches() * u32(sizeof(VkDispatchIndirectCommand)))));
 	return true;
 }
 

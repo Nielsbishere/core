@@ -7,7 +7,7 @@
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/commandlist.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 
 
 #undef min
@@ -590,13 +590,13 @@ void Graphics::begin() {
 
 	//Clean up staging buffers from previous frame
 
-	std::vector<VkGBuffer> &stagingBuffers = ext.stagingBuffers[ext.current];
+	std::vector<VkGPUBuffer> &stagingBuffers = ext.stagingBuffers[ext.current];
 
 	if (stagingBuffers.size() != 0) {
 
 		for (u32 i = 0, j = (u32) stagingBuffers.size(); i < j; ++i) {
 
-			VkGBuffer &buffer = stagingBuffers[i];
+			VkGPUBuffer &buffer = stagingBuffers[i];
 
 			for(VkBuffer &vkBuffer : buffer.resource)
 				vkDestroyBuffer(ext.device, vkBuffer, vkAllocator);
@@ -634,13 +634,13 @@ void Graphics::end() {
 
 	//Submit staging commands; if possible
 
-	std::vector<GraphicsObject*> gbuffers = get<GBuffer>();
+	std::vector<GraphicsObject*> buffers = get<GPUBuffer>();
 	std::vector<GraphicsObject*> textures = get<Texture>();
 
 	bool shouldStage = false;
 
-	for (GraphicsObject *go : gbuffers)		//Check GPU buffers for updates (staging)
-		if (((GBuffer*)go)->shouldStage()) {
+	for (GraphicsObject *go : buffers)		//Check GPU buffers for updates (staging)
+		if (((GPUBuffer*)go)->shouldStage()) {
 			shouldStage = true;
 			break;
 		}
@@ -655,8 +655,8 @@ void Graphics::end() {
 	if (shouldStage)						//Start staging commands
 		ext.stagingCmdList->begin();
 
-	for (GraphicsObject *go : gbuffers)		//Push GPU buffers (some aren't staged)
-		((GBuffer*)go)->push();
+	for (GraphicsObject *go : buffers)		//Push GPU buffers (some aren't staged)
+		((GPUBuffer*)go)->push();
 
 	if (shouldStage) {						//Push textures (all are staged)
 		for (GraphicsObject *go : textures)

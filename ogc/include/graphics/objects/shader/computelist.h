@@ -8,7 +8,7 @@ namespace oi {
 
 		class ComputeList;
 		class Pipeline;
-		class GBuffer;
+		class GPUBuffer;
 
 		struct ComputeListInfo {
 
@@ -19,7 +19,7 @@ namespace oi {
 			bool clearOnUse;
 
 			std::vector<Vec3u> dispatches;
-			GBuffer *dispatchBuffer = nullptr;
+			GPUBuffer *dispatchBuffer = nullptr;
 
 			ComputeListInfo(Pipeline *computePipeline, u32 maxDispatches, bool clearOnUse = false) : computePipeline(computePipeline), maxDispatches(maxDispatches), clearOnUse(clearOnUse) {}
 
@@ -37,7 +37,7 @@ namespace oi {
 
 			u32 getMaxDispatches();
 			u32 getDispatches();
-			GBuffer *getDispatchBuffer();
+			GPUBuffer *getDispatchBuffer();
 
 			void clear();
 			void flush();

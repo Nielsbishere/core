@@ -1,14 +1,14 @@
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/view/viewbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
 ViewBuffer::~ViewBuffer() { g->destroy(info.buffer); }
 ViewBuffer::ViewBuffer(ViewBufferInfo info) : info(info) {}
-bool ViewBuffer::init() { return (info.buffer = g->create(getName() + " GBuffer", GBufferInfo(GBufferType::UBO, ViewBufferInfo::size))) != nullptr; }
+bool ViewBuffer::init() { return (info.buffer = g->create(getName() + " Buffer", GPUBufferInfo(GPUBufferType::UBO, ViewBufferInfo::size))) != nullptr; }
 
-GBuffer *ViewBuffer::getBuffer() { return info.buffer; }
+GPUBuffer *ViewBuffer::getBuffer() { return info.buffer; }
 
 void ViewBuffer::update() {
 

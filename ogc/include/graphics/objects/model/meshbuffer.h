@@ -2,7 +2,7 @@
 
 #include "memory/blockallocator.h"
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/texture/texture.h"
 
 namespace oi {
@@ -33,8 +33,8 @@ namespace oi {
 			VirtualBlockAllocator *vertices = nullptr, *indices = nullptr;
 			std::vector<u32> vboStrides;
 
-			std::vector<GBuffer*> vbos;
-			GBuffer *ibo = nullptr;
+			std::vector<GPUBuffer*> vbos;
+			GPUBuffer *ibo = nullptr;
 
 			MeshBufferInfo(u32 maxVertices, u32 maxIndices, std::vector<std::vector<std::pair<String, TextureFormat>>> vbos, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : maxVertices(maxVertices), maxIndices(maxIndices), buffers(vbos), topologyMode(topologyMode), fillMode(fillMode) { }
 			MeshBufferInfo() : MeshBufferInfo(0, 0, {}) {}

@@ -18,7 +18,7 @@ namespace oi {
 
 		struct VkGraphics;
 
-		class GBufferType;
+		class GPUBufferType;
 
 		struct VkRenderTarget {
 
@@ -35,15 +35,15 @@ namespace oi {
 
 		};
 
-		struct VkGBuffer {
+		struct VkGPUBuffer {
 
 			std::vector<VkBuffer> resource;
 			VkDeviceMemory memory = VK_NULL_HANDLE;
 			u32 alignment = 0, alignedSize = 0, size = 0;
 
-			static bool isVersioned(GBufferType type);
-			static bool isStaged(GBufferType type);
-			static bool isCoherent(GBufferType type);
+			static bool isVersioned(GPUBufferType type);
+			static bool isStaged(GPUBufferType type);
+			static bool isCoherent(GPUBufferType type);
 
 		};
 
@@ -106,7 +106,7 @@ namespace oi {
 			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
 
 			CommandList *stagingCmdList;
-			std::vector<std::vector<VkGBuffer>> stagingBuffers;
+			std::vector<std::vector<VkGPUBuffer>> stagingBuffers;
 
 			u32 current = 0, frames = 0;
 			u32 queueFamilyIndex = u32_MAX;
@@ -262,7 +262,7 @@ namespace oi {
 		DEnum(VkCullMode, VkCullModeFlags, None = VK_CULL_MODE_NONE, Back = VK_CULL_MODE_BACK_BIT, Front = VK_CULL_MODE_FRONT_BIT);
 		DEnum(VkWindMode, VkFrontFace, CCW = VK_FRONT_FACE_COUNTER_CLOCKWISE, CW = VK_FRONT_FACE_CLOCKWISE);
 
-		DEnum(VkGBufferType, VkBufferUsageFlags, UBO = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, SSBO = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, IBO = VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VBO = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, CBO = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
+		DEnum(VkGPUBufferType, VkBufferUsageFlags, UBO = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, SSBO = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, IBO = VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VBO = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, CBO = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
 
 		DEnum(VkShaderRegisterType, VkDescriptorType,
 			UBO = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SSBO = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,

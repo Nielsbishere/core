@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/shader.h"
 #include "graphics/objects/shader/shaderstage.h"
 #include "graphics/objects/texture/sampler.h"
@@ -77,7 +77,7 @@ void Shader::update() {
 			if(res == nullptr)
 				Log::throwError<VkShader, 0x7>("Shader mentions an invalid resource");
 			
-			if (res->isType<ShaderBuffer>() || res->isType<GBuffer>()) {
+			if (res->isType<ShaderBuffer>() || res->isType<GPUBuffer>()) {
 
 				if (reg.type != ShaderRegisterType::UBO && reg.type != ShaderRegisterType::SSBO)
 					Log::throwError<VkShader, 0x1>("A ShaderBuffer has been placed on a register not meant for buffers");
@@ -85,7 +85,7 @@ void Shader::update() {
 				VkDescriptorBufferInfo *bufferInfo = buffers.data() + bufferId;
 				descriptor.pBufferInfo = bufferInfo;
 
-				GBuffer *buf = res->isType<ShaderBuffer>() ? ((ShaderBuffer*)res)->getBuffer() : (GBuffer*)res;
+				GPUBuffer *buf = res->isType<ShaderBuffer>() ? ((ShaderBuffer*)res)->getBuffer() : (GPUBuffer*)res;
 
 				if (buf == nullptr)
 					Log::throwError<VkShader, 0x0>("Shader mentions an invalid buffer");

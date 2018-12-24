@@ -1,5 +1,5 @@
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/drawlist.h"
 #include "graphics/objects/model/mesh.h"
 using namespace oi::gc;
@@ -8,7 +8,7 @@ using namespace oi;
 const DrawListInfo DrawList::getInfo() { return info; }
 u32 DrawList::getBatches() { return (u32) info.objects.size(); }
 u32 DrawList::getMaxBatches() { return info.maxBatches; }
-GBuffer *DrawList::getBuffer() { return info.drawBuffer; }
+GPUBuffer *DrawList::getBuffer() { return info.drawBuffer; }
 
 void DrawList::flush() {
 

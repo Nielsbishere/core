@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/drawlist.h"
@@ -185,14 +185,14 @@ void CommandList::bind(Pipeline *pipeline) {
 
 }
 
-bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
+bool CommandList::bind(std::vector<GPUBuffer*> vbos, GPUBuffer *ibo) {
 
 	std::vector<VkBuffer> vkBuffer(vbos.size());
 
 	u32 i = 0;
 
-	for (GBuffer *b : vbos)
-		if (b->getType() != GBufferType::VBO)
+	for (GPUBuffer *b : vbos)
+		if (b->getType() != GPUBufferType::VBO)
 			return Log::throwError<VkCommandList, 0x0>("CommandList::bind requires VBOs as first argument");
 		else
 			vkBuffer[i++] = b->getExtension().resource[0];
@@ -204,7 +204,7 @@ bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 
 	if (ibo != nullptr) {
 
-		if (ibo->getType() != GBufferType::IBO)
+		if (ibo->getType() != GPUBufferType::IBO)
 			return Log::throwError<VkCommandList, 0x1>("CommandList::bind requires a valid IBO as second argument");
 
 		vkCmdBindIndexBuffer(ext_cmd, ibo->getExtension().resource[0], 0, VkIndexType::VK_INDEX_TYPE_UINT32);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types/matrix.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/graphicsresource.h"
 #include "shaderenums.h"
 
@@ -132,7 +132,7 @@ namespace oi {
 			u32 getElements();
 			u32 getSize();
 
-			GBuffer *getBuffer();
+			GPUBuffer *getBuffer();
 
 			//If info.allocate is false, you have to instantiate the buffer yourself
 			//This can be a dynamic object buffer, light buffer, etc.
@@ -140,8 +140,8 @@ namespace oi {
 
 			//If info.allocate is false, you can allocate a buffer yourself
 			//This can be a dynamic object buffer, light buffer, etc.
-			//The length of the GBuffer should match the ShaderBuffer's length
-			void setBuffer(u32 objects, GBuffer *g);
+			//The length of the GPUBuffer should match the ShaderBuffer's length
+			void setBuffer(u32 objects, GPUBuffer *g);
 
 			void set(Buffer buf);			//Copy a buffer
 
@@ -164,7 +164,7 @@ namespace oi {
 		private:
 
 			ShaderBufferInfo info;
-			GBuffer *buffer = nullptr;
+			GPUBuffer *buffer = nullptr;
 
 		};
 
