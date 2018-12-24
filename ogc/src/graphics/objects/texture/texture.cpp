@@ -200,6 +200,8 @@ bool Texture::read(String path, Vec2u start, Vec2u length) {
 
 bool Texture::init(bool isOwned) {
 
+	owned = isOwned;
+
 	int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
 
 	if (info.mipFilter != TextureMipFilter::None) {
@@ -236,7 +238,7 @@ bool Texture::init(bool isOwned) {
 
 	}
 
-	return initData(isOwned);
+	return initData();
 }
 
 bool Texture::shouldStage() {

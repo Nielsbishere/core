@@ -123,7 +123,7 @@ void Shader::update() {
 				descriptor.pImageInfo = image;
 
 				image->imageView = tex->getExtension().view;
-				image->imageLayout = tex->getExtension().layout;
+				image->imageLayout = reg.type == ShaderRegisterType::Image ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				++imageId;
 
 			} else if (res->isType<TextureList>()) {
@@ -142,7 +142,7 @@ void Shader::update() {
 				for (u32 z = 0; z < reg.size; ++z) {
 					Texture *tex = textures->get(z);
 					image->imageView = tex->getExtension().view;
-					image->imageLayout = tex->getExtension().layout;
+					image->imageLayout = reg.type == ShaderRegisterType::Image ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 					++image;
 				}
 

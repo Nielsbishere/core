@@ -8,16 +8,16 @@
 using namespace oi::gc;
 using namespace oi;
 
-bool Texture::initData(bool isOwned) {
-
-	owned = isOwned;
+bool Texture::initData() {
 
 	VkGraphics &graphics = g->getExtension();
 
-	if (info.format == TextureFormat::Depth) {
+	if (info.format == TextureFormat::Depth || info.format == TextureFormat::Depth_stencil) {
 
-		static const std::vector<VkTextureFormat> priorities = 
-						{ VkTextureFormat::D32S8, VkTextureFormat::D24S8, VkTextureFormat::D32, VkTextureFormat::D16 };
+		static const std::vector<VkTextureFormat> stencil = { VkTextureFormat::D32S8, VkTextureFormat::D24S8, VkTextureFormat::D16S8 };
+		static const std::vector<VkTextureFormat> depth = { VkTextureFormat::D32, VkTextureFormat::D16 };
+
+		static const std::vector<VkTextureFormat> &priorities = info.format == TextureFormat::Depth ? depth : stencil;
 
 		for (const VkTextureFormat &f : priorities) {
 			VkFormatProperties fprop;
@@ -29,7 +29,7 @@ bool Texture::initData(bool isOwned) {
 			}
 		}
 
-		if (info.format == TextureFormat::Depth)
+		if (info.format == TextureFormat::Depth || info.format == TextureFormat::Depth_stencil)
 			return Log::throwError<VkTexture, 0x0>("Couldn't get depth texture; no optimal format available");
 
 	}
@@ -41,7 +41,7 @@ bool Texture::initData(bool isOwned) {
 
 	VkTextureUsage usage = info.usage.getName();
 
-	if(isOwned){
+	if(owned){
 	
 		//Create image
 

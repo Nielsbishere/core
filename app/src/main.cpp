@@ -415,6 +415,7 @@ void MainInterface::initSceneSurface(Vec2u res){
 	cmiLighting->set("outputTexture", cmiLightingTarget->getTarget(0));
 	cmiLighting->set("uvNormal", renderTarget->getTarget(0));
 	cmiLighting->set("materials", renderTarget->getTarget(1));
+	cmiLighting->set("depth", renderTarget->getDepth());
 
 	ShaderBuffer *global = cmiLighting->get<ShaderBuffer>("Global");
 	global->set("resolution", res);

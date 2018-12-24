@@ -44,6 +44,7 @@ layout(binding = 8, rgba16f) uniform image2D outputTexture;
 layout(binding = 9) uniform texture2D uvNormal;
 layout(binding = 10) uniform sampler nearest;
 layout(binding = 11) uniform utexture2D materials;
+layout(binding = 12) uniform texture2D depth;
 
 Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 	return texture(sampler2D(tex[handle], s), uv);
@@ -66,12 +67,14 @@ void main() {
 
 	Camera cam = viewData.cameras[viewData.views[global.view].camera];
 
-	Vec4 uvn = texture(sampler2D(uvNormal, nearest), globalUv);
+	Vec4 sUvn = texture(sampler2D(uvNormal, nearest), globalUv);
+	u32 sMaterial = texture(usampler2D(materials, nearest), globalUv).r;
+	f32 sDepth = texture(sampler2D(depth, nearest), globalUv).r;
 
-	Vec3 pos = Vec3(0, 0, 0);		//TODO: Sample
-	Vec2 uv = uvn.xy;
-	Vec3 normal = unpackNormal(uvn.zw);
-	u32 material = max(1, texture(usampler2D(materials, nearest), globalUv).r) - 1;
+	Vec3 pos = Vec3(0, 0, sDepth * 5);		//TODO: Fix it
+	Vec2 uv = sUvn.xy;
+	Vec3 normal = unpackNormal(sUvn.zw);
+	u32 material = max(1, sMaterial) - 1;
 
     //Get camera position
 	Vec3 cpos = normalize(cam.position - pos);
