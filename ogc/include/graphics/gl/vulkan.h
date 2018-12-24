@@ -39,7 +39,7 @@ namespace oi {
 
 			std::vector<VkBuffer> resource;
 			VkDeviceMemory memory = VK_NULL_HANDLE;
-			u32 gpuAlignment = 0;
+			u32 alignment = 0, alignedSize = 0, size = 0;
 
 			static bool isVersioned(GBufferType type);
 			static bool isStaged(GBufferType type);

@@ -83,10 +83,12 @@ bool GBuffer::init() {
 
 	VkMemoryRequirements requirements;
 	vkGetBufferMemoryRequirements(graphics.device, ext.resource[0], &requirements);
-	ext.gpuAlignment = u32(std::ceil((f64) requirements.size / requirements.alignment) * requirements.alignment);
+	ext.size = (u32) requirements.size;
+	ext.alignment = (u32) requirements.alignment;
+	ext.alignedSize = u32(std::ceil((f64) ext.size / ext.alignment) * ext.alignment);
 	
 	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryInfo.allocationSize = ext.gpuAlignment * ext.resource.size();
+	memoryInfo.allocationSize = ext.alignedSize * ext.resource.size();
 	
 	uint32_t memoryIndex = u32_MAX;
 	
@@ -105,7 +107,7 @@ bool GBuffer::init() {
 
 	for(u32 i = 0, j = (u32) ext.resource.size(); i < j; ++i){
 		vkGetBufferMemoryRequirements(graphics.device, ext.resource[i], &requirements);		//Some devices require the requirements to be checked
-		vkCheck<0x4, VkGBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.gpuAlignment * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
+		vkCheck<0x4, VkGBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.alignedSize * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
 	}
 
 	//Set that it should update
@@ -229,14 +231,22 @@ void GBuffer::push() {
 		return;
 	}
 
-	u32 boffset = ext.gpuAlignment * graphics.current;
+	u32 boffset = ext.alignedSize * graphics.current;
+
+	u32 offsetAlignment = (u32) graphics.pproperties.limits.nonCoherentAtomSize;
+	u32 mapOffset = off / offsetAlignment * offsetAlignment;
+	u32 dif = off - mapOffset;
+
+	len += dif;
+
+	VkDeviceSize mapLength = len % ext.alignment == 0 ? len : (len / ext.alignment + 1) * ext.alignment;
 
 	//Map memory
 	u8 *addr;
-	vkCheck<0x9, GBuffer>(vkMapMemory(g->getExtension().device, ext.memory, off + boffset, len, 0, (void**)&addr), "Couldn't map memory");
+	vkCheck<0x9, GBuffer>(vkMapMemory(g->getExtension().device, ext.memory, mapOffset + boffset, mapLength, 0, (void**)&addr), "Couldn't map memory");
 
 	//Copy buffer
-	memcpy(addr, getAddress() + off, len);
+	memcpy(addr + dif, getAddress() + off, len);
 
 	//Flush (if needed)
 
@@ -246,8 +256,8 @@ void GBuffer::push() {
 			VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
 			nullptr,
 			ext.memory,
-			off + boffset,
-			len
+			mapOffset + boffset,
+			mapLength
 		};
 
 		//TODO: Align this properly
