@@ -425,7 +425,7 @@ void MainInterface::initSceneSurface(Vec2u res){
 
 	//Update post processing shader
 
-	shader0->set("tex", cmiLightingTarget->getTarget(0));
+	shader0->set("tex", cmiLightingTarget->getTarget(0))
 }
 	
 void MainInterface::onInput(InputDevice*, Binding b, bool down) {
