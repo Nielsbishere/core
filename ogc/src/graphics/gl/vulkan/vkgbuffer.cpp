@@ -83,10 +83,10 @@ bool GBuffer::init() {
 
 	VkMemoryRequirements requirements;
 	vkGetBufferMemoryRequirements(graphics.device, ext.resource[0], &requirements);
-	ext.gpuLength = (u32) requirements.size;
+	ext.gpuAlignment = u32(std::ceil((f64) requirements.size / requirements.alignment) * requirements.alignment);
 	
 	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryInfo.allocationSize = ext.gpuLength * ext.resource.size();
+	memoryInfo.allocationSize = ext.gpuAlignment * ext.resource.size();
 	
 	uint32_t memoryIndex = u32_MAX;
 	
@@ -105,7 +105,7 @@ bool GBuffer::init() {
 
 	for(u32 i = 0, j = (u32) ext.resource.size(); i < j; ++i){
 		vkGetBufferMemoryRequirements(graphics.device, ext.resource[i], &requirements);		//Some devices require the requirements to be checked
-		vkCheck<0x4, VkGBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.gpuLength * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
+		vkCheck<0x4, VkGBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.gpuAlignment * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
 	}
 
 	//Set that it should update
@@ -229,7 +229,7 @@ void GBuffer::push() {
 		return;
 	}
 
-	u32 boffset = ext.gpuLength * graphics.current;
+	u32 boffset = ext.gpuAlignment * graphics.current;
 
 	//Map memory
 	u8 *addr;

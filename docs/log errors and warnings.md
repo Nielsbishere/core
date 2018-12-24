@@ -204,6 +204,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Couldn't load texture; Texture load format is invalid        |                 | 0x10 | The texture load format given was undefined                  |
 |                                                         | Couldn't load texture from disk                              |                 | 0x11 | The texture path given had invalid data or the file doesn't exist |
 |                                                         | Couldn't create CPU buffer for texture; invalid format       |                 | 0x12 | When creating an empty texture, use                          |
+| graphics<br />objects<br />shader<br />computelist.cpp  | Couldn't dispatch compute shader; no space left in compute buffer | ComputeList     | 0x0  | max dispatch count was too small. Please clear the compute list's buffer; it was too small |
 
 ### Errors
 

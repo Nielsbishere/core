@@ -43,6 +43,7 @@ layout(std430, binding = 7) buffer Materials {
 layout(binding = 8, rgba16f) uniform image2D outputTexture;
 layout(binding = 9) uniform texture2D uvNormal;
 layout(binding = 10) uniform sampler nearest;
+layout(binding = 11) uniform utexture2D materials;
 
 Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
 	return texture(sampler2D(tex[handle], s), uv);
@@ -70,7 +71,7 @@ void main() {
 	Vec3 pos = Vec3(0, 0, 0);		//TODO: Sample
 	Vec2 uv = uvn.xy;
 	Vec3 normal = unpackNormal(uvn.zw);
-	u32 material = 0;				//TODO: Sample
+	u32 material = max(1, texture(usampler2D(materials, nearest), globalUv).r) - 1;
 
     //Get camera position
 	Vec3 cpos = normalize(cam.position - pos);

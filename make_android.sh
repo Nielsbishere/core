@@ -254,11 +254,7 @@ if [ $apk ] ; then
 	aapt package -f -I "${ANDROID_SDK}/platforms/android-$lvl/android.jar" -M AndroidManifest.xml -A assets -S res -m -F bin/app-unsigned.apk
 	
 	libs=$(find . -type f -name '*.so' | sed 's/\\/\//g')
-	
-	for lib in $(echo ${libs//.\//} | tr " " "\n")
-	do
-		aapt add bin/app-unsigned.apk $lib
-	done
+	aapt add bin/app-unsigned.apk $(echo ${libs//.\//})
 	
 	# Align and sign APK
 	
@@ -270,9 +266,9 @@ if [ $apk ] ; then
 	fi
 	
 	if [ "$dev" == "windows-x86_64" ] ; then
-		apksigner.bat sign --ks ../../.keystore --min-sdk-version 24 app.apk
+		apksigner.bat sign --ks ../../.keystore --min-sdk-version $lvl app.apk
 	else
-		apksigner.sh sign --ks ../../.keystore --min-sdk-version 24 app.apk
+		apksigner.sh sign --ks ../../.keystore --min-sdk-version $lvl app.apk
 	fi
 
 	cd ../

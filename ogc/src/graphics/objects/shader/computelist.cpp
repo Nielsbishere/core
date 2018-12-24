@@ -34,6 +34,9 @@ Vec3u ComputeList::dispatchGroups(Vec3u groups) {
 	if (groups.x == 0 || groups.y == 0 || groups.z == 0)
 		return Vec3u();
 
+	if ((u32) info.dispatches.size() == info.maxDispatches)
+		Log::throwError<ComputeList, 0x0>("Couldn't dispatch compute shader; no space left in compute buffer");
+
 	info.dispatches.push_back(groups);
 	return groups;
 }

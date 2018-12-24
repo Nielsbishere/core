@@ -18,5 +18,5 @@ Vec2 encodeNormal(Vec3 n) {
 //Output to G-Buffer
 void main() {
 	uvNormal = Vec4(uv, encodeNormal(normal));
-	gmaterial = material;
+	gmaterial = material + 1;
 }

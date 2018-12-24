@@ -405,6 +405,7 @@ void MainInterface::initSceneSurface(Vec2u res){
 	g.use(pipeline0);
 
 	//Resize compute parameters
+	cmiLightingDispatch->clear();
 	cmiLightingDispatch->dispatchThreads(res);
 	cmiLightingDispatch->flush();
 
@@ -413,6 +414,7 @@ void MainInterface::initSceneSurface(Vec2u res){
 
 	cmiLighting->set("outputTexture", cmiLightingTarget->getTarget(0));
 	cmiLighting->set("uvNormal", renderTarget->getTarget(0));
+	cmiLighting->set("materials", renderTarget->getTarget(1));
 
 	ShaderBuffer *global = cmiLighting->get<ShaderBuffer>("Global");
 	global->set("resolution", res);
