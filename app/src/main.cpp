@@ -390,19 +390,23 @@ void MainInterface::initSceneSurface(Vec2u res){
 	//RG16f = uv; 4 Bpp
 	//RG16 = normal; 4 Bpp
 	//R16u = material id 2 Bpp
+
 	g.use(renderTarget = g.create("G-Buffer target", 
 		RenderTargetInfo(res, TextureFormat::Depth, { TextureFormat::RG16f, TextureFormat::RG16, TextureFormat::R16u })
 	));
 
 	//drawList -> Rendering pipeline -> renderTarget
+
 	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, meshBuffer));
 	g.use(pipeline);
 
 	//renderTarget -> Post processing pipeline -> back buffer
+
 	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0));
 	g.use(pipeline0);
 
 	//Resize compute parameters
+
 	cmiLightingDispatch->clear();
 	cmiLightingDispatch->dispatchThreads(res);
 	cmiLightingDispatch->flush();
@@ -420,7 +424,7 @@ void MainInterface::initSceneSurface(Vec2u res){
 	global->set("resolution", res);
 
 	//Update post processing shader
-	//TODO: It should actually sample within bounds [Vec2u(), res] not [Vec2u(), targetRes]
+
 	shader0->set("tex", cmiLightingTarget->getTarget(0));
 }
 	

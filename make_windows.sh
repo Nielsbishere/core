@@ -28,6 +28,15 @@ declParam() {
 
 }
 
+# If latest command failed; quit
+checkErrors() {
+
+	if ! [ $? == 0 ] ; then
+		exit 1
+	fi
+
+}
+
 # Default params
 
 env=all
@@ -75,6 +84,7 @@ reload(){
 	fi
 	
 	cmake ../../../ -G "$2" $params
+	checkErrors
 	cd ../
 
 }
@@ -114,18 +124,22 @@ fi
 
 if [[ "$env" == *"x64"* ]] ; then
 	cmd.exe /c "MSBuild.exe \"x64/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"x64\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
 fi
 
 if [[ "$env" == *"x86"* ]] ; then
 	cmd.exe /c "MSBuild.exe \"x86/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"Win32\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
 fi
 
 if [[ "$env" == *"ARM64"* ]] ; then
 	cmd.exe /c "MSBuild.exe \"ARM64/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"ARM64\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
 fi
 
 if [[ "$env" == *"ARM32"* ]] ; then
 	cmd.exe /c "MSBuild.exe \"ARM/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"ARM\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
 fi
 
 rm -rf build/*
@@ -158,6 +172,8 @@ if [ $strip ] ; then
 else
 	"../oibaker.exe"
 fi
+
+checkErrors
 
 cd ../builds/Windows/build
 mkdir -p res

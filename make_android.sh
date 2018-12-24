@@ -26,6 +26,15 @@ declParam() {
 
 }
 
+# If latest command failed; quit
+checkErrors() {
+
+	if ! [ $? == 0 ] ; then
+		exit 1
+	fi
+
+}
+
 # Default params
 abi=all
 lvl=24
@@ -100,7 +109,8 @@ build(){
 		else
 			cmake "../../../" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared $cmakeParams
 		fi
-	
+
+		checkErrors
 	
 		cd ../../../
 	
@@ -127,6 +137,7 @@ buildAbi(){
 	build "$d"
 	cd builds/Android/$d
 	eval "$makeCmd" $params
+	checkErrors
 	cd ../
 	
 	mkdir -p build/lib/$d
@@ -197,6 +208,8 @@ if [ "$dev" == "windows-x86_64" ] ; then
 	else
 		"../oibaker.exe"
 	fi
+
+	checkErrors
 
 	cd ../builds/Android
 
