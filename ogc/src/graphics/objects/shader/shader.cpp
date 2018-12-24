@@ -49,12 +49,18 @@ bool Shader::set(String path, GraphicsResource *res) {
 	}
 
 	if (it->second != res) {
+
 		changed.clear(true);
-		g->destroyObject(it->second);
+
+		if(it->second != nullptr)
+			g->destroyObject(it->second);
+
+		it->second = res;
+
+		if(res != nullptr)
+			g->use(res);
 	}
 
-	it->second = res;
-	g->use(it->second);
 	return true;
 }
 
@@ -93,9 +99,6 @@ bool Shader::init() {
 
 	for (ShaderStage *ss : info.stage)
 		g->use(ss);
-
-	for (auto &gr : info.shaderRegister)
-		g->use(gr.second);
 
 	changed = Bitset(g->getBuffering(), true);
 	return initData();

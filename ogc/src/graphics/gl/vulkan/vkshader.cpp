@@ -298,10 +298,7 @@ bool Shader::initData() {
 	info.shaderRegister.reserve(info.registers.size());
 
 	for (auto &sb : info.buffer) {
-
 		ShaderBuffer *buffer = g->create(getName() + " " + sb.first, info.buffer[sb.first]);
-		g->use(buffer);
-
 		set(sb.first, buffer);
 	}
 

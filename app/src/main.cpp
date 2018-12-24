@@ -376,13 +376,10 @@ void MainInterface::renderScene(){
 void MainInterface::initSceneSurface(Vec2u res){
 
 	//Destroy old data
-
-	if (pipeline != nullptr) {
-		g.destroy(renderTarget);
-		g.destroy(cmiLightingTarget);
-		g.destroy(pipeline);
-		g.destroy(pipeline0);
-	}
+	g.destroy(renderTarget);
+	g.destroy(cmiLightingTarget);
+	g.destroy(pipeline);
+	g.destroy(pipeline0);
 
 	if (res == Vec2u())
 		return;
@@ -490,6 +487,10 @@ void MainInterface::update(f32 dt) {
 
 MainInterface::~MainInterface(){
 	g.finish();
+	g.destroy(renderTarget);
+	g.destroy(cmiLightingTarget);
+	g.destroy(pipeline);
+	g.destroy(pipeline0);
 	g.destroy(pipelineState);
 	g.destroy(rock);
 	g.destroy(water);
