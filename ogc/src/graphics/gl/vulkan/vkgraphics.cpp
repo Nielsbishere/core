@@ -68,9 +68,9 @@ Graphics::~Graphics(){
 
 		#ifdef __DEBUG__
 
-		vkExtension(vkDestroyDebugReportCallbackEXT);
+			vkExtension(vkDestroyDebugReportCallbackEXT);
 
-		vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, vkAllocator);
+			vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, vkAllocator);
 
 		#endif
 
@@ -97,18 +97,34 @@ void Graphics::init(Window *w){
 	VkExtensionProperties *extensions = new VkExtensionProperties[extensionCount];
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 
+	#ifdef __RAYTRACING__
+
+		String raytracingExt = "VK_NV_ray_tracing";
+
+		for (u32 i = 0; i < extensionCount; ++i)
+			if (String(extensions[i].extensionName) == raytracingExt)
+				features[GraphicsFeature::Raytracing] = true;
+
+	#endif
+
+	String multiViewExt = "VK_KHR_multiview";
+
+	for (u32 i = 0; i < extensionCount; ++i)
+		if (String(extensions[i].extensionName) == multiViewExt)
+			features[GraphicsFeature::XR] = true;
+
 	#ifdef __DEBUG__
 
-	Log::println("Starting graphics...");
-	Log::println("Supported layers:");
-	
-	for(u32 i = 0; i < layerCount; ++i)
-		Log::println(String("\t") + layers[i].layerName);
-	
-	Log::println("Supported extensions:");
-	
-	for(u32 i = 0; i < extensionCount; ++i)
-		Log::println(String("\t") + extensions[i].extensionName);
+		Log::println("Starting graphics...");
+		Log::println("Supported layers:");
+		
+		for(u32 i = 0; i < layerCount; ++i)
+			Log::println(String("\t") + layers[i].layerName);
+		
+		Log::println("Supported extensions:");
+		
+		for (u32 i = 0; i < extensionCount; ++i)
+			Log::println(String("\t") + extensions[i].extensionName);
 	
 	#endif
 	
@@ -120,17 +136,27 @@ void Graphics::init(Window *w){
 	cextensions[0] = "VK_KHR_surface";
 	cextensions[1] = __VK_SURFACE_EXT__;
 
-	#ifdef __DEBUG__
+	#ifdef __RAYTRACING__
 
-	#ifdef __ANDROID__
-	clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
-				"VK_LAYER_LUNARG_core_validation", "VK_LAYER_GOOGLE_unique_objects" };
-	#else 
-	clayers.push_back("VK_LAYER_LUNARG_standard_validation");
-	cextensions.push_back("VK_EXT_debug_utils");
+	if (supports(GraphicsFeature::Raytracing))
+		cextensions.push_back(raytracingExt.toCString());
+
 	#endif
 
-	cextensions.push_back("VK_EXT_debug_report");
+	if (supports(GraphicsFeature::XR))
+		cextensions.push_back(multiViewExt.toCString());
+
+	#ifdef __DEBUG__
+
+		#ifdef __ANDROID__
+			clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
+					"VK_LAYER_LUNARG_core_validation", "VK_LAYER_GOOGLE_unique_objects" };
+		#else 
+			clayers.push_back("VK_LAYER_LUNARG_standard_validation");
+			cextensions.push_back("VK_EXT_debug_utils");
+		#endif
+
+		cextensions.push_back("VK_EXT_debug_report");
 	#endif
 	
 	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions
@@ -186,20 +212,20 @@ void Graphics::init(Window *w){
 
 	#ifdef __DEBUG__
 
-	//Debug callback
+		//Debug callback
 
-	VkDebugReportCallbackCreateInfoEXT callbackInfo;
-	memset(&callbackInfo, 0, sizeof(callbackInfo));
+		VkDebugReportCallbackCreateInfoEXT callbackInfo;
+		memset(&callbackInfo, 0, sizeof(callbackInfo));
 
-	callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-	callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;	//All but info
-	callbackInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) onDebugReport;	//TODO: Warning on some devices; not same type?
+		callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+		callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;	//All but info
+		callbackInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) onDebugReport;	//TODO: Warning on some devices; not same type?
 
-	vkExtension(vkCreateDebugReportCallbackEXT);
+		vkExtension(vkCreateDebugReportCallbackEXT);
 
-	vkCheck<0xB>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
+		vkCheck<0xB>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
 
-	Log::println("Successfully created debug report callback");
+		Log::println("Successfully created debug report callback");
 
 	#endif
 
@@ -214,7 +240,7 @@ void Graphics::init(Window *w){
 	vkEnumeratePhysicalDevices(ext.instance, &deviceCount, devices);
 	
 	#ifdef __DEBUG__
-	Log::println(String("Devices: ") + deviceCount);
+		Log::println(String("Devices: ") + deviceCount);
 	#endif
 	
 	VkPhysicalDeviceProperties *properties = new VkPhysicalDeviceProperties[deviceCount];
@@ -224,7 +250,7 @@ void Graphics::init(Window *w){
 		vkGetPhysicalDeviceProperties(devices[i], properties + i);
 		
 		#ifdef __DEBUG__
-		Log::println(String("Device #") + i + ": " + properties[i].deviceName);
+			Log::println(String("Device #") + i + ": " + properties[i].deviceName);
 		#endif
 		
 	}
@@ -237,7 +263,7 @@ void Graphics::init(Window *w){
 		if(properties[i].deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
 			
 			#ifdef __DEBUG__
-			Log::println(String("Found a discrete GPU (") + properties[i].deviceName + ")");
+				Log::println(String("Found a discrete GPU (") + properties[i].deviceName + ")");
 			#endif
 			
 			gpu = devices + i;
@@ -309,9 +335,9 @@ void Graphics::init(Window *w){
 
 	#if defined(__DEBUG__) && defined(__WINDOWS__)
 
-	//Debug object names
+		//Debug object names
 
-	ext.debugNames = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(ext.device, "vkSetDebugUtilsObjectNameEXT");
+		ext.debugNames = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(ext.device, "vkSetDebugUtilsObjectNameEXT");
 
 	#endif
 

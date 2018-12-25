@@ -4,6 +4,7 @@
 #include "graphics/graphics.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/texture/texture.h"
+#include "graphics/objects/shader/pipelinestate.h"
 
 namespace oi {
 

@@ -89,6 +89,10 @@ void Graphics::printObjects() {
 			Log::println(b->getName() + " (" + b->getTypeName() + ") refCount " + b->refCount);
 }
 
+bool Graphics::supports(GraphicsFeature feature) {
+	return features[feature.getValue()];
+}
+
 bool Graphics::remove(GraphicsObject *go) {
 
 	size_t id = go->getHash();

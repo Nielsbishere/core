@@ -9,6 +9,17 @@ namespace oi {
 
 		class PipelineState;
 
+		DEnum(TopologyMode, u32,
+			Points = 0, Line = 1, Line_strip = 2, Triangle = 3, Triangle_strip = 4, Triangle_fan = 5,
+			Line_adj = 6, Line_strip_adj = 7, Triangle_adj = 8, Triangle_strip_adj = 9, Undefined = 255
+		);
+
+		DEnum(FillMode, u32, Fill = 0, Line = 1, Point = 2, Undefined = 255);
+		DEnum(CullMode, u32, None = 0, Back = 1, Front = 2);
+		DEnum(WindMode, u32, CCW = 0, CW = 1);
+		DEnum(DepthMode, u32, None = 0, Depth_test = 1, Depth_write = 2, All = 3);
+		DEnum(BlendMode, u32, Off = 0, Alpha = 1, Add = 2, Subtract = 3);
+
 		struct PipelineStateInfo {
 
 			typedef PipelineState ResourceType;
