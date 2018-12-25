@@ -51,6 +51,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |  | Couldn't submit queue |  | 0x17 | Couldn't submit queue, contains an invalid command buffer, internal error has been printed |
 |  | Couldn't present image |  | 0x18 | Couldn't present image; surface destroyed or see 0x17 |
 |  |  |  | 0x19 | see 0x18 |
+| | Couldn't enumerate layers | | 0x20 | The Vulkan driver was unable to provide VkGraphics with the layers |
+| | Couldn't enumerate extensions | | 0x21 | The Vulkan driver was unable to provide VkGraphics with the extensions |
 | graphics<br />gl<br />vulkan<br />vkpipeline.cpp        | Pipeline requires a shader                                   | VkPipeline      | 0x0  | All pipelines require a shader                               |
 |                                                         | Graphics pipeline requires a render target, pipeline state and mesh buffer |                 | 0x1  | A graphics pipeline needs a mesh buffer, pipeline state and render target to be set |
 |                                                         | Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; {shaderName}'s {varName} and {meshBufferName}'s {meshVarName} |                 | 0x2  | The inputs of the vertex shader didn't match up with the MeshBuffer's layout |

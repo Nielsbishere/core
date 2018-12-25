@@ -87,9 +87,9 @@ void Graphics::init(Window *w){
 
 	//Get extensions and layers
 
-	u32 layerCount, extensionCount;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+	u32 layerCount = 0, extensionCount = 0;
+	vkCheck<0x20>(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), "Couldn't enumerate layers");
+	vkCheck<0x21>(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr), "Couldn't enumerate extensions");
 
 	VkLayerProperties *layers = new VkLayerProperties[layerCount];
 	vkEnumerateInstanceLayerProperties(&layerCount, layers);

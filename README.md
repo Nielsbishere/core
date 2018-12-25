@@ -30,7 +30,8 @@ git submodule update --init --recursive
 The following dependencies are required for the entire project:
 
 [CMake](https://cmake.org/download/) 3.6.0 or later  
-[Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) 1.1.92.1 or later
+[Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) 1.1.92.1 or later (ogc dependency)  
+[Python](https://www.python.org/downloads/) 3.7.1 or later (SPIRV-Tools-opt dependency)
 
 ### Windows
 
