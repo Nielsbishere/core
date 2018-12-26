@@ -35,7 +35,7 @@ namespace oi {
 		enum class TextureFormatStorage;
 		class TextureLoadFormat;
 
-		UEnum(GraphicsFeature, Raytracing = 0, XR = 1);
+		UEnum(GraphicsFeature, Raytracing = 0, VR = 1);
 
 		class Graphics {
 

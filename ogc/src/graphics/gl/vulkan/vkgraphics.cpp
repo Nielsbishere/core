@@ -135,7 +135,7 @@ void Graphics::init(Window *w){
 
 	#ifdef __VR__
 
-		for(VkExtensionProperties *extension = extensions; extension < extension + extensionCount; ++extension) {
+		for(VkExtensionProperties *extension = extensions; extension != extensions + extensionCount; ++extension) {
 			if (String(extension->extensionName) == VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) {
 				cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 				features[GraphicsFeature::VR] = true;

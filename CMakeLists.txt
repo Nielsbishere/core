@@ -45,7 +45,7 @@ endif()
 # Android
 
 option(Android "Android" OFF)
-option(VR "VR" ON)
+option(VR "VR" OFF)
 
 if(Android)
 
@@ -81,16 +81,21 @@ elseif(WIN32)
 	set(Desktop ON)
 	
 	option(Raytracing "Raytracing" ON)
-	
-	if(Raytracing)
-		add_definitions(-D__RAYTRACING__)
-		message("-- Raytracing - enabled")
-	endif()
 		
 	link_libraries(Xinput.lib)
 
 else()
 
+endif()
+
+if(Raytracing)
+	add_definitions(-D__RAYTRACING__)
+	message("-- Raytracing - enabled")
+endif()
+
+if(VR)
+	add_definitions(-D__VR__)
+	message("-- VR support - enabled")
 endif()
 
 if(Vulkan)
