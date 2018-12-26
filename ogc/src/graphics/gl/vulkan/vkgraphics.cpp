@@ -267,10 +267,10 @@ void Graphics::init(Window *w){
 	vkCheck<0x23>(vkEnumerateDeviceExtensionProperties(ext.pdevice, nullptr, &extensionCount, nullptr), "Couldn't enumerate device extensions");
 
 	layers = new VkLayerProperties[layerCount];
-	vkEnumerateInstanceLayerProperties(&layerCount, layers);
+	vkEnumerateDeviceLayerProperties(ext.pdevice, &layerCount, layers);
 
 	extensions = new VkExtensionProperties[extensionCount];
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
+	vkEnumerateDeviceExtensionProperties(ext.pdevice, nullptr, &extensionCount, extensions);
 
 	#ifdef __DEBUG__
 
