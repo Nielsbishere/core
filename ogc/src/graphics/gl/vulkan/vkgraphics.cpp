@@ -97,22 +97,6 @@ void Graphics::init(Window *w){
 	VkExtensionProperties *extensions = new VkExtensionProperties[extensionCount];
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
 
-	#ifdef __RAYTRACING__
-
-		String raytracingExt = "VK_NV_ray_tracing";
-
-		for (u32 i = 0; i < extensionCount; ++i)
-			if (String(extensions[i].extensionName) == raytracingExt)
-				features[GraphicsFeature::Raytracing] = true;
-
-	#endif
-
-	String multiViewExt = "VK_KHR_multiview";
-
-	for (u32 i = 0; i < extensionCount; ++i)
-		if (String(extensions[i].extensionName) == multiViewExt)
-			features[GraphicsFeature::XR] = true;
-
 	#ifdef __DEBUG__
 
 		Log::println("Starting graphics...");
@@ -135,16 +119,6 @@ void Graphics::init(Window *w){
 	std::vector<const char*> clayers, cextensions = std::vector<const char*>(2);	///Instance layers and extensions
 	cextensions[0] = "VK_KHR_surface";
 	cextensions[1] = __VK_SURFACE_EXT__;
-
-	#ifdef __RAYTRACING__
-
-	if (supports(GraphicsFeature::Raytracing))
-		cextensions.push_back(raytracingExt.toCString());
-
-	#endif
-
-	if (supports(GraphicsFeature::XR))
-		cextensions.push_back(multiViewExt.toCString());
 
 	#ifdef __DEBUG__
 
@@ -194,6 +168,8 @@ void Graphics::init(Window *w){
 	
 	Log::println(String("Creating Vulkan instance with ") + (u32) cextensions.size() + " extensions & " + (u32) clayers.size() + " layers:");
 
+	#ifdef __DEBUG__
+
 	Log::println("\tExtensions:");
 
 	for (auto exten : cextensions)
@@ -203,6 +179,8 @@ void Graphics::init(Window *w){
 
 	for (auto lay : clayers)
 		Log::println(String("\t\t") + lay);
+
+	#endif
 
 	vkCheck<0xA>(vkCreateInstance(&instanceInfo, vkAllocator, &ext.instance), "Couldn't obtain Vulkan instance");
 	initialized = true;
@@ -282,6 +260,51 @@ void Graphics::init(Window *w){
 	vkGetPhysicalDeviceFeatures(ext.pdevice, &ext.pfeatures);
 	vkGetPhysicalDeviceProperties(ext.pdevice, &ext.pproperties);
 
+	//Query device extensions
+
+	layerCount = extensionCount = 0;
+	vkCheck<0x22>(vkEnumerateDeviceLayerProperties(ext.pdevice, &layerCount, nullptr), "Couldn't enumerate device layers");
+	vkCheck<0x23>(vkEnumerateDeviceExtensionProperties(ext.pdevice, nullptr, &extensionCount, nullptr), "Couldn't enumerate device extensions");
+
+	layers = new VkLayerProperties[layerCount];
+	vkEnumerateInstanceLayerProperties(&layerCount, layers);
+
+	extensions = new VkExtensionProperties[extensionCount];
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions);
+
+	#ifdef __DEBUG__
+
+		Log::println("Supported device layers:");
+		
+		for(u32 i = 0; i < layerCount; ++i)
+			Log::println(String("\t") + layers[i].layerName);
+		
+		Log::println("Supported device extensions:");
+		
+		for (u32 i = 0; i < extensionCount; ++i)
+			Log::println(String("\t") + extensions[i].extensionName);
+	
+	#endif
+
+	for(VkExtensionProperties *extension = extensions; extension < extensions + extensionCount; ++extension){
+
+		if (String(extension->extensionName) == VK_KHR_MULTIVIEW_EXTENSION_NAME) {
+			features[GraphicsFeature::XR] = true;
+			dextensions.push_back(VK_KHR_MULTIVIEW_EXTENSION_NAME);
+		}
+
+		#ifdef __RAYTRACING__
+			else if(String(extension->extensionName) == VK_NV_RAY_TRACING_EXTENSION_NAME) {
+				features[GraphicsFeature::Raytracing] = true;
+				dextensions.push_back(VK_KHR_MULTIVIEW_EXTENSION_NAME);
+			}
+		#endif
+
+	}
+
+	delete[] layers;
+	delete[] extensions;
+
 	//Setup device
 	
 	VkDeviceCreateInfo deviceInfo;
@@ -326,6 +349,22 @@ void Graphics::init(Window *w){
 	deviceInfo.queueCreateInfoCount = queueCount;
 	deviceInfo.pQueueCreateInfos = queues;
 	
+	Log::println(String("Creating Vulkan device with ") + (u32) dextensions.size() + " extensions & " + (u32) dlayers.size() + " layers:");
+
+	#ifdef __DEBUG__
+
+	Log::println("\tExtensions:");
+
+	for (auto exten : dextensions)
+		Log::println(String("\t\t") + exten);
+
+	Log::println("\tLayers:");
+
+	for (auto lay : dlayers)
+		Log::println(String("\t\t") + lay);
+
+	#endif
+
 	vkCheck<0xC>(vkCreateDevice(*gpu, &deviceInfo, vkAllocator, &ext.device), "Couldn't obtain device");
 	
 	vkGetDeviceQueue(ext.device, ext.queueFamilyIndex, 0, &ext.queue);
