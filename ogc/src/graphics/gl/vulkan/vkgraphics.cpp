@@ -133,17 +133,18 @@ void Graphics::init(Window *w){
 		cextensions.push_back("VK_EXT_debug_report");
 	#endif
 
-	#ifdef __VR__
+	bool supported = false;
 
-		for(VkExtensionProperties *extension = extensions; extension != extensions + extensionCount; ++extension) {
-			if (String(extension->extensionName) == VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) {
-				cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-				features[GraphicsFeature::VR] = true;
-			}
+	for (VkExtensionProperties *extension = extensions; extension != extensions + extensionCount; ++extension) {
+		if (String(extension->extensionName) == VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME){
+			cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+			supported = true;
 		}
+	}
 
-	#endif
-	
+	if(!supported)
+		Log::throwError<VkGraphics, 0x24>("Vulkan driver not supported; PhysicalDeviceProperties2 required");
+
 	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions
 	dextensions[0] = "VK_KHR_swapchain";
 	dextensions[1] = "VK_KHR_shader_draw_parameters";
@@ -232,14 +233,16 @@ void Graphics::init(Window *w){
 		Log::println(String("Devices: ") + deviceCount);
 	#endif
 	
-	VkPhysicalDeviceProperties *properties = new VkPhysicalDeviceProperties[deviceCount];
+	VkPhysicalDeviceProperties2 *properties = new VkPhysicalDeviceProperties2[deviceCount];
+	memset(properties, 0, sizeof(VkPhysicalDeviceProperties2) * deviceCount);
 	
 	for(u32 i = 0; i < deviceCount; ++i){
 		
-		vkGetPhysicalDeviceProperties(devices[i], properties + i);
+		properties[i].sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		vkGetPhysicalDeviceProperties2(devices[i], properties + i);
 		
 		#ifdef __DEBUG__
-			Log::println(String("Device #") + i + ": " + properties[i].deviceName);
+			Log::println(String("Device #") + i + ": " + properties[i].properties.deviceName);
 		#endif
 		
 	}
@@ -249,10 +252,10 @@ void Graphics::init(Window *w){
 	bool foundDiscrete = false;
 	
 	for(u32 i = 0; i < deviceCount; ++i)
-		if(properties[i].deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
+		if(properties[i].properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
 			
 			#ifdef __DEBUG__
-				Log::println(String("Found a discrete GPU (") + properties[i].deviceName + ")");
+				Log::println(String("Found a discrete GPU (") + properties[i].properties.deviceName + ")");
 			#endif
 			
 			gpu = devices + i;
@@ -269,7 +272,10 @@ void Graphics::init(Window *w){
 	delete[] properties;
 
 	vkGetPhysicalDeviceFeatures(ext.pdevice, &ext.pfeatures);
-	vkGetPhysicalDeviceProperties(ext.pdevice, &ext.pproperties);
+
+	memset(&ext.pproperties, 0, sizeof(ext.pproperties));
+	ext.pproperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+	vkGetPhysicalDeviceProperties2(ext.pdevice, &ext.pproperties);
 
 	//Query device extensions
 
@@ -300,7 +306,7 @@ void Graphics::init(Window *w){
 	for(VkExtensionProperties *extension = extensions; extension < extensions + extensionCount; ++extension){
 
 		#ifdef __VR__
-		if (supports(GraphicsFeature::VR) && String(extension->extensionName) == VK_KHR_MULTIVIEW_EXTENSION_NAME) {
+		if (String(extension->extensionName) == VK_KHR_MULTIVIEW_EXTENSION_NAME) {
 			features[GraphicsFeature::VR] = true;
 			dextensions.push_back(VK_KHR_MULTIVIEW_EXTENSION_NAME);
 		}

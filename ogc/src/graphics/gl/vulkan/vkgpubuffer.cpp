@@ -233,7 +233,7 @@ void GPUBuffer::push() {
 
 	u32 boffset = ext.alignedSize * graphics.current;
 
-	u32 offsetAlignment = (u32) graphics.pproperties.limits.nonCoherentAtomSize;
+	u32 offsetAlignment = (u32) graphics.pproperties.properties.limits.nonCoherentAtomSize;
 	u32 mapOffset = off / offsetAlignment * offsetAlignment;
 	u32 dif = off - mapOffset;
 

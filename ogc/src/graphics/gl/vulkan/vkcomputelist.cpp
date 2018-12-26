@@ -36,7 +36,7 @@ struct VkComputeList {};
 void ComputeList::checkDispatchGroups(Vec3u &groups) {
 
 	VkGraphics &graphics = g->getExtension();
-	Vec3u &maxComputeGroup = *(Vec3u*)(graphics.pproperties.limits.maxComputeWorkGroupCount);
+	Vec3u &maxComputeGroup = *(Vec3u*)(graphics.pproperties.properties.limits.maxComputeWorkGroupCount);
 
 	if (groups.min(maxComputeGroup) != groups)
 		Log::throwError<VkComputeList, 0x0>("ComputeList::dispatch was out of bounds");
@@ -46,11 +46,11 @@ void ComputeList::checkDispatchGroups(Vec3u &groups) {
 bool ComputeList::initData() {
 
 	VkGraphics &graphics = g->getExtension();
-	Vec3u &maxGroupSize = *(Vec3u*)(graphics.pproperties.limits.maxComputeWorkGroupSize);
+	Vec3u &maxGroupSize = *(Vec3u*)(graphics.pproperties.properties.limits.maxComputeWorkGroupSize);
 
 	Vec3u groupSize = info.computePipeline->getInfo().shader->getInfo().computeThreads;
 
-	if (groupSize.x * groupSize.y * groupSize.z >= graphics.pproperties.limits.maxComputeWorkGroupInvocations)
+	if (groupSize.x * groupSize.y * groupSize.z >= graphics.pproperties.properties.limits.maxComputeWorkGroupInvocations)
 		Log::throwError<VkComputeList, 0x1>("Compute shader is invalid; the total group count is out of bounds");
 
 	if (groupSize.min(maxGroupSize) != groupSize)
