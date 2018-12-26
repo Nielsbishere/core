@@ -132,6 +132,17 @@ void Graphics::init(Window *w){
 
 		cextensions.push_back("VK_EXT_debug_report");
 	#endif
+
+	#ifdef __VR__
+
+		for(VkExtensionProperties *extension = extensions; extension < extension + extensionCount; ++extension) {
+			if (String(extension->extensionName) == VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) {
+				cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+				features[GraphicsFeature::VR] = true;
+			}
+		}
+
+	#endif
 	
 	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions
 	dextensions[0] = "VK_KHR_swapchain";
@@ -288,15 +299,18 @@ void Graphics::init(Window *w){
 
 	for(VkExtensionProperties *extension = extensions; extension < extensions + extensionCount; ++extension){
 
-		if (String(extension->extensionName) == VK_KHR_MULTIVIEW_EXTENSION_NAME) {
-			features[GraphicsFeature::XR] = true;
+		#ifdef __VR__
+		if (supports(GraphicsFeature::VR) && String(extension->extensionName) == VK_KHR_MULTIVIEW_EXTENSION_NAME) {
+			features[GraphicsFeature::VR] = true;
 			dextensions.push_back(VK_KHR_MULTIVIEW_EXTENSION_NAME);
 		}
+		else
+		#endif
 
 		#ifdef __RAYTRACING__
-			else if(String(extension->extensionName) == VK_NV_RAY_TRACING_EXTENSION_NAME) {
+			if(String(extension->extensionName) == VK_NV_RAY_TRACING_EXTENSION_NAME) {
 				features[GraphicsFeature::Raytracing] = true;
-				dextensions.push_back(VK_KHR_MULTIVIEW_EXTENSION_NAME);
+				dextensions.push_back(VK_NV_RAY_TRACING_EXTENSION_NAME);
 			}
 		#endif
 

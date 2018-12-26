@@ -45,6 +45,7 @@ endif()
 # Android
 
 option(Android "Android" OFF)
+option(VR "VR" ON)
 
 if(Android)
 
