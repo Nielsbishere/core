@@ -14,6 +14,12 @@ file(GLOB_RECURSE app_SRC
 	"res/shaders/*.comp"
 	"res/shaders/*.tese"
 	"res/shaders/*.tesc"
+	"res/shaders/*.rgen"
+	"res/shaders/*.rint"
+	"res/shaders/*.rahit"
+	"res/shaders/*.rchit"
+	"res/shaders/*.rmiss"
+	"res/shaders/*.rcall"
 	"res/shaders/*.glsl"
 	"res/shaders/*.hlsl"
 )

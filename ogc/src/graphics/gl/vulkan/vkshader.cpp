@@ -140,7 +140,8 @@ void Shader::update() {
 				descriptor.pImageInfo = image;
 
 				for (u32 z = 0; z < reg.size; ++z) {
-					Texture *tex = textures->get(z);
+					TextureObject *texObj = textures->get(z);
+					Texture *tex = texObj->isType<VersionedTexture>() ? ((VersionedTexture*)texObj)->getVersion(frame) : (Texture*)texObj;
 					image->imageView = tex->getExtension().view;
 					image->imageLayout = reg.type == ShaderRegisterType::Image ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 					++image;

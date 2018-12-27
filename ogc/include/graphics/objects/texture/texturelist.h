@@ -5,17 +5,17 @@ namespace oi {
 
 	namespace gc {
 
-		class Texture;
+		class TextureObject;
 		class TextureList;
 
 		struct TextureListInfo {
 
 			typedef TextureList ResourceType;
 
-			std::vector<Texture*> textures;
+			std::vector<TextureObject*> textures;
 
 			TextureListInfo(u32 count) : textures(count) {
-				memset(textures.data(), 0, sizeof(Texture*) * textures.size());
+				memset(textures.data(), 0, sizeof(TextureObject*) * textures.size());
 			}
 
 			TextureListInfo() {}
@@ -31,9 +31,12 @@ namespace oi {
 
 		public:
 
-			Texture *get(TextureHandle i);
-			TextureHandle alloc(Texture *tex);
-			void dealloc(Texture *tex);
+			TextureObject *get(TextureHandle i);
+			TextureHandle alloc(TextureObject *tex);
+			void dealloc(TextureObject *tex);
+
+			template<typename T>
+			T *get(TextureHandle i);
 
 			u32 size();
 
@@ -50,6 +53,14 @@ namespace oi {
 			TextureListInfo info;
 
 		};
+
+		template<typename T>
+		T *TextureList::get(TextureHandle i) {
+
+			static_assert(std::is_base_of<TextureObject, T>::value, "Texture::get<T>: T has to be a TextureObject (VersionedTexture or Texture)");
+
+			return dynamic_cast<T*>(get(i));
+		}
 
 	}
 

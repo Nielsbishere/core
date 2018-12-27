@@ -8,12 +8,18 @@ using namespace oi;
 using namespace spirv_cross;
 
 ShaderStageType SpvHelper::pickType(const String &s) {
-	if (s == ".vert" || s == "vert") return ShaderStageType::Vertex_shader;
-	if (s == ".frag" || s == "frag") return ShaderStageType::Fragment_shader;
-	if (s == ".geom" || s == "geom") return ShaderStageType::Geometry_shader;
-	if (s == ".comp" || s == "comp") return ShaderStageType::Compute_shader;
-	if (s == ".tesc" || s == "tesc") return ShaderStageType::Tesselation_shader;
-	if (s == ".tese" || s == "tese") return ShaderStageType::Tesselation_evaluation_shader;
+	if (s == "vert") return ShaderStageType::Vertex_shader;
+	if (s == "frag") return ShaderStageType::Fragment_shader;
+	if (s == "geom") return ShaderStageType::Geometry_shader;
+	if (s == "comp") return ShaderStageType::Compute_shader;
+	if (s == "tesc") return ShaderStageType::Tesselation_shader;
+	if (s == "tese") return ShaderStageType::Tesselation_evaluation_shader;
+	if (s == "rgen") return ShaderStageType::Ray_gen_shader;
+	if (s == "rint") return ShaderStageType::Intersection_shader;
+	if (s == "rahit") return ShaderStageType::Any_hit_shader;
+	if (s == "rchit") return ShaderStageType::Closest_hit_shader;
+	if (s == "rmiss") return ShaderStageType::Miss_shader;
+	if (s == "rcall") return ShaderStageType::Callable_shader;
 	return ShaderStageType::Undefined;
 }
 

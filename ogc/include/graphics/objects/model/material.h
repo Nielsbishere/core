@@ -9,6 +9,7 @@ namespace oi {
 		typedef u32 MaterialHandle;
 		class Material;
 		class MaterialList;
+		class Texture;
 
 		struct MaterialStruct {
 

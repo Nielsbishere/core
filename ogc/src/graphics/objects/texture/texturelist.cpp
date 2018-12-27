@@ -3,10 +3,10 @@
 #include "graphics/graphics.h"
 using namespace oi::gc;
 
-Texture *TextureList::get(TextureHandle i) { return info.textures[i]; }
+TextureObject *TextureList::get(TextureHandle i) { return info.textures[i]; }
 u32 TextureList::size() { return (u32) info.textures.size(); }
 
-TextureHandle TextureList::alloc(Texture *tex) {
+TextureHandle TextureList::alloc(TextureObject *tex) {
 	TextureHandle j = size();
 	for (TextureHandle i = 0; i < j; ++i)
 		if (get(i) == nullptr) {
@@ -16,7 +16,7 @@ TextureHandle TextureList::alloc(Texture *tex) {
 	return j;
 }
 
-void TextureList::dealloc(Texture *tex) {
+void TextureList::dealloc(TextureObject *tex) {
 	for (TextureHandle i = 0, j = size(); i < j; ++i)
 		if (get(i) == tex)
 			info.textures[i] = nullptr;
