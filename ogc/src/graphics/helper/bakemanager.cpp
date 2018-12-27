@@ -58,9 +58,9 @@ bool BakeManager::bakeModel(BakedFile &file, bool) {
 bool BakeManager::bakeShader(BakedFile &file, bool stripDebug) {
 
 	file.outputs.resize(1);
-	file.outputs[0] = file.file + ".oiSH";
+	file.outputs[0] = file.file + "." + file.extension.untilFirst(".") + ".oiSH";
 
-	ShaderSource source(file.file.getFileName(), file.inputs, file.extension == "hlsl" ? ShaderSourceType::HLSL : ShaderSourceType::GLSL);
+	ShaderSource source(file.file.getFileName(), file.inputs, file.extension.endsWith("hlsl") ? ShaderSourceType::HLSL : ShaderSourceType::GLSL);
 
 	SHFile info = oiSH::convert(source, file.dependencies, stripDebug);
 	if (info.bytecode.size() == 0)
@@ -89,9 +89,94 @@ BakeManager::BakeManager(bool stripDebug, String file) : location(file), stripDe
 		"Shaders",
 		"mod/shaders",
 		{
-			{ "glsl", { "vert", "frag", "comp", "geom", "tese", "tesc", "rgen", "rint", "rahit", "rchit", "rmiss", "rcall" } },
-			{ "glsl", { "vert.glsl", "frag.glsl", "comp.glsl", "geom.glsl", "tese.glsl", "tesc.glsl", "rgen.glsl", "rint.glsl", "rahit.glsl", "rchit.glsl", "rmiss.glsl", "rcall.glsl" } },
-			{ "hlsl", { "vert.hlsl", "frag.hlsl", "comp.hlsl", "geom.hlsl", "tese.hlsl", "tesc.hlsl", "rgen.hlsl", "rint.hlsl", "rahit.hlsl", "rchit.hlsl", "rmiss.hlsl", "rcall.hlsl" } }
+			{ "graphics.glsl", { 
+				"vert", "frag", "geom", "tese", "tesc", 
+				"vert.glsl", "frag.glsl", "geom.glsl", "tese.glsl", "tesc.glsl"
+			} },
+
+			{ "graphics.hlsl", {
+				"vert.hlsl", "frag.hlsl", "geom.hlsl", "tese.hlsl", "tesc.hlsl"
+			} }
+		},
+		BakeManager::bakeShader
+	),
+
+	BakeOption(
+		"Shaders",
+		"mod/shaders",
+		{
+			{ "compute.glsl", {
+				"comp",
+				"comp.glsl"
+			} },
+
+			{ "compute.hlsl", {
+				"comp.hlsl"
+			} }
+		},
+		BakeManager::bakeShader
+	),
+
+	BakeOption(
+		"Shaders",
+		"mod/shaders",
+		{
+			{ "raygen.glsl", {
+				"rgen",
+				"rgen.glsl"
+			} },
+
+			{ "raygen.hlsl", {
+				"rgen.hlsl"
+			} }
+		},
+		BakeManager::bakeShader
+	),
+
+	BakeOption(
+		"Shaders",
+		"mod/shaders",
+		{
+			{ "miss.glsl", {
+				"rmiss",
+				"rmiss.glsl"
+			} },
+
+			{ "miss.hlsl", {
+				"rmiss.hlsl"
+			} }
+		},
+		BakeManager::bakeShader
+	),
+
+	BakeOption(
+		"Shaders",
+		"mod/shaders",
+		{
+			{ "call.glsl", {
+				"rcall",
+				"rcall.glsl"
+			} },
+
+			{ "call.hlsl", {
+				"rcall.hlsl"
+			} }
+		},
+		BakeManager::bakeShader
+	),
+
+	BakeOption(
+		"Shaders",
+		"mod/shaders",
+		{
+			{ "ray.glsl", {
+				"rint", "rahit", "rchit",
+				"rint.glsl", "rahit.glsl", "rchit.glsl"
+			} },
+
+			{ "ray.hlsl", {
+				"rint.hlsl", "rahit.hlsl", "rchit.hlsl"
+			} }
 		},
 		BakeManager::bakeShader
 	)

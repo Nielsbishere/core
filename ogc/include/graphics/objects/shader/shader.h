@@ -12,6 +12,7 @@ namespace oi {
 
 		class GraphicsResource;
 		class Shader;
+		class ShaderStageType;
 
 		struct ShaderInfo {
 
@@ -55,6 +56,8 @@ namespace oi {
 			T *get(String path);
 
 			void update();
+
+			static bool isCompatible(ShaderStageType t0, ShaderStageType t1);
 
 		protected:
 

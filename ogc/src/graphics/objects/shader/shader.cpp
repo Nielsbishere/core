@@ -12,6 +12,20 @@ ShaderExt &Shader::getExtension() { return ext; }
 const ShaderInfo &Shader::getInfo() { return info; }
 bool Shader::isCompute() { return info.stage.size() == 1; }
 
+bool Shader::isCompatible(ShaderStageType t0, ShaderStageType t1) {
+
+	if (t0 == ShaderStageType::Any_hit_shader || t0 == ShaderStageType::Closest_hit_shader || t0 == ShaderStageType::Intersection_shader)
+		return t1 == ShaderStageType::Any_hit_shader || t1 == ShaderStageType::Closest_hit_shader || t1 == ShaderStageType::Intersection_shader;
+
+	if (t0 == ShaderStageType::Vertex_shader || t0 == ShaderStageType::Fragment_shader || t0 == ShaderStageType::Geometry_shader ||
+		t0 == ShaderStageType::Tesselation_shader || t0 == ShaderStageType::Tesselation_evaluation_shader)
+
+		return	t1 == ShaderStageType::Vertex_shader || t1 == ShaderStageType::Fragment_shader || t1 == ShaderStageType::Geometry_shader ||
+		t1 == ShaderStageType::Tesselation_shader || t1 == ShaderStageType::Tesselation_evaluation_shader;
+
+	return false;
+}
+
 bool Shader::set(String path, GraphicsResource *res) {
 
 	auto it = info.shaderRegister.find(path);
@@ -96,6 +110,11 @@ bool Shader::init() {
 		}
 
 	}
+	
+	for (ShaderStageInfo &sinfo0 : info.stages)
+		for (ShaderStageInfo &sinfo1 : info.stages)
+			if (!Shader::isCompatible(sinfo0.type, sinfo1.type))
+				return Log::error("Shader stage types are incompatible; meaning the shader is invalid");
 
 	for (ShaderStage *ss : info.stage)
 		g->use(ss);

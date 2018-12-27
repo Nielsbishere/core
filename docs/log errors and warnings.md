@@ -331,11 +331,13 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Couldn't add stage resources to shader                       | One or multiple resources of the shader were invalid         |
 |                                                         | Compute shaders require attribute "layout(local_size_x = X, local_size_y = Y, local_size_z = Z) in;" | The compute shader didn't specify a local thread size        |
 |                                                         | Compute shaders require at least 1 thread in one axis; even in 1D or 2D operations | X, Y or Z in the local_size of a compute shader have to be non-zero uints |
+|                                                         | Shader stage types are incompatible and shouldn't be compiled into one shader | Shader stage types are incompatible; compute, graphics (vertex, geometry, tesselation evaluation, tesselation controll), raygen, miss, callable and ray (any hit, closest hit, intersection) shaders have to be separate oiSH files. Normally, this is the result of manual compilation; as the BakeManager doesn't  produce these problems |
 | graphics<br />objects<br />texture<br />texture.cpp     | Couldn't load texture from disk                              | File was invalid or couldn't be read                         |
 |                                                         | Texture::write couldn't write to output path {path}          | The output path given was invalid or couldn't be opened for write |
 | graphics<br />objects<br />shader<br />computelist.cpp  | Couldn't create ComputeList; it needs at least 1 object      | The contents of the compute list have to be at least 1       |
 |                                                         | Couldn't create ComputeList; compute pipeline was invalid    | The pipeline given to the ComputeList isn't a compute pipeline or is null |
 |                                                         | Couldn't reserve compute list                                | The buffer for the compute data couldn't be created          |
+| graphics<br />objects<br />shader<br />shader.cpp       | Shader stage types are incompatible; meaning the shader is invalid | Shader stage types are incompatible; compute, graphics (vertex, geometry, tesselation evaluation, tesselation controll), raygen, miss, callable and ray (any hit, closest hit, intersection) shaders have to be separate oiSH files. Normally, this is the result of manual compilation; as the BakeManager doesn't  produce these problems |
 
 ### Warnings
 

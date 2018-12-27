@@ -325,6 +325,10 @@ bool SpvHelper::addStage(CopyBuffer b, ShaderStageType type, ShaderInfo &info, b
 	if (b.size() % 4 != 0 || b.size() == 0)
 		return Log::error("SPIR-V Bytecode invalid");
 
+	for (ShaderStageInfo &sinfo : info.stages)
+		if (!Shader::isCompatible(type, sinfo.type))
+			return Log::error("Shader stage types are incompatible and shouldn't be compiled into one shader");
+
 	std::vector<uint32_t> bytecode((u32*)b.addr(), (u32*)(b.addr() + b.size()));
 	Compiler comp(move(bytecode));
 

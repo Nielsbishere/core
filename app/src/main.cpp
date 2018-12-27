@@ -193,14 +193,14 @@ void MainInterface::initScene() {
 
 	//Setup our shader (forward phong shading)
 
-	shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
+	shader = g.create("Simple", ShaderInfo("res/shaders/simple.graphics.oiSH"));
 	g.use(shader);
 
 	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
 
 	//Setup our post process shader (tone mapping & gamma correction)
 
-	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.oiSH"));
+	shader0 = g.create("Post process", ShaderInfo("res/shaders/post_process.graphics.oiSH"));
 	g.use(shader0);
 
 	//First: Allocate anvil into new MeshBuffer (with default size)
@@ -289,7 +289,7 @@ void MainInterface::initScene() {
 
 	//Clustered material indirect lighting
 
-	cmiLighting = g.create("CMI lighting", ShaderInfo("res/shaders/cmi_lighting.oiSH"));
+	cmiLighting = g.create("CMI lighting", ShaderInfo("res/shaders/cmi_lighting.compute.oiSH"));
 	g.use(cmiLighting);
 
 	cmiLighting->set("tex", textureList);
