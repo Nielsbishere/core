@@ -41,7 +41,7 @@ namespace oi {
 			template<typename T>
 			T *cast() {
 
-				if (template isType<T>())
+				if (isType<T>())
 					return (T*)this;
 
 				return nullptr;

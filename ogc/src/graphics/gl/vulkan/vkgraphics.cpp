@@ -68,7 +68,7 @@ Graphics::~Graphics(){
 
 		#ifdef __DEBUG__
 
-			vkExtension(vkDestroyDebugReportCallbackEXT);
+			vkExtension(vkDestroyDebugReportCallbackEXT, ext);
 
 			vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, vkAllocator);
 
@@ -212,7 +212,7 @@ void Graphics::init(Window *w){
 		callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;	//All but info
 		callbackInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) onDebugReport;	//TODO: Warning on some devices; not same type?
 
-		vkExtension(vkCreateDebugReportCallbackEXT);
+		vkExtension(vkCreateDebugReportCallbackEXT, ext);
 
 		vkCheck<0xB>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
 
@@ -237,7 +237,7 @@ void Graphics::init(Window *w){
 	VkPhysicalDeviceProperties2 *properties = new VkPhysicalDeviceProperties2[deviceCount];
 	memset(properties, 0, sizeof(VkPhysicalDeviceProperties2) * deviceCount);
 	
-	vkExtension(vkGetPhysicalDeviceProperties2KHR);
+	vkExtension(vkGetPhysicalDeviceProperties2KHR, ext);
 
 	for(u32 i = 0; i < deviceCount; ++i){
 		
@@ -375,15 +375,15 @@ void Graphics::init(Window *w){
 
 	#ifdef __DEBUG__
 
-	Log::println("\tExtensions:");
+		Log::println("\tExtensions:");
 
-	for (auto exten : dextensions)
-		Log::println(String("\t\t") + exten);
+		for (auto exten : dextensions)
+			Log::println(String("\t\t") + exten);
 
-	Log::println("\tLayers:");
+		Log::println("\tLayers:");
 
-	for (auto lay : dlayers)
-		Log::println(String("\t\t") + lay);
+		for (auto lay : dlayers)
+			Log::println(String("\t\t") + lay);
 
 	#endif
 
@@ -423,11 +423,20 @@ void Graphics::init(Window *w){
 	//Initialize resource commands
 	ext.stagingCmdList = create("Resource command list", CommandListInfo());
 
-	vkExtension(vkGetImageMemoryRequirements2KHR);
-	vkExtension(vkGetBufferMemoryRequirements2KHR);
+	vkExtension(vkGetImageMemoryRequirements2KHR, ext);
+	vkExtension(vkGetBufferMemoryRequirements2KHR, ext);
 
 	ext.vkGetImageMemoryRequirements2 = vkGetImageMemoryRequirements2KHR;
 	ext.vkGetBufferMemoryRequirements2 = vkGetBufferMemoryRequirements2KHR;
+
+	#ifdef __RAYTRACING__
+
+	if (supports(GraphicsFeature::Raytracing)) {
+		vkExtension(vkCreateRayTracingPipelinesNV, ext);
+		ext.vkCreateRayTracingPipelinesNV = vkCreateRayTracingPipelinesNV;
+	}
+
+	#endif
 
 }
 
@@ -436,7 +445,7 @@ void Graphics::initSurface(Window *w) {
 
 	//Enable extension
 
-	vkExtension(vkGetPhysicalDeviceSurfaceFormatsKHR);
+	vkExtension(vkGetPhysicalDeviceSurfaceFormatsKHR, ext);
 
 	//Setup device surface (Uses our custom CMake defines to make this 'cross platform')
 	__VK_SURFACE_TYPE__ surfaceInfo;

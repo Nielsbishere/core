@@ -296,7 +296,7 @@ void MainInterface::initScene() {
 	cmiLighting->set("samp", linearSampler);
 	cmiLighting->set("nearest", nearestSampler);
 
-	cmiLightingPipeline = g.create("CMI lighting pipeline", PipelineInfo(cmiLighting));
+	cmiLightingPipeline = g.create("CMI lighting pipeline", ComputePipelineInfo(cmiLighting));
 	g.use(cmiLightingPipeline);
 
 	cmiLightingDispatch = g.create("CMI lighting compute list", ComputeListInfo(cmiLightingPipeline, 1));
@@ -388,12 +388,12 @@ void MainInterface::initSceneSurface(Vec2u res){
 
 	//drawList -> Rendering pipeline -> renderTarget
 
-	pipeline = g.create("Rendering pipeline", PipelineInfo(shader, pipelineState, renderTarget, meshBuffer));
+	pipeline = g.create("Rendering pipeline", GraphicsPipelineInfo(shader, pipelineState, renderTarget, meshBuffer));
 	g.use(pipeline);
 
 	//renderTarget -> Post processing pipeline -> back buffer
 
-	pipeline0 = g.create("Post process pipeline", PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0));
+	pipeline0 = g.create("Post process pipeline", GraphicsPipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0));
 	g.use(pipeline0);
 
 	//Resize compute parameters

@@ -48,7 +48,7 @@ bool ComputeList::initData() {
 	VkGraphics &graphics = g->getExtension();
 	Vec3u &maxGroupSize = *(Vec3u*)(graphics.pproperties.properties.limits.maxComputeWorkGroupSize);
 
-	Vec3u groupSize = info.computePipeline->getInfo().shader->getInfo().computeThreads;
+	Vec3u groupSize = info.computePipeline->getComputeInfo().shader->getInfo().computeThreads;
 
 	if (groupSize.x * groupSize.y * groupSize.z >= graphics.pproperties.properties.limits.maxComputeWorkGroupInvocations)
 		Log::throwError<VkComputeList, 0x1>("Compute shader is invalid; the total group count is out of bounds");

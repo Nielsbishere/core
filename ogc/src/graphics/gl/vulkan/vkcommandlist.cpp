@@ -168,20 +168,20 @@ bool CommandList::init() {
 
 void CommandList::bind(Pipeline *pipeline) {
 
-	if (pipeline->getInfo().meshBuffer != boundMB) {
+	if (pipeline->getMeshBuffer() != boundMB) {
 
-		boundMB = pipeline->getInfo().meshBuffer;
+		boundMB = pipeline->getMeshBuffer();
 
 		if (boundMB != nullptr)
 			bind(boundMB);
 	}
 
-	VkPipelineBindPoint pipelinePoint = pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
+	VkPipelineBindPoint pipelinePoint = VkPipelineType(pipeline->getPipelineType().getName()).getValue();
 	vkCmdBindPipeline(ext_cmd, pipelinePoint, pipeline->getExtension());
 
-	pipeline->getInfo().shader->update();
+	pipeline->getShader()->update();
 
-	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getInfo().shader->getExtension().layout, 0, 1, pipeline->getInfo().shader->getExtension().descriptorSet.data() + g->getExtension().current, 0, nullptr);
+	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getShader()->getExtension().layout, 0, 1, pipeline->getShader()->getExtension().descriptorSet.data() + g->getExtension().current, 0, nullptr);
 
 }
 

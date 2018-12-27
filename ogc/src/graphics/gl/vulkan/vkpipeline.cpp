@@ -11,30 +11,39 @@ using namespace oi;
 
 Pipeline::~Pipeline() {
 
-	g->destroy(info.pipelineState);
-	g->destroy(info.shader);
-	g->destroy(info.renderTarget);
+	g->destroy(graphicsInfo.shader);
+	g->destroy(graphicsInfo.meshBuffer);
+	g->destroy(graphicsInfo.pipelineState);
+	g->destroy(graphicsInfo.renderTarget);
+	g->destroy(computeInfo.shader);
+
+	for(Shader *shader : raytracingInfo.shaders)
+		g->destroy(shader);
+
+	g->destroy(raytracingInfo.meshBuffer);
 
 	vkDestroyPipeline(g->getExtension().device, ext, vkAllocator);
 }
 
 bool Pipeline::initData() {
 
-	if (info.shader == nullptr)
+	if (raytracingInfo.shaders.size() == 0 && computeInfo.shader == nullptr && graphicsInfo.shader == nullptr)
 		return Log::throwError<VkPipeline, 0x0>("Pipeline requires a shader");
 
 	GraphicsExt &gext = g->getExtension();
 
-	ShaderExt &shext = info.shader->getExtension();
+	if (type == PipelineType::Graphics) {
 
-	std::vector<VkPipelineShaderStageCreateInfo> stage(shext.stage.size());
-	for (u32 i = 0; i < (u32)stage.size(); ++i)
-		stage[i] = shext.stage[i]->pipeline;
-
-	if (info.shader->getInfo().stage.size() > 1) {
+		GraphicsPipelineInfo &info = graphicsInfo;
 
 		if (info.renderTarget == nullptr || info.pipelineState == nullptr || info.meshBuffer == nullptr)
 			return Log::throwError<VkPipeline, 0x1>("Graphics pipeline requires a render target, pipeline state and mesh buffer");
+
+		ShaderExt &shext = info.shader->getExtension();
+
+		std::vector<VkPipelineShaderStageCreateInfo> stage(shext.stage.size());
+		for (u32 i = 0; i < (u32)stage.size(); ++i)
+			stage[i] = shext.stage[i]->pipeline;
 
 		//Init viewport and scissor
 
@@ -195,13 +204,11 @@ bool Pipeline::initData() {
 
 		vkCheck<0x7, VkPipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
 
-	} else {
+	} else if(type == PipelineType::Compute) {
 	
-		if (info.pipelineState != nullptr)
-			Log::warn("Compute shader has a PipelineState which is set. This won't get used and it is advised that you set it to nullptr");
+		ComputePipelineInfo &info = computeInfo;
 
-		if(info.renderTarget != nullptr)
-			Log::warn("Compute shader has a RenderTarget which is set. This won't get used and it is advised that you set it to nullptr");
+		ShaderExt &shext = info.shader->getExtension();
 
 		//Create compute pipeline
 
@@ -209,13 +216,109 @@ bool Pipeline::initData() {
 		memset(&pipelineInfo, 0, sizeof(pipelineInfo));
 
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-		pipelineInfo.stage = stage[0];
+		pipelineInfo.stage = shext.stage[0]->pipeline;
 		pipelineInfo.layout = shext.layout;
 
 		//Create the pipeline
 
 		vkCheck<0x8, VkPipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
 
+	}
+	else if (type == PipelineType::Raytracing) {
+		#ifdef __RAYTRACING__ 
+
+			if (!g->supports(GraphicsFeature::Raytracing))
+				Log::throwError<VkGraphics, 0xA>("Couldn't create pipeline; raytracing isn't supported");
+
+			RaytracingPipelineInfo &info = raytracingInfo;
+
+			u32 stageCount = 0;
+
+			for (Shader *shader : info.shaders)
+				stageCount += (u32) shader->getInfo().stage.size();
+
+			std::vector<VkPipelineShaderStageCreateInfo> stage(stageCount);
+
+			std::vector<VkRayTracingShaderGroupCreateInfoNV> groups(info.shaders.size());
+			memset(groups.data(), 0, groups.size() * sizeof(VkRayTracingPipelineCreateInfoNV));
+
+			u32 i = 0, j = 0;
+
+			for (Shader *shader : info.shaders) {
+
+				u32 gen = VK_SHADER_UNUSED_NV, chit = VK_SHADER_UNUSED_NV, 
+					ahit = VK_SHADER_UNUSED_NV, intersection = VK_SHADER_UNUSED_NV;
+
+				for (ShaderStage *shaderStage : shader->getInfo().stage) {
+
+					stage[i] = shaderStage->getExtension().pipeline;
+
+					switch (shaderStage->getInfo().type.getValue()) {
+
+					case ShaderStageType::Any_hit_shader.value:
+						ahit = i;
+						break;
+
+					case ShaderStageType::Closest_hit_shader.value:
+						chit = i;
+						break;
+
+					case ShaderStageType::Intersection_shader.value:
+						intersection = i;
+						break;
+
+					default:
+						gen = i;
+						break;
+
+					}
+
+					++i;
+				}
+
+				VkRayTracingShaderGroupCreateInfoNV &group = groups[i];
+
+				group.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_NV;
+
+				if (gen != VK_SHADER_UNUSED_NV)
+					group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_NV;
+				else if (intersection != VK_SHADER_UNUSED_NV)
+					group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_NV;
+				else
+					group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_NV;
+
+				group.generalShader = gen;
+				group.anyHitShader = ahit;
+				group.closestHitShader = chit;
+				group.intersectionShader = intersection;
+
+				++j;
+			}
+
+			//Create raytracing pipeline
+
+			VkRayTracingPipelineCreateInfoNV pipelineInfo;
+			memset(&pipelineInfo, 0, sizeof(pipelineInfo));
+
+			pipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_NV;
+			pipelineInfo.layout = info.shaders[0]->getExtension().layout;
+			pipelineInfo.stageCount = stageCount;
+			pipelineInfo.pStages = stage.data();
+			pipelineInfo.maxRecursionDepth = info.maxRecursionDepth;
+			pipelineInfo.groupCount = (u32) groups.size();
+			pipelineInfo.pGroups = groups.data();
+
+			//Create the pipeline
+
+			VkGraphics &graphics = g->getExtension();
+
+			vkCheck<0x9, VkPipeline>(graphics.vkCreateRayTracingPipelinesNV(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create raytracing pipeline");
+
+		#else
+
+			Log::throwError<VkPipeline, 0xB>("Couldn't create pipeline; raytracing option isn't turned on");
+
+		#endif
 	}
 
 	vkName(gext, ext, VK_OBJECT_TYPE_PIPELINE, getName());

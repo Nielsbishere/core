@@ -24,7 +24,7 @@ void ComputeList::clear() {
 }
 
 Vec3u ComputeList::getThreadsPerGroup() {
-	return info.computePipeline->getInfo().shader->getInfo().computeThreads;
+	return info.computePipeline->getComputeInfo().shader->getInfo().computeThreads;
 }
 
 Vec3u ComputeList::dispatchGroups(Vec3u groups) {
@@ -72,7 +72,7 @@ bool ComputeList::init() {
 	if (info.maxDispatches == 0)
 		return Log::error("Couldn't create ComputeList; it needs at least 1 object");
 
-	if (info.computePipeline == nullptr || info.computePipeline->getInfo().shader->getInfo().computeThreads == Vec3u())
+	if (info.computePipeline == nullptr || info.computePipeline->getPipelineType() != PipelineType::Compute)
 		return Log::error("Couldn't create ComputeList; compute pipeline was invalid");
 
 	info.dispatches.reserve(info.maxDispatches);

@@ -65,6 +65,9 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Invalid pipeline; Shader referenced an incompatible output format |                 | 0x6  | The RenderTarget outputs are incompatible with the shader outputs |
 | | Couldn't create graphics pipeline | | 0x7 | The pipeline settings were invalid, internal errors have been logged |
 | | Couldn't create compute pipeline | | 0x8 | see 0x7 |
+| | Couldn't create raytracing pipeline | | 0x9 | see 0x7 |
+| | Couldn't create pipeline; raytracing isn't supported | | 0xA | Raytracing pipeline was requested, but the device doesn't support it |
+| | Couldn't create pipeline; raytracing option isn't turned on | | 0xB | Raytracing pipeline was requested, but ogc wasn't compiled with raytracing support turned on |
 | graphics<br />gl<br />vulkan<br />vkpipelinestate.cpp | PipelineState creation failed; sample count has to be base2 | VkPipelineState | 0x0 | When specifying sample count (for MSAA), it has to be base2; 1,2,4,8,16,etc. |
 | graphics<br />gl<br />vulkan<br />vkshader.cpp          | Shader mentions an invalid buffer                            | VkShader        | 0x0  | When creating the Vulkan descriptor set, the shader found that there was no ShaderBuffer where a buffer was expected |
 |                                                         | A ShaderBuffer has been placed on a register not meant for buffers |                 | 0x1  | When creating the Vulkan descriptor set, the shader found that there was a ShaderBuffer where it wasn't expected |
@@ -142,12 +145,10 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 #### Warnings
 
-| File                                           | Message                                                      | Description                                                  |
+| File                                             | Message                                                      | Description                                                  |
 | ------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | graphics<br />gl<br />vulkan<br />vkgraphics.cpp | Left over object {name} ({type}) #{i} and refCount {refCount} | g->destroy(graphicsObject); should be called on destroy. There were left-over graphics objects detected |
 |                                                  | Couldn't find a discrete GPU; so instead picked the first    | No dedicated GPU is available, so the program will select the integrated |
-|                                                  | Compute shader has a PipelineState which is set. This won't get used and it is advised that you set it to nullptr | When setting up a Pipeline, PipelineState and RenderTarget aren't used for compute shaders. |
-|                                                  | Compute shader has a RenderTarget which is set. This won't get used and it is advised that you set it to nullptr | ^                                                            |
 | graphics<br />gl<br />vulkan<br />vksampler.cpp  | Sampler aniso value was invalid; because it is not be supported. Resetting it | Anisotropic filtering isn't supported on the device.         |
 
 ### Fatal errors

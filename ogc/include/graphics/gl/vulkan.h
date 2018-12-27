@@ -114,6 +114,10 @@ namespace oi {
 			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2 = nullptr;
 			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2 = nullptr;
 
+			#ifdef __RAYTRACING__
+				PFN_vkCreateRayTracingPipelinesNV vkCreateRayTracingPipelinesNV = nullptr;
+			#endif
+
 			#ifdef __DEBUG__
 
 				VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;
@@ -186,7 +190,7 @@ namespace oi {
 			return Log::throwError<T, errorId>(msg);
 		}
 
-		#define vkExtension(x) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(ext.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x9>("Couldn't get Vulkan extension");
+		#define vkExtension(x, graphics) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(graphics.instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::VkGraphics, 0x9>("Couldn't get Vulkan extension");
 
 		template<typename T>
 		void vkName(VkGraphics &g, T val, VkObjectType type, String name) {
@@ -296,6 +300,8 @@ namespace oi {
 				Intersection_shader = VK_SHADER_STAGE_INTERSECTION_BIT_NV,
 				Callable_shader = VK_SHADER_STAGE_CALLABLE_BIT_NV
 			);
+
+			DEnum(VkPipelineType, VkPipelineBindPoint, Graphics = VK_PIPELINE_BIND_POINT_GRAPHICS, Compute = VK_PIPELINE_BIND_POINT_COMPUTE, Raytracing = VK_PIPELINE_BIND_POINT_RAY_TRACING_NV);
 		
 		#else
 
@@ -310,6 +316,8 @@ namespace oi {
 				Tesselation_evaluation_shader = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
 				
 			);
+
+			DEnum(VkPipelineType, VkPipelineBindPoint, Graphics = VK_PIPELINE_BIND_POINT_GRAPHICS, Compute = VK_PIPELINE_BIND_POINT_COMPUTE);
 			
 		#endif
 

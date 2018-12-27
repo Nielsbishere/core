@@ -14,20 +14,8 @@ namespace oi {
 	
 	namespace gc {
 
-		class Texture;
-		class Pipeline;
-		class Shader;
-		class ShaderStage;
 		class RenderTarget;
-		class CommandList;
 		class TextureFormat;
-
-		struct TextureInfo;
-		struct PipelineInfo;
-		struct ShaderInfo;
-		struct ShaderStageInfo;
-		struct RenderTargetInfo;
-		struct CommandListInfo;
 
 		class GraphicsObject;
 		class GraphicsResource;
