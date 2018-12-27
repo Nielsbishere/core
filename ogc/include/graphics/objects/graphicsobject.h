@@ -27,6 +27,11 @@ namespace oi {
 
 			i32 getRefCount() const;
 
+			template<typename T>
+			bool isType() {
+				return hash == typeid(T).hash_code();
+			}
+
 		protected:
 
 			Graphics *g = nullptr;

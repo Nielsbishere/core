@@ -2,7 +2,7 @@ version: 0.0.0.{build}
 image: Visual Studio 2017
 platform: x64
 environment: 
-  VULKAN_VERSION: 1.1.85.0
+  VULKAN_VERSION: 1.1.92.1
 install:
 - cmd: >-
     git submodule init 
@@ -15,7 +15,7 @@ install:
     
     if not exist "%VULKAN_SDK%" .\VulkanSDK.exe /S
 
-    bash -c "./make_windows.sh -cmake -release -exclude_ext_formats -no_console -strip_debug_info"
+    bash -c "./make_windows.sh -cmake -release -exclude_ext_formats -no_console -strip_debug_info -env=x64"
 
     appveyor exit
     

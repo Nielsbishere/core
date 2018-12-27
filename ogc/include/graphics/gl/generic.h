@@ -27,7 +27,7 @@ namespace oi {
 		typedef VkShader ShaderExt;
 		typedef VkPipelineState PipelineStateExt;
 		typedef VkPipeline PipelineExt;
-		typedef VkGBuffer GBufferExt;
+		typedef VkGPUBuffer GPUBufferExt;
 		typedef VkSampler SamplerExt;
 		
 		///All enum struct implementations
@@ -41,9 +41,8 @@ namespace oi {
 		typedef VkWindMode WindModeExt;
 		typedef VkNull BlendModeExt;
 		typedef VkNull DepthModeExt;
-		typedef VkGBufferType GBufferTypeExt;
+		typedef VkGPUBufferType GPUBufferTypeExt;
 		typedef VkShaderRegisterType ShaderRegisterTypeExt;
-		typedef VkShaderRegisterAccess ShaderRegisterAccessExt;
 		typedef VkSamplerWrapping SamplerWrappingExt;
 		typedef VkSamplerMin SamplerMinExt;
 		typedef VkSamplerMag SamplerMagExt;

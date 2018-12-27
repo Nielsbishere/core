@@ -21,6 +21,7 @@ VersionedTexture *RenderTarget::getTarget(u32 target) {
 
 Vec2u RenderTarget::getSize() { return info.res; }
 bool RenderTarget::isOwned() { return owned; }
+bool RenderTarget::isComputeTarget() { return info.isComputeTarget; }
 
 RenderTargetExt &RenderTarget::getExtension() { return ext; }
 const RenderTargetInfo RenderTarget::getInfo() { return info; }
@@ -29,18 +30,21 @@ RenderTarget::RenderTarget(RenderTargetInfo info) : info(info){}
 
 bool RenderTarget::init(bool isOwned) {
 
-	if (!isOwned)
-		return initData(isOwned);
+	owned = isOwned;
+
+	if (!owned)
+		return initData();
 
 	info.depth = info.depthFormat == TextureFormat::Undefined ? nullptr : g->create(getName() + " depth", TextureInfo(info.res, info.depthFormat, TextureUsage::Render_depth));
 
 	std::vector<VersionedTexture*> &textures = info.textures;
-	std::vector<Texture*> vtextures(g->getBuffering());
 	textures.resize(info.targets);
+
+	std::vector<Texture*> vtextures(g->getBuffering());
 
 	for (u32 i = 0; i < info.targets; ++i) {
 
-		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], TextureUsage::Render_target);
+		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], info.isComputeTarget ? TextureUsage::Compute_target : TextureUsage::Render_target);
 
 		for (u32 j = 0; j < g->getBuffering(); ++j)
 			g->use(vtextures[j] = g->create(getName() + " - " + i + " #" + j, texInfo));
@@ -49,6 +53,6 @@ bool RenderTarget::init(bool isOwned) {
 
 	}
 
-	return initData(false);
+	return initData();
 
 }

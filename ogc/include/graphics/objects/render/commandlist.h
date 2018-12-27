@@ -11,10 +11,11 @@ namespace oi {
 		class Graphics;
 		class RenderTarget;
 		class Pipeline;
-		class GBuffer;
+		class GPUBuffer;
 		class MeshBuffer;
 		class Mesh;
 		class DrawList;
+		class ComputeList;
 
 		struct CommandListInfo { 
 
@@ -51,11 +52,13 @@ namespace oi {
 			void bind(Pipeline *pipeline);
 			void draw(DrawList *drawList);
 
+			void dispatch(ComputeList *computeList);
+
 			CommandListExt &getExtension();
 
 		protected:
 
-			bool bind(std::vector<GBuffer*> vertices, GBuffer *indices = nullptr);
+			bool bind(std::vector<GPUBuffer*> vertices, GPUBuffer *indices = nullptr);
 			bool bind(MeshBuffer *meshBuffer);
 
 			~CommandList();

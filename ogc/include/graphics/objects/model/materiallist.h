@@ -8,7 +8,7 @@ namespace oi {
 
 	namespace gc {
 
-		class GBuffer;
+		class GPUBuffer;
 
 		class Material;
 		struct MaterialStruct;
@@ -24,7 +24,7 @@ namespace oi {
 			bool notified = false;
 			u32 size;
 
-			GBuffer *buffer = nullptr;
+			GPUBuffer *buffer = nullptr;
 
 			MaterialListInfo(TextureList *textures, u32 maxCount) : textures(textures), size(maxCount) { }
 			MaterialListInfo(): textures(nullptr) {}
@@ -47,7 +47,7 @@ namespace oi {
 
 			u32 getSize() const;
 			u32 getBufferSize() const;
-			GBuffer *getBuffer() const;
+			GPUBuffer *getBuffer() const;
 
 			const MaterialListInfo getInfo() const;
 

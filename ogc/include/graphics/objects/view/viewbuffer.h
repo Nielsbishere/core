@@ -8,7 +8,7 @@ namespace oi {
 	namespace gc {
 
 		class ViewBuffer;
-		class GBuffer;
+		class GPUBuffer;
 
 		struct ViewBufferInfo {
 
@@ -23,7 +23,7 @@ namespace oi {
 
 			StaticBitset<cameraCount + frustumCount + viewCount> updated;
 
-			GBuffer *buffer;
+			GPUBuffer *buffer;
 
 			ViewBufferInfo() { }
 
@@ -57,7 +57,7 @@ namespace oi {
 			CameraFrustumStruct *getFrustum(CameraFrustumHandle vp);
 			ViewStruct *getView(ViewHandle v);
 
-			GBuffer *getBuffer();
+			GPUBuffer *getBuffer();
 
 		protected:
 

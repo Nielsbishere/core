@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types/bitset.h"
 #include "graphics/gl/generic.h"
 #include "graphics/objects/graphicsobject.h"
 #include "graphics/objects/shader/shaderbuffer.h"
@@ -28,6 +29,8 @@ namespace oi {
 
 			std::unordered_map<String, ShaderBufferInfo> buffer;
 			std::unordered_map<String, GraphicsResource*> shaderRegister;
+
+			Vec3u computeThreads;
 
 			ShaderInfo(String path) : path(path) {}
 			ShaderInfo() : ShaderInfo("") {}
@@ -66,7 +69,7 @@ namespace oi {
 			ShaderInfo info;
 			ShaderExt ext;
 
-			bool changed = false;
+			Bitset changed;
 
 		};
 

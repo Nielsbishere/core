@@ -7,7 +7,7 @@
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/commandlist.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 
 
 #undef min
@@ -68,9 +68,9 @@ Graphics::~Graphics(){
 
 		#ifdef __DEBUG__
 
-		vkExtension(vkDestroyDebugReportCallbackEXT);
+			vkExtension(vkDestroyDebugReportCallbackEXT);
 
-		vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, vkAllocator);
+			vkDestroyDebugReportCallbackEXT(ext.instance, ext.debugCallback, vkAllocator);
 
 		#endif
 
@@ -87,9 +87,9 @@ void Graphics::init(Window *w){
 
 	//Get extensions and layers
 
-	u32 layerCount, extensionCount;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+	u32 layerCount = 0, extensionCount = 0;
+	vkCheck<0x20>(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), "Couldn't enumerate layers");
+	vkCheck<0x21>(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr), "Couldn't enumerate extensions");
 
 	VkLayerProperties *layers = new VkLayerProperties[layerCount];
 	vkEnumerateInstanceLayerProperties(&layerCount, layers);
@@ -99,16 +99,16 @@ void Graphics::init(Window *w){
 
 	#ifdef __DEBUG__
 
-	Log::println("Starting graphics...");
-	Log::println("Supported layers:");
-	
-	for(u32 i = 0; i < layerCount; ++i)
-		Log::println(String("\t") + layers[i].layerName);
-	
-	Log::println("Supported extensions:");
-	
-	for(u32 i = 0; i < extensionCount; ++i)
-		Log::println(String("\t") + extensions[i].extensionName);
+		Log::println("Starting graphics...");
+		Log::println("Supported layers:");
+		
+		for(u32 i = 0; i < layerCount; ++i)
+			Log::println(String("\t") + layers[i].layerName);
+		
+		Log::println("Supported extensions:");
+		
+		for (u32 i = 0; i < extensionCount; ++i)
+			Log::println(String("\t") + extensions[i].extensionName);
 	
 	#endif
 	
@@ -122,20 +122,33 @@ void Graphics::init(Window *w){
 
 	#ifdef __DEBUG__
 
-	#ifdef __ANDROID__
-	clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
-				"VK_LAYER_LUNARG_core_validation", "VK_LAYER_GOOGLE_unique_objects" };
-	#else 
-	clayers.push_back("VK_LAYER_LUNARG_standard_validation");
-	cextensions.push_back("VK_EXT_debug_utils");
+		#ifdef __ANDROID__
+			clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
+					"VK_LAYER_LUNARG_core_validation", "VK_LAYER_GOOGLE_unique_objects" };
+		#else 
+			clayers.push_back("VK_LAYER_LUNARG_standard_validation");
+			cextensions.push_back("VK_EXT_debug_utils");
+		#endif
+
+		cextensions.push_back("VK_EXT_debug_report");
 	#endif
 
-	cextensions.push_back("VK_EXT_debug_report");
-	#endif
-	
-	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions
+	bool supported = false;
+
+	for (VkExtensionProperties *extension = extensions; extension != extensions + extensionCount; ++extension) {
+		if (String(extension->extensionName) == VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME){
+			cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+			supported = true;
+		}
+	}
+
+	if(!supported)
+		Log::throwError<VkGraphics, 0x24>("Vulkan driver not supported; PhysicalDeviceProperties2 required");
+
+	std::vector<const char*> dlayers, dextensions(3);								///Device layers and extensions
 	dextensions[0] = "VK_KHR_swapchain";
 	dextensions[1] = "VK_KHR_shader_draw_parameters";
+	dextensions[2] = "VK_KHR_get_memory_requirements2";
 
 	//Set up the application
 	
@@ -168,6 +181,8 @@ void Graphics::init(Window *w){
 	
 	Log::println(String("Creating Vulkan instance with ") + (u32) cextensions.size() + " extensions & " + (u32) clayers.size() + " layers:");
 
+	#ifdef __DEBUG__
+
 	Log::println("\tExtensions:");
 
 	for (auto exten : cextensions)
@@ -178,6 +193,8 @@ void Graphics::init(Window *w){
 	for (auto lay : clayers)
 		Log::println(String("\t\t") + lay);
 
+	#endif
+
 	vkCheck<0xA>(vkCreateInstance(&instanceInfo, vkAllocator, &ext.instance), "Couldn't obtain Vulkan instance");
 	initialized = true;
 	
@@ -186,20 +203,20 @@ void Graphics::init(Window *w){
 
 	#ifdef __DEBUG__
 
-	//Debug callback
+		//Debug callback
 
-	VkDebugReportCallbackCreateInfoEXT callbackInfo;
-	memset(&callbackInfo, 0, sizeof(callbackInfo));
+		VkDebugReportCallbackCreateInfoEXT callbackInfo;
+		memset(&callbackInfo, 0, sizeof(callbackInfo));
 
-	callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-	callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;	//All but info
-	callbackInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) onDebugReport;	//TODO: Warning on some devices; not same type?
+		callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+		callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;	//All but info
+		callbackInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) onDebugReport;	//TODO: Warning on some devices; not same type?
 
-	vkExtension(vkCreateDebugReportCallbackEXT);
+		vkExtension(vkCreateDebugReportCallbackEXT);
 
-	vkCheck<0xB>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
+		vkCheck<0xB>(vkCreateDebugReportCallbackEXT(ext.instance, &callbackInfo, vkAllocator, &ext.debugCallback), "Couldn't create debug report callback");
 
-	Log::println("Successfully created debug report callback");
+		Log::println("Successfully created debug report callback");
 
 	#endif
 
@@ -214,33 +231,39 @@ void Graphics::init(Window *w){
 	vkEnumeratePhysicalDevices(ext.instance, &deviceCount, devices);
 	
 	#ifdef __DEBUG__
-	Log::println(String("Devices: ") + deviceCount);
+		Log::println(String("Devices: ") + deviceCount);
 	#endif
 	
-	VkPhysicalDeviceProperties *properties = new VkPhysicalDeviceProperties[deviceCount];
+	VkPhysicalDeviceProperties2 *properties = new VkPhysicalDeviceProperties2[deviceCount];
+	memset(properties, 0, sizeof(VkPhysicalDeviceProperties2) * deviceCount);
 	
+	vkExtension(vkGetPhysicalDeviceProperties2KHR);
+
 	for(u32 i = 0; i < deviceCount; ++i){
 		
-		vkGetPhysicalDeviceProperties(devices[i], properties + i);
+		properties[i].sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		vkGetPhysicalDeviceProperties2KHR(devices[i], properties + i);
 		
 		#ifdef __DEBUG__
-		Log::println(String("Device #") + i + ": " + properties[i].deviceName);
+			Log::println(String("Device #") + i + ": " + properties[i].properties.deviceName);
 		#endif
 		
 	}
 	
 	VkPhysicalDevice *gpu = devices;
+	VkPhysicalDeviceProperties2 *deviceProperties = properties;
 	
 	bool foundDiscrete = false;
 	
 	for(u32 i = 0; i < deviceCount; ++i)
-		if(properties[i].deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
+		if(properties[i].properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
 			
 			#ifdef __DEBUG__
-			Log::println(String("Found a discrete GPU (") + properties[i].deviceName + ")");
+				Log::println(String("Found a discrete GPU (") + properties[i].properties.deviceName + ")");
 			#endif
 			
 			gpu = devices + i;
+			deviceProperties = properties + i;
 			foundDiscrete = true;
 			break;
 			
@@ -250,11 +273,59 @@ void Graphics::init(Window *w){
 		Log::warn("Couldn't find a discrete GPU; so instead picked the first");
 	
 	ext.pdevice = *gpu;
+	ext.pproperties = *deviceProperties;
 	
 	delete[] properties;
 
 	vkGetPhysicalDeviceFeatures(ext.pdevice, &ext.pfeatures);
-	vkGetPhysicalDeviceProperties(ext.pdevice, &ext.pproperties);
+
+	//Query device extensions
+
+	layerCount = extensionCount = 0;
+	vkCheck<0x22>(vkEnumerateDeviceLayerProperties(ext.pdevice, &layerCount, nullptr), "Couldn't enumerate device layers");
+	vkCheck<0x23>(vkEnumerateDeviceExtensionProperties(ext.pdevice, nullptr, &extensionCount, nullptr), "Couldn't enumerate device extensions");
+
+	layers = new VkLayerProperties[layerCount];
+	vkEnumerateDeviceLayerProperties(ext.pdevice, &layerCount, layers);
+
+	extensions = new VkExtensionProperties[extensionCount];
+	vkEnumerateDeviceExtensionProperties(ext.pdevice, nullptr, &extensionCount, extensions);
+
+	#ifdef __DEBUG__
+
+		Log::println("Supported device layers:");
+		
+		for(u32 i = 0; i < layerCount; ++i)
+			Log::println(String("\t") + layers[i].layerName);
+		
+		Log::println("Supported device extensions:");
+		
+		for (u32 i = 0; i < extensionCount; ++i)
+			Log::println(String("\t") + extensions[i].extensionName);
+	
+	#endif
+
+	for(VkExtensionProperties *extension = extensions; extension < extensions + extensionCount; ++extension){
+
+		#ifdef __VR__
+		if (String(extension->extensionName) == VK_KHR_MULTIVIEW_EXTENSION_NAME) {
+			features[GraphicsFeature::VR] = true;
+			dextensions.push_back(VK_KHR_MULTIVIEW_EXTENSION_NAME);
+		}
+		else
+		#endif
+
+		#ifdef __RAYTRACING__
+			if(String(extension->extensionName) == VK_NV_RAY_TRACING_EXTENSION_NAME) {
+				features[GraphicsFeature::Raytracing] = true;
+				dextensions.push_back(VK_NV_RAY_TRACING_EXTENSION_NAME);
+			}
+		#endif
+
+	}
+
+	delete[] layers;
+	delete[] extensions;
 
 	//Setup device
 	
@@ -300,6 +371,22 @@ void Graphics::init(Window *w){
 	deviceInfo.queueCreateInfoCount = queueCount;
 	deviceInfo.pQueueCreateInfos = queues;
 	
+	Log::println(String("Creating Vulkan device with ") + (u32) dextensions.size() + " extensions & " + (u32) dlayers.size() + " layers:");
+
+	#ifdef __DEBUG__
+
+	Log::println("\tExtensions:");
+
+	for (auto exten : dextensions)
+		Log::println(String("\t\t") + exten);
+
+	Log::println("\tLayers:");
+
+	for (auto lay : dlayers)
+		Log::println(String("\t\t") + lay);
+
+	#endif
+
 	vkCheck<0xC>(vkCreateDevice(*gpu, &deviceInfo, vkAllocator, &ext.device), "Couldn't obtain device");
 	
 	vkGetDeviceQueue(ext.device, ext.queueFamilyIndex, 0, &ext.queue);
@@ -309,9 +396,9 @@ void Graphics::init(Window *w){
 
 	#if defined(__DEBUG__) && defined(__WINDOWS__)
 
-	//Debug object names
+		//Debug object names
 
-	ext.debugNames = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(ext.device, "vkSetDebugUtilsObjectNameEXT");
+		ext.debugNames = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(ext.device, "vkSetDebugUtilsObjectNameEXT");
 
 	#endif
 
@@ -335,6 +422,12 @@ void Graphics::init(Window *w){
 
 	//Initialize resource commands
 	ext.stagingCmdList = create("Resource command list", CommandListInfo());
+
+	vkExtension(vkGetImageMemoryRequirements2KHR);
+	vkExtension(vkGetBufferMemoryRequirements2KHR);
+
+	ext.vkGetImageMemoryRequirements2 = vkGetImageMemoryRequirements2KHR;
+	ext.vkGetBufferMemoryRequirements2 = vkGetBufferMemoryRequirements2KHR;
 
 }
 
@@ -590,13 +683,13 @@ void Graphics::begin() {
 
 	//Clean up staging buffers from previous frame
 
-	std::vector<VkGBuffer> &stagingBuffers = ext.stagingBuffers[ext.current];
+	std::vector<VkGPUBuffer> &stagingBuffers = ext.stagingBuffers[ext.current];
 
 	if (stagingBuffers.size() != 0) {
 
 		for (u32 i = 0, j = (u32) stagingBuffers.size(); i < j; ++i) {
 
-			VkGBuffer &buffer = stagingBuffers[i];
+			VkGPUBuffer &buffer = stagingBuffers[i];
 
 			for(VkBuffer &vkBuffer : buffer.resource)
 				vkDestroyBuffer(ext.device, vkBuffer, vkAllocator);
@@ -634,13 +727,13 @@ void Graphics::end() {
 
 	//Submit staging commands; if possible
 
-	std::vector<GraphicsObject*> gbuffers = get<GBuffer>();
+	std::vector<GraphicsObject*> buffers = get<GPUBuffer>();
 	std::vector<GraphicsObject*> textures = get<Texture>();
 
 	bool shouldStage = false;
 
-	for (GraphicsObject *go : gbuffers)		//Check GPU buffers for updates (staging)
-		if (((GBuffer*)go)->shouldStage()) {
+	for (GraphicsObject *go : buffers)		//Check GPU buffers for updates (staging)
+		if (((GPUBuffer*)go)->shouldStage()) {
 			shouldStage = true;
 			break;
 		}
@@ -655,8 +748,8 @@ void Graphics::end() {
 	if (shouldStage)						//Start staging commands
 		ext.stagingCmdList->begin();
 
-	for (GraphicsObject *go : gbuffers)		//Push GPU buffers (some aren't staged)
-		((GBuffer*)go)->push();
+	for (GraphicsObject *go : buffers)		//Push GPU buffers (some aren't staged)
+		((GPUBuffer*)go)->push();
 
 	if (shouldStage) {						//Push textures (all are staged)
 		for (GraphicsObject *go : textures)

@@ -12,6 +12,8 @@ file(GLOB_RECURSE app_SRC
 	"res/shaders/*.geom"
 	"res/shaders/*.vert"
 	"res/shaders/*.comp"
+	"res/shaders/*.tese"
+	"res/shaders/*.tesc"
 	"res/shaders/*.glsl"
 	"res/shaders/*.hlsl"
 )

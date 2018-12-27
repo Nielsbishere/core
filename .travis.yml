@@ -18,9 +18,7 @@ install:
   - sudo apt remove clang -y
   - sudo apt-get install clang -y
   - sudo apt remove cmake
-  - curl https://cmake.org/files/v3.13/cmake-3.13.0-rc3-Linux-x86_64.tar.gz --output cmake.tar.gz
-  - tar -xzf cmake.tar.gz
-  - mv cmake-3.13.0-rc3-Linux-x86_64 cmake
+  - sudo pip install cmake --upgrade
   - sudo apt-get install ant
   - export PATH="${PATH}:$HOME/build/OsomiLunar/ocore/cmake/bin"
   - curl https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip --output android_ndk.zip
@@ -33,7 +31,7 @@ install:
 script:
    - cd $HOME/build/OsomiLunar/ocore
    - chmod +x make_android.sh
-   - ./make_android.sh -cmake -exclude_ext_formats -strip_debug_info -jobs=2 -abi=arm64-v8a
+   - ./make_android.sh -cmake -exclude_ext_formats -strip_debug_info -jobs=2 -abi=ARM64
 
 # Discord hooks
 

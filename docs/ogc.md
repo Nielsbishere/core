@@ -84,7 +84,7 @@ g.use(tex);			//Start using the texture
 g.destroy(tex);		//Stop using the texture
 ```
 
-This way of maintaining references allows you to preserve a GBuffer that was automatically created for example (and then passing it to a different shader). 
+This way of maintaining references allows you to preserve a GPUBuffer that was automatically created for example (and then passing it to a different shader). 
 
 ```cpp
 g.printObjects();	//Print all graphics objects (for debugging)
@@ -257,7 +257,7 @@ A ShaderBuffer is the representation of a buffer in a shader; it contains all re
 
 This is automatically created by the oiSH reflection data; however the physical data doesn't have to be allocated (specifying `_noalloc` after a buffer's name disables automatic allocation, or when the object is dynamically sized). 
 
-When the data is not allocated; you can use either `instantiate(u32 objects)` or `setBuffer(u32 objects, GBuffer *g)`. Instantiate is for when there is a dynamically sized array at the end of the buffer. Both with setBuffer and instantiate it keeps ownership over the buffer, and will try to destroy it when the shader buffer is destroyed (can be prevented by using `g.use(object)` so the shader buffer doesn't destroy it). setBuffer just allows you to create your own buffer, while instantiate does it for you. The 'objects' is the length of the dynamically sized array at the end of the buffer (if applicable).
+When the data is not allocated; you can use either `instantiate(u32 objects)` or `setBuffer(u32 objects, GPUBuffer *g)`. Instantiate is for when there is a dynamically sized array at the end of the buffer. Both with setBuffer and instantiate it keeps ownership over the buffer, and will try to destroy it when the shader buffer is destroyed (can be prevented by using `g.use(object)` so the shader buffer doesn't destroy it). setBuffer just allows you to create your own buffer, while instantiate does it for you. The 'objects' is the length of the dynamically sized array at the end of the buffer (if applicable).
 
 This system means that the user doesn't have to care about GPU-alignment. This system abstracts it away. 
 
@@ -292,7 +292,7 @@ ShaderBufferVar get();					//Get the variable for this buffer
 u32 getElements();						//Number of children
 u32 getSize();							//Size of buffer
 
-GBuffer *getBuffer();					//GPU buffer
+GPUBuffer *getBuffer();
 
 //If info.allocate is false, you have to instantiate the buffer yourself
 //This can be a dynamic object buffer, light buffer, etc.
@@ -300,10 +300,10 @@ ShaderBuffer *instantiate(u32 objects);
 
 //If info.allocate is false, you can allocate a buffer yourself
 //This can be a dynamic object buffer, light buffer, etc.
-//The length of the GBuffer should match the ShaderBuffer's length
-void setBuffer(u32 objects, GBuffer *g);
+//The length of the GPUBuffer should match the ShaderBuffer's length
+void setBuffer(u32 objects, GPUBuffer *g);
 
-//Same as GBuffer's implementation
+//Same as GPUBuffer's implementation
 void flush();
 void copy(Buffer buf);
 
@@ -397,8 +397,8 @@ VirtualBlockAllocator *indices;			//Responsible for allocating indices
 
 std::vector<u32> vboStrides;			//The size per vertex for every buffer
 
-std::vector<GBuffer*> vbos;				//Vertex buffers
-GBuffer *ibo;							//Index buffers
+std::vector<GPUBuffer*> vbos;				//Vertex buffers
+GPUBuffer *ibo;							//Index buffers
 ```
 
 #### Functions
@@ -662,11 +662,22 @@ If you disable depth, the depth texture will be nullptr. You can get the number 
 
 #### Constructor
 
+##### Graphics RenderTarget
+
 ```cpp
 Vec2u res, 							//The resolution of the render target
 TextureFormat depth, 				//Typically Depth, Undefined for disabled
 std::vector<TextureFormat> formats	//List of texture formats for the output
 ```
+
+##### Compute RenderTarget
+
+```cpp
+Vec2u res,							//The resolution of the render target
+std::vector<TextureFormat> formats	//List of texture formats for the output
+```
+
+This RenderTarget can only be used for compute shaders and don't affect graphics shaders. Therefore, you can use compute shaders like you would use graphics shaders; but you do have to manage the shader registers yourself. This also means that you could have unlimited compute render targets bound, as long as you make sure to unbind them.
 
 #### Data
 
@@ -677,7 +688,9 @@ TextureFormat depthFormat;
 std::vector<TextureFormat> formats;
 
 Texture *depth;								//The depth texture
-std::vector<VersionedTexture*> textures;	//The output textures
+std::vector<VersionedTexture*> textures;	//The output 
+
+bool isComputeTarget;	//Whether or not this should only be used for compute shaders
 ```
 
 ### Functions
@@ -691,6 +704,8 @@ VersionedTexture *getTarget(u32 i);
 
 Vec2u getSize();
 bool isOwned();
+
+bool isComputeTarget();
 ```
 
 ### Example
@@ -980,7 +995,7 @@ u32 maxBatches;
 bool clearOnUse;
 
 MeshBuffer *meshBuffer;
-GBuffer *drawBuffer;			//The GPU object representing the DrawList
+GPUBuffer *drawBuffer;			//The GPU object representing the DrawList
 
 std::vector<
     std::pair<Mesh*, u32>
@@ -992,7 +1007,7 @@ std::vector<
 ```cpp
 u32 getBatches();
 u32 getMaxBatches();
-GBuffer *getBuffer();
+GPUBuffer *getBuffer();
 
 void clear();					//Clears draw list
 void flush();					//Prepares draw list for draw
@@ -1034,6 +1049,87 @@ struct MyTestObject {	//9 lines; 144 bytes
 ```
 
 This means that `objects[0]` is the sphere's object info and `objects[1]` is the planet's object info.
+
+## ComputeList
+
+Similar to the DrawList counterpart. ComputeList is responsible for requesting compute shader dispatches. This allows you to request a bunch of different dispatches from the same compute shader. This could be used to manage particle emitters or update layers of a texture; as well as allowing multi-pass texture updates (that require waiting for the last result).
+
+### ComputeListInfo
+
+#### Constructor
+
+```cpp
+Pipeline *computePipeline;		//Pipeline with compute shader
+u32 maxDispatches;				//Maximum number of dispatches
+bool clearOnUse = false;		//If the compute list has to be cleared after use
+```
+
+#### Data
+
+```cpp
+Pipeline *computePipeline;
+u32 maxDispatches;
+bool clearOnUse;
+
+std::vector<Vec3u> dispatches;			//Stores the dispatched groups
+GPUBuffer *dispatchBuffer;				//Buffer for storing dispatches
+```
+
+### Functions
+
+```cpp
+//Getting dispatch information
+
+u32 getMaxDispatches();
+u32 getDispatches();
+GPUBuffer *getDispatchBuffer();
+
+//Clearing and pushing changes
+
+void clear();
+void flush();
+
+//Dispatch AT LEAST xyz threads
+//But dispatches more if xyz % getThreadsPerGroup() != 0
+
+u32 dispatchThreads(u32 threads);
+Vec2u dispatchThreads(Vec2u threads);
+Vec3u dispatchThreads(Vec3u threads);
+
+//Dispatch xyz groups of getThreadsPerGroup()
+
+u32 dispatchGroups(u32 groups);
+Vec2u dispatchGroups(Vec2u groups);
+Vec3u dispatchGroups(Vec3u groups);
+
+//The local size; threads per group
+
+Vec3u getThreadsPerGroup();
+```
+
+### Example
+
+```cpp
+cmdList->begin(computeTarget);
+cmdList->bind(computePipeline);
+cmdList->dispatch(computeList);
+cmdList->end(computeTarget);
+```
+
+The example above (located in render) prepares the compute target to be used in the dispatch call.
+
+```cpp
+Vec2u targetRes = computeList->dispatchThreads(res);
+computeList->flush();
+
+computeTarget = g.create("Compute target", 
+                         RenderTargetInfo(targetRes, { TextureFormat::RGBA16f }));
+g.use(computeTarget);
+
+computeShader->set("outputTexture", computeTarget->getTarget(0));
+```
+
+The example above (located in initSceneSurface) tries to dispatch res (resolution) number of threads. If this resolution doesn't match with the group size, it will dispatch more threads. To ensure this can still function optimally, the render target will use this size (so the compute shader can run over all threads the same way). But will have to be sampled with this limitation in mind. We send this RGBA16f target to the compute shader, so it can output to it.
 
 ## CommandList
 
@@ -1153,7 +1249,7 @@ TextureList *textures;
 bool notified = false;		//True if any submaterials have been updated
 u32 size;					//aka maxCount
 
-GBuffer *buffer = nullptr;	//Buffer that stores material structs
+GPUBuffer *buffer = nullptr;//Buffer that stores material structs
 ```
 
 ### Functions
@@ -1167,7 +1263,7 @@ const MaterialStruct *operator[](MaterialHandle handle) const;	//^ const
 
 u32 getSize() const;							//Get size in materials
 u32 getBufferSize() const;						//Get size in bytes (* 128)
-GBuffer *getBuffer() const;						//Get GBuffer
+GPUBuffer *getBuffer() const;
 ```
 
 ## Material
@@ -1499,7 +1595,7 @@ StaticObjectAllocator<ViewStruct, viewCount> views;					//128 views
 
 StaticBitset<cameraCount + frustumCount + viewCount> updated;		//Which updated
 
-GBuffer *buffer;													//UBO for data
+GPUBuffer *buffer;													//UBO for data
 ```
 
 ### ViewBufferStruct (GPU)
@@ -1540,7 +1636,7 @@ CameraStruct *getCamera(CameraHandle cam);
 CameraFrustumStruct *getFrustum(CameraFrustumHandle vp);
 ViewStruct *getView(ViewHandle v);
 
-GBuffer *getBuffer();			//Get the buffer with all data
+GPUBuffer *getBuffer();			//Get the buffer with all data
 ```
 
 ### Example
@@ -1599,34 +1695,34 @@ std::vector<ShaderInput> input;			//Inputs of the stage
 std::vector<ShaderOutput> output;		//Outputs of the stage
 ```
 
-## GBuffer
+## GPUBuffer
 
-### GBufferInfo
+### GPUBufferInfo
 
 #### Constructor (buffer)
 
 ```cpp
-GBufferType type;		//The type of the buffer
+GPUBufferType type;		//The type of the buffer
 Buffer buffer;			//The data of the buffer
 ```
 
 #### Constructor (size)
 
 ```cpp
-GBufferType type;		//The type of the buffer
+GPUBufferType type;		//The type of the buffer
 u32 size;				//Empty buffer with size
 ```
 
 #### Data
 
 ```cpp
-GBufferType type;
+GPUBufferType type;
 Buffer buffer;
 
 bool hasData;			//Whether or not there's data initialized (buffer constructor)
 ```
 
-### GBufferType OEnum
+### GPUBufferType OEnum
 
 ```cpp
 UBO = 0, 				//Uniform buffer object (<64 KiB buffer)
@@ -1639,7 +1735,7 @@ CBO = 4					//Command buffer (multi draw indirect)
 ### Functions
 
 ```cpp
-GBufferType getType();
+GPUBufferType getType();
 
 u32 getSize();
 u8 *getAddress();
@@ -1792,8 +1888,8 @@ void renderScene() override;
 ### Pre-initialized values
 
 ```cpp
-PipelineState *pipelineState;		//{ All, Alpha, Back, CCW, 1.f, 1 }
-Sampler *sampler;					//{ Linear, Linear, Repeat }
+Sampler *linearSampler;				//{ Linear, Linear, Repeat }
+Sampler *nearestSampler;			//{ Nearest, Nearest, Clamp_border }
 ViewBuffer *views;					//{ }
 Camera *camera;						//{ views, Vec3(3), Vec4(0, 0, 0, 1) }
 CameraFrustum *cameraFrustum;		//{ views, Vec2u(1), 1, 40, 0.1f, 100 }
@@ -2271,31 +2367,28 @@ void main() {
 
 The following list contains the types for Vulkan and OpenGL implementation; though the OpenGL implementation is just an example (and doesn't exist). The raytracing and VR features are also just a prototype and don't have an implementation yet. The type can be either class, GO (graphics object) or OE (Osomi Enum). OE doesn't directly map to the types given, but rather through an intermediate enum, just like the classes and GO.
 
-| Base                  | Vulkan                                                       | OpenGL | Type  |
-| --------------------- | ------------------------------------------------------------ | ------ | ----- |
-| Graphics              | VkInstance<br />VkPhysicalDevice<br />VkDevice<br />VkSurfaceKHR<br />VkQueue<br />VkSwapchainKHR<br />VkCommandPool<br />VkPhysicalDeviceFeatures<br />VkPhysicalDeviceMemoryProperties<br />VkColorSpaceKHR<br />VkFormat<br />VkFence[] present<br />VkSemaphore[] submit<br />VkSemaphore[] swapchain<br />CommandList*<br />`VkGBuffer[][]` staging<br />u32 current<br />u32 frames<br />u32 queueFamily<br />VkDebugReportCallbackEXT (debug)<br />PFN_vkSetDebugUtilsObjectNameEXT (debug Windows) | GLnull | class |
-| RenderTarget          | VkRenderPass<br />VkFramebuffer[]                            | GLuint | GO    |
-| Texture               | VkImage<br />VkDeviceMemory<br />VkImageView                 | GLuint | GO    |
-| GBuffer               | VkBuffer[]<br />VkDeviceMemory<br />u32                      | GLuint | GO    |
-| ShaderStage           | VkShaderModule<br />VkPipelineShaderStageCreateInfo          | GLuint | GO    |
-| Shader                | VkShaderStage*[]<br />VkPipelineLayout<br />VkDescriptorSetLayout<br />VkDescriptorPool<br />VkDescriptorSet[] | GLuint | GO    |
-| CommandList           | VkCommandPool<br />VkCommandBuffer[]                         | GLnull | GO    |
-| PipelineState         | VkPipelineInputAssemblyStateCreateInfo<br />VkPipelineRasterizationStateCreateInfo<br />VkPipelineColorBlendAttachmentState<br />VkPipelineColorBlendStateCreateInfo<br />VkPipelineDepthStencilStateCreateInfo<br />VkPipelineMultisampleStateCreateInfo | GLnull | GO    |
-| TextureFormat         | VkFormat                                                     | GLenum | OE    |
-| TextureUsage          | VkImageLayout                                                | GLnull | OE    |
-| ShaderStageType       | VkShaderStageFlagBits                                        | GLenum | OE    |
-| TopologyMode          | VkPrimitiveTopology                                          | GLenum | OE    |
-| FillMode              | VkPolygonMode                                                | GLenum | OE    |
-| CullMode              | VkCullModeFlags                                              | GLenum | OE    |
-| WindMode              | VkFrontFace                                                  | GLenum | OE    |
-| GBufferType           | VkGBufferType                                                | GLenum | OE    |
-| ShaderRegisterType    | VkDescriptorType                                             | GLnull | OE    |
-| ShaderRegisterAccess  | VkShaderStageFlags                                           | GLnull | OE    |
-| SamplerWrapping       | VkSamplerAddressMode                                         | GLenum | OE    |
-| SamplerMin            | VkFilter<br />VkSamplerMipmapMode                            | GLenum | OE    |
-| SamplerMag            | VkFilter                                                     | GLenum | OE    |
-| RayAccelerationFt     | VkAccelerationStructureNV                                    | -      | GO    |
-| RayShaderStageTypeFt  | see ShaderStageType                                          | -      | OE    |
-| RayGBufferTypeFt      | see GBufferType                                              | -      | OE    |
-| MeshShaderStageTypeFt | see ShaderStageType                                          | -      | OE    |
-| XRViewportFt          | ???                                                          | -      | GO    |
+| Base                 | Vulkan                                                       | OpenGL | Type  |
+| -------------------- | ------------------------------------------------------------ | ------ | ----- |
+| Graphics             | VkInstance<br />VkPhysicalDevice<br />VkDevice<br />VkSurfaceKHR<br />VkQueue<br />VkSwapchainKHR<br />VkCommandPool<br />VkPhysicalDeviceFeatures<br />VkPhysicalDeviceMemoryProperties<br />VkColorSpaceKHR<br />VkFormat<br />VkFence[] present<br />VkSemaphore[] submit<br />VkSemaphore[] swapchain<br />CommandList*<br />`VkGPUBuffer[][]` staging<br />u32 current<br />u32 frames<br />u32 queueFamily<br />VkDebugReportCallbackEXT (debug)<br />PFN_vkSetDebugUtilsObjectNameEXT (debug Windows) | GLnull | class |
+| RenderTarget         | VkRenderPass<br />VkFramebuffer[]                            | GLuint | GO    |
+| Texture              | VkImage<br />VkDeviceMemory<br />VkImageView                 | GLuint | GO    |
+| GPUBuffer            | VkBuffer[]<br />VkDeviceMemory<br />u32                      | GLuint | GO    |
+| ShaderStage          | VkShaderModule<br />VkPipelineShaderStageCreateInfo          | GLuint | GO    |
+| Shader               | VkShaderStage*[]<br />VkPipelineLayout<br />VkDescriptorSetLayout<br />VkDescriptorPool<br />VkDescriptorSet[] | GLuint | GO    |
+| CommandList          | VkCommandPool<br />VkCommandBuffer[]                         | GLnull | GO    |
+| PipelineState        | VkPipelineInputAssemblyStateCreateInfo<br />VkPipelineRasterizationStateCreateInfo<br />VkPipelineColorBlendAttachmentState<br />VkPipelineColorBlendStateCreateInfo<br />VkPipelineDepthStencilStateCreateInfo<br />VkPipelineMultisampleStateCreateInfo | GLnull | GO    |
+| TextureFormat        | VkFormat                                                     | GLenum | OE    |
+| TextureUsage         | VkImageLayout                                                | GLnull | OE    |
+| ShaderStageType      | VkShaderStageFlagBits                                        | GLenum | OE    |
+| TopologyMode         | VkPrimitiveTopology                                          | GLenum | OE    |
+| FillMode             | VkPolygonMode                                                | GLenum | OE    |
+| CullMode             | VkCullModeFlags                                              | GLenum | OE    |
+| WindMode             | VkFrontFace                                                  | GLenum | OE    |
+| GPUBufferType        | VkGPUBufferType                                              | GLenum | OE    |
+| ShaderRegisterType   | VkDescriptorType                                             | GLnull | OE    |
+| ShaderRegisterAccess | VkShaderStageFlags                                           | GLnull | OE    |
+| SamplerWrapping      | VkSamplerAddressMode                                         | GLenum | OE    |
+| SamplerMin           | VkFilter<br />VkSamplerMipmapMode                            | GLenum | OE    |
+| SamplerMag           | VkFilter                                                     | GLenum | OE    |
+| RayAccelerationFt    | VkAccelerationStructureNV                                    | -      | GO    |
+| XRViewportFt         | ???                                                          | -      | GO    |

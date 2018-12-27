@@ -1,6 +1,7 @@
 #pragma once
 #include "graphics/graphics.h"
 #include "graphics/objects/graphicsobject.h"
+#include "graphics/objects/shader/pipelinestate.h"
 
 namespace oi {
 

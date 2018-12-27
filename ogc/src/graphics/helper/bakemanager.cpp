@@ -89,9 +89,9 @@ BakeManager::BakeManager(bool stripDebug, String file) : location(file), stripDe
 		"Shaders",
 		"mod/shaders",
 		{
-			{ "glsl", { "vert", "frag", "comp", "geom" } },
-			{ "glsl", { "vert.glsl", "frag.glsl", "comp.glsl", "geom.glsl" } },
-			{ "hlsl", { "vert.hlsl", "frag.hlsl", "comp.hlsl", "geom.hlsl" } }
+			{ "glsl", { "vert", "frag", "comp", "geom", "tese", "tesc" } },
+			{ "glsl", { "vert.glsl", "frag.glsl", "comp.glsl", "geom.glsl", "tese.glsl", "tesc.glsl" } },
+			{ "hlsl", { "vert.hlsl", "frag.hlsl", "comp.hlsl", "geom.hlsl", "tese.hlsl", "tesc.glsl" } }
 		},
 		BakeManager::bakeShader
 	)

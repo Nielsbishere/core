@@ -112,7 +112,7 @@ MeshBuffer::~MeshBuffer() {
 
 	delete info.vertices;
 
-	for (GBuffer *buf : info.vbos)
+	for (GPUBuffer *buf : info.vbos)
 		g->destroy(buf);
 
 	if (info.indices != nullptr) {
@@ -131,7 +131,7 @@ bool MeshBuffer::init() {
 	
 	if (info.maxIndices != 0) {
 		info.indices = new VirtualBlockAllocator(info.maxIndices);
-		info.ibo = g->create(getName() + " ibo", GBufferInfo(GBufferType::IBO, info.maxIndices * 4));
+		info.ibo = g->create(getName() + " ibo", GPUBufferInfo(GPUBufferType::IBO, info.maxIndices * 4));
 		g->use(info.ibo);
 	}
 
@@ -147,7 +147,7 @@ bool MeshBuffer::init() {
 		for (auto elem : buf)
 			size += Graphics::getFormatSize(elem.second);
 
-		info.vbos[i] = g->create(getName() + " vbo " + i, GBufferInfo(GBufferType::VBO, info.maxVertices * size));
+		info.vbos[i] = g->create(getName() + " vbo " + i, GPUBufferInfo(GPUBufferType::VBO, info.maxVertices * size));
 		info.vboStrides[i] = size;
 		g->use(info.vbos[i]);
 

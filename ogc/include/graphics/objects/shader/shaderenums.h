@@ -10,7 +10,7 @@ namespace oi {
 		class Graphics;
 
 		class ShaderStage;
-		class GBuffer;
+		class GPUBuffer;
 
 		struct ShaderInput {
 
@@ -33,37 +33,45 @@ namespace oi {
 
 		};
 
-		DEnum(ShaderRegisterType, u32,
+		UEnum(ShaderRegisterType,
 			Undefined = 0,
 			UBO = 1, SSBO = 2,
 			Texture2D = 3, Image = 4,
 			Sampler = 5
 		);
 
-		DEnum(ShaderRegisterAccess, u32,
+		enum class ShaderAccessType : u32 {
 
-			Undefined = 0,
-			Compute = 1,
-			Vertex = 2,
-			Geometry = 4,
-			Fragment = 8,
+			COMPUTE = 0,
 
-			Vertex_fragment = 10,
-			Vertex_geometry_fragment = 14,
-			Vertex_geometry = 6,
-			Geometry_fragment = 12
+			VERTEX = 1,
+			FRAGMENT = 2,
+			GEOMETRY = 4,
+			TESSELATION = 8,
+			TESSELATION_EVALUATION = 16,
 
-		);
+			MESH = 256,
+			TASK = 512,
+
+			RAY_GEN = 1024,
+			ANY_HIT = 2048,
+			CLOSEST_HIT = 4096,
+			MISS = 8192,
+			INTERSECTION = 16384,
+			CALLABLE = 32768
+
+		};
 
 		struct ShaderRegister {
 
 			ShaderRegisterType type;
-			ShaderRegisterAccess access;
+			ShaderAccessType access;
 			String name;
 			u32 size, id;
+			TextureFormat format;
 
-			ShaderRegister(ShaderRegisterType type, ShaderRegisterAccess access, String name, u32 size, u32 id) : type(type), access(access), name(name), size(size), id(id) {}
-			ShaderRegister() : ShaderRegister(0, 0, "", 0, 0) { }
+			ShaderRegister(ShaderRegisterType type, ShaderAccessType access, String name, u32 size, u32 id, TextureFormat format) : type(type), access(access), name(name), size(size), id(id), format(format) {}
+			ShaderRegister() : ShaderRegister(0, ShaderAccessType::COMPUTE, "", 0, 0, TextureFormat::Undefined) { }
 
 		};
 

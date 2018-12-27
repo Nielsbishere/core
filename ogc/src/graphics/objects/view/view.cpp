@@ -13,6 +13,8 @@ ViewBuffer *View::getParent() { return info.parent; }
 
 void ViewStruct::makeViewProjection(ViewBuffer *buffer) {
 	vp = buffer->getFrustum(frustum)->p * buffer->getCamera(camera)->v;
+	vpInv = vp;
+	vpInv.inverse();
 }
 
 void View::setCamera(Camera *cam) {

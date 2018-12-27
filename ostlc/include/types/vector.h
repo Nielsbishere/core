@@ -24,6 +24,12 @@ namespace oi {
 			struct {
 				T x, y;
 			};
+			struct {
+				T r, g;
+			};
+			struct {
+				T s, t;
+			};
 		};
 
 	};
@@ -37,6 +43,12 @@ namespace oi {
 			struct {
 				T x, y, z;
 			};
+			struct {
+				T r, g, b;
+			};
+			struct {
+				T s, t, u;
+			};
 		};
 
 	};
@@ -49,6 +61,12 @@ namespace oi {
 			T arr[4];
 			struct {
 				T x, y, z, w;
+			};
+			struct {
+				T r, g, b, a;
+			};
+			struct {
+				T s, t, u, v;
 			};
 		};
 
@@ -207,6 +225,10 @@ namespace oi {
 		}
 
 		TVec clamp(T mi, T ma) const {
+			return min(ma).max(mi);
+		}
+
+		TVec clamp(const TVec &mi, const TVec &ma) const {
 			return min(ma).max(mi);
 		}
 

@@ -99,7 +99,7 @@ namespace oi {
 
 		u8 &at(u32 bit);
 
-		void clear();
+		void clear(bool value = false);
 
 	private:
 
@@ -310,8 +310,8 @@ namespace oi {
 			return cpy;
 		}
 
-		void clear() {
-			memset(data, 0, bytes);
+		void clear(bool value = false) {
+			memset(data, value ? 0xFF : 0, bytes);
 		}
 
 	private:

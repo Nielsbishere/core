@@ -8,17 +8,18 @@
 using namespace oi::gc;
 using namespace oi;
 
-bool Texture::initData(bool isOwned) {
-
-	owned = isOwned;
+bool Texture::initData() {
 
 	VkGraphics &graphics = g->getExtension();
 
-	if (info.format == TextureFormat::Depth) {
+	if (info.format == TextureFormat::Depth || info.format == TextureFormat::Depth_stencil) {
 
-		std::vector<VkTextureFormat> priorities = { VkTextureFormat::D32S8, VkTextureFormat::D24S8, VkTextureFormat::D32, VkTextureFormat::D16 };
+		static const std::vector<VkTextureFormat> stencil = { VkTextureFormat::D32S8, VkTextureFormat::D24S8, VkTextureFormat::D16S8 };
+		static const std::vector<VkTextureFormat> depth = { VkTextureFormat::D32, VkTextureFormat::D16 };
 
-		for (VkTextureFormat &f : priorities) {
+		static const std::vector<VkTextureFormat> &priorities = info.format == TextureFormat::Depth ? depth : stencil;
+
+		for (const VkTextureFormat &f : priorities) {
 			VkFormatProperties fprop;
 			vkGetPhysicalDeviceFormatProperties(graphics.pdevice, (VkFormat) f.getValue().value, &fprop);
 
@@ -28,7 +29,7 @@ bool Texture::initData(bool isOwned) {
 			}
 		}
 
-		if (info.format == TextureFormat::Depth)
+		if (info.format == TextureFormat::Depth || info.format == TextureFormat::Depth_stencil)
 			return Log::throwError<VkTexture, 0x0>("Couldn't get depth texture; no optimal format available");
 
 	}
@@ -40,7 +41,7 @@ bool Texture::initData(bool isOwned) {
 
 	VkTextureUsage usage = info.usage.getName();
 
-	if(isOwned){
+	if(owned){
 	
 		//Create image
 
@@ -55,9 +56,29 @@ bool Texture::initData(bool isOwned) {
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.mipLevels = info.mipLevels;
 		imageInfo.arrayLayers = 1;
-		imageInfo.usage = (info.usage == TextureUsage::Image ? VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT : (useDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) | VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		
+		switch (info.usage.getValue()) {
+
+		case TextureUsage::Image.value:
+			imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+			break;
+
+		case TextureUsage::Compute_target.value:
+			imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+			break;
+
+		case TextureUsage::Render_depth.value:
+			imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			break;
+
+		default:
+			imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			break;
+
+		}
 
 		vkCheck<0x4, VkTexture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
 		vkName(graphics, ext.resource, VK_OBJECT_TYPE_IMAGE, getName());
@@ -67,8 +88,19 @@ bool Texture::initData(bool isOwned) {
 		VkMemoryAllocateInfo memoryInfo;
 		memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-		VkMemoryRequirements requirements;
-		vkGetImageMemoryRequirements(graphics.device, ext.resource, &requirements);
+		VkMemoryRequirements2 requirements2;
+		memset(&requirements2, 0, sizeof(requirements2));
+
+		requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+		VkImageMemoryRequirementsInfo2 imageRequirement;
+		memset(&imageRequirement, 0, sizeof(imageRequirement));
+
+		imageRequirement.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR;
+		imageRequirement.image = ext.resource;
+
+		graphics.vkGetImageMemoryRequirements2(graphics.device, &imageRequirement, &requirements2);
+		VkMemoryRequirements &requirements = requirements2.memoryRequirements;
 
 		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		memoryInfo.allocationSize = requirements.size;
@@ -189,8 +221,19 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	VkMemoryAllocateInfo memoryInfo;
 	memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-	VkMemoryRequirements requirements;
-	vkGetBufferMemoryRequirements(graphics.device, dst, &requirements);
+	VkMemoryRequirements2 requirements2;
+	memset(&requirements2, 0, sizeof(requirements2));
+
+	requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+	VkBufferMemoryRequirementsInfo2 bufferMemoryRequirements2;
+	memset(&bufferMemoryRequirements2, 0, sizeof(bufferMemoryRequirements2));
+
+	bufferMemoryRequirements2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
+	bufferMemoryRequirements2.buffer = dst;
+
+	graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
+	VkMemoryRequirements &requirements = requirements2.memoryRequirements;
 
 	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memoryInfo.allocationSize = requirements.size;
@@ -242,7 +285,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	//Copy buffer to copy buffer
 	void *memory;
 	vkCheck<0x18, VkTexture>(vkMapMemory(graphics.device, dstMemory, 0, VK_WHOLE_SIZE, 0, &memory), "Couldn't map intermediate memory");
-	output = CopyBuffer((u8*)memory, requirements.size);
+	output = CopyBuffer((u8*)memory, (u32) requirements.size);
 	vkUnmapMemory(graphics.device, dstMemory);
 
 	//Destroy buffer
@@ -312,7 +355,7 @@ void Texture::push() {
 
 	//Construct staging buffer with data
 
-	GBufferExt gbext;
+	GPUBufferExt gbext;
 	gbext.resource.resize(1);
 
 	VkBufferCreateInfo stagingInfo;
@@ -333,8 +376,19 @@ void Texture::push() {
 	VkMemoryAllocateInfo memoryInfo;
 	memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-	VkMemoryRequirements requirements;
-	vkGetBufferMemoryRequirements(graphics.device, gbext.resource[0], &requirements);
+	VkMemoryRequirements2 requirements2;
+	memset(&requirements2, 0, sizeof(requirements2));
+
+	requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+	VkBufferMemoryRequirementsInfo2 bufferMemoryRequirements2;
+	memset(&bufferMemoryRequirements2, 0, sizeof(bufferMemoryRequirements2));
+
+	bufferMemoryRequirements2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
+	bufferMemoryRequirements2.buffer = gbext.resource[0];
+
+	graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
+	VkMemoryRequirements &requirements = requirements2.memoryRequirements;
 
 	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memoryInfo.allocationSize = requirements.size;

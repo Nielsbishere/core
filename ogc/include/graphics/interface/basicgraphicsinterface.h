@@ -28,8 +28,7 @@ namespace oi {
 
 		protected:
 
-			PipelineState *pipelineState;
-			Sampler *sampler;
+			Sampler *linearSampler, *nearestSampler;
 			ViewBuffer *views;
 			Camera *camera;
 			CameraFrustum *cameraFrustum;

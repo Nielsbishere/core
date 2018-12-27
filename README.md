@@ -7,7 +7,7 @@ Osomi Core - A basic framework for graphics and engines.
 
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |
-| Windows      |  x86, x86_64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore) |
+| Windows      |  x86, x64, ARM32, ARM64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore) |
 | Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   [![Build Status](https://api.travis-ci.com/OsomiLunar/ocore.svg?branch=master)](https://travis-ci.com/OsomiLunar/ocore) ||
 | Linux | none      |    no |
 | Mac OS | none      |    no |
@@ -29,8 +29,9 @@ git submodule update --init --recursive
 
 The following dependencies are required for the entire project:
 
-[CMake](https://cmake.org/download/) 3.6.0 or later
-[Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) 1.1.85.0 or later
+[CMake](https://cmake.org/download/) 3.6.0 or later  
+[Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) 1.1.92.1 or later (ogc dependency)  
+[Python](https://www.python.org/downloads/) 3.7.1 or later (SPIRV-Tools-opt dependency)
 
 ### Windows
 

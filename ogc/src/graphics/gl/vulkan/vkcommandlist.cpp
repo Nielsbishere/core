@@ -1,10 +1,11 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
-#include "graphics/objects/gbuffer.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/drawlist.h"
+#include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/shader/pipeline.h"
 #include "graphics/objects/shader/shader.h"
 #include "graphics/objects/texture/versionedtexture.h"
@@ -34,23 +35,56 @@ void CommandList::begin() {
 
 void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
+	if (target->isComputeTarget()) {
+
+		u32 frame = g->getExtension().current;
+
+		VkImageMemoryBarrier imageBarrier;
+		memset(&imageBarrier, 0, sizeof(imageBarrier));
+
+		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imageBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
+
+		for (u32 i = 0; i < target->getTargets(); ++i) {
+			Texture *tex = target->getTarget(i)->getVersion(frame);
+			(barriers[i] = imageBarrier).image = tex->getExtension().resource;
+		}
+
+		vkCmdPipelineBarrier(ext_cmd, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, target->getTargets(), barriers);
+		delete[] barriers;
+
+		return;
+	}
+
 	RenderTargetExt &rtext = target->getExtension();
 
 	VkRenderPassBeginInfo beginInfo;
 	memset(&beginInfo, 0, sizeof(beginInfo));
 
-	std::vector<VkClearValue> clearValue(target->getTargets() + 1);
+	bool depthTarget = target->getDepth() != nullptr;
 
-	for (u32 i = 0; i < target->getTargets() + 1; ++i) {
+	u32 ctargets = target->getTargets();
+	u32 targets = ctargets + depthTarget;
+
+	std::vector<VkClearValue> clearValue(targets);
+
+	for (u32 i = 0; i < targets; ++i) {
+
+		bool isDepth = depthTarget && i == ctargets;
 
 		VkClearValue &cl = clearValue[i];
-		TextureFormat format = i == 0 ? target->getDepth()->getFormat() : target->getTarget(i - 1)->getFormat();
+		TextureFormat format = isDepth ? target->getDepth()->getFormat() : target->getTarget(i)->getFormat();
 
-		if (i == 0) {
+		if (isDepth) {
 			cl.depthStencil.depth = clear.depthClear;
 			cl.depthStencil.stencil = clear.stencilClear;
-		}
-		else {
+		} else {
 
 			Vec4d color = g->convertColor(clear.colorClear, format);
 
@@ -77,8 +111,31 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
 }
 
-void CommandList::end(RenderTarget*) {
-	vkCmdEndRenderPass(ext_cmd);
+void CommandList::end(RenderTarget *target) {
+	if (!target->isComputeTarget()) {
+		vkCmdEndRenderPass(ext_cmd);
+	} else {
+
+		VkImageMemoryBarrier imageBarrier;
+		memset(&imageBarrier, 0, sizeof(imageBarrier));
+
+		imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imageBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imageBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
+
+		for (u32 i = 0; i < target->getTargets(); ++i) {
+			Texture *tex = target->getTarget(i)->getVersion(g->getExtension().current);
+			(barriers[i] = imageBarrier).image = tex->getExtension().resource;
+		}
+
+		vkCmdPipelineBarrier(ext_cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, target->getTargets(), barriers);
+		delete[] barriers;
+	}
 }
 
 void CommandList::end() {
@@ -111,8 +168,13 @@ bool CommandList::init() {
 
 void CommandList::bind(Pipeline *pipeline) {
 
-	if(pipeline->getInfo().meshBuffer != boundMB)
-		bind(boundMB = pipeline->getInfo().meshBuffer);
+	if (pipeline->getInfo().meshBuffer != boundMB) {
+
+		boundMB = pipeline->getInfo().meshBuffer;
+
+		if (boundMB != nullptr)
+			bind(boundMB);
+	}
 
 	VkPipelineBindPoint pipelinePoint = pipeline->getInfo().shader->isCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS;
 	vkCmdBindPipeline(ext_cmd, pipelinePoint, pipeline->getExtension());
@@ -123,14 +185,14 @@ void CommandList::bind(Pipeline *pipeline) {
 
 }
 
-bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
+bool CommandList::bind(std::vector<GPUBuffer*> vbos, GPUBuffer *ibo) {
 
 	std::vector<VkBuffer> vkBuffer(vbos.size());
 
 	u32 i = 0;
 
-	for (GBuffer *b : vbos)
-		if (b->getType() != GBufferType::VBO)
+	for (GPUBuffer *b : vbos)
+		if (b->getType() != GPUBufferType::VBO)
 			return Log::throwError<VkCommandList, 0x0>("CommandList::bind requires VBOs as first argument");
 		else
 			vkBuffer[i++] = b->getExtension().resource[0];
@@ -142,7 +204,7 @@ bool CommandList::bind(std::vector<GBuffer*> vbos, GBuffer *ibo) {
 
 	if (ibo != nullptr) {
 
-		if (ibo->getType() != GBufferType::IBO)
+		if (ibo->getType() != GPUBufferType::IBO)
 			return Log::throwError<VkCommandList, 0x1>("CommandList::bind requires a valid IBO as second argument");
 
 		vkCmdBindIndexBuffer(ext_cmd, ibo->getExtension().resource[0], 0, VkIndexType::VK_INDEX_TYPE_UINT32);
@@ -178,6 +240,14 @@ void CommandList::draw(DrawList *drawList) {
 
 	}
 
+}
+
+void CommandList::dispatch(ComputeList *computeList) {
+	for(u32 i = 0; i < computeList->getDispatches(); ++i)
+		vkCmdDispatchIndirect(ext_cmd, 
+			computeList->getDispatchBuffer()->getExtension().resource[g->getExtension().current], 
+			i * sizeof(VkDispatchIndirectCommand)
+		);
 }
 
 #endif

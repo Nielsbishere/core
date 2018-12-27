@@ -38,22 +38,23 @@ namespace oi {
 			RGBA64u = 53, RGB64u = 54, RG64u = 55, R64u = 56,
 			RGBA64i = 57, RGB64i = 58, RG64i = 59, R64i = 60,
 
-			D16 = 61, D32 = 62, D16S8 = 63, D24S8 = 64, D32S8 = 65, Depth = 66,
+			D16 = 61, D32 = 62, D16S8 = 63, D24S8 = 64, D32S8 = 65, Depth = 66, Depth_stencil = 67,
 
-			sRGBA8 = 67, sRGB8 = 68, sRG8 = 69, sR8 = 70,
+			sRGBA8 = 68, sRGB8 = 69, sRG8 = 70, sR8 = 71,
 
-			BGRA8 = 71, BGR8 = 72,
-			BGRA8s = 73, BGR8s = 74,
-			BGRA8u = 75, BGR8u = 76,
-			BGRA8i = 77, BGR8i = 78,
-			sBGRA8 = 79, sBGR8 = 80
+			BGRA8 = 72, BGR8 = 73,
+			BGRA8s = 74, BGR8s = 75,
+			BGRA8u = 76, BGR8u = 77,
+			BGRA8i = 78, BGR8i = 79,
+			sBGRA8 = 80, sBGR8 = 81
 
 		);
 
 		DEnum(TextureUsage, u32, Undefined = 0,
 
 			Render_target = 1, Render_depth = 2,
-			Image = 3
+			Compute_target = 3,
+			Image = 4
 
 		);
 
@@ -138,7 +139,7 @@ namespace oi {
 
 			bool getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output);
 
-			bool initData(bool isOwned);
+			bool initData();
 
 			bool shouldStage();
 

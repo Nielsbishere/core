@@ -18,7 +18,7 @@ namespace oi {
 
 		struct VkGraphics;
 
-		class GBufferType;
+		class GPUBufferType;
 
 		struct VkRenderTarget {
 
@@ -35,15 +35,15 @@ namespace oi {
 
 		};
 
-		struct VkGBuffer {
+		struct VkGPUBuffer {
 
 			std::vector<VkBuffer> resource;
 			VkDeviceMemory memory = VK_NULL_HANDLE;
-			u32 gpuLength = 0;
+			u32 alignment = 0, alignedSize = 0, size = 0;
 
-			static bool isVersioned(GBufferType type);
-			static bool isStaged(GBufferType type);
-			static bool isCoherent(GBufferType type);
+			static bool isVersioned(GPUBufferType type);
+			static bool isStaged(GPUBufferType type);
+			static bool isCoherent(GPUBufferType type);
 
 		};
 
@@ -96,7 +96,7 @@ namespace oi {
 			VkCommandPool pool = VK_NULL_HANDLE;
 
 			VkPhysicalDeviceFeatures pfeatures{};
-			VkPhysicalDeviceProperties pproperties{};
+			VkPhysicalDeviceProperties2 pproperties{};
 			VkPhysicalDeviceMemoryProperties pmemory{};
 
 			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
@@ -106,10 +106,13 @@ namespace oi {
 			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
 
 			CommandList *stagingCmdList;
-			std::vector<std::vector<VkGBuffer>> stagingBuffers;
+			std::vector<std::vector<VkGPUBuffer>> stagingBuffers;
 
 			u32 current = 0, frames = 0;
 			u32 queueFamilyIndex = u32_MAX;
+
+			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2 = nullptr;
+			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2 = nullptr;
 
 			#ifdef __DEBUG__
 
@@ -246,11 +249,10 @@ namespace oi {
 		DEnum(VkTextureUsage, VkImageLayout, Undefined = VK_IMAGE_LAYOUT_UNDEFINED,
 
 			Render_target = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, Render_depth = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+			Compute_target = VK_IMAGE_LAYOUT_GENERAL,
 			Image = VK_IMAGE_LAYOUT_UNDEFINED
 
 		);
-
-		DEnum(VkShaderStageType, VkShaderStageFlagBits, Vertex_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT, Fragment_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT, Geometry_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT, Compute_shader = VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT);
 
 		DEnum(VkTopologyMode, VkPrimitiveTopology, 
 			
@@ -263,7 +265,7 @@ namespace oi {
 		DEnum(VkCullMode, VkCullModeFlags, None = VK_CULL_MODE_NONE, Back = VK_CULL_MODE_BACK_BIT, Front = VK_CULL_MODE_FRONT_BIT);
 		DEnum(VkWindMode, VkFrontFace, CCW = VK_FRONT_FACE_COUNTER_CLOCKWISE, CW = VK_FRONT_FACE_CLOCKWISE);
 
-		DEnum(VkGBufferType, VkBufferUsageFlags, UBO = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, SSBO = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, IBO = VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VBO = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, CBO = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
+		DEnum(VkGPUBufferType, VkBufferUsageFlags, UBO = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, SSBO = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, IBO = VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VBO = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, CBO = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
 
 		DEnum(VkShaderRegisterType, VkDescriptorType,
 			UBO = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SSBO = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -271,19 +273,45 @@ namespace oi {
 			Sampler = VK_DESCRIPTOR_TYPE_SAMPLER
 		);
 
-		DEnum(VkShaderRegisterAccess, VkShaderStageFlags,
 
-			Compute = VK_SHADER_STAGE_COMPUTE_BIT,
-			Vertex = VK_SHADER_STAGE_VERTEX_BIT,
-			Geometry = VK_SHADER_STAGE_GEOMETRY_BIT,
-			Fragment = VK_SHADER_STAGE_FRAGMENT_BIT,
+		#ifdef __RAYTRACING__
+		
+			DEnum(VkShaderStageType, VkShaderStageFlagBits,
+	
+				Compute_shader = VK_SHADER_STAGE_COMPUTE_BIT,
+	
+				Vertex_shader = VK_SHADER_STAGE_VERTEX_BIT,
+				Fragment_shader = VK_SHADER_STAGE_FRAGMENT_BIT,
+				Geometry_shader = VK_SHADER_STAGE_GEOMETRY_BIT,
+				Tesselation_shader = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+				Tesselation_evaluation_shader = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+				
+				Mesh_shader = VK_SHADER_STAGE_MESH_BIT_NV,
+				Task_shader = VK_SHADER_STAGE_TASK_BIT_NV,
+		
+				Ray_gen_shader = VK_SHADER_STAGE_RAYGEN_BIT_NV,
+				Any_hit_shader = VK_SHADER_STAGE_ANY_HIT_BIT_NV,
+				Closest_hit_shader = VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV,
+				Miss_shader = VK_SHADER_STAGE_MISS_BIT_NV,
+				Intersection_shader = VK_SHADER_STAGE_INTERSECTION_BIT_NV,
+				Callable_shader = VK_SHADER_STAGE_CALLABLE_BIT_NV
+			);
+		
+		#else
 
-			Vertex_fragment = Vertex.value | Fragment.value,
-			Vertex_geometry_fragment = Vertex.value | Geometry.value | Fragment.value,
-			Vertex_geometry = Vertex.value | Geometry.value,
-			Geometry_fragment = Geometry.value | Fragment.value
-
-		);
+			DEnum(VkShaderStageType, VkShaderStageFlagBits,
+	
+				Compute_shader = VK_SHADER_STAGE_COMPUTE_BIT,
+	
+				Vertex_shader = VK_SHADER_STAGE_VERTEX_BIT,
+				Fragment_shader = VK_SHADER_STAGE_FRAGMENT_BIT,
+				Geometry_shader = VK_SHADER_STAGE_GEOMETRY_BIT,
+				Tesselation_shader = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+				Tesselation_evaluation_shader = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
+				
+			);
+			
+		#endif
 
 		DEnum(VkSamplerWrapping, VkSamplerAddressMode, 
 			Repeat = VK_SAMPLER_ADDRESS_MODE_REPEAT, Mirror_repeat = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, 

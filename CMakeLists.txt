@@ -28,8 +28,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Enable multi processor compilation. Use C++ standard and enable all warnings (except nameless structs)
 if(MSVC)
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /MP /W4 /permissive- /wd4201")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /MP /W4 /permissive- /wd4201")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /MP /W4 /permissive- /wd4201 /EHsc")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /MP /W4 /permissive- /wd4201 /EHsc")
 endif()
 
 # No console option
@@ -37,7 +37,6 @@ endif()
 option(no_console "no_console" OFF)
 
 if(no_console)
-	message ("-- Console - disabled")
 	add_definitions(-D__NO_CONSOLE__)
 else()
 	message ("-- Console - enabled")
@@ -46,6 +45,7 @@ endif()
 # Android
 
 option(Android "Android" OFF)
+option(VR "VR" OFF)
 
 if(Android)
 
@@ -55,12 +55,7 @@ if(Android)
 	
 		set(ANDROID_NDK, $ENV{ANDROID_NDK})
 	
-		if((${ANDROID_ABI} STREQUAL "arm64-v8a") OR (${ANDROID_ABI} STREQUAL "x86_64"))
-			include_directories(${ANDROID_SYSROOT}/usr/include/aarch64-linux-android)
-		else()
-			include_directories(${ANDROID_SYSROOT}/usr/include/arm-linux-androideabi)
-		endif()
-		
+		include_directories(${ANDROID_SYSROOT}/usr/include)
 		include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 	
 		set(CMAKE_VERBOSE_MAKEFILE 0)
@@ -85,10 +80,22 @@ elseif(WIN32)
 	set(Windows ON)
 	set(Desktop ON)
 	
+	option(Raytracing "Raytracing" ON)
+		
 	link_libraries(Xinput.lib)
 
 else()
 
+endif()
+
+if(Raytracing)
+	add_definitions(-D__RAYTRACING__)
+	message("-- Raytracing - enabled")
+endif()
+
+if(VR)
+	add_definitions(-D__VR__)
+	message("-- VR support - enabled")
 endif()
 
 if(Vulkan)
@@ -163,4 +170,5 @@ if(Android)
 else()
 	add_subdirectory(app_pc)
 	set_property(TARGET app_pc PROPERTY FOLDER application)
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT app_pc)
 endif()

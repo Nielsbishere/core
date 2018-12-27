@@ -87,11 +87,22 @@ bool Pipeline::initData() {
 		if (!g->getExtension().pfeatures.wideLines)
 			rasterizer.lineWidth = 1.f;
 
+		VkPipelineColorBlendStateCreateInfo blending = psext.blending;
+		std::vector<VkPipelineColorBlendAttachmentState> attachments(info.renderTarget->getInfo().targets);
+
+		u32 j = (u32) attachments.size();
+
+		for (u32 i = 0; i < j; ++i)
+			attachments[i] = *blending.pAttachments;
+
+		blending.attachmentCount = j;
+		blending.pAttachments = attachments.data();
+
 		pipelineInfo.pInputAssemblyState = &assembler;
 		pipelineInfo.pRasterizationState = &rasterizer;
 		pipelineInfo.pMultisampleState = &psext.multiSample;
 		pipelineInfo.pDepthStencilState = &psext.depthStencil;
-		pipelineInfo.pColorBlendState = &psext.blending;
+		pipelineInfo.pColorBlendState = &blending;
 
 		//MeshBuffer
 		//Set up bindings and attributes
@@ -125,7 +136,7 @@ bool Pipeline::initData() {
 				String ename = elem0.first;
 				TextureFormat format = elem0.second;
 
-				u32 j = 0;
+				j = 0;
 
 				for (ShaderInput var : shinfo.inputs)
 					if (var.name == ename) {

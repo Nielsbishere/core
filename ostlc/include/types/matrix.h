@@ -301,7 +301,7 @@ namespace oi {
 
 		TMatrix &setOrientation(TVec3<T> x, TVec3<T> y, TVec3<T> z) {
 
-			static_assert((w == 4 || w == 3) && (h == 4 || h == 3), "TMatrix::makeRotate only works if there are orientation params (4x3, 4x4, 3x4 and 3x3)");
+			static_assert((w == 4 || w == 3) && (h == 4 || h == 3), "TMatrix::makeRotate is only possible when there are orientation params (4x3, 4x4, 3x4 and 3x3)");
 
 			TVec3<T> arr[3] = { x, y, z };
 
@@ -325,6 +325,8 @@ namespace oi {
 
 		static TMatrix makeOrtho(T l, T r, T b, T t, T n, T f) {
 
+			static_assert(w == 4 && h == 4, "TMatrix::makeOrtho is only possible for a 4x4 Matrix");
+
 			f32 width = r - l;
 			f32 height = t - b;
 
@@ -339,9 +341,11 @@ namespace oi {
 
 		static TMatrix makePerspective(T fov, T asp, T n, T f) {
 
+			static_assert(w == 4 && h == 4, "TMatrix::makePerspective is only possible for a 4x4 Matrix");
+
 			TMatrix m;
 
-			T scale = (T)(1 / tan(fov * 0.5f / 180 * 3.1415926535f));
+			T scale = (T)(1 / tan(T(fov * 0.5f / 180 * 3.1415926535f)));
 
 			m.m[0][0] = scale / asp;
 			m.m[1][1] = scale;
@@ -351,6 +355,141 @@ namespace oi {
 			m.m[3][2] = -(2 * f * n / (f - n));
 
 			return m;
+		}
+
+		bool inverse() {
+
+			static_assert(w == 4 && h == 4, "TMatrix::inverse is only possible for a 4x4 Matrix");
+
+			TMatrix inv;
+			T det;
+
+			T (&m)[w * h] = this->f;
+
+			inv[0] = m[5] * m[10] * m[15] -
+				m[5] * m[11] * m[14] -
+				m[9] * m[6] * m[15] +
+				m[9] * m[7] * m[14] +
+				m[13] * m[6] * m[11] -
+				m[13] * m[7] * m[10];
+
+			inv[4] = -m[4] * m[10] * m[15] +
+				m[4] * m[11] * m[14] +
+				m[8] * m[6] * m[15] -
+				m[8] * m[7] * m[14] -
+				m[12] * m[6] * m[11] +
+				m[12] * m[7] * m[10];
+
+			inv[8] = m[4] * m[9] * m[15] -
+				m[4] * m[11] * m[13] -
+				m[8] * m[5] * m[15] +
+				m[8] * m[7] * m[13] +
+				m[12] * m[5] * m[11] -
+				m[12] * m[7] * m[9];
+
+			inv[12] = -m[4] * m[9] * m[14] +
+				m[4] * m[10] * m[13] +
+				m[8] * m[5] * m[14] -
+				m[8] * m[6] * m[13] -
+				m[12] * m[5] * m[10] +
+				m[12] * m[6] * m[9];
+
+			inv[1] = -m[1] * m[10] * m[15] +
+				m[1] * m[11] * m[14] +
+				m[9] * m[2] * m[15] -
+				m[9] * m[3] * m[14] -
+				m[13] * m[2] * m[11] +
+				m[13] * m[3] * m[10];
+
+			inv[5] = m[0] * m[10] * m[15] -
+				m[0] * m[11] * m[14] -
+				m[8] * m[2] * m[15] +
+				m[8] * m[3] * m[14] +
+				m[12] * m[2] * m[11] -
+				m[12] * m[3] * m[10];
+
+			inv[9] = -m[0] * m[9] * m[15] +
+				m[0] * m[11] * m[13] +
+				m[8] * m[1] * m[15] -
+				m[8] * m[3] * m[13] -
+				m[12] * m[1] * m[11] +
+				m[12] * m[3] * m[9];
+
+			inv[13] = m[0] * m[9] * m[14] -
+				m[0] * m[10] * m[13] -
+				m[8] * m[1] * m[14] +
+				m[8] * m[2] * m[13] +
+				m[12] * m[1] * m[10] -
+				m[12] * m[2] * m[9];
+
+			inv[2] = m[1] * m[6] * m[15] -
+				m[1] * m[7] * m[14] -
+				m[5] * m[2] * m[15] +
+				m[5] * m[3] * m[14] +
+				m[13] * m[2] * m[7] -
+				m[13] * m[3] * m[6];
+
+			inv[6] = -m[0] * m[6] * m[15] +
+				m[0] * m[7] * m[14] +
+				m[4] * m[2] * m[15] -
+				m[4] * m[3] * m[14] -
+				m[12] * m[2] * m[7] +
+				m[12] * m[3] * m[6];
+
+			inv[10] = m[0] * m[5] * m[15] -
+				m[0] * m[7] * m[13] -
+				m[4] * m[1] * m[15] +
+				m[4] * m[3] * m[13] +
+				m[12] * m[1] * m[7] -
+				m[12] * m[3] * m[5];
+
+			inv[14] = -m[0] * m[5] * m[14] +
+				m[0] * m[6] * m[13] +
+				m[4] * m[1] * m[14] -
+				m[4] * m[2] * m[13] -
+				m[12] * m[1] * m[6] +
+				m[12] * m[2] * m[5];
+
+			inv[3] = -m[1] * m[6] * m[11] +
+				m[1] * m[7] * m[10] +
+				m[5] * m[2] * m[11] -
+				m[5] * m[3] * m[10] -
+				m[9] * m[2] * m[7] +
+				m[9] * m[3] * m[6];
+
+			inv[7] = m[0] * m[6] * m[11] -
+				m[0] * m[7] * m[10] -
+				m[4] * m[2] * m[11] +
+				m[4] * m[3] * m[10] +
+				m[8] * m[2] * m[7] -
+				m[8] * m[3] * m[6];
+
+			inv[11] = -m[0] * m[5] * m[11] +
+				m[0] * m[7] * m[9] +
+				m[4] * m[1] * m[11] -
+				m[4] * m[3] * m[9] -
+				m[8] * m[1] * m[7] +
+				m[8] * m[3] * m[5];
+
+			inv[15] = m[0] * m[5] * m[10] -
+				m[0] * m[6] * m[9] -
+				m[4] * m[1] * m[10] +
+				m[4] * m[2] * m[9] +
+				m[8] * m[1] * m[6] -
+				m[8] * m[2] * m[5];
+
+			det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+			if (det == 0)
+				return false;
+
+			det = T(1.0) / det;
+
+			for (u32 i = 0; i < w * h; i++)
+				m[i] = inv[i] * det;
+
+			return true;
+
 		}
 
 	private:

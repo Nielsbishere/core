@@ -4,7 +4,7 @@ using namespace oi::gc;
 using namespace oi;
 
 bool Graphics::isDepthFormat(TextureFormat format) {
-	return format.getValue() >= TextureFormat::D16 && format.getValue() <= TextureFormat::Depth;
+	return format.getValue() >= TextureFormat::D16 && format.getValue() <= TextureFormat::Depth_stencil;
 }
 
 bool Graphics::hasStencil(TextureFormat format) {
@@ -26,7 +26,7 @@ u32 Graphics::getChannelSize(TextureFormat format) {
 
 	const TextureFormat_s &val = format.getValue();
 
-	if (val == TextureFormat::Undefined || val == TextureFormat::Depth)
+	if (val == TextureFormat::Undefined || val == TextureFormat::Depth || val == TextureFormat::Depth_stencil)
 		return 0U;
 
 	if (val < TextureFormat::RGBA16) return 1U;
@@ -89,6 +89,10 @@ void Graphics::printObjects() {
 			Log::println(b->getName() + " (" + b->getTypeName() + ") refCount " + b->refCount);
 }
 
+bool Graphics::supports(GraphicsFeature feature) {
+	return features[feature.getValue()];
+}
+
 bool Graphics::remove(GraphicsObject *go) {
 
 	size_t id = go->getHash();
@@ -143,5 +147,6 @@ bool Graphics::destroyObject(GraphicsObject *go) {
 }
 
 void Graphics::use(GraphicsObject *go) {
-	if (contains(go)) ++go->refCount;
+	if (go != nullptr && contains(go)) 
+		++go->refCount;
 }

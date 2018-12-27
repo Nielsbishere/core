@@ -7,7 +7,7 @@ namespace oi {
 
 	namespace gc {
 
-		class GBuffer;
+		class GPUBuffer;
 		class MeshBuffer;
 		class Mesh;
 
@@ -21,7 +21,7 @@ namespace oi {
 			bool clearOnUse = true;
 
 			MeshBuffer *meshBuffer;
-			GBuffer *drawBuffer = nullptr;
+			GPUBuffer *drawBuffer = nullptr;
 
 			std::vector<std::pair<Mesh*, u32>> objects;
 
@@ -42,7 +42,7 @@ namespace oi {
 
 			u32 getBatches();
 			u32 getMaxBatches();
-			GBuffer *getBuffer();
+			GPUBuffer *getBuffer();
 
 			void clear();
 			void flush();

@@ -4,6 +4,7 @@
 #include "utils/timer.h"
 #include "graphics/gl/generic.h"
 #include "memory/blockallocator.h"
+#include "types/bitset.h"
 
 namespace oi {
 	
@@ -34,16 +35,7 @@ namespace oi {
 		enum class TextureFormatStorage;
 		class TextureLoadFormat;
 
-		DEnum(TopologyMode, u32,
-			Points = 0, Line = 1, Line_strip = 2, Triangle = 3, Triangle_strip = 4, Triangle_fan = 5,
-			Line_adj = 6, Line_strip_adj = 7, Triangle_adj = 8, Triangle_strip_adj = 9, Undefined = 255
-		);
-
-		DEnum(FillMode, u32, Fill = 0, Line = 1, Point = 2, Undefined = 255);
-		DEnum(CullMode, u32, None = 0, Back = 1, Front = 2);
-		DEnum(WindMode, u32, CCW = 0, CW = 1);
-		DEnum(DepthMode, u32, None = 0, Depth_test = 1, Depth_write = 2, All = 3);
-		DEnum(BlendMode, u32, Off = 0, Alpha = 1, Add = 2, Subtract = 3);
+		UEnum(GraphicsFeature, Raytracing = 0, VR = 1);
 
 		class Graphics {
 
@@ -51,7 +43,7 @@ namespace oi {
 			
 		public:
 			
-			Graphics(u32 heapSize) : heapSize(heapSize), allocator(heapSize) {}
+			Graphics(u32 heapSize) : heapSize(heapSize), allocator(heapSize), features(false) {}
 			~Graphics();
 			
 			void init(oi::wc::Window *w);
@@ -84,6 +76,8 @@ namespace oi {
 			RenderTarget *getBackBuffer();
 			u32 getBuffering();
 			void printObjects();
+
+			bool supports(GraphicsFeature feature);
 
 			bool contains(GraphicsObject *go) const;
 			bool destroyObject(GraphicsObject *go);
@@ -118,6 +112,8 @@ namespace oi {
 			GraphicsExt ext;
 
 			std::unordered_map<size_t, std::vector<GraphicsObject*>> objects;
+
+			StaticBitset<GraphicsFeature::length> features;
 			
 		};
 		

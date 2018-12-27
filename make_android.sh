@@ -5,8 +5,7 @@ declFlag() {
 
 	for var in ${BASH_ARGV[*]}
 	do
-		if [ "$var" == "-$1" ]
-		then
+		if [ "$var" == "-$1" ] ; then
 			eval $2=true
 			return
 		fi
@@ -19,12 +18,20 @@ declParam() {
 
 	for var in ${BASH_ARGV[*]}
 	do
-		if [[ "$var" = "-$1="* ]]
-		then
+		if [[ "$var" = "-$1="* ]] ; then
 			eval $2="${var/-$1=/}"
 			return
 		fi
 	done
+
+}
+
+# If latest command failed; quit
+checkErrors() {
+
+	if ! [ $? == 0 ] ; then
+		exit 1
+	fi
 
 }
 
@@ -46,8 +53,11 @@ declParam lvl lvl
 declParam dev dev
 declParam jobs jobs
 
-if [ "$dev" == "windows-x86_64" ]
-then
+if [ "$abi" == "all" ] ; then
+	abi=x86,x64,ARM32,ARM64
+fi
+
+if [ "$dev" == "windows-x86_64" ] ; then
 	gen=MinGW\ Makefiles
 	makeCmd=mingw32-make
 	android_ndk=${ANDROID_NDK}
@@ -59,8 +69,7 @@ fi
 
 # Help
 
-if [ $helpMe ]
-then
+if [ $helpMe ] ; then
 	echo Android requires the following dependencies to be installed:
 	echo - Java
 	echo - Android SDK
@@ -72,37 +81,80 @@ then
 	echo "-cmake Reloads or initializes the CMake data"
 	echo "-apk Creates apk file; otherwise only compiles"
 	echo "-run Runs the build"
-	echo "-abi=all Android ABI (all if not specified)"
-	echo "-lvl=24 Android API level (24 or higher)"
-	echo "-dev=linux-x86_64 Dev environment (linux-x86_64 by default)"
+	echo "-abi=all Android ABI (ARM64, ARM32, x64, x86)"
+	echo "-lvl=24 Android API level (>=24)"
+	echo "-dev=linux-x86_64 Dev environment (linux-x86_64, windows-x86_64)"
 	echo "-release Release environment (debug by default)"
-	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
+	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged)"
 	echo "-strip_debug_info Strips debug info (shaders)"
-	echo "-jobs=2 To set the max compilation jobs for parallel"
+	echo "-jobs=2 To set the max compilation jobs for parallel compilation"
 	exit
 fi
 
-# build abi
+# cmake abi
+
 build(){
 
-	echo "Making Android build ($dev $lvl $1)"
+	if [ $cmake ] ; then
+
+		echo "Making Android build ($dev $lvl $1)"
+		
+		mkdir -p builds
+		mkdir -p builds/Android
+		mkdir -p builds/Android/$1
+		cd builds/Android/$1
+		
+		if ! [ "$gen" == "" ] ; then
+			cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared $cmakeParams
+		else
+			cmake "../../../" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared $cmakeParams
+		fi
+
+		checkErrors
 	
-	mkdir -p builds
-	mkdir -p builds/Android
-	mkdir -p builds/Android/$1
-	cd builds/Android/$1
+		cd ../../../
 	
-	if ! [ "$gen" == "" ] ; then
-		cmake "../../../" -G "$gen" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared $cmakeParams
-	else
-		cmake "../../../" -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" -DANDROID_NATIVE_API_LEVEL=android-$lvl -DCMAKE_MAKE_PROGRAM="${ANDROID_NDK}/prebuilt/$dev/bin/make" -DANDROID_ABI="$1" -DAndroid=ON -DANDROID_STL=c++_shared $cmakeParams
 	fi
-
-
-	cd ../../../
 
 }
 
+# build abi
+
+buildAbi(){
+
+	if [ $1 == "ARM32" ] ; then
+		d="armeabi-v7a"
+	elif [ $1 == "ARM64" ] ; then
+		d="arm64-v8a"
+	elif [ $1 == "x64" ] ; then
+		d="x86_64"
+	elif [ $1 == "x86" ] ; then
+		d="x86"
+	fi
+
+	# Make build
+
+	build "$d"
+	cd builds/Android/$d
+	eval "$makeCmd" $params
+	checkErrors
+	cd ../
+	
+	mkdir -p build/lib/$d
+	
+	# Dependencies (shared/dynamic)
+
+	if ! [ $release ] ; then
+		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$d/* build/lib/$d
+	fi
+
+	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$d/libc++_shared.so build/lib/$d
+
+	cd ../../
+
+}
+
+# CMake & build
 
 if ! [ $jobs ] ; then
 	params="-j"
@@ -110,94 +162,31 @@ else
 	params="-j$jobs"
 fi
 
-if [ "$abi" == "all" ]
-then
+rm -rf build
+mkdir -p build
+mkdir -p build/lib
 
-	# Make all builds
+for i in $(echo $abi | sed "s/,/ /g")
+do
+    buildAbi "$i"
+done
 
-	if [ $cmake ] ; then
+# Prepare assets, src and AndroidManifest, build.xml
 
-		build arm64-v8a
-		build x86_64
-		build armeabi-v7a
-		build x86
-
-	fi
-
-	# Build all targets
-
-	cd builds/Android/arm64-v8a
-	eval "$makeCmd" $params
-
-	cd ../x86_64
-	eval "$makeCmd" $params
-
-	cd ../armeabi-v7a
-	eval "$makeCmd" $params
-
-	cd ../x86
-	eval "$makeCmd" $params
-
-	cd ../
-
-	# Make apk dirs
-
-	rm -rf build
-	mkdir -p build
-	mkdir -p build/lib
-	mkdir -p build/lib/arm64-v8a
-	mkdir -p build/lib/x86_64
-	mkdir -p build/lib/armeabi-v7a
-	mkdir -p build/lib/x86
-
-	# Dependencies
-
-	if ! [ $release ]
-	then
-		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/* build/lib
-	fi
-
-	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/* build/lib
-
-	# Prepare assets, src and AndroidManifest, build.xml
-
-	cp -r arm64-v8a/bin/build/* build
-
-else
-
-	# Make build
-
-	if [ $cmake ] ; then
-		build $abi
-	fi
+firstAbi=$(echo $abi | cut -d, -f1)
 	
-	# Build all targets
-
-	cd builds/Android/$abi
-	eval "$makeCmd" $params
-	cd ../
-
-	# Make apk dirs
-
-	rm -rf build
-	mkdir -p build
-	mkdir -p build/lib
-	mkdir -p build/lib/$abi
-
-	# Dependencies
-
-	if ! [ $release ]
-	then
-		cp -r $android_ndk/sources/third_party/vulkan/src/build-android/jniLibs/$abi/* build/lib/$abi
-	fi
-
-	cp -r $android_ndk/sources/cxx-stl/llvm-libc++/libs/$abi/* build/lib/$abi
-
-	# Prepare src and AndroidManifest, build.xml
-
-	cp -r $abi/bin/build/* build
-
+if [ $firstAbi == "ARM32" ] ; then
+	d="armeabi-v7a"
+elif [ $firstAbi == "ARM64" ] ; then
+	d="arm64-v8a"
+elif [ $firstAbi == "x64" ] ; then
+	d="x86_64"
+elif [ $firstAbi == "x86" ] ; then
+	d="x86"
 fi
+
+cd builds/Android
+cp -r $d/bin/build/* build
 
 # Prepare assets and src
 
@@ -219,6 +208,8 @@ if [ "$dev" == "windows-x86_64" ] ; then
 	else
 		"../oibaker.exe"
 	fi
+
+	checkErrors
 
 	cd ../builds/Android
 
@@ -247,27 +238,26 @@ if [ $apk ] ; then
 		cd ../../../
 	fi
 	
-	if [ "$abi" == "all" ]
-	then
+	for i in $(echo $abi | sed "s/,/ /g")
+	do
 	
-		# Copy build results
+		d=none
 	
-		cp arm64-v8a/lib/libapp_android.so build/lib/arm64-v8a/libapp_android.so
-		cp x86_64/lib/libapp_android.so build/lib/x86_64/libapp_android.so
-		cp armeabi-v7a/lib/libapp_android.so build/lib/armeabi-v7a/libapp_android.so
-		cp x86/lib/libapp_android.so build/lib/x86/libapp_android.so
-	
-	else
-	
-		# Copy build results
-	
-		cp $abi/lib/libapp_android.so build/lib/$abi/libapp_android.so
-	
-	fi
-	
-	rm -rf build/lib/mips
-	rm -rf build/lib/mips64
-	
+		if [ $i == "ARM32" ] ; then
+			d="armeabi-v7a"
+		elif [ $i == "ARM64" ] ; then
+			d="arm64-v8a"
+		elif [ $i == "x64" ] ; then
+			d="x86_64"
+		elif [ $i == "x86" ] ; then
+			d="x86"
+		fi
+		
+		if ! [ $d == "none" ] ; then
+			cp $d/lib/libapp_android.so build/lib/$d
+		fi
+	done
+
 	cd build
 	
 	# Create APK and add libs
@@ -277,11 +267,7 @@ if [ $apk ] ; then
 	aapt package -f -I "${ANDROID_SDK}/platforms/android-$lvl/android.jar" -M AndroidManifest.xml -A assets -S res -m -F bin/app-unsigned.apk
 	
 	libs=$(find . -type f -name '*.so' | sed 's/\\/\//g')
-	
-	for lib in $(echo ${libs//.\//} | tr " " "\n")
-	do
-	aapt add bin/app-unsigned.apk $lib
-	done
+	aapt add bin/app-unsigned.apk $(echo ${libs//.\//})
 	
 	# Align and sign APK
 	
@@ -293,9 +279,9 @@ if [ $apk ] ; then
 	fi
 	
 	if [ "$dev" == "windows-x86_64" ] ; then
-		apksigner.bat sign --ks ../../.keystore --min-sdk-version 24 app.apk
+		apksigner.bat sign --ks ../../.keystore --min-sdk-version $lvl app.apk
 	else
-		apksigner.sh sign --ks ../../.keystore --min-sdk-version 24 app.apk
+		apksigner.sh sign --ks ../../.keystore --min-sdk-version $lvl app.apk
 	fi
 
 	cd ../
@@ -304,13 +290,13 @@ fi
 	
 # run script
 
-cd bin
-
 if [ $run ] ; then
+	cd bin
 	adb install -r app.apk
 	adb shell am start -n net.osomi.Osomi_Core/android.app.NativeActivity
 	adb logcat -c
 	adb logcat -s "oi_Log"
+	cd ../
 fi
 
-cd ../../../../
+cd ../../../

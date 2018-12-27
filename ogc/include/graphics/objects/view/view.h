@@ -18,6 +18,8 @@ namespace oi {
 
 			Matrix vp;
 
+			Matrix vpInv;
+
 			ViewStruct() { memset(this, 0, sizeof(ViewStruct)); }
 			ViewStruct(CameraHandle camera, CameraFrustumHandle frustum) : camera(camera), frustum(frustum) { }
 

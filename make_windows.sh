@@ -28,6 +28,15 @@ declParam() {
 
 }
 
+# If latest command failed; quit
+checkErrors() {
+
+	if ! [ $? == 0 ] ; then
+		exit 1
+	fi
+
+}
+
 # Default params
 
 env=all
@@ -38,8 +47,11 @@ declFlag help helpMe
 declFlag no_console noConsole
 declFlag strip_debug_info strip
 declFlag cmake cmake
-declFlag run run
 declParam env env
+
+if [ "$env" == "all" ] ; then
+	env=x86,x64,ARM32,ARM64
+fi
 
 if [ $helpMe ]
 then
@@ -49,8 +61,7 @@ then
 	echo
 	echo "Command line args:"
 	echo "-cmake Reloads or initializes the CMake data"
-	echo "-run Runs the build"
-	echo "-env=all Platform (x86, x64)"
+	echo "-env=all Platform (x86, x64, ARM32, ARM64)"
 	echo "-release Release environment (debug by default)"
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	echo "-no_console Hides console (program can still redirect console calls)"
@@ -69,10 +80,11 @@ reload(){
 	fi
 	
 	if [ $strip ] ; then
-		params="-Dstrip_debug_info=ON "
+		params="-Dstrip_debug_info=ON $params"
 	fi
 	
 	cmake ../../../ -G "$2" $params
+	checkErrors
 	cd ../
 
 }
@@ -82,12 +94,20 @@ cd builds/Windows
 
 if [ $cmake ] ; then
 
-	if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
-		reload "x86_64" "Visual Studio 15 2017 Win64"
+	if [[ "$env" == *"x64"* ]] ; then
+		reload "x64" "Visual Studio 15 2017 Win64"
 	fi
 
-	if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
+	if [[ "$env" == *"x86"* ]] ; then
 		reload "x86" "Visual Studio 15 2017"
+	fi
+
+	if [[ "$env" == *"ARM64"* ]] ; then
+		reload "ARM64" "Visual Studio 15 2017 ARM64"
+	fi
+
+	if [[ "$env" == *"ARM32"* ]] ; then
+		reload "ARM" "Visual Studio 15 2017 ARM"
 	fi
 
 fi
@@ -102,12 +122,24 @@ fi
 
 # Build
 
-if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
-	cmd.exe /c "MSBuild.exe \"x86_64/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"x64\" /p:PostBuildEventUseInBuild=false"
+if [[ "$env" == *"x64"* ]] ; then
+	cmd.exe /c "MSBuild.exe \"x64/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"x64\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
 fi
 
-if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
+if [[ "$env" == *"x86"* ]] ; then
 	cmd.exe /c "MSBuild.exe \"x86/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"Win32\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
+fi
+
+if [[ "$env" == *"ARM64"* ]] ; then
+	cmd.exe /c "MSBuild.exe \"ARM64/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"ARM64\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
+fi
+
+if [[ "$env" == *"ARM32"* ]] ; then
+	cmd.exe /c "MSBuild.exe \"ARM/oic.sln\" /m /v:m /p:Configuration=$btype /p:Platform=\"ARM\" /p:PostBuildEventUseInBuild=false"
+	checkErrors
 fi
 
 rm -rf build/*
@@ -115,12 +147,20 @@ mkdir -p build
 
 # Copy results
 
-if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
-	cp "x86_64/bin/$btype/Osomi Core.exe" "build/Osomi Core.exe"
+if [[ "$env" == *"x64"* ]] ; then
+	cp "x64/bin/$btype/Osomi Core.exe" "build/Osomi Core x64.exe"
 fi
 
-if [ "$env" == "all" ] || [ "$env" == "x86" ] ; then
+if [[ "$env" == *"x86"* ]] ; then
 	cp "x86/bin/$btype/Osomi Core.exe" "build/Osomi Core x86.exe"
+fi
+
+if [[ "$env" == *"ARM64"* ]] ; then
+	cp "ARM64/bin/$btype/Osomi Core.exe" "build/Osomi Core ARM64.exe"
+fi
+
+if [[ "$env" == *"ARM32"* ]] ; then
+	cp "ARM/bin/$btype/Osomi Core.exe" "build/Osomi Core ARM.exe"
 fi
 
 # Prepare resources
@@ -132,6 +172,8 @@ if [ $strip ] ; then
 else
 	"../oibaker.exe"
 fi
+
+checkErrors
 
 cd ../builds/Windows/build
 mkdir -p res
@@ -152,18 +194,6 @@ then
 	find . -type f -name '*.frag' -exec rm -f {} +
 	find . -type f -name '*.geom' -exec rm -f {} +
 	find . -type f -name '*.comp' -exec rm -f {} +
-
-fi
-
-if [ $run ] ; then
-
-	cd ../
-
-	if [ "$env" == "all" ] || [ "$env" == "x64" ] ; then
-		"./Osomi Core.exe"
-	else
-		"./Osomi Core x86.exe"
-	fi
 
 fi
 
