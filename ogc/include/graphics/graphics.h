@@ -167,7 +167,7 @@ namespace oi {
 
 			static_assert(std::is_base_of<GraphicsObject, T>::value, "Graphics::destroy<T> requires T to be a base of GraphicsObject");
 
-			static_assert(!std::is_same<GraphicsObject, T>::value && !std::is_same<GraphicsResource, T>::value, "Graphics::destroy can't be used on virtual GraphicsObjects or GraphicsResources");
+			static_assert(!std::is_same<GraphicsObject, T>::value && !std::is_same<GraphicsResource, T>::value && !std::is_same<TextureObject, T>::value, "Graphics::destroy can't be used on virtual GraphicsObjects, GraphicsResources or TextureObjects");
 
 			if (go == nullptr) return false;
 

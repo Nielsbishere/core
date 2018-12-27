@@ -29,7 +29,20 @@ namespace oi {
 
 			template<typename T>
 			bool isType() {
+
+				static_assert(!std::is_same<T, GraphicsObject>::value && !std::is_same<T, GraphicsResource>::value && !std::is_same<T, TextureObject>::value,
+					"GraphicsObject<T>::isType is only available for exact types, GraphicsObjects, GraphicsResources and TextureObjects cannot be used");
+
 				return hash == typeid(T).hash_code();
+			}
+
+			template<typename T>
+			T *cast() {
+
+				if (isType<T>)
+					return (T*)this;
+
+				return nullptr;
 			}
 
 		protected:

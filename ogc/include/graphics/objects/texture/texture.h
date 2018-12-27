@@ -2,7 +2,7 @@
 #include "types/vector.h"
 #include "template/enum.h"
 #include "graphics/gl/generic.h"
-#include "graphics/objects/graphicsresource.h"
+#include "textureobject.h"
 
 #undef RGB
 
@@ -104,7 +104,7 @@ namespace oi {
 
 		};
 
-		class Texture : public GraphicsResource {
+		class Texture : public TextureObject {
 
 			friend class Graphics;
 			friend class oi::BlockAllocator;

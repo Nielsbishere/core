@@ -19,7 +19,7 @@ namespace oi {
 
 		};
 
-		class VersionedTexture : public GraphicsResource {
+		class VersionedTexture : public TextureObject {
 
 			friend class Graphics;
 			friend class oi::BlockAllocator;
