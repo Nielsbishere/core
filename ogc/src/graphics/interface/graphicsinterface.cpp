@@ -23,6 +23,7 @@ void GraphicsInterface::initSurface(Vec2u res) {
 
 void GraphicsInterface::destroySurface() {
 	g.finish();
+	destroySceneSurface();
 	g.destroySurface();
 }
 

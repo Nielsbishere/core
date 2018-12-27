@@ -10,6 +10,8 @@ namespace oi {
 	namespace gc {
 
 		class Graphics;
+		class GraphicsResource;
+		class TextureObject;
 
 		class GraphicsObject { 
 		

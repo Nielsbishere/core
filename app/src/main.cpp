@@ -375,15 +375,6 @@ void MainInterface::renderScene(){
 
 void MainInterface::initSceneSurface(Vec2u res){
 
-	//Destroy old data
-	g.destroy(renderTarget);
-	g.destroy(cmiLightingTarget);
-	g.destroy(pipeline);
-	g.destroy(pipeline0);
-
-	if (res == Vec2u())
-		return;
-
 	//Recreate render targets and pipelines
 
 	//Create G-Buffer; 10 Bpp
@@ -426,6 +417,13 @@ void MainInterface::initSceneSurface(Vec2u res){
 	//Update post processing shader
 
 	shader0->set("tex", cmiLightingTarget->getTarget(0));
+}
+
+void MainInterface::destroySceneSurface() {
+	g.destroy(renderTarget);
+	g.destroy(cmiLightingTarget);
+	g.destroy(pipeline);
+	g.destroy(pipeline0);
 }
 	
 void MainInterface::onInput(InputDevice*, Binding b, bool down) {
@@ -491,10 +489,6 @@ void MainInterface::update(f32 dt) {
 
 MainInterface::~MainInterface(){
 	g.finish();
-	g.destroy(renderTarget);
-	g.destroy(cmiLightingTarget);
-	g.destroy(pipeline);
-	g.destroy(pipeline0);
 	g.destroy(pipelineState);
 	g.destroy(rock);
 	g.destroy(water);

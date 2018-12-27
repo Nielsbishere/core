@@ -31,6 +31,7 @@ namespace oi {
 
 		class GraphicsObject;
 		class GraphicsResource;
+		class TextureObject;
 
 		enum class TextureFormatStorage;
 		class TextureLoadFormat;

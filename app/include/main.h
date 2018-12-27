@@ -78,6 +78,7 @@ public:
 
 	void update(f32 dt) override;
 	void initSceneSurface(oi::Vec2u res) override;
+	void destroySceneSurface() override;
 
 protected:
 
