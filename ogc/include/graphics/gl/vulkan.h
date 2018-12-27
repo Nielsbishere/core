@@ -111,6 +111,9 @@ namespace oi {
 			u32 current = 0, frames = 0;
 			u32 queueFamilyIndex = u32_MAX;
 
+			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2 = nullptr;
+			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2 = nullptr;
+
 			#ifdef __DEBUG__
 
 				VkDebugReportCallbackEXT debugCallback = VK_NULL_HANDLE;

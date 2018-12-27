@@ -41,7 +41,7 @@ bool GPUBuffer::shouldStage() {
 
 bool GPUBuffer::init() {
 
-	GraphicsExt &graphics = g->getExtension();
+	VkGraphics &graphics = g->getExtension();
 	info.changes.resize(VkGPUBuffer::isVersioned(info.type) ? g->getBuffering() : 1);
 
 	for (Vec2u &change : info.changes)
@@ -81,8 +81,20 @@ bool GPUBuffer::init() {
 	VkMemoryAllocateInfo memoryInfo;
 	memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-	VkMemoryRequirements requirements;
-	vkGetBufferMemoryRequirements(graphics.device, ext.resource[0], &requirements);
+	VkMemoryRequirements2 requirements2;
+	memset(&requirements2, 0, sizeof(requirements2));
+
+	requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+	VkBufferMemoryRequirementsInfo2 bufferMemoryRequirements2;
+	memset(&bufferMemoryRequirements2, 0, sizeof(bufferMemoryRequirements2));
+
+	bufferMemoryRequirements2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
+	bufferMemoryRequirements2.buffer = ext.resource[0];
+
+	graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
+	VkMemoryRequirements &requirements = requirements2.memoryRequirements;
+
 	ext.size = (u32) requirements.size;
 	ext.alignment = (u32) requirements.alignment;
 	ext.alignedSize = u32(std::ceil((f64) ext.size / ext.alignment) * ext.alignment);
@@ -106,7 +118,12 @@ bool GPUBuffer::init() {
 	vkCheck<0x3, VkGPUBuffer>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
 
 	for(u32 i = 0, j = (u32) ext.resource.size(); i < j; ++i){
-		vkGetBufferMemoryRequirements(graphics.device, ext.resource[i], &requirements);		//Some devices require the requirements to be checked
+
+		if (i != 0) {			//Always get memory requirements, even though we already know them (as they are identical to the first)
+			bufferMemoryRequirements2.buffer = ext.resource[i];
+			graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
+		}
+
 		vkCheck<0x4, VkGPUBuffer>(vkBindBufferMemory(graphics.device, ext.resource[i], ext.memory, ext.alignedSize * i), String("Couldn't bind memory to buffer ") + getName() + " #" + i);
 	}
 
@@ -172,8 +189,20 @@ void GPUBuffer::push() {
 		VkMemoryAllocateInfo memoryInfo;
 		memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-		VkMemoryRequirements requirements;
-		vkGetBufferMemoryRequirements(graphics.device, stagingBuffer.resource[0], &requirements);
+
+		VkMemoryRequirements2 requirements2;
+		memset(&requirements2, 0, sizeof(requirements2));
+
+		requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+		VkBufferMemoryRequirementsInfo2 bufferMemoryRequirements2;
+		memset(&bufferMemoryRequirements2, 0, sizeof(bufferMemoryRequirements2));
+
+		bufferMemoryRequirements2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
+		bufferMemoryRequirements2.buffer = stagingBuffer.resource[0];
+
+		graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
+		VkMemoryRequirements &requirements = requirements2.memoryRequirements;
 
 		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		memoryInfo.allocationSize = requirements.size;

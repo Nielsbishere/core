@@ -145,9 +145,10 @@ void Graphics::init(Window *w){
 	if(!supported)
 		Log::throwError<VkGraphics, 0x24>("Vulkan driver not supported; PhysicalDeviceProperties2 required");
 
-	std::vector<const char*> dlayers, dextensions(2);								///Device layers and extensions
+	std::vector<const char*> dlayers, dextensions(3);								///Device layers and extensions
 	dextensions[0] = "VK_KHR_swapchain";
 	dextensions[1] = "VK_KHR_shader_draw_parameters";
+	dextensions[2] = "VK_KHR_get_memory_requirements2";
 
 	//Set up the application
 	
@@ -236,10 +237,12 @@ void Graphics::init(Window *w){
 	VkPhysicalDeviceProperties2 *properties = new VkPhysicalDeviceProperties2[deviceCount];
 	memset(properties, 0, sizeof(VkPhysicalDeviceProperties2) * deviceCount);
 	
+	vkExtension(vkGetPhysicalDeviceProperties2KHR);
+
 	for(u32 i = 0; i < deviceCount; ++i){
 		
 		properties[i].sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-		vkGetPhysicalDeviceProperties2(devices[i], properties + i);
+		vkGetPhysicalDeviceProperties2KHR(devices[i], properties + i);
 		
 		#ifdef __DEBUG__
 			Log::println(String("Device #") + i + ": " + properties[i].properties.deviceName);
@@ -248,6 +251,7 @@ void Graphics::init(Window *w){
 	}
 	
 	VkPhysicalDevice *gpu = devices;
+	VkPhysicalDeviceProperties2 *deviceProperties = properties;
 	
 	bool foundDiscrete = false;
 	
@@ -259,6 +263,7 @@ void Graphics::init(Window *w){
 			#endif
 			
 			gpu = devices + i;
+			deviceProperties = properties + i;
 			foundDiscrete = true;
 			break;
 			
@@ -268,14 +273,11 @@ void Graphics::init(Window *w){
 		Log::warn("Couldn't find a discrete GPU; so instead picked the first");
 	
 	ext.pdevice = *gpu;
+	ext.pproperties = *deviceProperties;
 	
 	delete[] properties;
 
 	vkGetPhysicalDeviceFeatures(ext.pdevice, &ext.pfeatures);
-
-	memset(&ext.pproperties, 0, sizeof(ext.pproperties));
-	ext.pproperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-	vkGetPhysicalDeviceProperties2(ext.pdevice, &ext.pproperties);
 
 	//Query device extensions
 
@@ -420,6 +422,12 @@ void Graphics::init(Window *w){
 
 	//Initialize resource commands
 	ext.stagingCmdList = create("Resource command list", CommandListInfo());
+
+	vkExtension(vkGetImageMemoryRequirements2KHR);
+	vkExtension(vkGetBufferMemoryRequirements2KHR);
+
+	ext.vkGetImageMemoryRequirements2 = vkGetImageMemoryRequirements2KHR;
+	ext.vkGetBufferMemoryRequirements2 = vkGetBufferMemoryRequirements2KHR;
 
 }
 

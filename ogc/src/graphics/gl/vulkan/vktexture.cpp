@@ -88,8 +88,19 @@ bool Texture::initData() {
 		VkMemoryAllocateInfo memoryInfo;
 		memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-		VkMemoryRequirements requirements;
-		vkGetImageMemoryRequirements(graphics.device, ext.resource, &requirements);
+		VkMemoryRequirements2 requirements2;
+		memset(&requirements2, 0, sizeof(requirements2));
+
+		requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+		VkImageMemoryRequirementsInfo2 imageRequirement;
+		memset(&imageRequirement, 0, sizeof(imageRequirement));
+
+		imageRequirement.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR;
+		imageRequirement.image = ext.resource;
+
+		graphics.vkGetImageMemoryRequirements2(graphics.device, &imageRequirement, &requirements2);
+		VkMemoryRequirements &requirements = requirements2.memoryRequirements;
 
 		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		memoryInfo.allocationSize = requirements.size;
@@ -210,8 +221,19 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	VkMemoryAllocateInfo memoryInfo;
 	memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-	VkMemoryRequirements requirements;
-	vkGetBufferMemoryRequirements(graphics.device, dst, &requirements);
+	VkMemoryRequirements2 requirements2;
+	memset(&requirements2, 0, sizeof(requirements2));
+
+	requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+	VkBufferMemoryRequirementsInfo2 bufferMemoryRequirements2;
+	memset(&bufferMemoryRequirements2, 0, sizeof(bufferMemoryRequirements2));
+
+	bufferMemoryRequirements2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
+	bufferMemoryRequirements2.buffer = dst;
+
+	graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
+	VkMemoryRequirements &requirements = requirements2.memoryRequirements;
 
 	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memoryInfo.allocationSize = requirements.size;
@@ -354,8 +376,19 @@ void Texture::push() {
 	VkMemoryAllocateInfo memoryInfo;
 	memset(&memoryInfo, 0, sizeof(memoryInfo));
 
-	VkMemoryRequirements requirements;
-	vkGetBufferMemoryRequirements(graphics.device, gbext.resource[0], &requirements);
+	VkMemoryRequirements2 requirements2;
+	memset(&requirements2, 0, sizeof(requirements2));
+
+	requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+	VkBufferMemoryRequirementsInfo2 bufferMemoryRequirements2;
+	memset(&bufferMemoryRequirements2, 0, sizeof(bufferMemoryRequirements2));
+
+	bufferMemoryRequirements2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
+	bufferMemoryRequirements2.buffer = gbext.resource[0];
+
+	graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
+	VkMemoryRequirements &requirements = requirements2.memoryRequirements;
 
 	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memoryInfo.allocationSize = requirements.size;
