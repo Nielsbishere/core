@@ -23,9 +23,74 @@ RenderTarget::~RenderTarget() {
 	g->destroy(info.depth);
 }
 
-bool RenderTarget::initData() {
+bool RenderTarget::resize(Vec2u size) {
+
+	if (size == Vec2u())
+		return false;
+
+	info.res = size;
+
+	VkGraphics &gext = g->getExtension();
 
 	u32 buffering = g->getBuffering();
+
+	Texture *depth = getDepth();
+	bool depthTarget = depth != nullptr;
+
+	u32 ctargets = info.targets;
+	u32 targets = ctargets + depthTarget;
+
+	//Remove old frame buffers
+
+	for (VkFramebuffer &fb : ext.frameBuffer)
+		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
+
+	if (depth != nullptr)
+		depth->resize(size);
+
+	for (VersionedTexture *texture : info.textures)
+		texture->resize(size);
+
+	if (isComputeTarget())
+		return true;
+
+	//Create framebuffers
+
+	ext.frameBuffer = std::vector<VkFramebuffer>(buffering);
+
+	std::vector<VkImageView> fbAttachment(targets);
+
+	for (u32 i = 0; i < buffering; ++i) {
+
+		VkFramebufferCreateInfo fbInfo;
+		memset(&fbInfo, 0, sizeof(fbInfo));
+
+		if (depthTarget)
+			fbAttachment[ctargets] = depth->getExtension().view;
+
+		for (u32 j = 0; j < ctargets; ++j) {
+			Texture *t = getTarget(j)->getVersion(i);
+			VkTexture &tex = t->getExtension();
+			fbAttachment[j] = tex.view;
+		}
+
+		fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		fbInfo.renderPass = ext.renderPass;
+		fbInfo.width = info.res.x;
+		fbInfo.height = info.res.y;
+		fbInfo.layers = 1;
+		fbInfo.attachmentCount = targets;
+		fbInfo.pAttachments = fbAttachment.data();
+
+		vkCheck<0x1, VkRenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
+		vkName(gext, ext.frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
+
+	}
+
+	return true;
+}
+
+bool RenderTarget::initData() {
 
 	VkGraphics &gext = g->getExtension();
 
@@ -106,42 +171,12 @@ bool RenderTarget::initData() {
 
 		Log::println("Successfully created render pass for render target");
 
-		//Create framebuffers
-
-		ext.frameBuffer.resize(buffering);
-
-		std::vector<VkImageView> fbAttachment(targets);
-
-		for (u32 i = 0; i < buffering; ++i) {
-
-			VkFramebufferCreateInfo fbInfo;
-			memset(&fbInfo, 0, sizeof(fbInfo));
-
-			if(depthTarget)
-				fbAttachment[ctargets] = depth->getExtension().view;
-
-			for (u32 j = 0; j < ctargets; ++j) {
-				Texture *t = getTarget(j)->getVersion(i);
-				VkTexture &tex = t->getExtension();
-				fbAttachment[j] = tex.view;
-			}
-
-			fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			fbInfo.renderPass = ext.renderPass;
-			fbInfo.width = info.res.x;
-			fbInfo.height = info.res.y;
-			fbInfo.layers = 1;
-			fbInfo.attachmentCount = targets;
-			fbInfo.pAttachments = fbAttachment.data();
-
-			vkCheck<0x1, VkRenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
-			vkName(gext, ext.frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
-
-		}
+		if (info.res != Vec2u() && !resize(info.res))
+			return false;
 
 	}
 
-	Log::println("Successfully created framebuffers for render target");
+	Log::println("Successfully created render target");
 
 	return true;
 }

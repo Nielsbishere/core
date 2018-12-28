@@ -27,6 +27,7 @@ bool PipelineState::init() {
 
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.lineWidth = info.lineWidth;
+	rasterizer.rasterizerDiscardEnable = VK_TRUE;
 	rasterizer.cullMode = CullModeExt(info.cullMode.getName()).getValue();
 	rasterizer.frontFace = WindModeExt(info.windMode.getName()).getValue();
 

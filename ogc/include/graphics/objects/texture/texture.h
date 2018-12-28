@@ -131,6 +131,8 @@ namespace oi {
 			bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 			bool read(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
+			void resize(Vec2u size);
+
 		protected:
 
 			~Texture();
@@ -140,6 +142,7 @@ namespace oi {
 			bool getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output);
 
 			bool initData();
+			void destroyData();
 
 			bool shouldStage();
 

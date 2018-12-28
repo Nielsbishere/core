@@ -25,6 +25,7 @@ namespace oi {
 		typedef VkShaderStage ShaderStageExt;
 		typedef VkCommandList CommandListExt;
 		typedef VkShader ShaderExt;
+		typedef VkShaderData ShaderDataExt;
 		typedef VkPipelineState PipelineStateExt;
 		typedef VkPipeline PipelineExt;
 		typedef VkGPUBuffer GPUBufferExt;

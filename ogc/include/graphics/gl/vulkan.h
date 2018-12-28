@@ -55,14 +55,14 @@ namespace oi {
 		};
 
 		struct VkShader {
-
 			std::vector<VkShaderStage*> stage;
+		};
 
+		struct VkShaderData {
 			VkPipelineLayout layout = VK_NULL_HANDLE;
 			VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
 			VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 			std::vector<VkDescriptorSet> descriptorSet;
-
 		};
 
 		struct VkCommandList {

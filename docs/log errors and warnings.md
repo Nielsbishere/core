@@ -69,7 +69,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't create pipeline; raytracing isn't supported | | 0xA | Raytracing pipeline was requested, but the device doesn't support it |
 | | Couldn't create pipeline; raytracing option isn't turned on | | 0xB | Raytracing pipeline was requested, but ogc wasn't compiled with raytracing support turned on |
 | graphics<br />gl<br />vulkan<br />vkpipelinestate.cpp | PipelineState creation failed; sample count has to be base2 | VkPipelineState | 0x0 | When specifying sample count (for MSAA), it has to be base2; 1,2,4,8,16,etc. |
-| graphics<br />gl<br />vulkan<br />vkshader.cpp          | Shader mentions an invalid buffer                            | VkShader        | 0x0  | When creating the Vulkan descriptor set, the shader found that there was no ShaderBuffer where a buffer was expected |
+| graphics<br />gl<br />vulkan<br />vkshaderdata.cpp      | Shader mentions an invalid buffer                            | VkShaderData    | 0x0  | When creating the Vulkan descriptor set, the shader found that there was no ShaderBuffer where a buffer was expected |
 |                                                         | A ShaderBuffer has been placed on a register not meant for buffers |                 | 0x1  | When creating the Vulkan descriptor set, the shader found that there was a ShaderBuffer where it wasn't expected |
 |                                                         | A Sampler has been placed on a register not meant for samplers |                 | 0x2  | When creating the Vulkan descriptor set, the shader found that there was a Sampler where it wasn't expected |
 |                                                         | A Texture has been placed on a register not meant for textures or it has to use a TextureList |                 | 0x3  | When creating the Vulkan descriptor set, the shader found that there was a Texture where it wasn't expected |
@@ -82,6 +82,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't create descriptor pool | | 0xA | Descriptor pool couldn't be created, internal errors were logged |
 | | Couldn't create descriptor sets | | 0xB | Descriptor set couldn't be created, internal errors were logged |
 | | Shader mentions an invalid resource type | | 0xC | The type found in the shader couldn't be recognized as a valid GraphicsResource (keep in mind that GPUBuffers aren't allowed by themselves) |
+| | Uninitialized RenderTargets can't be forwarded to Shader into a Texture register, use RenderTarget::resize to initialize it or set a valid resolution | | 0xD | RenderTargets with size 0 cannot be forwarded to the shader. Please set a valid resolution in RenderTargetInfo or call resize before the scene is rendered |
+| | Uninitialized RenderTargets can't be forwarded to Shader into a TextureList register, use RenderTarget::resize to initialize it or set a valid resolution | | 0xE | see 0xD |
 | graphics<br />gl<br />vulkan<br />vkshaderstage.cpp | Shader stage creation failed | VkShaderStage | 0x0 | Shader stage couldn't be created, internal errors were logged |
 | graphics<br />gl<br />vulkan<br />vktexture.cpp         | Couldn't get depth texture; no optimal format available      | VkTexture       | 0x0  | The GPU doesn't support depth buffers                        |
 |                                                         | Couldn't find a valid memory type for a VkTexture: {name}    |                 | 0x1  | The GPU couldn't find how to allocate the texture or didn't have enough space |
@@ -181,12 +183,12 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | oiSH::convert couldn't be executed; no bytecode              |                 | 0x6  | The shader stage doesn't have any bytecode attached          |
 |                                                         | Invalid register type                                        |                 | 0x7  | The shader register type could not be detected               |
 |                                                         | ShaderRegister of type Buffer (SSBO or UBO) doesn't reference a buffer |                 | 0x8  | A shader register of type SSBO or UBO has to reference to an oiSB file |
-| graphics<br />objects<br />shader<br />shader.cpp       | Shader::set({path}) failed; invalid type (type is ShaderBuffer, but type provided isn't) |                 | 0x1  | Shader::set was expecting a ShaderBuffer, but a different type was sent |
-|                                                         | Shader::set({path}) failed; invalid type (type is Texture or VersionedTexture, but type provided isn't) |                 | 0x2  | Shader::set was expecting a Texture or VersionedTexture, but a different type was sent |
-|                                                         | Shader::set({path}) failed; invalid type (type is Sampler, but type provided isn't) |                 | 0x3  | Shader::set was expecting a Sampler but a different type was sent |
-|                                                         | Shader::set({path}) failed; TextureList size incompatible with shader |                 | 0x4  | Shader::set was expecting a TextureList but a different type, or one with a different size was passed |
-|                                                         | Couldn't read shader                                         |                 | 0x5  | The oiSH provided was invalid                                |
-|                                                         | Shader::set({path}) failed; invalid type (type is Image, but type provided isn't) |                 | 0x6  | Type was expected to be VersionedTexture, but wasn't or wasn't created with compute target usage |
+| graphics<br />objects<br />shader<br />shaderdata.cpp   | Shader::set({path}) failed; invalid type (type is ShaderBuffer, but type provided isn't) |                 | 0x0  | Shader::set was expecting a ShaderBuffer, but a different type was sent |
+|                                                         | Shader::set({path}) failed; invalid type (type is Texture or VersionedTexture, but type provided isn't) |                 | 0x1  | Shader::set was expecting a Texture or VersionedTexture, but a different type was sent |
+|                                                         | Shader::set({path}) failed; invalid type (type is Sampler, but type provided isn't) |                 | 0x2  | Shader::set was expecting a Sampler but a different type was sent |
+|                                                         | Shader::set({path}) failed; TextureList size incompatible with shader |                 | 0x3  | Shader::set was expecting a TextureList but a different type, or one with a different size was passed |
+|                                                         | Shader::set({path}) failed; invalid type (type is Image, but type provided isn't) |                 | 0x4  | Type was expected to be VersionedTexture, but wasn't or wasn't created with compute target usage |
+| graphics<br />objects<br />shader<br />shader.cpp       | Couldn't read shader                                         |                 | 0x0  | The oiSH provided was invalid                                |
 | graphics<br />objects<br />shader<br />shaderbuffer.cpp | Can't instantiate the buffer when it's already set           | ShaderBuffer    | 0x0  | ShaderBuffer::instantiate is only allowed when the buffer is not set yet |
 |                                                         | Can't set the buffer when it already contains data           |                 | 0x1  | ShaderBuffer::setBuffer is only allowed when the buffer is not set yet |
 |                                                         | GPUBuffer size should match ShaderBuffer size                |                 | 0x2  | The buffer provided to ShaderBuffer::setBuffer didn't match the expected size |
@@ -210,6 +212,9 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Couldn't load texture; Texture load format is invalid        |                 | 0x10 | The texture load format given was undefined                  |
 |                                                         | Couldn't load texture from disk                              |                 | 0x11 | The texture path given had invalid data or the file doesn't exist |
 |                                                         | Couldn't create CPU buffer for texture; invalid format       |                 | 0x12 | When creating an empty texture, use                          |
+|                                                         | Resizing to 0,0 is illegal, that resolution is only allowed to reserve a texture handle |                 | 0x13 | Attempting to resize a texture to size 0,0 is not allowed, it is only allowed to reserve the handle; it should then initialize size with resize |
+|                                                         | Resizing a non-target texture is illegal, the creation size is constant |                 | 0x14 | Only textures created as RenderTargets can be resized dynamically; as resizing with initialized CPU data can cause issues |
+|                                                         | Initializing with resolution 0,0 isn't allowed, because non-target textures cannot be resized |                 | 0x15 | see 0x14                                                     |
 | graphics<br />objects<br />shader<br />computelist.cpp  | Couldn't dispatch compute shader; no space left in compute buffer | ComputeList     | 0x0  | max dispatch count was too small. Please clear the compute list's buffer; it was too small |
 
 ### Errors
@@ -344,7 +349,11 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | File                   | Message                                            | Description                                 |
 | ------------------------ | -------------------------------------------------- | ------------------------------------------- |
 | graphics<br />graphics.h | Graphics::add called on an already existing object | A Graphics object tried to add itself twice |
-| graphics<br />objects<br />shader<br />shader.cpp | Shader::set({path}) failed; the path couldn't be found | The shader path given couldn't be found |
+| graphics<br />objects<br />shader<br />shaderdatacpp | ShaderData::set({path}) failed; the path couldn't be found | The shader path given couldn't be found |
+|  | ShaderData::setValue({register}) failed; the path couldn't be found | The shader didn't include the path specified |
+|  | ShaderData::setValue({register}) failed; the path didn't evaluate to a buffer | The shader included the specified resource, but it wasn't a ShaderBuffer |
+|  | ShaderData::getValue({register}) failed; the path couldn't be found | The shader didn't include the path specified |
+|  | ShaderData::getValue({register}) failed; the path didn't evaluate to a buffer | The shader included the specified resource, but it wasn't a ShaderBuffer |
 
 ## owc
 

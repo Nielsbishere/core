@@ -37,6 +37,8 @@ namespace oi {
 			bool getPixels(Vec2u start, Vec2u length, CopyBuffer &output);
 			bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
+			void resize(Vec2u size);
+
 			const VersionedTextureInfo getInfo();
 
 		protected:

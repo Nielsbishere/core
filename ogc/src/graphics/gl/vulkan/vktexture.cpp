@@ -41,119 +41,123 @@ bool Texture::initData() {
 
 	VkTextureUsage usage = info.usage.getName();
 
-	if(owned){
-	
-		//Create image
+	if (info.res.x != 0 && info.res.y != 0) {
 
-		VkImageCreateInfo imageInfo;
-		memset(&imageInfo, 0, sizeof(imageInfo));
+		if (owned) {
 
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.format = format_inter;
-		imageInfo.extent = { info.res.x, info.res.y, 1 };
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.mipLevels = info.mipLevels;
-		imageInfo.arrayLayers = 1;
-		imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		
-		switch (info.usage.getValue()) {
+			//Create image
 
-		case TextureUsage::Image.value:
-			imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-			break;
+			VkImageCreateInfo imageInfo;
+			memset(&imageInfo, 0, sizeof(imageInfo));
 
-		case TextureUsage::Compute_target.value:
-			imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-			break;
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = VK_IMAGE_TYPE_2D;
+			imageInfo.format = format_inter;
+			imageInfo.extent = { info.res.x, info.res.y, 1 };
+			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+			imageInfo.mipLevels = info.mipLevels;
+			imageInfo.arrayLayers = 1;
+			imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		case TextureUsage::Render_depth.value:
-			imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-			break;
+			switch (info.usage.getValue()) {
 
-		default:
-			imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-			break;
+			case TextureUsage::Image.value:
+				imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+				break;
+
+			case TextureUsage::Compute_target.value:
+				imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+				break;
+
+			case TextureUsage::Render_depth.value:
+				imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+				break;
+
+			default:
+				imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+				break;
+
+			}
+
+			vkCheck<0x4, VkTexture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
+			vkName(graphics, ext.resource, VK_OBJECT_TYPE_IMAGE, getName());
+
+			//Allocate memory (TODO: by GraphicsExt)
+
+			VkMemoryAllocateInfo memoryInfo;
+			memset(&memoryInfo, 0, sizeof(memoryInfo));
+
+			VkMemoryRequirements2 requirements2;
+			memset(&requirements2, 0, sizeof(requirements2));
+
+			requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+
+			VkImageMemoryRequirementsInfo2 imageRequirement;
+			memset(&imageRequirement, 0, sizeof(imageRequirement));
+
+			imageRequirement.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR;
+			imageRequirement.image = ext.resource;
+
+			graphics.vkGetImageMemoryRequirements2(graphics.device, &imageRequirement, &requirements2);
+			VkMemoryRequirements &requirements = requirements2.memoryRequirements;
+
+			memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			memoryInfo.allocationSize = requirements.size;
+
+			uint32_t memoryIndex = u32_MAX;
+
+			for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)
+				if ((requirements.memoryTypeBits & (1 << i)) && (graphics.pmemory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
+					memoryIndex = i;
+					break;
+				}
+
+			if (memoryIndex == u32_MAX)
+				Log::throwError<VkTexture, 0x1>(String("Couldn't find a valid memory type for a VkTexture: ") + getName());
+
+			memoryInfo.memoryTypeIndex = memoryIndex;
+
+			vkCheck<0x5, VkTexture>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
+			vkCheck<0x6, VkTexture>(vkBindImageMemory(graphics.device, ext.resource, ext.memory, 0), String("Couldn't bind memory to texture ") + getName());
 
 		}
 
-		vkCheck<0x4, VkTexture>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext.resource), "Couldn't create image");
-		vkName(graphics, ext.resource, VK_OBJECT_TYPE_IMAGE, getName());
+		//Create image view
 
-		//Allocate memory (TODO: by GraphicsExt)
+		VkImageViewCreateInfo viewInfo;
+		memset(&viewInfo, 0, sizeof(viewInfo));
 
-		VkMemoryAllocateInfo memoryInfo;
-		memset(&memoryInfo, 0, sizeof(memoryInfo));
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = ext.resource;
+		viewInfo.format = format_inter;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.subresourceRange.aspectMask = useDepth ? (useStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0) | VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+		viewInfo.subresourceRange.levelCount = info.mipLevels;
+		viewInfo.subresourceRange.layerCount = 1;
 
-		VkMemoryRequirements2 requirements2;
-		memset(&requirements2, 0, sizeof(requirements2));
+		vkCheck<0x7, VkTexture>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext.view), "Couldn't create image view");
+		vkName(graphics, ext.view, VK_OBJECT_TYPE_IMAGE_VIEW, getName() + " view");
 
-		requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
+		//Prepare texture for update
 
-		VkImageMemoryRequirementsInfo2 imageRequirement;
-		memset(&imageRequirement, 0, sizeof(imageRequirement));
+		if (info.dat.size() != 0U) {
 
-		imageRequirement.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR;
-		imageRequirement.image = ext.resource;
+			if (info.dat.size() != info.res.x * info.res.y * Graphics::getFormatSize(info.format))
+				return Log::throwError<VkTexture, 0x2>("The buffer was of incorrect size");
 
-		graphics.vkGetImageMemoryRequirements2(graphics.device, &imageRequirement, &requirements2);
-		VkMemoryRequirements &requirements = requirements2.memoryRequirements;
+			flush(Vec2u(), info.res);
 
-		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memoryInfo.allocationSize = requirements.size;
+		}
 
-		uint32_t memoryIndex = u32_MAX;
-
-		for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)
-			if ((requirements.memoryTypeBits & (1 << i)) && (graphics.pmemory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
-				memoryIndex = i;
-				break;
-			}
-
-		if (memoryIndex == u32_MAX)
-			Log::throwError<VkTexture, 0x1>(String("Couldn't find a valid memory type for a VkTexture: ") + getName());
-
-		memoryInfo.memoryTypeIndex = memoryIndex;
-
-		vkCheck<0x5, VkTexture>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext.memory), "Couldn't allocate memory");
-		vkCheck<0x6, VkTexture>(vkBindImageMemory(graphics.device, ext.resource, ext.memory, 0), String("Couldn't bind memory to texture ") + getName());
-
-	}
-	
-	//Create image view
-
-	VkImageViewCreateInfo viewInfo;
-	memset(&viewInfo, 0, sizeof(viewInfo));
-
-	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	viewInfo.image = ext.resource;
-	viewInfo.format = format_inter;
-	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewInfo.subresourceRange.aspectMask = useDepth ? (useStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0) | VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-	viewInfo.subresourceRange.levelCount = info.mipLevels;
-	viewInfo.subresourceRange.layerCount = 1;
-
-	vkCheck<0x7, VkTexture>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext.view), "Couldn't create image view");
-	vkName(graphics, ext.view, VK_OBJECT_TYPE_IMAGE_VIEW, getName() + " view");
-
-	//Prepare texture for update
-
-	if (info.dat.size() != 0U) {
-
-		if (info.dat.size() != info.res.x * info.res.y * Graphics::getFormatSize(info.format))
-			return Log::throwError<VkTexture, 0x2>("The buffer was of incorrect size");
-
-		flush(Vec2u(), info.res);
-
+		Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	}
 
 	if (info.parent != nullptr)
 		info.handle = info.parent->alloc(this);
 
-	Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	return true;
 }
 
@@ -297,14 +301,9 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 }
 
-Texture::~Texture() {
-	
-	info.dat.deconstruct();
+void Texture::destroyData() {
 
-	if(info.parent != nullptr)
-		info.parent->dealloc(this);
-
-	if (g != nullptr) {
+	if (g != nullptr && info.res.x != 0 && info.res.y != 0) {
 
 		VkGraphics &graphics = g->getExtension();
 

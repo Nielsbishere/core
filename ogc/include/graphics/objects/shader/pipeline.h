@@ -8,6 +8,7 @@ namespace oi {
 	namespace gc {
 
 		class Shader;
+		class ShaderData;
 		class PipelineState;
 		class RenderTarget;
 		class Camera;
@@ -57,6 +58,16 @@ namespace oi {
 
 		UEnum(PipelineType, Graphics = 0, Compute = 1, Raytracing = 2);
 
+		struct PipelineInfo {
+
+			PipelineType type;
+			GraphicsPipelineInfo graphicsInfo;
+			ComputePipelineInfo computeInfo;
+			RaytracingPipelineInfo raytracingInfo;
+			ShaderData *shaderData = nullptr;
+
+		};
+
 		class Pipeline : public GraphicsObject {
 
 			friend class Graphics;
@@ -65,34 +76,35 @@ namespace oi {
 		public:
 
 			PipelineExt &getExtension() { return ext; }
-			const GraphicsPipelineInfo getGraphicsInfo() const { return graphicsInfo; }
-			const ComputePipelineInfo getComputeInfo() const { return computeInfo; }
-			const RaytracingPipelineInfo getRaytracingInfo() const { return raytracingInfo; }
+			const GraphicsPipelineInfo getGraphicsInfo() const { return info.graphicsInfo; }
+			const ComputePipelineInfo getComputeInfo() const { return info.computeInfo; }
+			const RaytracingPipelineInfo getRaytracingInfo() const { return info.raytracingInfo; }
 
-			PipelineType getPipelineType() const { return type; }
+			PipelineType getPipelineType() const { return info.type; }
+			ShaderData *getData() const { return info.shaderData; }
 
-			Shader *getShader(u32 i = 0);
-			PipelineState *getPipelineState();
-			RenderTarget *getRenderTarget();
-			MeshBuffer *getMeshBuffer();
-			u32 getRecursionDepth();
+			Shader *getShader(u32 i = 0) const;
+			PipelineState *getPipelineState() const { return info.graphicsInfo.pipelineState; }
+			RenderTarget *getRenderTarget() const { return info.graphicsInfo.renderTarget; }
+			MeshBuffer *getMeshBuffer() const;
+			u32 getRecursionDepth() const { return info.raytracingInfo.maxRecursionDepth; }
+
+			void update();
 
 		protected:
 
 			~Pipeline();
-			Pipeline(GraphicsPipelineInfo info) : type(PipelineType::Graphics), graphicsInfo(info) {}
-			Pipeline(ComputePipelineInfo info) : type(PipelineType::Compute), computeInfo(info) {}
-			Pipeline(RaytracingPipelineInfo info) : type(PipelineType::Raytracing), raytracingInfo(info) {}
+			Pipeline(GraphicsPipelineInfo info) : info{ PipelineType::Graphics, info } {}
+			Pipeline(ComputePipelineInfo info) : info{ PipelineType::Compute, {}, info } {}
+			Pipeline(RaytracingPipelineInfo info) : info{ PipelineType::Raytracing, {}, {}, info } {}
 			bool init();
 
 			bool initData();
+			void destroyData();
 
 		private:
 
-			PipelineType type;
-			GraphicsPipelineInfo graphicsInfo;
-			ComputePipelineInfo computeInfo;
-			RaytracingPipelineInfo raytracingInfo;
+			PipelineInfo info;
 			PipelineExt ext;
 
 		};

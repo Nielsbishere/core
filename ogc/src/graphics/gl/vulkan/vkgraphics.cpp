@@ -593,55 +593,70 @@ void Graphics::initSurface(Window *w) {
 
 	Log::println(String("Successfully created swapchain (with buffering option ") + buffering + ") " + capabilities.minImageCount + " " + capabilities.maxImageCount);
 
-	std::vector<Texture*> textures = std::vector<Texture*>(buffering);
-	
-	for (u32 i = 0; i < buffering; ++i) {
-		
-		Texture *tex = textures[i] = new Texture(TextureInfo(size, format, TextureUsage::Render_target));
-		VkTexture &vkTex = tex->getExtension();
-		vkTex.resource = swapchainImages[i];
-		
-		tex->g = this;
-		tex->name = String("Swapchain image ") + i;
-		tex->setHash<Texture>();
+	if (backBuffer == nullptr) {
 
-		if(!tex->init(false))
-			Log::throwError<VkGraphics, 0x6>("Couldn't initialize swapchain image view");
+		//Create textures from it
 
-		add(tex);
-		use(tex);
+		std::vector<Texture*> textures = std::vector<Texture*>(buffering);
 
+		for (u32 i = 0; i < buffering; ++i) {
+
+			Texture *tex = textures[i] = new Texture(TextureInfo(size, format, TextureUsage::Render_target));
+			VkTexture &vkTex = tex->getExtension();
+			vkTex.resource = swapchainImages[i];
+
+			tex->g = this;
+			tex->name = String("Swapchain image ") + i;
+			tex->setHash<Texture>();
+
+			if (!tex->init(false))
+				Log::throwError<VkGraphics, 0x6>("Couldn't initialize swapchain image view");
+
+			add(tex);
+			use(tex);
+
+		}
+
+		VersionedTexture *vt = create("Swapchain images", VersionedTextureInfo(textures));
+		use(vt);
+
+		Log::println("Successfully created image views of the swapchain");
+
+		//Create depth buffer
+
+		Texture *depthBuffer = create("Swapchain depth", TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
+		use(depthBuffer);
+
+		//Create a RenderTarget from it
+		RenderTargetInfo info(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() });
+		info.depth = depthBuffer;
+		info.textures = { vt };
+		backBuffer = new RenderTarget(info);
+
+		//Register
+		backBuffer->g = this;
+		backBuffer->setHash<RenderTarget>();
+		backBuffer->name = "Swapchain";
+
+		if (!backBuffer->init(false))
+			Log::throwError<VkGraphics, 0x7>("Couldn't initialize back buffer (render target)");
+
+		add(backBuffer);
+		use(backBuffer);
+
+		Log::println("Successfully created back buffer");
+
+	} else {
+
+		std::vector<Texture*> &versions = backBuffer->info.textures[0]->info.version;
+
+		for (u32 i = 0, j = (u32)versions.size(); i < j; ++i)
+			versions[i]->ext.resource = swapchainImages[i];
+
+		backBuffer->resize(size);
+
+		Log::println("Successfully resized back buffer");
 	}
-
-	VersionedTexture *vt = create("Swapchain images", VersionedTextureInfo(textures));
-	use(vt);
-
-	//Create depth buffer
-
-	Texture *depthBuffer = create("Swapchain depth", TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
-	use(depthBuffer);
-
-	Log::println("Successfully created image views of the swapchain");
-
-	//Turn it into a RenderTarget aka 'Render pass'
-
-	RenderTargetInfo info(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() });
-	info.depth = depthBuffer;
-	info.textures = { vt };
-
-	backBuffer = new RenderTarget(info);
-
-	backBuffer->g = this;
-	backBuffer->setHash<RenderTarget>();
-	backBuffer->name = "Swapchain";
-
-	if(!backBuffer->init(false))
-		Log::throwError<VkGraphics, 0x7>("Couldn't initialize back buffer (render target)");
-
-	add(backBuffer);
-	use(backBuffer);
-
-	Log::println("Successfully created back buffer");
 
 	ext.stagingBuffers.resize(buffering);
 }

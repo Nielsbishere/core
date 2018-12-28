@@ -7,7 +7,7 @@
 #include "graphics/objects/render/drawlist.h"
 #include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/shader/pipeline.h"
-#include "graphics/objects/shader/shader.h"
+#include "graphics/objects/shader/shaderdata.h"
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/model/mesh.h"
 using namespace oi::gc;
@@ -176,12 +176,24 @@ void CommandList::bind(Pipeline *pipeline) {
 			bind(boundMB);
 	}
 
+	if (pipeline->getPipelineType() == PipelineType::Graphics) {
+
+		Vec2u res = pipeline->getRenderTarget()->getSize();
+
+		VkViewport viewport = { 0, 0, (f32) res.x, (f32) res.y, 0, 1 };
+		vkCmdSetViewport(ext_cmd, 0, 1, &viewport);
+
+		VkRect2D scissor = { { 0, 0 }, { res.x, res.y } };
+		vkCmdSetScissor(ext_cmd, 0, 1, &scissor);
+
+	}
+
 	VkPipelineBindPoint pipelinePoint = VkPipelineType(pipeline->getPipelineType().getName()).getValue();
 	vkCmdBindPipeline(ext_cmd, pipelinePoint, pipeline->getExtension());
 
-	pipeline->getShader()->update();
+	pipeline->getData()->update();
 
-	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getShader()->getExtension().layout, 0, 1, pipeline->getShader()->getExtension().descriptorSet.data() + g->getExtension().current, 0, nullptr);
+	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getData()->getExtension().layout, 0, 1, pipeline->getData()->getExtension().descriptorSet.data() + g->getExtension().current, 0, nullptr);
 
 }
 
