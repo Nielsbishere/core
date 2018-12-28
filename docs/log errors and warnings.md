@@ -159,6 +159,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | ------------------------------------------------------- | ------------------------------------------------------------ | --------------- | ---- | ------------------------------------------------------------ |
 | graphics<br />format<br />fbx                           | Couldn't cast to FbxProperty                                 | FbxProperty     | 0x0  | An FbxProperty doesn't match the requested type              |
 | graphics<br />graphics.h                                | Couldn't init GraphicsObject                                 | Graphics        | 0x0  | The GraphicsObject init failed                               |
+|                                                         | Couldn't init GraphicsObject; couldn't find a valid id       |                 | 0x2  | Graphics ran out of ids; which means there are more than 16M objects. There is probably a memory leak. |
 | graphics<br />graphics.cpp                              | Couldn't read shader                                         |                 | 0x1  | The shader data in the oiSH was unreadable or the file doesn't exist |
 | graphics<br />format<br />oish.h                        | Invalid constructor used; SPV isn't text but binary          | ShaderSource    | 0x0  | Constructor with String is not allowed for SPIRV; only the CopyBuffer constructor |
 | graphics<br />objects<br />shader<br />shaderbuffer.h   | Couldn't cast ShaderBufferVar with format {format} ({name})  | ShaderBufferVar | 0x0  | A shader buffer variable doesn't match the format given      |
@@ -357,6 +358,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |  | ShaderData::setValue({register}) failed; the path didn't evaluate to a buffer | The shader included the specified resource, but it wasn't a ShaderBuffer |
 |  | ShaderData::getValue({register}) failed; the path couldn't be found | The shader didn't include the path specified |
 |  | ShaderData::getValue({register}) failed; the path didn't evaluate to a buffer | The shader included the specified resource, but it wasn't a ShaderBuffer |
+| graphics<br />objects<br />shader<br />pipeline.cpp | Couldn't find the requested buffer | The path specified doesn't exist or the buffer is not there |
 
 ## owc
 

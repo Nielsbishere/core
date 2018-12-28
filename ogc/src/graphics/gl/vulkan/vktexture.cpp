@@ -155,8 +155,10 @@ bool Texture::initData() {
 		Log::println(String("Successfully created a VkTexture with format ") + info.format.getName() + " and size " + info.res);
 	}
 
-	if (info.parent != nullptr)
+	if (info.parent != nullptr) {
 		info.handle = info.parent->alloc(this);
+		g->use(info.parent);
+	}
 
 	return true;
 }

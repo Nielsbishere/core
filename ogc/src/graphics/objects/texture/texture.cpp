@@ -48,8 +48,10 @@ Texture::~Texture() {
 
 	info.dat.deconstruct();
 
-	if (info.parent != nullptr)
+	if (info.parent != nullptr) {
 		info.parent->dealloc(this);
+		g->destroy(info.parent);
+	}
 
 	destroyData();
 }
@@ -58,8 +60,11 @@ TextureExt &Texture::getExtension() { return ext; }
 const TextureInfo Texture::getInfo() { return info; }
 
 void Texture::initParent(TextureList *parent) {
-	if (info.parent == nullptr)
+	if (info.parent == nullptr) {
 		info.parent = parent;
+		info.handle = parent->alloc(this);
+		g->use(parent);
+	}
 }
 
 bool Texture::setPixels(Vec2u start, Vec2u length, Buffer values) {

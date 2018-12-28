@@ -19,6 +19,10 @@ void DrawList::flush() {
 }
 
 void DrawList::clear() {
+
+	for (auto &elem : info.objects)
+		g->destroy(elem.first);
+
 	info.objects.clear();
 }
 
@@ -39,6 +43,7 @@ void DrawList::draw(Mesh *m, u32 instances) {
 		}
 
 		info.objects.push_back({ m, instances });
+		g->use(m);
 	}
 	else
 		Log::throwError<DrawList, 0x0>("Grouping the meshes by instance is required!");
@@ -47,8 +52,10 @@ void DrawList::draw(Mesh *m, u32 instances) {
 
 DrawList::DrawList(DrawListInfo info) : info(info) {}
 
-DrawList::~DrawList() { 
+DrawList::~DrawList() {
+	clear();
 	g->destroy(info.drawBuffer);
+	g->destroy(info.meshBuffer);
 }
 
 bool DrawList::init() {
@@ -64,5 +71,6 @@ bool DrawList::init() {
 	if (!createCBO())
 		return Log::error("Couldn't reserve draw list");
 
+	g->use(info.meshBuffer);
 	return true;
 }

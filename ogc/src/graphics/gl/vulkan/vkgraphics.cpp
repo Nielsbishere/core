@@ -604,6 +604,16 @@ void Graphics::initSurface(Window *w) {
 			VkTexture &vkTex = tex->getExtension();
 			vkTex.resource = swapchainImages[i];
 
+			u32 id = maxId + 1;
+
+			for (u32 j = 0; j < maxId; ++j)
+				if (!idAllocator[j]) {
+					id = j;
+					idAllocator[j] = true;
+					break;
+				}
+
+			tex->id = id;
 			tex->g = this;
 			tex->name = String("Swapchain image ") + i;
 			tex->setHash<Texture>();
@@ -627,12 +637,24 @@ void Graphics::initSurface(Window *w) {
 		use(depthBuffer);
 
 		//Create a RenderTarget from it
+
 		RenderTargetInfo info(size, depthBuffer->getFormat(), { VkTextureFormat(colorFormat).getName() });
 		info.depth = depthBuffer;
 		info.textures = { vt };
 		backBuffer = new RenderTarget(info);
 
-		//Register
+		//Register into graphics objects
+
+		u32 id = maxId + 1;
+
+		for (u32 i = 0; i < maxId; ++i)
+			if (!idAllocator[i]) {
+				id = i;
+				idAllocator[i] = true;
+				break;
+			}
+
+		backBuffer->id = id;
 		backBuffer->g = this;
 		backBuffer->setHash<RenderTarget>();
 		backBuffer->name = "Swapchain";

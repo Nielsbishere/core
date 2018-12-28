@@ -1,12 +1,25 @@
+#include "graphics/graphics.h"
 #include "graphics/objects/view/viewbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
 const CameraStruct &Camera::getStruct() { return *info.ptr; }
 
-Camera::~Camera() { info.parent->dealloc(info.ptr); }
+Camera::~Camera() { 
+	info.parent->dealloc(info.ptr); 
+	g->destroy(info.parent);
+}
+
 Camera::Camera(CameraInfo info) : info(info) {}
-bool Camera::init() { bool b = (info.ptr = info.parent->alloc(info.temp)) != nullptr; handle = info.parent->get(info.ptr); return b; }
+
+bool Camera::init() {
+
+	if ((info.ptr = info.parent->alloc(info.temp)) == nullptr) return false;
+
+	g->use(info.parent);
+	handle = info.parent->get(info.ptr); 
+	return true;
+}
 
 CameraHandle Camera::getHandle() { return handle; }
 ViewBuffer *Camera::getParent() { return info.parent; }

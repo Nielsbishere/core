@@ -18,11 +18,15 @@ namespace oi {
 			friend class Graphics;
 			friend class oi::BlockAllocator;
 
+			template<typename T>
+			friend class TGraphicsObjectRef;
+
 		public:
 
 			virtual ~GraphicsObject();
 
-			size_t getHash() const;
+			size_t getTypeId() const;
+			u32 getId() const;
 
 			String getName() const;
 			String getTypeName() const;
@@ -35,7 +39,7 @@ namespace oi {
 				static_assert(!std::is_same<T, GraphicsObject>::value && !std::is_same<T, GraphicsResource>::value && !std::is_same<T, TextureObject>::value,
 					"GraphicsObject<T>::isType is only available for exact types, GraphicsObjects, GraphicsResources and TextureObjects cannot be used");
 
-				return hash == typeid(T).hash_code();
+				return typeId == typeid(T).hash_code();
 			}
 
 			template<typename T>
@@ -55,18 +59,19 @@ namespace oi {
 			template<typename T>
 			void setHash() {
 
-				hash = typeid(T).hash_code();
+				typeId = typeid(T).hash_code();
 				
-				auto it = names.find(hash);
+				auto it = names.find(typeId);
 
 				if (it == names.end())
-					names[hash] = typeid(T).name();
+					names[typeId] = typeid(T).name();
 
 			}
 
 		private:
 
-			size_t hash = (size_t) -1;
+			size_t typeId = (size_t)-1;
+			u32 id = u32_MAX;
 			String name;
 
 			static std::unordered_map<size_t, String> names;

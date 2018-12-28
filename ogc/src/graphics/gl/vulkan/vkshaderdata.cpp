@@ -199,8 +199,8 @@ bool ShaderData::initData() {
 
 		for (ShaderStageType type : values) {
 
-			u32 typeId = type.getValue();
-			u32 typeFlag = typeId == 0 ? 0 : 1 << (typeId - 1);
+			u32 tid = type.getValue();
+			u32 typeFlag = tid == 0 ? 0 : 1 << (tid - 1);
 
 			if (((u32)reg.access & typeFlag) == 0 && reg.access != ShaderAccessType::COMPUTE)
 				continue;

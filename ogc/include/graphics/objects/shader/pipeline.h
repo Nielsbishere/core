@@ -2,18 +2,19 @@
 
 #include "graphics/gl/generic.h"
 #include "graphics/objects/graphicsobject.h"
+#include "graphics/objects/shader/shaderdata.h"
 
 namespace oi {
 
 	namespace gc {
 
 		class Shader;
-		class ShaderData;
 		class PipelineState;
 		class RenderTarget;
 		class Camera;
 		class MeshBuffer;
 		class Pipeline;
+		class GPUBuffer;
 
 		struct GraphicsPipelineInfo {
 
@@ -91,6 +92,21 @@ namespace oi {
 
 			void update();
 
+			template<typename T>
+			void setValue(String path, const T &value);
+
+			template<typename T>
+			void getValue(String path, T &value);
+
+			void setRegister(String path, GraphicsResource *res);
+			
+			template<typename T>
+			T *getRegister(String path);
+
+			void instantiateBuffer(String path, u32 objects);
+			void setBuffer(String path, u32 elements, GPUBuffer *buffer);
+			void setData(String path, Buffer data);
+
 		protected:
 
 			~Pipeline();
@@ -108,6 +124,21 @@ namespace oi {
 			PipelineExt ext;
 
 		};
+
+		template<typename T>
+		void Pipeline::setValue(String path, const T &value) {
+			info.shaderData->setValue(path, value);
+		}
+
+		template<typename T>
+		void Pipeline::getValue(String path, T &value) {
+			info.shaderData->getValue(path, value);
+		}
+
+		template<typename T>
+		T *Pipeline::getRegister(String path) {
+			return info.shaderData->get<T>(path);
+		}
 
 	}
 

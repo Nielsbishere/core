@@ -7,22 +7,9 @@
 namespace oi {
 
 	namespace gc {
-		
-		class Shader;
-		class Pipeline;
-		class MeshBuffer;
-		class Mesh;
-		class DrawList;
-		class ComputeList;
-		class RenderTarget;
-		class Material;
-		class MaterialList;
-
-		class Texture;
-		class TextureList;
 
 		struct MeshAllocationInfo;
-
+		class Mesh;
 		typedef u32 MaterialHandle;
 
 	}
@@ -89,18 +76,18 @@ protected:
 
 private:
 	
-	oi::gc::Shader *shader, *shader0, *cmiLighting;
-	oi::gc::PipelineState *pipelineState;
-	oi::gc::Pipeline *pipeline, *pipeline0, *cmiLightingPipeline;
-	oi::gc::MeshBuffer *meshBuffer, *meshBuffer0;
+	oi::gc::ShaderRef deferred, postProcessing, lighting;
+	oi::gc::PipelineStateRef pipelineState;
+	oi::gc::PipelineRef deferredPipeline, postProcessingPipeline, lightingPipeline;
+	oi::gc::MeshBufferRef mesh3D, mesh2D;
 	std::vector<oi::gc::Mesh*> meshes;
-	oi::gc::DrawList *drawList, *drawList0;
-	oi::gc::ComputeList *cmiLightingDispatch;
-	oi::gc::RenderTarget *renderTarget, *cmiLightingTarget;
-	oi::gc::MaterialList *materialList;
-	oi::gc::TextureList *textureList;
-	oi::gc::Material *water, *rock;
-	oi::gc::Texture *twater, *trock;
+	oi::gc::DrawListRef drawList, quad;
+	oi::gc::ComputeListRef lightingDispatch;
+	oi::gc::RenderTargetRef gbuffer, lightingTarget;
+	oi::gc::MaterialListRef materialList;
+	oi::gc::TextureListRef textureList;
+	oi::gc::MaterialRef water, rock;
+	oi::gc::TextureRef twater, trock;
 
 	float exposure = .15f, gamma = .85f;
 	oi::Vec2 prevMouse;

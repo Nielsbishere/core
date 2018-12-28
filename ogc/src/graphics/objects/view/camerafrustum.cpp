@@ -1,12 +1,26 @@
+#include "graphics/graphics.h"
 #include "graphics/objects/view/viewbuffer.h"
 using namespace oi::gc;
 using namespace oi;
 
 const CameraFrustumStruct &CameraFrustum::getStruct() { return *info.ptr; }
 
-CameraFrustum::~CameraFrustum() { info.parent->dealloc(info.ptr); }
+CameraFrustum::~CameraFrustum() { 
+	info.parent->dealloc(info.ptr); 
+	g->destroy(info.parent);
+}
+
 CameraFrustum::CameraFrustum(CameraFrustumInfo info) : info(info) {}
-bool CameraFrustum::init() { bool b = (info.ptr = info.parent->alloc(info.temp)) != nullptr; handle = info.parent->get(info.ptr); return b; }
+
+bool CameraFrustum::init() { 
+
+	if ((info.ptr = info.parent->alloc(info.temp)) == nullptr)
+		return false;
+
+	g->use(info.parent);
+	handle = info.parent->get(info.ptr); 
+	return true; 
+}
 
 CameraFrustumHandle CameraFrustum::getHandle() { return handle; }
 ViewBuffer *CameraFrustum::getParent() { return info.parent; }

@@ -38,7 +38,10 @@ namespace oi {
 			ViewBuffer *parent;
 			ViewStruct *ptr;
 
-			ViewInfo(ViewBuffer *parent, Camera *cam, CameraFrustum *cf) : parent(parent), temp(cam->getHandle(), cf->getHandle()), ptr(&temp) {
+			Camera *cam;
+			CameraFrustum *frustum;
+
+			ViewInfo(ViewBuffer *parent, Camera *cam, CameraFrustum *cf) : parent(parent), cam(cam), frustum(cf), ptr(&temp) {
 				if (cam->getParent() != parent || cf->getParent() != parent)
 					Log::throwError<ViewInfo, 0x0>("Camera, CameraFrustum and View aren't in the same ViewBuffer");
 			}

@@ -129,3 +129,46 @@ Pipeline::~Pipeline() {
 	destroyData();
 
 }
+
+
+void Pipeline::setRegister(String path, GraphicsResource *object) {
+	info.shaderData->set(path, object);
+}
+
+void Pipeline::instantiateBuffer(String path, u32 objects) {
+
+	ShaderBuffer *buffer = info.shaderData->get<ShaderBuffer>(path);
+
+	if (buffer == nullptr) {
+		Log::warn("Couldn't find the requested buffer");
+		return;
+	}
+
+	buffer->instantiate(objects);
+
+}
+
+void Pipeline::setBuffer(String path, u32 objects, GPUBuffer *buffer) {
+
+	ShaderBuffer *sbuffer = info.shaderData->get<ShaderBuffer>(path);
+
+	if (sbuffer == nullptr) {
+		Log::warn("Couldn't find the requested buffer");
+		return;
+	}
+
+	sbuffer->setBuffer(objects, buffer);
+}
+
+void Pipeline::setData(String path, Buffer data) {
+
+	ShaderBuffer *sbuffer = info.shaderData->get<ShaderBuffer>(path);
+
+	if (sbuffer == nullptr) {
+		Log::warn("Couldn't find the requested buffer");
+		return;
+	}
+
+	sbuffer->set(data);
+
+}
