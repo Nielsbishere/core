@@ -216,6 +216,9 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                                         | Resizing a non-target texture is illegal, the creation size is constant |                 | 0x14 | Only textures created as RenderTargets can be resized dynamically; as resizing with initialized CPU data can cause issues |
 |                                                         | Initializing with resolution 0,0 isn't allowed, because non-target textures cannot be resized |                 | 0x15 | see 0x14                                                     |
 | graphics<br />objects<br />shader<br />computelist.cpp  | Couldn't dispatch compute shader; no space left in compute buffer | ComputeList     | 0x0  | max dispatch count was too small. Please clear the compute list's buffer; it was too small |
+| graphics<br />object<br />shader<br />pipeline.cpp      | Couldn't validate pipeline; shader buffers conflict          | Pipeline        | 0x0  | The pipeline's shaders' buffer layouts conflict              |
+|                                                         | Couldn't validate pipeline; shader registers conflict        |                 | 0x1  | The pipeline's shaders' registers conflict                   |
+|                                                         | Couldn't validate pipeline; shader register ids conflict     |                 | 0x2  | The pipeline's shaders' register ids conflict                |
 
 ### Errors
 

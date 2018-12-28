@@ -59,8 +59,54 @@ bool Pipeline::init() {
 	g->use(info.raytracingInfo.meshBuffer);
 
 	if (info.raytracingInfo.shaders.size() == 0) {
+
 		const ShaderInfo &shaderInfo = getShader()->getInfo();
 		g->use(info.shaderData = g->create(getName() + " ShaderData", ShaderDataInfo(shaderInfo.registers, shaderInfo.buffer)));
+
+	} else {
+	
+		std::unordered_map<String, ShaderRegister> registers;
+		std::unordered_map<String, ShaderBufferInfo> buffer;
+
+		std::vector<ShaderRegister> registersOutput;
+
+		//Validate and create layout
+
+		for (Shader *shader : info.raytracingInfo.shaders) {
+
+			for (auto &elem : shader->getInfo().buffer) {
+
+				auto it = buffer.find(elem.first);
+
+				if (it == buffer.end())
+					buffer[elem.first] = elem.second;
+				else if (it->second != elem.second)
+					Log::throwError<Pipeline, 0x0>("Couldn't validate pipeline; shader buffers conflict");
+
+			}
+
+			for (const ShaderRegister &reg : shader->getInfo().registers) {
+
+				auto it = registers.find(reg.name);
+
+				if (it == registers.end()) {
+
+					for(auto &elem : registers)
+						if(elem.second.id == reg.id)
+							Log::throwError<Pipeline, 0x2>("Couldn't validate pipeline; shader register ids conflict");
+
+					registers[reg.name] = reg;
+					registersOutput.push_back(reg);
+
+				} else if(it->second != reg)
+					Log::throwError<Pipeline, 0x1>("Couldn't validate pipeline; shader registers conflict");
+
+			}
+
+		}
+
+		g->use(info.shaderData = g->create(getName() + " ShaderData", ShaderDataInfo(registersOutput, buffer)));
+
 	}
 
 	return initData();

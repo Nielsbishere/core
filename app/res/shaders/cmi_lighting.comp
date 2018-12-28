@@ -16,25 +16,25 @@ layout(binding = 1) uniform Views_noalloc { ViewBuffer viewData; };
 layout(binding = 2) uniform sampler samp;
 layout(binding = 3) uniform texture2D tex[2];
 
-layout(std430, binding = 4) buffer DirectionalLights {
+layout(std430, binding = 4) readonly buffer DirectionalLights {
 
 	Light light[];
 
 } dir;
 
-layout(std430, binding = 5) buffer PointLights {
+layout(std430, binding = 5) readonly buffer PointLights {
 
 	Light light[];
 
 } point;
 
-layout(std430, binding = 6) buffer SpotLights {
+layout(std430, binding = 6) readonly buffer SpotLights {
 
 	Light light[];
 
 } spot;
 
-layout(std430, binding = 7) buffer Materials {
+layout(std430, binding = 7) readonly buffer Materials {
 
 	MaterialStruct mat[];
 

@@ -35,6 +35,8 @@ namespace oi {
 			void addChild(ShaderBufferObject *obj);
 			ShaderBufferObject *find(String name);
 
+			bool operator==(const ShaderBufferObject &other) const;
+
 		};
 
 		class ShaderBuffer;
@@ -63,6 +65,9 @@ namespace oi {
 
 			ShaderBufferInfo &operator=(const ShaderBufferInfo &info);
 			ShaderBufferInfo(const ShaderBufferInfo &info);
+
+			bool operator==(const ShaderBufferInfo &other) const;
+			bool operator!=(const ShaderBufferInfo &other) const { return !(*this == other); }
 
 			void push(ShaderBufferObject obj, ShaderBufferObject &parent);
 

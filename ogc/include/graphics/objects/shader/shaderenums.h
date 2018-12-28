@@ -74,6 +74,7 @@ namespace oi {
 			ShaderRegister() : ShaderRegister(0, ShaderAccessType::COMPUTE, "", 0, 0, TextureFormat::Undefined) { }
 
 			bool operator==(const ShaderRegister &other) const { return memcmp(this, &other, offsetof(ShaderRegister, name)) == 0 && name == other.name; }
+			bool operator!=(const ShaderRegister &other) const { return !(*this == other); }
 
 		};
 

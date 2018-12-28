@@ -11,7 +11,7 @@ struct PerObject {
 
 };
 
-layout(std430, binding = 0) buffer Objects {
+layout(std430, binding = 0) readonly buffer Objects {
 
 	PerObject arr[];
 	
