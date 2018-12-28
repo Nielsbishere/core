@@ -217,9 +217,6 @@ void Texture::resize(Vec2u size) {
 	if (info.usage != TextureUsage::Render_depth && info.usage != TextureUsage::Render_target && info.usage != TextureUsage::Compute_target)
 		Log::throwError<Texture, 0x14>("Resizing a non-target texture is illegal, the creation size is constant");
 
-	if (size == info.res)
-		return;
-
 	info.res = size;
 	destroyData();
 	initData();

@@ -111,7 +111,7 @@ namespace oi {
 				return;
 			}
 
-			ShaderBuffer *shaderBuffer = it->second.cast<ShaderBuffer>();
+			ShaderBuffer *shaderBuffer = it->second->cast<ShaderBuffer>();
 
 			if (shaderBuffer == nullptr) {
 				Log::warn(String("Shader::getValue(") + path.untilFirst("/") + ") failed; the path didn't evaluate to a buffer");

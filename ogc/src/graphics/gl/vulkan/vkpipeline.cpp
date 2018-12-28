@@ -50,8 +50,15 @@ bool Pipeline::initData() {
 		dynamicStates.dynamicStateCount = (u32)(sizeof(states) / sizeof(states[0]));
 		dynamicStates.pDynamicStates = states;
 
+		VkPipelineViewportStateCreateInfo viewportState;
+		memset(&viewportState, 0, sizeof(viewportState));
+
+		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		viewportState.scissorCount = 1;
+		viewportState.viewportCount = 1;
+
 		pipelineInfo.pDynamicState = &dynamicStates;									//Viewport and scissor are dynamic
-		pipelineInfo.pViewportState = nullptr;
+		pipelineInfo.pViewportState = &viewportState;
 
 		//Shader
 

@@ -45,10 +45,9 @@ VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT, 
 Graphics::~Graphics(){
 	
 	destroy(ext.stagingCmdList);
+	destroy(backBuffer);
 
 	if(initialized){
-
-		destroy(backBuffer);
 
 		for (auto &a : objects)
 			for (u32 i = (u32) a.second.size() - 1; i != u32_MAX; --i) {
@@ -679,7 +678,6 @@ void Graphics::destroySurface() {
 		vkDestroySwapchainKHR(ext.device, ext.swapchain, vkAllocator);
 		vkDestroySurfaceKHR(ext.instance, ext.surface, vkAllocator);
 
-		destroy(backBuffer);
 		ext.swapchain = VK_NULL_HANDLE;
 
 		Log::println("Successfully destroyed surface");
