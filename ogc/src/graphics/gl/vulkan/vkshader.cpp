@@ -1,6 +1,7 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
+#include "graphics/gl/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/shader.h"
 #include "graphics/objects/shader/shaderstage.h"
@@ -11,14 +12,20 @@
 using namespace oi::gc;
 using namespace oi;
 
-void Shader::destroyData() {}
+void Shader::destroyData() {
+	g->dealloc<Shader>(ext);
+}
+
+ShaderExt &Shader::getExtension() { return *ext; }
 
 bool Shader::initData() {
 
-	ext.stage.resize(info.stage.size());
+	g->alloc<Shader>(ext);
 
-	for (u32 i = 0; i < (u32) ext.stage.size(); ++i)
-		ext.stage[i] = &info.stage[i]->getExtension();
+	ext->stage.resize(info.stage.size());
+
+	for (u32 i = 0; i < (u32) ext->stage.size(); ++i)
+		ext->stage[i] = &info.stage[i]->getExtension();
 
 	return true;
 

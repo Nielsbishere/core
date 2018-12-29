@@ -63,7 +63,7 @@ namespace oi {
 		private:
 
 			ShaderInfo info;
-			ShaderExt ext;
+			ShaderExt *ext;
 
 		};
 

@@ -76,7 +76,7 @@ namespace oi {
 
 		public:
 
-			PipelineExt &getExtension() { return ext; }
+			PipelineExt &getExtension();
 			const GraphicsPipelineInfo getGraphicsInfo() const { return info.graphicsInfo; }
 			const ComputePipelineInfo getComputeInfo() const { return info.computeInfo; }
 			const RaytracingPipelineInfo getRaytracingInfo() const { return info.raytracingInfo; }
@@ -121,7 +121,7 @@ namespace oi {
 		private:
 
 			PipelineInfo info;
-			PipelineExt ext;
+			PipelineExt *ext;
 
 		};
 

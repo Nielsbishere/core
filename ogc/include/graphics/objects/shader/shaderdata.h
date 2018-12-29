@@ -31,7 +31,7 @@ namespace oi {
 
 		public:
 
-			ShaderDataExt &getExtension() { return ext; }
+			ShaderDataExt &getExtension();
 			const ShaderDataInfo &getInfo() { return info; }
 
 			bool set(String path, GraphicsResource *res);
@@ -61,7 +61,7 @@ namespace oi {
 		private:
 
 			ShaderDataInfo info;
-			ShaderDataExt ext;
+			ShaderDataExt *ext;
 
 			Bitset changed;
 

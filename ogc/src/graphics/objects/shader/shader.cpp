@@ -16,7 +16,6 @@ Shader::~Shader() {
 }
 
 Shader::Shader(ShaderInfo info) : info(info) { }
-ShaderExt &Shader::getExtension() { return ext; }
 const ShaderInfo &Shader::getInfo() { return info; }
 Vec3u Shader::getComputeThreads() { return info.computeThreads; }
 

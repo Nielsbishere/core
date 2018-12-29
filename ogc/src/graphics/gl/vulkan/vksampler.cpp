@@ -1,14 +1,21 @@
 #ifdef __VULKAN__
 #include "graphics/graphics.h"
+#include "graphics/gl/generic.h"
+#include "graphics/gl/vulkan.h"
 #include "graphics/objects/texture/sampler.h"
 using namespace oi::gc;
 using namespace oi;
 
 Sampler::~Sampler() {
-	vkDestroySampler(g->getExtension().device, ext, vkAllocator);
+	vkDestroySampler(g->getExtension().device, ext->obj, vkAllocator);
+	g->dealloc<Sampler>(ext);
 }
 
+SamplerExt &Sampler::getExtension() { return *ext; }
+
 bool Sampler::init() {
+
+	g->alloc<Sampler>(ext);
 
 	VkSamplerCreateInfo samplerInfo;
 	memset(&samplerInfo, 0, sizeof(samplerInfo));
@@ -31,7 +38,7 @@ bool Sampler::init() {
 	samplerInfo.anisotropyEnable = info.aniso > 1.f;
 	samplerInfo.maxLod = 32.f;
 
-	vkCheck<0x0, VkSampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, vkAllocator, &ext), "Couldn't create sampler object");
+	vkCheck<0x0, VkSampler>(vkCreateSampler(g->getExtension().device, &samplerInfo, vkAllocator, &ext->obj), "Couldn't create sampler object");
 	vkName(gext, ext, VK_OBJECT_TYPE_SAMPLER, getName());
 
 	return true;

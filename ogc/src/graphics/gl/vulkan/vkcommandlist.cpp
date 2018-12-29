@@ -1,6 +1,8 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
+#include "graphics/gl/generic.h"
+#include "graphics/gl/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/render/rendertarget.h"
@@ -14,13 +16,14 @@ using namespace oi::gc;
 using namespace oi;
 
 CommandList::~CommandList() {
-	vkFreeCommandBuffers(g->getExtension().device, ext.pool, (u32) ext.cmds.size(), ext.cmds.data());
+	vkFreeCommandBuffers(g->getExtension().device, ext->pool, (u32) ext->cmds.size(), ext->cmds.data());
+	g->dealloc<CommandList>(ext);
 }
 
-CommandListExt &CommandList::getExtension() { return ext; }
+CommandListExt &CommandList::getExtension() { return *ext; }
 
-VkCommandBuffer &VkCommandList::cmd(VkGraphics &g) { return cmds[g.current % cmds.size()]; }
-#define ext_cmd ext.cmd(g->getExtension())
+VkCommandBuffer &CommandListExt::cmd(GraphicsExt &g) { return cmds[g.current % cmds.size()]; }
+#define ext_cmd ext->cmd(g->getExtension())
 
 void CommandList::begin() {
 
@@ -144,24 +147,26 @@ void CommandList::end() {
 
 bool CommandList::init() {
 
+	g->alloc<CommandList>(ext);
+
 	GraphicsExt &glext = g->getExtension();
 
-	ext.pool = glext.pool;
+	ext->pool = glext.pool;
 
 	VkCommandBufferAllocateInfo allocInfo;
 	memset(&allocInfo, 0, sizeof(allocInfo));
 
-	ext.cmds.resize( g->getBuffering());
+	ext->cmds.resize( g->getBuffering());
 
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandBufferCount = (u32) ext.cmds.size();
+	allocInfo.commandBufferCount = (u32) ext->cmds.size();
 	allocInfo.commandPool = glext.pool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-	vkCheck<0x2, VkCommandList>(vkAllocateCommandBuffers(glext.device, &allocInfo, ext.cmds.data()), "Couldn't allocate command list");
+	vkCheck<0x2, CommandListExt>(vkAllocateCommandBuffers(glext.device, &allocInfo, ext->cmds.data()), "Couldn't allocate command list");
 
 	for (u32 i = 0; i < allocInfo.commandBufferCount; ++i)
-		vkName(glext, ext.cmds[i], VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " #" + i);
+		vkName(glext, ext->cmds[i], VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " #" + i);
 
 	return true;
 }
@@ -188,8 +193,8 @@ void CommandList::bind(Pipeline *pipeline) {
 
 	}
 
-	VkPipelineBindPoint pipelinePoint = VkPipelineType(pipeline->getPipelineType().getName()).getValue();
-	vkCmdBindPipeline(ext_cmd, pipelinePoint, pipeline->getExtension());
+	VkPipelineBindPoint pipelinePoint = PipelineTypeExt(pipeline->getPipelineType().getName()).getValue();
+	vkCmdBindPipeline(ext_cmd, pipelinePoint, pipeline->getExtension().obj);
 
 	pipeline->getData()->update();
 
@@ -205,7 +210,7 @@ bool CommandList::bind(std::vector<GPUBuffer*> vbos, GPUBuffer *ibo) {
 
 	for (GPUBuffer *b : vbos)
 		if (b->getType() != GPUBufferType::VBO)
-			return Log::throwError<VkCommandList, 0x0>("CommandList::bind requires VBOs as first argument");
+			return Log::throwError<CommandListExt, 0x0>("CommandList::bind requires VBOs as first argument");
 		else
 			vkBuffer[i++] = b->getExtension().resource[0];
 
@@ -217,7 +222,7 @@ bool CommandList::bind(std::vector<GPUBuffer*> vbos, GPUBuffer *ibo) {
 	if (ibo != nullptr) {
 
 		if (ibo->getType() != GPUBufferType::IBO)
-			return Log::throwError<VkCommandList, 0x1>("CommandList::bind requires a valid IBO as second argument");
+			return Log::throwError<CommandListExt, 0x1>("CommandList::bind requires a valid IBO as second argument");
 
 		vkCmdBindIndexBuffer(ext_cmd, ibo->getExtension().resource[0], 0, VkIndexType::VK_INDEX_TYPE_UINT32);
 

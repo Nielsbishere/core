@@ -5,6 +5,7 @@
 #include "graphics/gl/generic.h"
 #include "memory/blockallocator.h"
 #include "types/bitset.h"
+#include "template/enum.h"
 
 namespace oi {
 	
@@ -85,6 +86,12 @@ namespace oi {
 			template<typename T>
 			[[nodiscard]] std::vector<GraphicsObject*> get();
 
+			template<typename T, typename T2>
+			void alloc(T2 *&t2);
+
+			template<typename T, typename T2>
+			void dealloc(T2 *&t2);
+
 		protected:
 
 			template<typename T>
@@ -106,7 +113,7 @@ namespace oi {
 
 			oi::BlockAllocator allocator;
 			oi::StaticBitset<maxId + 1> idAllocator;
-			GraphicsExt ext;
+			GraphicsExt *ext;
 
 			std::unordered_map<size_t, std::vector<GraphicsObject*>> objects;
 			std::unordered_map<u32, GraphicsObject*> objectsById;
@@ -202,6 +209,25 @@ namespace oi {
 			}
 
 			return true;
+		}
+
+		template<typename T, typename T2>
+		void Graphics::alloc(T2 *&t2) {
+
+			static_assert(std::is_same<typename T2::BaseType, T>::value, "Can't allocate if the extended type isn't part of the allocated type");
+
+			t2 = allocator.alloc<T2>();
+
+		}
+
+		template<typename T, typename T2>
+		void Graphics::dealloc(T2 *&t2) {
+
+			static_assert(std::is_same<typename T2::BaseType, T>::value, "Can't allocate if the extended type isn't part of the allocated type");
+
+			allocator.dealloc(t2);
+			t2 = nullptr;
+
 		}
 
 	}

@@ -1,82 +1,43 @@
 #pragma once
 
-//The following defines the GL dependent structs and enum structs
-//Vk/Gl/Dx/Mt/etc. <className> as <className>Ext
-//Like GraphicsExt can be VkGraphics, GlGraphics, DxGraphics, MtGraphics
-//Please don't assume that it is either, it should only be used for GL dependent functions
-//If the extension isn't supported for the API, it will be set to <yy>Null
-//CommandListExt isn't supported for OpenGL; it will just route the functions to GL, which is why it points to GlNull
-
-#ifdef __VULKAN__
-
-#include "vulkan.h"
+//These structs are only exposed to low-level code and requires including & linking against the API-dependent implementations
+//Vulkan for example would define GraphicsExt as 'VkGraphics', while OpenGL would define it as 'GlGraphics'
+//Don't assume implementation, and always check for __API__ (__VULKAN__, __OPENGL__, etc.)
+//These extensions don't even have to be specified if they don't have an implementation
 
 namespace oi {
 
 	namespace gc {
 
-		struct VkNull {};
+		//Structs
 
-		///All class extensions (structs that can go into graphics)
+		struct GraphicsExt;
+		struct TextureExt;
+		struct RenderTargetExt;
+		struct ShaderStageExt;
+		struct CommandListExt;
+		struct ShaderExt;
+		struct ShaderDataExt;
+		struct PipelineStateExt;
+		struct GPUBufferExt;
+		struct SamplerExt;
+		struct PipelineExt;
 
-		typedef VkGraphics GraphicsExt;
-		typedef VkTexture TextureExt;
-		typedef VkRenderTarget RenderTargetExt;
-		typedef VkShaderStage ShaderStageExt;
-		typedef VkCommandList CommandListExt;
-		typedef VkShader ShaderExt;
-		typedef VkShaderData ShaderDataExt;
-		typedef VkPipelineState PipelineStateExt;
-		typedef VkPipeline PipelineExt;
-		typedef VkGPUBuffer GPUBufferExt;
-		typedef VkSampler SamplerExt;
-		
-		///All enum struct implementations
+		//Enums
 
-		typedef VkTextureFormat TextureFormatExt;
-		typedef VkTextureUsage TextureUsageExt;
-		typedef VkShaderStageType ShaderStageTypeExt;
-		typedef VkTopologyMode TopologyModeExt;
-		typedef VkFillMode FillModeExt;
-		typedef VkCullMode CullModeExt;
-		typedef VkWindMode WindModeExt;
-		typedef VkNull BlendModeExt;
-		typedef VkNull DepthModeExt;
-		typedef VkGPUBufferType GPUBufferTypeExt;
-		typedef VkShaderRegisterType ShaderRegisterTypeExt;
-		typedef VkSamplerWrapping SamplerWrappingExt;
-		typedef VkSamplerMin SamplerMinExt;
-		typedef VkSamplerMag SamplerMagExt;
+		class TextureFormatExt;
+		class TextureUsageExt;
+		class ShaderStageTypeExt;
+		class TopologyModeExt;
+		class FillModeExt;
+		class CullModeExt;
+		class WindModeExt;
+		class GPUBufferTypeExt;
+		class ShaderRegisterTypeExt;
+		class SamplerWrappingExt;
+		class SamplerMinExt;
+		class SamplerMagExt;
 
-	};
+	}
+
 }
-
-#elif __OpenGL__
-
-#include "opengl.h"
-
-namespace oi {
-
-	namespace gc {
-
-		struct GlNull {};
-
-		///All class extensions (structs that can go into graphics)
-
-		typedef GlGraphics GraphicsExt;
-		typedef GlTexture TextureExt;
-		typedef GlRenderTarget RenderTargetExt;
-		typedef GlShaderStage ShaderStageExt;
-		typedef GlNull CommandListExt;
-		typedef GlShader ShaderExt;
-
-		///All DEnum defines
-
-		typedef GlTextureFormat TextureFormatExt;
-		typedef GlTextureUsage TextureUsageExt;
-		typedef GlShaderStageType ShaderStageTypeExt;
-
-	};
-}
-
-#endif

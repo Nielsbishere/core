@@ -48,7 +48,7 @@ namespace oi {
 		private:
 
 			SamplerInfo info;
-			SamplerExt ext;
+			SamplerExt *ext;
 
 		};
 

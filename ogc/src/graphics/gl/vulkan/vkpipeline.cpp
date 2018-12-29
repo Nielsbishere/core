@@ -1,4 +1,6 @@
 #ifdef __VULKAN__
+#include "graphics/gl/generic.h"
+#include "graphics/gl/vulkan.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/model/meshbuffer.h"
@@ -11,13 +13,18 @@ using namespace oi::gc;
 using namespace oi;
 
 void Pipeline::destroyData() {
-	vkDestroyPipeline(g->getExtension().device, ext, vkAllocator);
+	vkDestroyPipeline(g->getExtension().device, ext->obj, vkAllocator);
+	g->dealloc<Pipeline>(ext);
 }
+
+PipelineExt &Pipeline::getExtension() { return *ext; }
 
 bool Pipeline::initData() {
 
 	if (info.raytracingInfo.shaders.size() == 0 && info.computeInfo.shader == nullptr && info.graphicsInfo.shader == nullptr)
 		return Log::throwError<VkPipeline, 0x0>("Pipeline requires a shader");
+
+	g->alloc<Pipeline>(ext);
 
 	GraphicsExt &gext = g->getExtension();
 
@@ -185,7 +192,7 @@ bool Pipeline::initData() {
 
 		//Create the pipeline
 
-		vkCheck<0x7, VkPipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
+		vkCheck<0x7, VkPipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext->obj), "Couldn't create graphics pipeline");
 
 	} else if(info.type == PipelineType::Compute) {
 	
@@ -204,13 +211,13 @@ bool Pipeline::initData() {
 
 		//Create the pipeline
 
-		vkCheck<0x8, VkPipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
+		vkCheck<0x8, VkPipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext->obj), "Couldn't create compute pipeline");
 
 	} else if (info.type == PipelineType::Raytracing) {
 		#ifdef __RAYTRACING__ 
 
 			if (!g->supports(GraphicsFeature::Raytracing))
-				Log::throwError<VkGraphics, 0xA>("Couldn't create pipeline; raytracing isn't supported");
+				Log::throwError<GraphicsExt, 0xA>("Couldn't create pipeline; raytracing isn't supported");
 
 			RaytracingPipelineInfo &pinfo = info.raytracingInfo;
 
@@ -292,9 +299,9 @@ bool Pipeline::initData() {
 
 			//Create the pipeline
 
-			VkGraphics &graphics = g->getExtension();
+			GraphicsExt &graphics = g->getExtension();
 
-			vkCheck<0x9, VkPipeline>(graphics.vkCreateRayTracingPipelinesNV(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create raytracing pipeline");
+			vkCheck<0x9, VkPipeline>(graphics.vkCreateRayTracingPipelinesNV(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext->obj), "Couldn't create raytracing pipeline");
 
 		#else
 

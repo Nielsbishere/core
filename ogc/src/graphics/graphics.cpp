@@ -78,7 +78,6 @@ Vec4d Graphics::convertColor(Vec4d cl, TextureFormat format) {
 }
 
 u32 Graphics::getFormatSize(TextureFormat format) { return getChannelSize(format) * getChannels(format); }
-GraphicsExt &Graphics::getExtension() { return ext; }
 
 RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
 u32 Graphics::getBuffering() { return buffering; }

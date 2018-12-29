@@ -53,10 +53,9 @@ Texture::~Texture() {
 		g->destroy(info.parent);
 	}
 
-	destroyData();
+	destroyData(false);
 }
 
-TextureExt &Texture::getExtension() { return ext; }
 const TextureInfo Texture::getInfo() { return info; }
 
 void Texture::initParent(TextureList *parent) {
@@ -223,7 +222,7 @@ void Texture::resize(Vec2u size) {
 		Log::throwError<Texture, 0x14>("Resizing a non-target texture is illegal, the creation size is constant");
 
 	info.res = size;
-	destroyData();
+	destroyData(true);
 	initData();
 
 }

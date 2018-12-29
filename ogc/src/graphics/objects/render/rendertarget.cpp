@@ -23,10 +23,19 @@ Vec2u RenderTarget::getSize() { return info.res; }
 bool RenderTarget::isOwned() { return owned; }
 bool RenderTarget::isComputeTarget() { return info.isComputeTarget; }
 
-RenderTargetExt &RenderTarget::getExtension() { return ext; }
 const RenderTargetInfo RenderTarget::getInfo() { return info; }
 
 RenderTarget::RenderTarget(RenderTargetInfo info) : info(info){}
+RenderTarget::~RenderTarget() {
+
+	for (VersionedTexture *t : info.textures)
+		g->destroy(t);
+
+	g->destroy(info.depth);
+
+	destroyData();
+
+}
 
 bool RenderTarget::init(bool isOwned) {
 

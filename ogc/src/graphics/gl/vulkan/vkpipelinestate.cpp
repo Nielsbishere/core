@@ -1,20 +1,27 @@
 #ifdef __VULKAN__
 
 #include <cmath>
+#include "graphics/gl/vulkan.h"
 #include "graphics/objects/shader/pipelinestate.h"
 using namespace oi::gc;
 using namespace oi;
 
-PipelineState::~PipelineState() {}
+PipelineState::~PipelineState() {
+	g->dealloc<PipelineState>(ext);
+}
+
+PipelineStateExt &PipelineState::getExtension() { return *ext; }
 
 bool PipelineState::init() {
 
+	g->alloc<PipelineState>(ext);
+
 	if (std::pow(2, (u32) std::log2(info.samples)) != info.samples)
-		return Log::throwError<VkPipelineState, 0x0>("PipelineState creation failed; sample count has to be base2");
+		return Log::throwError<PipelineStateExt, 0x0>("PipelineState creation failed; sample count has to be base2");
 
 	//Assembler
 
-	VkPipelineInputAssemblyStateCreateInfo &assembler = ext.assembler;
+	VkPipelineInputAssemblyStateCreateInfo &assembler = ext->assembler;
 	memset(&assembler, 0, sizeof(assembler));
 
 	assembler.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -22,7 +29,7 @@ bool PipelineState::init() {
 
 	//Rasterizer
 
-	VkPipelineRasterizationStateCreateInfo &rasterizer = ext.rasterizer;
+	VkPipelineRasterizationStateCreateInfo &rasterizer = ext->rasterizer;
 	memset(&rasterizer, 0, sizeof(rasterizer));
 
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -32,7 +39,7 @@ bool PipelineState::init() {
 
 	//Multi sampling
 
-	VkPipelineMultisampleStateCreateInfo &multiSample = ext.multiSample;
+	VkPipelineMultisampleStateCreateInfo &multiSample = ext->multiSample;
 	memset(&multiSample, 0, sizeof(multiSample));
 
 	multiSample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -41,7 +48,7 @@ bool PipelineState::init() {
 	
 	//Depth
 
-	VkPipelineDepthStencilStateCreateInfo &depthStencil = ext.depthStencil;
+	VkPipelineDepthStencilStateCreateInfo &depthStencil = ext->depthStencil;
 	memset(&depthStencil, 0, sizeof(depthStencil));
 	
 	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -53,7 +60,7 @@ bool PipelineState::init() {
 
 	//Blending
 
-	VkPipelineColorBlendAttachmentState &blendState = ext.blendState;
+	VkPipelineColorBlendAttachmentState &blendState = ext->blendState;
 	memset(&blendState, 0, sizeof(blendState));
 
 	blendState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -100,7 +107,7 @@ bool PipelineState::init() {
 
 	}
 
-	VkPipelineColorBlendStateCreateInfo &blending = ext.blending;
+	VkPipelineColorBlendStateCreateInfo &blending = ext->blending;
 	memset(&blending, 0, sizeof(blending));
 
 	blending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

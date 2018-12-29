@@ -35,7 +35,7 @@ struct VkComputeList {};
 
 void ComputeList::checkDispatchGroups(Vec3u &groups) {
 
-	VkGraphics &graphics = g->getExtension();
+	GraphicsExt &graphics = g->getExtension();
 	Vec3u &maxComputeGroup = *(Vec3u*)(graphics.pproperties.properties.limits.maxComputeWorkGroupCount);
 
 	if (groups.min(maxComputeGroup) != groups)
@@ -45,7 +45,7 @@ void ComputeList::checkDispatchGroups(Vec3u &groups) {
 
 bool ComputeList::initData() {
 
-	VkGraphics &graphics = g->getExtension();
+	GraphicsExt &graphics = g->getExtension();
 	Vec3u &maxGroupSize = *(Vec3u*)(graphics.pproperties.properties.limits.maxComputeWorkGroupSize);
 
 	Vec3u groupSize = info.computePipeline->getComputeInfo().shader->getInfo().computeThreads;

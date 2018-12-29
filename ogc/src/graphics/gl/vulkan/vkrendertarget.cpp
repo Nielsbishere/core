@@ -7,20 +7,17 @@
 using namespace oi::gc;
 using namespace oi;
 
-RenderTarget::~RenderTarget() {
+void RenderTarget::destroyData() {
 
-	VkGraphics &gext = g->getExtension();
+	GraphicsExt &gext = g->getExtension();
 
-	if(ext.renderPass != VK_NULL_HANDLE)
-		vkDestroyRenderPass(gext.device, ext.renderPass, vkAllocator);
+	if(ext->renderPass != VK_NULL_HANDLE)
+		vkDestroyRenderPass(gext.device, ext->renderPass, vkAllocator);
 
-	for (VkFramebuffer fb : ext.frameBuffer)
+	for (VkFramebuffer fb : ext->frameBuffer)
 		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
 
-	for (VersionedTexture *t : info.textures)
-		g->destroy(t);
-
-	g->destroy(info.depth);
+	g->dealloc<RenderTarget>(ext);
 }
 
 bool RenderTarget::resize(Vec2u size) {
@@ -30,7 +27,7 @@ bool RenderTarget::resize(Vec2u size) {
 
 	info.res = size;
 
-	VkGraphics &gext = g->getExtension();
+	GraphicsExt &gext = g->getExtension();
 
 	u32 buffering = g->getBuffering();
 
@@ -42,7 +39,7 @@ bool RenderTarget::resize(Vec2u size) {
 
 	//Remove old frame buffers
 
-	for (VkFramebuffer &fb : ext.frameBuffer)
+	for (VkFramebuffer &fb : ext->frameBuffer)
 		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
 
 	if (depth != nullptr)
@@ -56,7 +53,7 @@ bool RenderTarget::resize(Vec2u size) {
 
 	//Create framebuffers
 
-	ext.frameBuffer = std::vector<VkFramebuffer>(buffering);
+	ext->frameBuffer = std::vector<VkFramebuffer>(buffering);
 
 	std::vector<VkImageView> fbAttachment(targets);
 
@@ -70,29 +67,33 @@ bool RenderTarget::resize(Vec2u size) {
 
 		for (u32 j = 0; j < ctargets; ++j) {
 			Texture *t = getTarget(j)->getVersion(i);
-			VkTexture &tex = t->getExtension();
+			TextureExt &tex = t->getExtension();
 			fbAttachment[j] = tex.view;
 		}
 
 		fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		fbInfo.renderPass = ext.renderPass;
+		fbInfo.renderPass = ext->renderPass;
 		fbInfo.width = info.res.x;
 		fbInfo.height = info.res.y;
 		fbInfo.layers = 1;
 		fbInfo.attachmentCount = targets;
 		fbInfo.pAttachments = fbAttachment.data();
 
-		vkCheck<0x1, VkRenderTarget>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext.frameBuffer.data() + i), "Couldn't create framebuffers for render target");
-		vkName(gext, ext.frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
+		vkCheck<0x1, RenderTargetExt>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext->frameBuffer.data() + i), "Couldn't create framebuffers for render target");
+		vkName(gext, ext->frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
 
 	}
 
 	return true;
 }
 
+RenderTargetExt &RenderTarget::getExtension() { return *ext; }
+
 bool RenderTarget::initData() {
 
-	VkGraphics &gext = g->getExtension();
+	GraphicsExt &gext = g->getExtension();
+
+	g->alloc<RenderTarget>(ext);
 
 	if (!info.isComputeTarget) {
 
@@ -120,7 +121,7 @@ bool RenderTarget::initData() {
 			if (!(isDepth || getTarget(i)->isOwned()))
 				finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;									//Back buffer
 
-			desc.format = (VkFormat)VkTextureFormat(format.getName()).getValue().value;
+			desc.format = (VkFormat)TextureFormatExt(format.getName()).getValue().value;
 			desc.samples = VK_SAMPLE_COUNT_1_BIT;
 			desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -166,8 +167,8 @@ bool RenderTarget::initData() {
 		passInfo.pSubpasses = &subpass;
 		passInfo.subpassCount = 1;
 
-		vkCheck<0x0, VkRenderTarget>(vkCreateRenderPass(gext.device, &passInfo, vkAllocator, &ext.renderPass), "Couldn't create render pass for render target");
-		vkName(gext, ext.renderPass, VK_OBJECT_TYPE_RENDER_PASS, getName());
+		vkCheck<0x0, RenderTargetExt>(vkCreateRenderPass(gext.device, &passInfo, vkAllocator, &ext->renderPass), "Couldn't create render pass for render target");
+		vkName(gext, ext->renderPass, VK_OBJECT_TYPE_RENDER_PASS, getName());
 
 		Log::println("Successfully created render pass for render target");
 

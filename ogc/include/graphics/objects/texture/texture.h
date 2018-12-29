@@ -142,7 +142,7 @@ namespace oi {
 			bool getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output);
 
 			bool initData();
-			void destroyData();
+			void destroyData(bool resize);
 
 			bool shouldStage();
 
@@ -156,7 +156,7 @@ namespace oi {
 			bool owned = false;
 
 			TextureInfo info;
-			TextureExt ext;
+			TextureExt *ext = nullptr;
 
 		};
 

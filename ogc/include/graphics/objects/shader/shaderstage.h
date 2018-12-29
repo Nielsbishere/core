@@ -70,7 +70,7 @@ namespace oi {
 		private:
 
 			ShaderStageInfo info;
-			ShaderStageExt ext;
+			ShaderStageExt *ext;
 
 		};
 

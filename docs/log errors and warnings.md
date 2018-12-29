@@ -10,12 +10,12 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 | File                                                  | Message                                                      | Class           | Id   | Description                                                  |
 | ---- | ---- | ---- | ---- | ---- |
-| graphics<br />gl<br />vulkan<br />vkcommandlist.cpp     | CommandList::bind requires VBOs as first argument            | VkCommandList   | 0x0  | CommandList::bind requires the GPUBuffer*[] given to be of type GPUBufferType::VBO |
+| graphics<br />gl<br />vulkan<br />vkcommandlist.cpp     | CommandList::bind requires VBOs as first argument            | CommandListExt | 0x0  | CommandList::bind requires the GPUBuffer*[] given to be of type GPUBufferType::VBO |
 |                                                         | CommandList::bind requires a valid IBO as second argument    |                 | 0x1  | CommandList::bind requires the GPUBuffer* given to be of type GPUBufferType::IBO |
 | | Couldn't allocate command list | | 0x2 | The command pool allocated doesn't have enough space for the command buffers |
 | |  | | 0x3 |  |
 | |  | | 0x4 |  |
-| graphics<br />gl<br />vulkan<br />vkgpubuffer.cpp       | Couldn't find a valid memory type for a VkGPUBuffer: {name}  | VkGPUBuffer   | 0x0  | The buffer created can't find space on the GPU to allocate the buffer into |
+| graphics<br />gl<br />vulkan<br />vkgpubuffer.cpp       | Couldn't find a valid memory type for a VkGPUBuffer: {name}  | GPUBufferExt | 0x0  | The buffer created can't find space on the GPU to allocate the buffer into |
 |                                                         | Couldn't find a valid memory type for a staging buffer for VkGPUBuffer: {name} |                 | 0x1  | The staging buffer required for updating the buffer's data couldn't be allocated (see 0x0) |
 | | Failed to create buffer | | 0x2 | vkCreateBuffer returned an error, more details are printed before this error message |
 | | Couldn't allocate memory | | 0x3 | vkAllocateMemory returned an error, more details are printed before this error message |
@@ -25,7 +25,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't bind memory to buffer | | 0x7 | see 0x4 |
 | | Failed to map staging buffer | | 0x8 | vkMapMemory returned an error, more details are printed before this error message |
 | | Couldn't map memory | | 0x9 | see 0x8 |
-| graphics<br />gl<br />vulkan<br />vkgraphics.cpp        | Couldn't intialize family queue                              | VkGraphics      | 0x0  | The GPU doesn't support both graphics and compute operations on 1 queue |
+| graphics<br />gl<br />vulkan<br />vkgraphics.cpp        | Couldn't intialize family queue                              | GraphicsExt | 0x0  | The GPU doesn't support both graphics and compute operations on 1 queue |
 |                                                         | Surface wasn't supported                                     |                 | 0x1  | The current surface doesn't support Vulkan                   |
 |                                                         | Couldn't get surface format                                  |                 | 0x2  | The surface doesn't have a format that can be recognized     |
 |                                                         | Size is undefined; this is not supported!                    |                 | 0x3  | Some devices allow the size of the surface to be zero, this doesn't have a valid implementation |
@@ -56,7 +56,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't enumerate device layers | | 0x22 | see 0x20 |
 | | Couldn't enumerate device extensions | | 0x23 | see 0x21 |
 | | Vulkan driver not supported; PhysicalDeviceProperties2 required | | 0x24 | Vulkan driver out of date or not supported; physical device properties 2 is required |
-| graphics<br />gl<br />vulkan<br />vkpipeline.cpp        | Pipeline requires a shader                                   | VkPipeline      | 0x0  | All pipelines require a shader                               |
+| graphics<br />gl<br />vulkan<br />vkpipeline.cpp        | Pipeline requires a shader                                   | PipelineExt   | 0x0  | All pipelines require a shader                               |
 |                                                         | Graphics pipeline requires a render target, pipeline state and mesh buffer |                 | 0x1  | A graphics pipeline needs a mesh buffer, pipeline state and render target to be set |
 |                                                         | Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; {shaderName}'s {varName} and {meshBufferName}'s {meshVarName} |                 | 0x2  | The inputs of the vertex shader didn't match up with the MeshBuffer's layout |
 |                                                         | Couldn't create pipeline; no match found in shader input from vertex input; {varName} |                 | 0x3  | A vertex input is missing, resulting into the MeshBuffer being incompatible |
@@ -68,8 +68,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't create raytracing pipeline | | 0x9 | see 0x7 |
 | | Couldn't create pipeline; raytracing isn't supported | | 0xA | Raytracing pipeline was requested, but the device doesn't support it |
 | | Couldn't create pipeline; raytracing option isn't turned on | | 0xB | Raytracing pipeline was requested, but ogc wasn't compiled with raytracing support turned on |
-| graphics<br />gl<br />vulkan<br />vkpipelinestate.cpp | PipelineState creation failed; sample count has to be base2 | VkPipelineState | 0x0 | When specifying sample count (for MSAA), it has to be base2; 1,2,4,8,16,etc. |
-| graphics<br />gl<br />vulkan<br />vkshaderdata.cpp      | Shader mentions an invalid buffer                            | VkShaderData    | 0x0  | When creating the Vulkan descriptor set, the shader found that there was no ShaderBuffer where a buffer was expected |
+| graphics<br />gl<br />vulkan<br />vkpipelinestate.cpp | PipelineState creation failed; sample count has to be base2 | PipelineStateExt | 0x0 | When specifying sample count (for MSAA), it has to be base2; 1,2,4,8,16,etc. |
+| graphics<br />gl<br />vulkan<br />vkshaderdata.cpp      | Shader mentions an invalid buffer                            | ShaderDataExt | 0x0  | When creating the Vulkan descriptor set, the shader found that there was no ShaderBuffer where a buffer was expected |
 |                                                         | A ShaderBuffer has been placed on a register not meant for buffers |                 | 0x1  | When creating the Vulkan descriptor set, the shader found that there was a ShaderBuffer where it wasn't expected |
 |                                                         | A Sampler has been placed on a register not meant for samplers |                 | 0x2  | When creating the Vulkan descriptor set, the shader found that there was a Sampler where it wasn't expected |
 |                                                         | A Texture has been placed on a register not meant for textures or it has to use a TextureList |                 | 0x3  | When creating the Vulkan descriptor set, the shader found that there was a Texture where it wasn't expected |
@@ -84,8 +84,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Shader mentions an invalid resource type | | 0xC | The type found in the shader couldn't be recognized as a valid GraphicsResource (keep in mind that GPUBuffers aren't allowed by themselves) |
 | | Uninitialized RenderTargets can't be forwarded to Shader into a Texture register, use RenderTarget::resize to initialize it or set a valid resolution | | 0xD | RenderTargets with size 0 cannot be forwarded to the shader. Please set a valid resolution in RenderTargetInfo or call resize before the scene is rendered |
 | | Uninitialized RenderTargets can't be forwarded to Shader into a TextureList register, use RenderTarget::resize to initialize it or set a valid resolution | | 0xE | see 0xD |
-| graphics<br />gl<br />vulkan<br />vkshaderstage.cpp | Shader stage creation failed | VkShaderStage | 0x0 | Shader stage couldn't be created, internal errors were logged |
-| graphics<br />gl<br />vulkan<br />vktexture.cpp         | Couldn't get depth texture; no optimal format available      | VkTexture       | 0x0  | The GPU doesn't support depth buffers                        |
+| graphics<br />gl<br />vulkan<br />vkshaderstage.cpp | Shader stage creation failed | ShaderStageExt | 0x0 | Shader stage couldn't be created, internal errors were logged |
+| graphics<br />gl<br />vulkan<br />vktexture.cpp         | Couldn't get depth texture; no optimal format available      | TextureExt    | 0x0  | The GPU doesn't support depth buffers                        |
 |                                                         | Couldn't find a valid memory type for a VkTexture: {name}    |                 | 0x1  | The GPU couldn't find how to allocate the texture or didn't have enough space |
 |                                                         | The buffer was of incorrect size                             |                 | 0x2  | The initialization data didn't match the texture's resolution and or format |
 |                                                         | Couldn't find a valid memory type for a texture staging buffer: {name} |                 | 0x3  | The GPU couldn't find how to allocate the texture staging buffer or didn't have enough space |
@@ -111,39 +111,29 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't bind memory to buffer {name} intermediate | | 0x17 |  |
 | | Couldn't map intermediate memory | | 0x18 |  |
 | | Couldn't get pixels; resource has to be owned by the application (render target or depth buffer) | | 0x19 |  |
-| graphics<br />gl<br />vulkan<br />vkrendertarget.cpp | Couldn't create render pass for render target | VkRenderTarget | 0x0 | Render pass settings were invalid, internal errors have been logged |
+| graphics<br />gl<br />vulkan<br />vkrendertarget.cpp | Couldn't create render pass for render target | RenderTargetExt | 0x0 | Render pass settings were invalid, internal errors have been logged |
 | | Couldn't create framebuffers for render target | | 0x1 | Framebuffer settings were invalid, internal errors have been logged |
-| graphics<br />gl<br />vulkan<br />vksampler.cpp | Couldn't create sampler object | VkSampler | 0x0 | Sampler settings were invalid |
-| graphics<br />gl<br />vulkan<br />vkcomputelist.cpp | ComputeList::dispatch was out of bounds | VkComputeList | 0x0 | The dispatch groups given were too big and couldn't be handled by the GPU |
+| graphics<br />gl<br />vulkan<br />vksampler.cpp | Couldn't create sampler object | SamplerExt | 0x0 | Sampler settings were invalid |
+| graphics<br />gl<br />vulkan<br />vkcomputelist.cpp | ComputeList::dispatch was out of bounds | ComputeListExt | 0x0 | The dispatch groups given were too big and couldn't be handled by the GPU |
 |  | Compute shader is invalid; the total group count is out of bounds |  | 0x1 | The total of the local group size `(x * y * z)` was bigger than the maximum that can be handled by the GPU |
 |  | Compute shader is invalid; group size is out of bounds |  | 0x2 | The local size given in the compute shader couldn't be handled by the GPU |
 
 #### Errors
 
-| File                                                | Message                                                      | Description                                                  |
-| --------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| graphics<br />gl<br />vulkan.h                      | VkResult: Out of host memory                                 | The object couldn't be allocated because the CPU didn't have any memory left |
-|                                                     | VkResult: Out of device memory                               | The object couldn't be allocated because the GPU didn't have any memory left |
-|                                                     | VkResult: Initialization failed                              | The creation info passed was possibly invalid, initialization failed. |
-|                                                     | VkResult: Device lost                                        | Access to the GPU was lost                                   |
-|                                                     | VkResult: Memory map failed                                  | Couldn't map memory; not enough driver memory?               |
-|                                                     | VkResult: Layer not present                                  |                                                              |
-|                                                     | VkResult: Extension not present                              |                                                              |
-|                                                     | VkResult: Feature not present                                |                                                              |
-|                                                     | VkResult: Incompatible driver                                | Driver doesn't support Vulkan or the current version         |
-|                                                     | VkResult: Too many objects                                   | There were too many objects on the GPU, so none could be created |
-|                                                     | VkResult: Format not supported                               | Requested (texture) format can't be created                  |
-|                                                     | VkResult: Fragmented pool                                    | Nothing can be allocated into the pool; it was fragmented    |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
-|                                                     |                                                              |                                                              |
+| File                           | Message                         | Description                                                  |
+| ------------------------------ | ------------------------------- | ------------------------------------------------------------ |
+| graphics<br />gl<br />vulkan.h | VkResult: Out of host memory    | The object couldn't be allocated because the CPU didn't have any memory left |
+|                                | VkResult: Out of device memory  | The object couldn't be allocated because the GPU didn't have any memory left |
+|                                | VkResult: Initialization failed | The creation info passed was possibly invalid, initialization failed. |
+|                                | VkResult: Device lost           | Access to the GPU was lost                                   |
+|                                | VkResult: Memory map failed     | Couldn't map memory; not enough driver memory?               |
+|                                | VkResult: Layer not present     |                                                              |
+|                                | VkResult: Extension not present |                                                              |
+|                                | VkResult: Feature not present   |                                                              |
+|                                | VkResult: Incompatible driver   | Driver doesn't support Vulkan or the current version         |
+|                                | VkResult: Too many objects      | There were too many objects on the GPU, so none could be created |
+|                                | VkResult: Format not supported  | Requested (texture) format can't be created                  |
+|                                | VkResult: Fragmented pool       | Nothing can be allocated into the pool; it was fragmented    |
 
 #### Warnings
 

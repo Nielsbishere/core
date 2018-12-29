@@ -54,7 +54,7 @@ namespace oi {
 		private:
 
 			PipelineStateInfo info;
-			PipelineStateExt ext;
+			PipelineStateExt *ext;
 
 		};
 

@@ -59,13 +59,14 @@ namespace oi {
 			bool init(bool isOwned = true);
 
 			bool initData();
+			void destroyData();
 
 		private:
 
 			bool owned = true;
 
 			RenderTargetInfo info;
-			RenderTargetExt ext;
+			RenderTargetExt *ext;
 
 		};
 
