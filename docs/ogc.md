@@ -4,15 +4,12 @@
 
 The Graphics instance is stored in GraphicsInterface, when it is destroyed, all graphics objects are released. 
 
-Defined in "graphics/graphics.h"
-
 ## Graphics.finish
 
 Before you start destroying resources, you need to ask for the Graphics to finish the previous frame(s). This can be done by calling g.finish. So a destructor would look like the following:
 
 ```cpp
 g.finish();
-g.destroy(tex);
 ```
 
 ## Helper functions
@@ -33,7 +30,12 @@ bool compat = Graphics::								//If two formats are equal
     
 Vec4d col = Graphics::
 	convertColor(myCol, myTextureFormat);				//Sets col[cs til 4] to 0
+	
+bool raytracing = Graphics::supports(GraphicsFeature::Raytracing);
+bool vr = Graphics::supports(GraphicsFeature::VR);
 ```
+
+**NOTE: Raytracing isn't fully implemented into ogc yet, and VR isn't supported in both owc and ogc.**
 
 # Extensions
 
@@ -74,7 +76,7 @@ So for a texture, it would be:
 Texture *tex = g.create("My texture", TextureInfo("res/textures/mytexture.png"));
 ```
 
-Whenever you create a GraphicsObject, don't forget to call destroy at the end. This *doesn't* release the resource, until it reaches *zero references*. "g.use" increments the refCount to an object, allowing you use the same resource multiple times. Every g.use requires a g.destroy and at least 1 destroy is needed (when allocating a GO). Whenever an object is allocated, the TInfo struct becomes inaccessible and can only be modified through the GraphicsObject directly.
+Whenever you create a GraphicsObject, don't forget to call destroy at the end. This *doesn't* release the resource, until it reaches *zero references*. "g.use" increments the refCount to an object, allowing you use the same resource multiple times. Every g.use requires a g.destroy and at least 1 destroy is needed (when allocating a GO). Whenever an object is allocated, the TInfo struct becomes inaccessible and can only be modified through the GraphicsObject directly. Every time you pass a raw pointer to an external object, it will increase the ref count until it is released from that object (with exceptions).
 
 ```cpp
 //initScene
@@ -94,21 +96,44 @@ g.get<Texture>();	//Get all allocated Textures (std::vector<Texture*>)
 
 Defined in "graphics/objects/graphicsobject.h"
 
+## TGraphicsObjectRef
+
+Creating a GraphicsObject through Graphics is only used in lower level implementations. This is because the ref class can take care of the refCount for you; if you stop using a TextureRef, it will be deleted automatically. However, including these ref classes (graphics/objects/objects.h) will include **ALL** graphics classes, and so it should only be used in high-level approaches.
+
+```cpp
+TextureRef myTex = TextureRef(g, "My texture", TextureInfo("res/textures/mytexture.png"));
+```
+
+If you declare the texture like that in a function; the texture will automatically be destroyed at the end of the scope (as the ref goes out of scope). This means something has to hold on to the texture; so it's not destroyed prematurely.
+
+```cpp
+this->myTex = ...;
+```
+
+After the class goes out of scope, the texture will get deleted automatically. This is also true if you set the texture to another texture, or if you set it to null.
+
+```cpp
+this->myTex = nullptr;			//Deletes previous texture (if 0 references)
+this->myTex = myTexPtr;			//You can also pass a raw Texture* to get a ref from it
+Texture *result = this->myTex;	//Or get the Texture* by implicit casts
+result = this->myTex.get();		//Or explicit casts
+```
+
 ## destroyObject vs destroy
 
 destroyObject and destroy are two different functions; one is virtual (destroyObject) and the other is not. destroy is if the final type is known (for example; Texture) and not when it is the parent (GraphicsResource or GraphicsObject). destroy will automatically set the input pointer (e.g. `Texture*` ) to nullptr when there are no more references, while destroyObject will not. Using destroy on GraphicsObject or GraphicsResource will result into an error.
 
 ## Ownership
 
-A GraphicsObject can be owned by the API or driver, which means that there is no allocated data maintained by us. This still means you have to call destroy on them, but the driver will take care of the data. An example is a VersionedTexture, Texture and RenderTarget; the backbuffer is owned by the driver and won't be deleted by us. It isn't implemented for other types yet.
+A GraphicsObject can be owned by the API or driver, which means that there is no allocated data maintained by our API. This still means you have to call destroy on them, but the driver will take care of the data. An example is a VersionedTexture, Texture and RenderTarget; the backbuffer is owned by the driver and won't be deleted by us. It isn't implemented for other types yet.
 
 ## Extension and info
 
-All GraphicsObjects have an info struct; which can be obtained through getInfo. Most of the time, this is an unmodifiable value. If a GraphicsObject has an API dependent implementation, it will have an extension; which can be obtained through getExtension.
+All GraphicsObjects have an info struct; which can (normally) be obtained through getInfo. Most of the time, this is an unmodifiable value. If a GraphicsObject has an API dependent implementation, it will have an extension; which can be obtained through getExtension.
 
 ## Shader
 
-A shader is code specialized to run on the GPU; this can be compute shaders (calculating things in parallel on the GPU), graphics shaders (~~mesh,~~ vertex, geometry, fragment) or ~~raytracing shaders (raygen, miss, closest hit, any hit, intesection)~~. The ocore abstraction layer allows automatic shader introspection, allowing for the program to inspect all variables used in the shaders. This uses the oiSH format; generated by the oiSH compiler.
+A shader is code specialized to run on the GPU; this can be compute shaders (calculating things in parallel on the GPU), graphics shaders (~~mesh,~~ vertex, geometry, fragment) or raytracing shaders (raygen, miss, closest hit, any hit, intesection). The ocore abstraction layer allows automatic shader introspection, allowing for the program to inspect all variables used in the shaders. This uses the oiSH format; generated by the oiSH compiler.
 
 ### ShaderInfo
 
@@ -133,10 +158,11 @@ std::vector<ShaderRegister> registers;			//The registers (texs, samps, bufs)
 
 std::unordered_map<String, ShaderBufferInfo> 
 	buffer;										//The buffer layouts
-	
-std::unordered_map<String, GraphicsResource*>
-	shaderRegister;								//The shader registers
 ```
+
+### Accessing shader variables
+
+A Shader can only be used when it's turned into a Pipeline. This pipeline holds onto the ShaderData; which is the data associated with a combination of shaders or a single shader. The shader registers are all kept in the ShaderData, and can be obtained & manipulated through the pipeline. Binding the pipeline sets up the shader so it can be rendered/dispatched.
 
 ### Shader registers
 
@@ -145,18 +171,18 @@ layout(binding = 0) uniform sampler samp;
 layout(binding = 1) uniform texture2D tex;
 ```
 
-The GLSL code above generates a shaderRegister with 2 nullptrs; you have to set these values through the Shader interface. Buffers, samplers, textures and texture lists are all registers; their layout is stored in the shader's reflection data. 
+The GLSL code above generates ShaderData with 2 nullptrs; you have to set these values through the Pipeline interface. Buffers, samplers, textures and texture lists are all registers; their layout is stored in the shader's and pipeline's reflection data. 
 
 ```cpp
-shader->set("samp", sampler);
-shader->set("tex", texture);
-shader->get<Sampler>("samp");
-shader->get<Texture>("tex");
+myPipeline->setRegister("samp", sampler);
+myPipeline->setRegister("tex", texture);
+myPipeline->getRegister<Sampler>("samp");
+myPipeline->getRegister<Texture>("tex");
 ```
 
-If you pass incorrect data to the shader, it will not work. Only classes inheriting from 'GraphicsResource' can be passed to the shader.
+If you pass incorrect data to the shader, it will not work. Only classes inheriting from 'GraphicsResource' can be passed to the shader. This also means that passing a sampler to a texture register will not work, you have to make sure the register you're accessing is using the correct type.
 
-When you update a value in a shader, you don't have to call update manually; it is already done when binding the pipeline (if anything changed).
+When you update a value in a pipeline, you don't have to call update manually; it is already done when binding the pipeline (if anything changed).
 
 #### ShaderRegister struct
 
@@ -165,9 +191,10 @@ The ShaderRegister class is a simple struct that contains info about what a regi
 ```cpp
 ShaderRegisterType type;		//What the register represents
 ShaderRegisterAccess access;	//In what shader stages the resource is accessed
-String name;					//Shader's resource name
 u32 size;						//Normally 1; except for TextureLists
 u32 id;							//Binding of the resource
+TextureFormat format;			//Format of the resource (applicable to images)
+String name;					//Shader's resource name
 ```
 
 #### ShaderRegisterType OEnum
@@ -180,13 +207,26 @@ Image = 4,		//Writable texture handle
 Sampler = 5		//Info on how to sample an image
 ```
 
-#### ShaderRegisterAccess OEnum
+#### ShaderRegisterAccess enum
 
 ```cpp
-Compute = 1,
-Vertex = 2,
-Geometry = 4,
-Fragment = 8
+COMPUTE = 0,
+
+VERTEX = 1,
+FRAGMENT = 2,
+GEOMETRY = 4,
+TESSELATION = 8,
+TESSELATION_EVALUATION = 16,
+
+MESH = 256,
+TASK = 512,
+
+RAY_GEN = 1024,
+ANY_HIT = 2048,
+CLOSEST_HIT = 4096,
+MISS = 8192,
+INTERSECTION = 16384,
+CALLABLE = 32768
 ```
 
 ### ShaderInput struct
@@ -206,7 +246,7 @@ String name;			//Name of the output variable
 
 ### Shader compilation
 
-The shader compiler could be expanded to take any shader language as input; as long as it can generate valid SPIRV code that can be reflected. The compiler has features such as having custom includes and generating reflection. The shader compiler checks referenced files and if the shader should be updated. In debug it generates SPIRV with variable names and on release it strips them (for size optimization).
+The shader compiler could be expanded to take any shader language as input; as long as it can generate valid SPIRV code that can be reflected. The compiler has features such as having custom includes and generating reflection. The shader compiler checks referenced files and if the shader should be updated. In debug it generates SPIRV with variable names (which are stripped if strip_debug_info is turned on).
 
 The syntax is almost the same as Vulkan GLSL; except the shader version is determined by the compiler and it already enables two extensions (includes & separated stages).
 
@@ -217,8 +257,7 @@ As for includes; using `#include <x.glsl>` will automatically include `res/shade
 I would **highly** suggest using baked shaders instead of compiling them runtime. oiSH compilation isn't fully optimized and shader compilation itself is very expensive. The baking process is done automatically if you put your resource files in `app/res/shaders` from the CMake root.
 
 ```cpp
-shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
-g.use(shader);
+shader = ShaderRef(g, "Simple", ShaderInfo("res/shaders/simple.oiSH"));
 ```
 
 Whenever the shader itself or any of the dependencies (included files) update, the shader will automatically be rebuilt when you run the baker (or if the app project rebuilds). This also happens if the output files don't exist yet.
@@ -356,7 +395,6 @@ f32 var[2][4] = {
 //When referencing a member, it will pick the first object
 //"test/val" is the same as test/0/0/val
 //"test/1/val" is the same as test/1/0/val
-//"test/1/1/val" is the same as test/1/1/val
 ```
 
 ## MeshBuffer
@@ -571,8 +609,6 @@ Buffer ibo;							//Raw index input data
 Mesh *mesh;							//Mesh object
 ```
 
-
-
 ### MeshAllocationHint enum
 
 ```cpp
@@ -677,7 +713,7 @@ Vec2u res,							//The resolution of the render target
 std::vector<TextureFormat> formats	//List of texture formats for the output
 ```
 
-This RenderTarget can only be used for compute shaders and don't affect graphics shaders. Therefore, you can use compute shaders like you would use graphics shaders; but you do have to manage the shader registers yourself. This also means that you could have unlimited compute render targets bound, as long as you make sure to unbind them.
+This RenderTarget can only be used for compute shaders and doesn't affect graphics shaders. Therefore, you can use compute shaders like you would use graphics shaders; but you do have to manage the shader registers yourself. This also means that you could have unlimited compute render targets bound, as long as you make sure to unbind them.
 
 #### Data
 
@@ -735,13 +771,7 @@ A Pipeline is the required GraphicsObject for a shader to run and setup all impo
 
 ### PipelineInfo
 
-#### Constructor (compute)
-
-```cpp
-Shader *shader					//Compute shader
-```
-
-#### Constructor (graphics)
+#### GraphicsPipelineInfo
 
 ```cpp
 Shader *shader,					//Graphics shader
@@ -750,44 +780,51 @@ RenderTarget *target,			//Where to render to
 MeshBuffer *meshes				//Which layout to use
 ```
 
+#### ComputePipelineInfo
+
+```cpp
+Shader *shader					//Compute shader
+```
+
+#### RaytracingPipelineInfo
+
+```cpp
+std::vector<Shader*> shaders;	//Shaders used in this raytracing pipeline
+MeshBuffer *meshBuffer;			//VBO/IBO for models used
+u32 maxRecursionDepth;			//How many times can rays bounce
+```
+
 #### Data
 
 ```cpp
-Shader *shader;					//Required
-PipelineState *pipelineState;	//nullptr for compute
-RenderTarget *renderTarget;		//^
-MeshBuffer *meshBuffer;			//^
+PipelineType type;						//Which info struct is used
+GraphicsPipelineInfo graphicsInfo;		//Graphics
+ComputePipelineInfo computeInfo;		//Compute
+RaytracingPipelineInfo raytracingInfo;	//Raytracing
+ShaderData *shaderData;					//ShaderData; shader registers
 ```
 
 ### Example
 
 ```cpp
-//initSceneSurface
-if (pipeline != nullptr){
-    g.destroy(pipeline);
-    g.destroy(pipeline0);
-}
+//initScene
 
-	//Rendering to post process target
-	pipeline = g.create("Rendering pipeline", 
-		PipelineInfo(shader, pipelineState, renderTarget, meshBuffer)
-	);
-	g.use(pipeline);
+//Rendering to post process target
+pipeline = PipelineRef(g, "Rendering pipeline", 
+	PipelineInfo(shader, pipelineState, renderTarget, meshBuffer)
+);
 	
-	//Rendering to back buffer
-	pipeline0 = g.create("Post process pipeline", 
-		PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0)
-	);
-	g.use(pipeline0);
-
-//destructor
-g.destroy(pipeline);
-g.destroy(pipeline0);
+//Rendering to back buffer
+pipeline0 = PipelineRef(g, "Post process pipeline", 
+	PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0)
+);
 ```
+
+## TODO: ShaderData
 
 ## Texture
 
-A Texture is an array of attributes. This can be loaded from a file, written to from render target, written to from compute shader or filled in on the CPU.
+A Texture is an array of attributes (TextureFormat). It can be loaded from a file, written to from render target, written to from compute shader or filled in on the CPU.
 
 ### TextureInfo
 
@@ -871,7 +908,7 @@ RGBA64f = 49, RGB64f = 50, RG64f = 51, R64f = 52,
 RGBA64u = 53, RGB64u = 54, RG64u = 55, R64u = 56,
 RGBA64i = 57, RGB64i = 58, RG64i = 59, R64i = 60,
 
-D16 = 61, D32 = 62, D16S8 = 63, D24S8 = 64, D32S8 = 65, Depth = 66,
+D16 = 61, D32 = 62, D16S8 = 63, D24S8 = 64, D32S8 = 65, Depth = 66, Depth_stencil = 67,
 
 sRGBA8 = 67, sRGB8 = 68, sRG8 = 69, sR8 = 70,
 
@@ -888,14 +925,15 @@ The texture format is expressed like following:
 
 Where prefix can be 's' for allowing sRGB color space. Suffix can be nothing (unorm), s (snorm), u (uint), i (int), f (float). When something is suffixed with 's' it can't have a suffix and bits per channel (bpc) has to be 8.
 
-The exception to this rule is 'Depth' which generally evaluates to D32S8 (32-bit depth, 8-bit stencil), unless the device doesn't support it. If D32S8 is not supported, it will check D32, D24S8, D16S8 and D16 (in that order).
+The exception to this rule is 'Depth_stencil' which generally evaluates to D32S8 (32-bit depth, 8-bit stencil), unless the device doesn't support it. If D32S8 is not supported, it will check D24S8 and D16S8 (in that order). 'Depth' is also an exception; which will either evaluate to D32 or D16, but generally D32. Depth is used most often (it is also more efficient) and because it can be read from by the CPU & GPU.
 
 ### TextureUsage OEnum
 
 ```cpp
 Render_target = 1,			//For rendering 'color'; a non-depth TextureFormat
 Render_depth = 2,			//For rendering depth
-Image = 3					//Just data
+Compute_target = 3,			//Result of a compute operation (raytracing/compute)
+Image = 4					//Just data
 ```
 
 ### TextureFormatStorage enum
@@ -913,6 +951,8 @@ DOUBLE						//endsWith "64f"
 TextureFormat getFormat();
 TextureUsage getUsage();
 Vec2u getSize();
+u32 getStride();
+u32 getCpuSize();
 bool isOwned();
 
 TextureHandle getHandle();
@@ -925,11 +965,15 @@ bool getPixels(Vec2u start, Vec2u length, CopyBuffer &output);
 
 bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 bool read(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
+
+void resize(Vec2u size);					//Only available on target textures
 ```
 
 getPixels allows you to read the current texture data (even of render targets and depth buffers), which could be used for screenshots. setPixels allows you to update the current texture data (only of images); this is useful with textures that can't immediately push all user-data, like 3D volume textures and 2D tilemaps. Both functions allow you to specify a start and length of the data; the Buffer passed to setPixels has to be the exact same format as the texture (`length.y * length.x * stride`).
 
 read and write allow you to export/import textures from disk into the current texture, allowing you to 'take a screenshot' and load user data.
+
+resize is only available to Render_target, Depth_target and Compute_target; as they don't contain texture data. Image contains data sent from the CPU, which can't be properly resized and the user is responsible for setting the size in a way so it doesn't change later on.
 
 ## Sampler
 
@@ -1090,7 +1134,7 @@ void clear();
 void flush();
 
 //Dispatch AT LEAST xyz threads
-//But dispatches more if xyz % getThreadsPerGroup() != 0
+//But dispatches more if xyz % getThreadsPerGroup() != Vec3u()
 
 u32 dispatchThreads(u32 threads);
 Vec2u dispatchThreads(Vec2u threads);
@@ -1119,14 +1163,12 @@ cmdList->end(computeTarget);
 The example above (located in render) prepares the compute target to be used in the dispatch call.
 
 ```cpp
-Vec2u targetRes = computeList->dispatchThreads(res);
+computeList->clear();		//Remove previous entries
+computeList->dispatchThreads(res);
 computeList->flush();
 
-computeTarget = g.create("Compute target", 
-                         RenderTargetInfo(targetRes, { TextureFormat::RGBA16f }));
-g.use(computeTarget);
-
-computeShader->set("outputTexture", computeTarget->getTarget(0));
+computeTarget->resize(res);
+computePipeline->update();
 ```
 
 The example above (located in initSceneSurface) tries to dispatch res (resolution) number of threads. If this resolution doesn't match with the group size, it will dispatch more threads. To ensure this can still function optimally, the render target will use this size (so the compute shader can run over all threads the same way). But will have to be sampled with this limitation in mind. We send this RGBA16f target to the compute shader, so it can output to it.
@@ -1150,7 +1192,9 @@ void end();									//Submit the command list
 void end(RenderTarget *target);				//Finalize the RT
 
 void bind(Pipeline *pipeline);				//Use a pipeline
+
 void draw(DrawList *drawList);				//Execute a draw list
+void dispatch(ComputeList *computeList);	//Dispatch a compute list
 ```
 
 ### Example
@@ -1198,7 +1242,7 @@ u32 count						//How many textures it can hold
 #### Data
 
 ```cpp
-std::vector<Texture*> textures;
+std::vector<TextureObject*> textures;
 
 CommandList *textureCommands;
 ```
@@ -1206,9 +1250,11 @@ CommandList *textureCommands;
 ### Functions
 
 ```cpp
-Texture *get(TextureHandle i);				//Getting a Texture from TextureHandle
+TextureObject *get(TextureHandle i);		//Getting a Texture from TextureHandle
 TextureHandle alloc(Texture *tex);			//Allocating a TextureHandle
 void dealloc(Texture *tex);					//Deallocating a TextureHandle
+
+T *get<T>(TextureHandle i);					//Specify VersionedTexture or Texture
 
 u32 size();
 ```
@@ -1217,15 +1263,12 @@ u32 size();
 
 ```cpp
 //Allocate our textures into a TextureList
-textureList = g.create("Textures", TextureListInfo(2));
-shader->set("tex", textureList);
+textureList = TextureListRef(g, "Textures", TextureListInfo(2));
+pipeline->set("tex", textureList);
 
 //Allocate textures
-trock = g.create("rock", TextureInfo(textureList, "res/textures/rock_dif.png"));
-g.use(trock);
-
-twater = g.create("water", TextureInfo(textureList, "res/textures/water_dif.png"));
-g.use(twater);
+trock = TextureRef(g, "rock", TextureInfo(textureList, "res/textures/rock_dif.png"));
+twater = TextureRef(g, "water", TextureInfo(textureList, "res/textures/water_dif.png"));
 ```
 
 ## MaterialList
@@ -1290,12 +1333,12 @@ info->ambient = Vec3(0.5f, 0.5f, 0.25f);
 Or it can be done through the allocated material to use the more user-friendly interface.
 
 ```cpp
-Material *m = g.create("My material", MaterialInfo(materialList));
+m = MaterialRef("My material", MaterialInfo(materialList));
 m->setDiffuse(Vec3(0.5f, 0, 1));
 m->setAmbient(Vec3(0.5f, 0.5f, 0.25f));
 
-//Setting a texture:
-m->setDiffuse(myTexture);
+//Setting a texture: (requires .get() on TextureRefs)
+m->setDiffuse(myTexture.get());
 ```
 
 #### Data
@@ -1888,53 +1931,26 @@ void renderScene() override;
 ### Pre-initialized values
 
 ```cpp
-Sampler *linearSampler;				//{ Linear, Linear, Repeat }
-Sampler *nearestSampler;			//{ Nearest, Nearest, Clamp_border }
-ViewBuffer *views;					//{ }
-Camera *camera;						//{ views, Vec3(3), Vec4(0, 0, 0, 1) }
-CameraFrustum *cameraFrustum;		//{ views, Vec2u(1), 1, 40, 0.1f, 100 }
-View *view;							//{ views, camera, cameraFrustum }
-CommandList *cmdList;				//{ }
-MeshManager *meshManager;			//{ 400'000, 500'000 }
+SamplerRef linearSampler;				//{ Linear, Linear, Repeat }
+SamplerRef nearestSampler;				//{ Nearest, Nearest, Clamp_border }
+ViewBufferRef views;					//{ }
+CameraRef camera;						//{ views, Vec3(3), Vec4(0, 0, 0, 1) }
+CameraFrustumRef cameraFrustum;			//{ views, Vec2u(1), 1, 40, 0.1f, 100 }
+ViewRef view;							//{ views, camera, cameraFrustum }
+CommandListRef cmdList;					//{ }
+MeshManagerRef meshManager;				//{ 400'000, 500'000 }
 ```
 
 ## Resizing
 
-When you resize your screen, a lot of data becomes invalid. The back buffer suddenly changes resolution  and all render targets now have the wrong resolution. This means you have to destroy all pipelines and render targets that have the wrong resolution. Remember that if the render target is used in a shader, you also have to update the value in the shader.
+When you resize your screen, a lot of data becomes invalid. The back buffer suddenly changes resolution  and all render targets now have the wrong resolution. This means you have resize all render targets that have the wrong resolution. All other data will be automatically updated, as long as you call the pipelines that use the render target.
 
 ```cpp
 void MainInterface::initSceneSurface(Vec2u res){
-
-	//Destroy old data
-
-	if (pipeline != nullptr) {
-		g.destroy(renderTarget);
-		g.destroy(pipeline);
-		g.destroy(pipeline0);
-	}
-
-	//Recreate render targets and pipelines
     
-    //Create result of rendering (with HDR)
-	renderTarget = g.create("Post processing target",
-			RenderTargetInfo(res, TextureFormat::Depth, { TextureFormat::RGBA16f })
-	);
-	g.use(renderTarget);
-
-    //Update post processing shader
-	shader0->set("tex", renderTarget->getTarget(0));
-
-    //drawList -> Rendering pipeline -> renderTarget
-	pipeline = g.create("Rendering pipeline", 
-			PipelineInfo(shader, pipelineState, renderTarget, meshBuffer)
-	);
-	g.use(pipeline);
-
-	//renderTarget -> Post processing pipeline -> back buffer
-	pipeline0 = g.create("Post process pipeline", 
-			PipelineInfo(shader0, pipelineState, g.getBackBuffer(), meshBuffer0)
-	);
-	g.use(pipeline0);
+	renderTarget->resize(res);
+    pipeline->update();
+    pipeline0->update();
     
 }
 ```
@@ -1943,24 +1959,11 @@ Above all the pipelines are recreated, because the render targets have been chan
 
 ## Destructor
 
-When you finish your program, you have to tell Graphics to finish the current frame(s) and to destroy all objects you created. 
+When you finish your program, you have to tell Graphics to finish the current frame(s) and to destroy all objects you created. If you use TGraphicsObjectRef, like we do in the example; you don't have to do that, it does it automatically. Otherwise, you have to call `g->destroy(myObject);` on every object manually.
 
 ```cpp
 MainInterface::~MainInterface(){
 	g.finish();
-	g.destroy(rock);
-	g.destroy(water);
-	g.destroy(trock);
-	g.destroy(twater);
-	g.destroy(textureList);
-	g.destroy(materialList);
-	g.destroy(drawList);
-	g.destroy(drawList0);
-	g.destroy(renderTarget);
-	g.destroy(pipeline);
-	g.destroy(pipeline0);
-	g.destroy(shader);
-	g.destroy(shader0);
 }
 ```
 
@@ -2005,13 +2008,11 @@ void MainInterface::initScene() {
 	BasicGraphicsInterface::initScene();
 
 	//Setup our shader (forward phong shading)
-	shader = g.create("Simple", ShaderInfo("res/shaders/simple.oiSH"));
-	g.use(shader);
+	shader = ShaderRef(g, "Simple", ShaderInfo("res/shaders/simple.oiSH"));
 
 	//Setup our post process shader (tone mapping & gamma correction)
-	shader0 = g.create("Post process", 
+	shader0 = ShaderRef(g, "Post process", 
                        ShaderInfo("res/shaders/post_process.oiSH"));
-	g.use(shader0);
 
     //First: Allocate anvil into new MeshBuffer (with default size)
     //Second: Allocate sword into existing MeshBuffer
@@ -2036,13 +2037,10 @@ void MainInterface::initScene() {
 	refreshPlanetMesh(true);
 
 	//Set up our draw list
-	drawList = g.create("Draw list (main geometry)", 
+	drawList = DrawListRef(g, "Draw list (main geometry)", 
                         DrawListInfo(meshBuffer, 256, false));
-	g.use(drawList);
-
-	drawList0 = g.create("Draw list (post processing pass)", 
+	drawList0 = DrawListRef(g, "Draw list (post processing pass)", 
                          DrawListInfo(meshBuffer0, 1, false));
-	g.use(drawList0);
 
     //Setup our post processing pass to draw a quad
 	drawList0->draw(meshes[3], 1);
@@ -2054,57 +2052,50 @@ void MainInterface::initScene() {
 	drawList->flush();
 
 	//Allocate our textures into a TextureList and send it to our shader
-	textureList = g.create("Textures", TextureListInfo(2));
-	shader->set("tex", textureList);
+	textureList = TextureListRef(g, "Textures", TextureListInfo(2));
+	pipeline->set("tex", textureList);
 
 	//Allocate textures
-	trock = g.create("rock", 
+	trock = TextureRef(g, "rock", 
                      TextureInfo(textureList, "res/textures/rock_dif.png"));
-	g.use(trock);
-
-	twater = g.create("water", 
+	twater = TextureRef(g, "water", 
                       TextureInfo(textureList, "res/textures/water_dif.png"));
-	g.use(twater);
 
 	//Create the material list
-	materialList = g.create("Materials", MaterialListInfo(textureList, 2));
-	g.use(materialList);
+	materialList = MaterialListRef(g, "Materials", MaterialListInfo(textureList, 2));
 
 	//Setup our materials
-	rock = g.create("Rock material", MaterialInfo(materialList));
-	rock->setDiffuse(trock);
+	rock = MaterialRef(g, "Rock material", MaterialInfo(materialList));
+	rock->setDiffuse(trock.get());
 
-	water = g.create("Water material", MaterialInfo(materialList));
-	water->setDiffuse(twater);
+	water = MaterialRef(g, "Water material", MaterialInfo(materialList));
+	water->setDiffuse(twater.get());
 
 	//Set our materials in our objects array
 	objects[0].diffuse = water->getHandle();	//Water
 	objects[1].diffuse = rock->getHandle();		//Planet
 
 	//Set our shader samplers
-	shader->set("samp", sampler);
-	shader0->set("samp", sampler);
+	pipeline->set("samp", sampler);
+	pipeline0->set("samp", sampler);
 
 	//Set our view data to our view buffer
-	shader->get<ShaderBuffer>("Views")->setBuffer(0, views->getBuffer());
-    
     //Set our material data to material buffer
-	shader->get<ShaderBuffer>("Materials")->
-        setBuffer(materialList->getSize(), materialList->getBuffer());
+    //Instantiate our object buffer
     
-    //Set our object data to our object buffer
-	shader->get<ShaderBuffer>("Objects")->instantiate(totalObjects);
-
-	//Setup lighting; 1 point, directional and spot light
-	shader->get<ShaderBuffer>("PointLights")->instantiate(1);
-	shader->get<ShaderBuffer>("SpotLights")->instantiate(1);
-    ShaderBuffer *directionalLights = 
-        shader->get<ShaderBuffer>("DirectionalLights")->instantiate(1);
+	pipeline->setBuffer("Views", 0, views->getBuffer());
+	pipeline->setBuffer("Materials", 
+                        materialList->getSize(), materialList->getBuffer());
+	pipeline->instantiate("Objects", totalObjects);
+	pipeline->instantiate("PointLights", 1);
+	pipeline->instantiate("SpotLights", 1);
+    pipeline->instantiate("DirectionalLights", 1);
 
     //Pass directional data (no point/spot lights)
-	directionalLights->set("light/dir", Vec3(-1, 0, -1));
-	directionalLights->set("light/intensity", 16.f);
-	directionalLights->set("light/col", Vec3(1.f));
+    
+	pipeline->setValue("DirectionalLights/light/dir", Vec3(-1, 0, -1));
+	pipeline->setValue("DirectionalLights/light/intensity", 16.f);
+	pipeline->setValue("DirectionalLights/light/col", Vec3(1.f));
 
 }
 ```
@@ -2116,7 +2107,7 @@ void MainInterface::update(f32 dt) {
 
 	WindowInterface::update(dt); 
     
-	//Force view buffer to update matrices of cameras, viewports and views
+	//Update matrices of cameras, viewports and views
 	views->update();
     
     //Rotate planet (& water)
@@ -2130,23 +2121,17 @@ void MainInterface::update(f32 dt) {
 	objects[1].mvp = view->getStruct().vp * objects[1].m;
 
     //Update object buffer
-	shader->get<ShaderBuffer>("Objects")->
-        set(Buffer::construct((u8*)objects, sizeof(objects)));
+	pipeline->setData("Objects", Buffer::construct((u8*)objects, sizeof(objects)));
 
 	//Update per execution shader buffer
-	ShaderBuffer *perExecution = shader->get<ShaderBuffer>("PerExecution");
-
-	perExecution->set("ambient", Vec3(1));
-	perExecution->set("time", (f32)getRuntime());
-	perExecution->set("power", 1.f);
-    perExecution->set("view", view->getHandle());
+	pipeline->setValue("PerExecution/ambient", Vec3(1));
+	pipeline->setValue("PerExecution/time", (f32)getRuntime());
+	pipeline->setValue("PerExecution/power", 1.f);
+    pipeline->setValue("PerExecution/view", view->getHandle());
 
 	//Setup post processing settings
-	ShaderBuffer *postProcessing = 
-        shader0->get<ShaderBuffer>("PostProcessingSettings");
-
-	postProcessing->set("exposure", exposure);
-	postProcessing->set("gamma", gamma);
+	pipeline0->setValue("PostProcessingSettings/exposure", exposure);
+	pipeline0->setValue("PostProcessingSettings/gamma", gamma);
 ```
 
 ## Shader code (GLSL)
@@ -2363,18 +2348,19 @@ void main() {
 
 "Extensions" are API dependent structs that can contain functions for the API dependent details. This is an extension of the normal graphics object and allows the API implementation to store extra data.
 
-"Features" are hardware dependent features that don't have to be available at the moment. An example of this could be raytracing, if the feature isn't enabled, the objects can't be created. You can check the feature through Graphics by using `Graphics::checkFeature(GraphicsFeatures::Raytracing)` which returns a GraphicsFeatureSupport enum; 'None' when it's not supported (like non-NV devices), 'CPU_emulated' when the GPU can't handle it, 'GPU_emulated' when the GPU can handle it (but not natively) or 'GPU_accelerated' when the GPU can handle it. An example: Raytracing can return 'None' on non NVIDIA devices, CPU_emulated on NV devices (below shader level 6.0), GPU_emulated on NV devices (non RTX) and GPU_accelerated on RTX devices.
+"Features" are hardware dependent features that don't have to be available at the moment. An example of this could be raytracing, if the feature isn't enabled, the objects can't be created. You can check the feature through Graphics by using `Graphics::supports(GraphicsFeatures::Raytracing)` which returns a bool.
 
 The following list contains the types for Vulkan and OpenGL implementation; though the OpenGL implementation is just an example (and doesn't exist). The raytracing and VR features are also just a prototype and don't have an implementation yet. The type can be either class, GO (graphics object) or OE (Osomi Enum). OE doesn't directly map to the types given, but rather through an intermediate enum, just like the classes and GO.
 
 | Base                 | Vulkan                                                       | OpenGL | Type  |
 | -------------------- | ------------------------------------------------------------ | ------ | ----- |
-| Graphics             | VkInstance<br />VkPhysicalDevice<br />VkDevice<br />VkSurfaceKHR<br />VkQueue<br />VkSwapchainKHR<br />VkCommandPool<br />VkPhysicalDeviceFeatures<br />VkPhysicalDeviceMemoryProperties<br />VkColorSpaceKHR<br />VkFormat<br />VkFence[] present<br />VkSemaphore[] submit<br />VkSemaphore[] swapchain<br />CommandList*<br />`VkGPUBuffer[][]` staging<br />u32 current<br />u32 frames<br />u32 queueFamily<br />VkDebugReportCallbackEXT (debug)<br />PFN_vkSetDebugUtilsObjectNameEXT (debug Windows) | GLnull | class |
+| Graphics             | VkInstance<br />VkPhysicalDevice<br />VkDevice<br />VkSurfaceKHR<br />VkQueue<br />VkSwapchainKHR<br />VkCommandPool<br />VkPhysicalDeviceFeatures<br />VkPhysicalDeviceProperties2<br />VkPhysicalDeviceMemoryProperties<br />VkColorSpaceKHR<br />VkFormat<br />VkFence[] present<br />VkSemaphore[] submit<br />VkSemaphore[] swapchain<br />CommandList*<br />`VkGPUBuffer[][]` staging<br />u32 current<br />u32 frames<br />u32 queueFamily<br />vkGetImageMemoryRequirements2<br />vkGetBufferMemoryRequirements2<br />vkCreateRayTracingPipelinesNV (raytracing)<br />VkDebugReportCallbackEXT (debug)<br />vkSetDebugUtilsObjectNameEXT (debug Windows) | GLnull | class |
 | RenderTarget         | VkRenderPass<br />VkFramebuffer[]                            | GLuint | GO    |
 | Texture              | VkImage<br />VkDeviceMemory<br />VkImageView                 | GLuint | GO    |
 | GPUBuffer            | VkBuffer[]<br />VkDeviceMemory<br />u32                      | GLuint | GO    |
 | ShaderStage          | VkShaderModule<br />VkPipelineShaderStageCreateInfo          | GLuint | GO    |
-| Shader               | VkShaderStage*[]<br />VkPipelineLayout<br />VkDescriptorSetLayout<br />VkDescriptorPool<br />VkDescriptorSet[] | GLuint | GO    |
+| Shader               | VkShaderStage*[]                                             | GLuint | GO    |
+| ShaderData           | VkPipelineLayout<br />VkDescriptorSetLayout<br />VkDescriptorPool<br />VkDescriptorSet[] | GLnull | GO    |
 | CommandList          | VkCommandPool<br />VkCommandBuffer[]                         | GLnull | GO    |
 | PipelineState        | VkPipelineInputAssemblyStateCreateInfo<br />VkPipelineRasterizationStateCreateInfo<br />VkPipelineColorBlendAttachmentState<br />VkPipelineColorBlendStateCreateInfo<br />VkPipelineDepthStencilStateCreateInfo<br />VkPipelineMultisampleStateCreateInfo | GLnull | GO    |
 | TextureFormat        | VkFormat                                                     | GLenum | OE    |

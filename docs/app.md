@@ -37,17 +37,18 @@ public:
 
 	void update(f32 dt) override;
 	void initSceneSurface() override;
-	void onAspectChange(float asp) override;
 
 	void refreshPlanet(Planet planet);
 	void readPlanets(bool fromResource = false);
 	void writePlanets();
+    
+    void refreshPlanetMesh(bool fromResource);
   
 };
 ```
 The functions of the planet generator example are as follows:  
-initScene is called before initSceneSurface and sets up all graphics objects that will be used, while initSceneSurface is called everytime the surface is resized (so don't forget to destroy objects you recreate).  
+initScene is called before initSceneSurface and sets up all graphics objects that will be used, while initSceneSurface is called everytime the surface is resized.  
 onInput is called for every key/button that is updated.  
 load/save are mandatory functions that should serialize your interface to/from a file, so that the app can be restored if it was closed in the background (android requirement).  
 update before every render. This is where you should update buffers and get render data ready. renderScene should only be used to make calls to the command list.  
-onAspectChange should be used to initialize the cameras, this is called after the surface has been resized and only the cameras should be updated. This is not the same as a resize, because Android allows rotating without changing resolution (it just changes aspect).
+onAspectChange could be used to initialize the cameras, this is called after the surface has been resized and only the cameras should be updated. This is not the same as a resize, because Android allows rotating without changing resolution (it just changes aspect).

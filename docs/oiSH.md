@@ -57,6 +57,8 @@ enum class SHStageTypeFlag : u16 {
 	TESSELATION = 0x0008,
 	TESSELATION_EVALUATION = 0x0010,
 
+    //Reserved
+    
 	//0x0020
 	//0x0040
 	//0x0080

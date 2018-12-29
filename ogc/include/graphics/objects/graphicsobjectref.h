@@ -32,7 +32,7 @@ namespace oi {
 			template<typename T2>
 			TGraphicsObjectRef(Graphics &g, String name, T2 tinfo) {
 
-				static_assert(std::is_same<T2::ResourceType, T>::value, "TGraphicsObject<T>(T2&) only works on TInfo structs");
+				static_assert(std::is_same<typename T2::ResourceType, T>::value, "TGraphicsObject<T>(T2&) only works on TInfo structs");
 
 				ptr = g.create(name, tinfo);
 
