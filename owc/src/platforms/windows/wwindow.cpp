@@ -241,9 +241,6 @@ void Window::initPlatform() {
 		wi->onAspectChange(Vec2(info.size).getAspect());
 }
 
-u32 Window::getSurfaceSize(){ return (u32) sizeof(WWindow); }
-void *Window::getSurfaceData() { return &ext; }
-
 void Window::destroyPlatform() {
 	if (ext.window != NULL) {
 		PostQuitMessage(0);

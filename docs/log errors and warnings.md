@@ -56,6 +56,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't enumerate device layers | | 0x22 | see 0x20 |
 | | Couldn't enumerate device extensions | | 0x23 | see 0x21 |
 | | Vulkan driver not supported; PhysicalDeviceProperties2 required | | 0x24 | Vulkan driver out of date or not supported; physical device properties 2 is required |
+| | Couldn't get surface capabilities | | 0x25 | Surface capabilities couldn't be obtained from surface (probably because the surface is invalid) |
 | graphics<br />gl<br />vulkan<br />vkpipeline.cpp        | Pipeline requires a shader                                   | PipelineExt   | 0x0  | All pipelines require a shader                               |
 |                                                         | Graphics pipeline requires a render target, pipeline state and mesh buffer |                 | 0x1  | A graphics pipeline needs a mesh buffer, pipeline state and render target to be set |
 |                                                         | Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; {shaderName}'s {varName} and {meshBufferName}'s {meshVarName} |                 | 0x2  | The inputs of the vertex shader didn't match up with the MeshBuffer's layout |

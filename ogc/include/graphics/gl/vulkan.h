@@ -226,6 +226,10 @@ namespace oi {
 				Log::error("VkResult: Format not supported");
 				break;
 
+			case VK_ERROR_SURFACE_LOST_KHR:
+				Log::error("VkResult: Surface lost");
+				break;
+
 			default:
 				Log::error("VkResult: Fragmented pool");
 				break;

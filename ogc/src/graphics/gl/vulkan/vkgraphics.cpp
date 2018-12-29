@@ -452,15 +452,7 @@ void Graphics::initSurface(Window *w) {
 
 	vkExtension(vkGetPhysicalDeviceSurfaceFormatsKHR, ext);
 
-	//Setup device surface (Uses our custom CMake defines to make this 'cross platform')
-	__VK_SURFACE_TYPE__ surfaceInfo;
-	memset(&surfaceInfo, 0, sizeof(surfaceInfo));
-	surfaceInfo.sType = __VK_SURFACE_STYPE__;
-
-	void *platformBegin = &surfaceInfo.__VK_SURFACE_HANDLE__;			//This is the start where platform dependent data starts
-	memcpy(platformBegin, w->getSurfaceData(), w->getSurfaceSize());	//Memcpy the bytes from the window's representation of the surface
-
-	vkCheck<0xE>(__VK_SURFACE_CREATE__(ext->instance, &surfaceInfo, vkAllocator, &ext->surface), "Couldn't obtain surface");
+	setupSurface(w);
 
 	//Check if the surface is supported
 
@@ -491,7 +483,7 @@ void Graphics::initSurface(Window *w) {
 	TextureFormat format = TextureFormatExt::find(colorFormat).getName();
 
 	VkSurfaceCapabilitiesKHR capabilities;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext->pdevice, ext->surface, &capabilities);
+	vkCheck<0x25>(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ext->pdevice, ext->surface, &capabilities), "Couldn't get surface capabilities");
 
 	Vec2u size = { capabilities.currentExtent.width, capabilities.currentExtent.height };
 
@@ -716,7 +708,7 @@ void Graphics::destroySurface() {
 
 void Graphics::begin() {
 
-	renderTimer.reset();
+	//renderTimer.reset();
 
 	u32 next = ext->frames == 0 ? 0 : (ext->current + 1) % buffering;
 
@@ -724,13 +716,13 @@ void Graphics::begin() {
 
 	vkCheck<0x14>(vkAcquireNextImageKHR(ext->device, ext->swapchain, u64_MAX, ext->swapchainSemaphore[next], VK_NULL_HANDLE, &ext->current), "Couldn't acquire next image");
 
-	renderTimer.lap("vkAcquireNextImageKHR");
+	//renderTimer.lap("vkAcquireNextImageKHR");
 
 	//Wait for previous frame
 
 	vkCheck<0x15>(vkWaitForFences(ext->device, 1, ext->presentFence.data() + ext->current, VK_TRUE, u64_MAX), "Couldn't wait for fences");
 
-	renderTimer.lap("vkWaitForFences");
+	//renderTimer.lap("vkWaitForFences");
 
 	//Clean up staging buffers from previous frame
 
@@ -752,19 +744,19 @@ void Graphics::begin() {
 
 	}
 
-	renderTimer.lap("Free staging buffers");
+	//renderTimer.lap("Free staging buffers");
 
 	//Reset fences
 
 	vkCheck<0x16>(vkResetFences(ext->device, 1, ext->presentFence.data() + ext->current), "Couldn't reset fences");
 
-	renderTimer.lap("vkResetFences");
+	//renderTimer.lap("vkResetFences");
 
 }
 
 void Graphics::end() {
 
-	renderTimer.lap("Frame");
+	//renderTimer.lap("Frame");
 
 	//Submit commands
 
@@ -837,7 +829,7 @@ void Graphics::end() {
 
 	vkCheck<0x17>(vkQueueSubmit(ext->queue, 1, &submitInfo, ext->presentFence[ext->current]), "Couldn't submit queue");
 
-	renderTimer.lap("vkQueueSubmit");
+	//renderTimer.lap("vkQueueSubmit");
 
 	//Present it
 
@@ -857,13 +849,13 @@ void Graphics::end() {
 	vkCheck<0x18>(vkQueuePresentKHR(ext->queue, &presentInfo), "Couldn't present image");
 	vkCheck<0x19>(result, "Couldn't present image");
 
-	renderTimer.lap("vkQueuePresentKHR");
+	//renderTimer.lap("vkQueuePresentKHR");
 
-	if (ext->frames % 100 == 0) {
+	/*if (ext->frames % 100 == 0) {
 		Log::println(String("Frame #") + ext->frames + ":");
 		for (auto &elem : renderTimer.getTotalTime())
 			Log::println(elem.first + "; " + elem.second);
-	}
+	}*/
 
 	++ext->frames;
 

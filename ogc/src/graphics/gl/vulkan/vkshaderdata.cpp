@@ -88,7 +88,7 @@ void ShaderData::update() {
 
 				std::vector<VkBuffer> resources = buf->getExtension().resource;
 
-				bufferInfo->buffer = buf != nullptr ? resources[frame % resources.size()] : VK_NULL_HANDLE;
+				bufferInfo->buffer = resources[frame % resources.size()];
 				bufferInfo->range = (VkDeviceSize)buf->getSize();
 				++bufferId;
 
@@ -127,8 +127,7 @@ void ShaderData::update() {
 				image->imageLayout = reg.type == ShaderRegisterType::Image ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				++imageId;
 
-			}
-			else if (res->isType<TextureList>()) {
+			} else if (res->isType<TextureList>()) {
 
 				if (reg.type != ShaderRegisterType::Texture2D || reg.size == 1)
 					Log::throwError<ShaderDataExt, 0x4>("A TextureList has been placed on a register not meant for textures or it has to use a Texture");
@@ -156,8 +155,7 @@ void ShaderData::update() {
 
 				imageId += reg.size;
 
-			}
-			else
+			} else
 				Log::throwError<ShaderDataExt, 0xC>("Shader mentions an invalid resource type");
 		}
 

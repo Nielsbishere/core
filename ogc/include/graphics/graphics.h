@@ -102,6 +102,8 @@ namespace oi {
 
 			bool remove(GraphicsObject *go);
 
+			void setupSurface(wc::Window *w);
+
 		private:
 			
 			bool initialized = false;

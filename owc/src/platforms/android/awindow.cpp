@@ -249,13 +249,6 @@ int32_t AWindow::handleInput(struct android_app *app, AInputEvent *event){
 	}
 }
 
-
-u32 Window::getSurfaceSize(){ return (u32) sizeof(ANativeWindow*); }
-
-void *Window::getSurfaceData() {
-	return (void*) &ext.app->window;
-}
-
 void Window::initPlatform() {
 
 	//Get data
