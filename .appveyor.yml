@@ -11,17 +11,11 @@ install:
     
     wmic product where "description='CMake' " uninstall
     
-    appveyor DownloadFile "https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2.zip" -FileName cmake.zip
+    appveyor DownloadFile "https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-win64-x64.zip" -FileName cmake.zip
     
     7z x cmake.zip > nul
     
-    move cmake-3.13.2 C:\projects\ocore\cmake
-    
-    dir C:\projects\ocore
-    
-    dir C:\projects\ocore\cmake
-    
-    dir C:\projects\ocore\cmake\bin
+    move cmake-3.13.2-win64-x64 C:\projects\ocore\cmake
     
     set PATH=C:\projects\ocore\cmake\bin;%PATH%
     
