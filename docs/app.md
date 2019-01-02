@@ -52,3 +52,11 @@ onInput is called for every key/button that is updated.
 load/save are mandatory functions that should serialize your interface to/from a file, so that the app can be restored if it was closed in the background (android requirement).  
 update before every render. This is where you should update buffers and get render data ready. renderScene should only be used to make calls to the command list.  
 onAspectChange could be used to initialize the cameras, this is called after the surface has been resized and only the cameras should be updated. This is not the same as a resize, because Android allows rotating without changing resolution (it just changes aspect).
+
+# FAQ
+
+## Where are my resources?
+
+Q. I added resources, but they don't show up in the final build?
+
+A. Resources (paths starting with "res/") are all packaged into the final executable; .exe, .apk, etc. This means that you won't be able to modify them when you built your exe/apk, meaning that you have one self-containing executable with all resources attached. This means you can easily distribute versions for all different architectures without having to worry about missing resources. It also prevents people from easily modifying the resources themselves, since they will have to modify the exe and apk to do that. If you sign your executable, it will ensure that it's harder for third parties to change your assets. If you don't want that, you can copy resources from the packaged build to the "out/" directory. 

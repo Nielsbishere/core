@@ -92,8 +92,7 @@ void ShaderData::update() {
 				bufferInfo->range = (VkDeviceSize)buf->getSize();
 				++bufferId;
 
-			}
-			else if (res->isType<Sampler>()) {
+			} else if (res->isType<Sampler>()) {
 
 				if (reg.type != ShaderRegisterType::Sampler)
 					Log::throwError<ShaderDataExt, 0x2>("A Sampler has been placed on a register not meant for samplers");
@@ -106,8 +105,7 @@ void ShaderData::update() {
 				image->sampler = samp->getExtension().obj;
 				++samplerId;
 
-			}
-			else if (res->isType<Texture>() || res->isType<VersionedTexture>()) {
+			} else if (res->isType<Texture>() || res->isType<VersionedTexture>()) {
 
 				if ((reg.type != ShaderRegisterType::Texture2D && reg.type != ShaderRegisterType::Image) || reg.size != 1)
 					Log::throwError<ShaderDataExt, 0x3>("A Texture has been placed on a register not meant for textures or it has to use a TextureList");

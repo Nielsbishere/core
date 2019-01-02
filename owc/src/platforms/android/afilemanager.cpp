@@ -14,10 +14,8 @@ using namespace oi::wc;
 using namespace oi;
 
 String FileManager::getAbsolutePath(String path) const {
-	if (path == "res" || path == "mod") return "res";
-	if (path.startsWith("res/") || path.startsWith("mod/")) return String("res/") + path.cutBegin(4);
-	else if(path.startsWith("out/")) return String(((android_app*)param)->activity->internalDataPath) + "/" + path.cutBegin(4);
-	else if (path == "out") return String(((android_app*)param)->activity->internalDataPath);
+	if (path.startsWith("res") || path.startsWith("mod")) return String("res") + path.cutBegin(3);
+	else if(path.startsWith("out")) return String(((android_app*)param)->activity->internalDataPath) + "/" + path.cutBegin(3);
 	return "";
 }
 

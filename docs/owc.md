@@ -5,8 +5,9 @@ The FileManager can be acquired by using the FileManager::get() function (if set
 ### File paths
 Because of the resource model on Android, we use an indicator before our file path.  
 "out/" is when you want the file to be written and you want to read what you've written; it is an actual **out**put file (on Android in the program's directory).  
-"res/" is when you just want to read a file; it's basically an asset, or a **res**ource that you can only modify offline.  
-"mod/" is access to a "res/" folder and wanting to **mod**ify it. This is only allowed on non-packaged desktop builds (aka; desktop build tools). The command line build packages the resources inside of the executable (apk, exe) and mod/ is not guaranteed to work.
+"res/" is when you just want to read a file; it's basically an asset, or a **res**ource that you can only modify offline. This folder is baked into the .exe or .apk whenever you build your game, so it isn't modifiable.  
+"mod/" is access to the physical "res/" folder and wanting to **mod**ify it. This is only available for tools that should run on desktop only (since other devices can't build for themselves). The command line build packages the resources inside of the executable (apk, exe) and mod/ doesn't modify the current executable. If you need runtime modifiable assets, you can use the "out/" directory; though these won't be supplied with the executables.=
+
 ### Checking directories/files
 If you want a directory path to exist, you can use the 'mkdir' function in FileManager. The fileExists, dirExists and exists functions are used to determine if something is already on the disk.
 ### Getting file info
@@ -17,7 +18,7 @@ String name;
 u64 fileSize;
 time_t modificationTime;
 ```
-The name is the fully qualified file name (path in owc-style). fileSize is only available for files (!isFolder). modificationTime can be 0 (on Android, the res folder is in the APK file and files can't be modified in the APK).
+The name is the fully qualified file name (path in owc-style). fileSize is only available for files (!isFolder). modificationTime is 0 for resource files ("res/") and can only be obtained through "mod/" or "out/".
 ### Looping through directories
 The typedef 'FileCallback' is used when a file can be given to a function; an example of this is 'foreachFile' and 'foreachFileRecurse'. foreachFile loops through all files & folders in the current directory and throws them through the callback; while foreachFileRecurse loops through all subdirectories as well (recursively). 
 ```cpp

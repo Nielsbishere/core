@@ -397,7 +397,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 #### Errors
 
-| File                                       | Message                                                      | Description                                                  |
+| File                                         | Message                                                      | Description                                                  |
 | -------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | platforms<br />windows<br />wfilemanager.cpp | Couldn't open file: {file}                                   | File doesn't exist                                           |
 |                                              | Mkdir requires write access                                  | File path invoked doesn't meet requirement FileAccess::WRITE, which means that the path can't be written to (so mkdir isn't allowed). This is mostly for files located in res/ |
@@ -408,6 +408,8 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                              | Can't write to file; mkdir failed                            | mkdir function failed, the previous error(s) specify what went wrong |
 |                                              | Couldn't find the specified folder<br />**or**<br />Couldn't find directory | Folder doesn't exist                                         |
 |                                              | Couldn't find the specified file                             | File doesn't exist                                           |
+|                                              | Couldn't find resource                                       | The resource couldn't be found in the exe. If you added the resource after creating the exe, rebuild app_pc |
+|                                              | Couldn't load resource                                       | The resource could be found, but couldn't be loaded into memory |
 | platforms<br />windows<br />wwindow.cpp      | {HRESULT}                                                    | Occurs on WWindow error 0x0, prints the HRESULT when it can't init the Windows class |
 
 ### Fatal errors
