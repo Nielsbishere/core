@@ -9,6 +9,16 @@ install:
     
     git submodule update
     
+    appveyor DownloadFile "https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2.zip" -FileName cmake.zip
+    
+    7z x cmake.zip > nul
+    
+    move C:\projects\deps\cmake-* C:\projects\deps\cmake
+    
+    set PATH=C:\projects\deps\cmake\bin;%PATH%
+    
+    make --version
+    
     set VULKAN_SDK=C:\VulkanSDK\%VULKAN_VERSION%
     
     if not exist "%VULKAN_SDK%" curl -L https://vulkan.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/VulkanSDK-%VULKAN_VERSION%-Installer.exe -o VulkanSDK.exe
