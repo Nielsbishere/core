@@ -17,11 +17,11 @@ install:
     
     move cmake-3.13.2 C:\projects\ocore\cmake
     
-    dir C:\projecs\ocore
+    dir C:\projects\ocore
     
-    dir C:\projecs\ocore\cmake
+    dir C:\projects\ocore\cmake
     
-    dir C:\projecs\ocore\cmake\bin
+    dir C:\projects\ocore\cmake\bin
     
     set PATH=C:\projects\ocore\cmake\bin;%PATH%
     
