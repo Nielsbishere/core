@@ -1,5 +1,3 @@
-#ifdef __VULKAN__
-
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
@@ -30,5 +28,3 @@ bool Shader::initData() {
 	return true;
 
 }
-
-#endif

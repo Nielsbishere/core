@@ -1,4 +1,3 @@
-#ifdef __VULKAN__
 #include "graphics/generic.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/render/rendertarget.h"
@@ -315,5 +314,3 @@ bool Pipeline::initData() {
 	Log::println("Successfully created pipeline");
 	return true;
 }
-
-#endif

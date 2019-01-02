@@ -1,5 +1,3 @@
-#ifdef __VULKAN__
-
 #include "graphics/graphics.h"
 #include "graphics/generic.h"
 #include "graphics/vulkan.h"
@@ -266,5 +264,3 @@ void CommandList::dispatch(ComputeList *computeList) {
 			i * sizeof(VkDispatchIndirectCommand)
 		);
 }
-
-#endif

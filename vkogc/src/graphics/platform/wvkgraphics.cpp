@@ -1,4 +1,4 @@
-#if defined(__VULKAN__) && defined(__WINDOWS__)
+#if defined(__WINDOWS__)
 #include "window/window.h"
 #include "graphics/vulkan.h"
 #include "graphics/graphics.h"

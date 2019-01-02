@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6.0)
+cmake_minimum_required(VERSION 3.13.0)
 cmake_policy(SET CMP0079 NEW)
 cmake_policy(SET CMP0077 NEW)
 project(oic)

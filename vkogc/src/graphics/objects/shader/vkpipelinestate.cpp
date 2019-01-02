@@ -1,5 +1,3 @@
-#ifdef __VULKAN__
-
 #include <cmath>
 #include "graphics/vulkan.h"
 #include "graphics/objects/shader/pipelinestate.h"
@@ -116,5 +114,3 @@ bool PipelineState::init() {
 
 	return true;
 }
-
-#endif

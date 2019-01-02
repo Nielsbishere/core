@@ -1,4 +1,3 @@
-#ifdef __VULKAN__
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
@@ -57,5 +56,3 @@ bool ComputeList::initData() {
 
 	return true;
 }
-
-#endif

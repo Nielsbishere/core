@@ -1,5 +1,3 @@
-#ifdef __VULKAN__
-
 #include <cstring>
 #include "window/window.h"
 #include "graphics/graphics.h"
@@ -893,5 +891,3 @@ void Window::updateAspect() {
 	}
 
 }
-
-#endif

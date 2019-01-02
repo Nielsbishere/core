@@ -1,4 +1,4 @@
-#if defined(__VULKAN__) && defined(__ANDROID__)
+#if defined(__ANDROID__)
 #include "window/window.h"
 #include "platforms/android.h"
 #include "graphics/vulkan.h"

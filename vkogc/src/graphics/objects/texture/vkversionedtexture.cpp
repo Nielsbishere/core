@@ -1,4 +1,3 @@
-#ifdef __VULKAN__
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/texture/versionedtexture.h"
@@ -16,5 +15,3 @@ bool VersionedTexture::write(String path, Vec2u start, Vec2u length) {
 	GraphicsExt &graphics = g->getExtension();
 	return info.version[graphics.current % info.versions]->write(path, start, length);
 }
-
-#endif

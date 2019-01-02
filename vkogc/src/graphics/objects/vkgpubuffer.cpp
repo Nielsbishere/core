@@ -1,4 +1,3 @@
-#ifdef __VULKAN__
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
@@ -305,5 +304,3 @@ void GPUBuffer::push() {
 	changes = Vec2u(u32_MAX, 0);
 
 }
-
-#endif

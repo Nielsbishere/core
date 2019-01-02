@@ -1,5 +1,3 @@
-#ifdef __VULKAN__
-
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/shader/shaderstage.h"
@@ -41,5 +39,3 @@ bool ShaderStage::init() {
 
 	return true;
 }
-
-#endif

@@ -1,4 +1,3 @@
-#ifdef __VULKAN__
 #include "graphics/graphics.h"
 #include "graphics/generic.h"
 #include "graphics/vulkan.h"
@@ -43,5 +42,3 @@ bool Sampler::init() {
 
 	return true;
 }
-
-#endif

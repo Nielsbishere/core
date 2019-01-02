@@ -1,5 +1,3 @@
-#ifdef __VULKAN__
-
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/texture/texture.h"
@@ -546,5 +544,3 @@ void Texture::push() {
 	info.changedEnd = Vec2u();
 
 }
-
-#endif

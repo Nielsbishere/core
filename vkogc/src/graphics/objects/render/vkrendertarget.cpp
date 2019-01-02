@@ -1,5 +1,3 @@
-#ifdef __VULKAN__
-
 #include "graphics/vulkan.h"
 #include "graphics/graphics.h"
 #include "graphics/objects/render/rendertarget.h"
@@ -181,5 +179,3 @@ bool RenderTarget::initData() {
 
 	return true;
 }
-
-#endif
