@@ -82,12 +82,32 @@ reload(){
 	if [ $strip ] ; then
 		params="-Dstrip_debug_info=ON $params"
 	fi
+
+	if [ $exexfo ] ; then
+		params="-Dexclude_ext_formats=ON $params"
+	fi
 	
 	cmake ../../../ -G "$2" $params
 	checkErrors
 	cd ../
 
 }
+
+# Prepare resources
+
+cd app
+
+if [ $strip ] ; then
+	"../oibaker.exe" -strip_debug_info
+else
+	"../oibaker.exe"
+fi
+
+cd ../
+
+checkErrors
+
+# Make build
 
 mkdir -p builds/Windows
 cd builds/Windows
@@ -162,39 +182,3 @@ fi
 if [[ "$env" == *"ARM32"* ]] ; then
 	cp "ARM/bin/$btype/Osomi Core.exe" "build/Osomi Core ARM.exe"
 fi
-
-# Prepare resources
-
-cd ../../app
-
-if [ $strip ] ; then
-	"../oibaker.exe" -strip_debug_info
-else
-	"../oibaker.exe"
-fi
-
-checkErrors
-
-cd ../builds/Windows/build
-mkdir -p res
-cp -r ../../../app/res/* res
-cd res
-
-# Get rid of fbx, obj, oiBM and glsl/hlsl/vert/frag/geom/comp files
-
-if [ $exexfo ]
-then
-
-	find . -type f -name '*.oiBM' -exec rm -f {} +
-	find . -type f -name '*.fbx' -exec rm -f {} +
-	find . -type f -name '*.obj' -exec rm -f {} +
-	find . -type f -name '*.glsl' -exec rm -f {} +
-	find . -type f -name '*.hlsl' -exec rm -f {} +
-	find . -type f -name '*.vert' -exec rm -f {} +
-	find . -type f -name '*.frag' -exec rm -f {} +
-	find . -type f -name '*.geom' -exec rm -f {} +
-	find . -type f -name '*.comp' -exec rm -f {} +
-
-fi
-
-cd ../../../

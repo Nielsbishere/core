@@ -2,9 +2,10 @@
 #include <algorithm>
 #include "types/vector.h"
 #include "utils/timer.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "memory/blockallocator.h"
 #include "types/bitset.h"
+#include "template/enum.h"
 
 namespace oi {
 	
@@ -31,8 +32,10 @@ namespace oi {
 			friend class GraphicsObject;
 			
 		public:
+
+			static constexpr u32 maxId = 0xFFFFFF;
 			
-			Graphics(u32 heapSize) : heapSize(heapSize), allocator(heapSize), features(false) {}
+			Graphics(u32 heapSize) : heapSize(heapSize), allocator(heapSize), features(false), idAllocator(false) { idAllocator[0] = true; }
 			~Graphics();
 			
 			void init(oi::wc::Window *w);
@@ -72,11 +75,22 @@ namespace oi {
 			bool destroyObject(GraphicsObject *go);
 			void use(GraphicsObject *go);
 
+			GraphicsObject *get(u32 id);
+			bool contains(u32 id);
+			void use(u32 id);
+			void destroy(u32 id);
+
 			template<typename T>
 			bool destroy(T *&t);
 
 			template<typename T>
 			[[nodiscard]] std::vector<GraphicsObject*> get();
+
+			template<typename T, typename T2>
+			void alloc(T2 *&t2);
+
+			template<typename T, typename T2>
+			void dealloc(T2 *&t2);
 
 		protected:
 
@@ -88,6 +102,8 @@ namespace oi {
 
 			bool remove(GraphicsObject *go);
 
+			void setupSurface(wc::Window *w);
+
 		private:
 			
 			bool initialized = false;
@@ -98,9 +114,11 @@ namespace oi {
 			RenderTarget *backBuffer = nullptr;
 
 			oi::BlockAllocator allocator;
-			GraphicsExt ext;
+			oi::StaticBitset<maxId + 1> idAllocator;
+			GraphicsExt *ext;
 
 			std::unordered_map<size_t, std::vector<GraphicsObject*>> objects;
+			std::unordered_map<u32, GraphicsObject*> objectsById;
 
 			StaticBitset<GraphicsFeature::length> features;
 			
@@ -118,7 +136,10 @@ namespace oi {
 			auto it = std::find(o.begin(), o.end(), (GraphicsObject*) t);
 
 			if (it != o.end()) Log::warn("Graphics::add called on an already existing object");
-			else o.push_back(t);
+			else {
+				o.push_back(t);
+				objectsById[t->getId()] = (GraphicsObject*) t;
+			}
 
 		}
 
@@ -141,6 +162,19 @@ namespace oi {
 			T *t = allocator.alloc<T, TInfo>(info);
 			t->g = this;
 
+			u32 id = maxId + 1;
+
+			for(u32 i = 0; i < maxId; ++i)
+				if (!idAllocator[i]) {
+					id = i;
+					idAllocator[i] = true;
+					break;
+				}
+
+			if(id == maxId + 1)
+				Log::throwError<Graphics, 0x2>("Couldn't init GraphicsObject; couldn't find a valid id");
+
+			t->id = id;
 			t->name = name;
 			t->template setHash<T>();
 
@@ -170,11 +204,32 @@ namespace oi {
 
 			if (--go->refCount <= 0) {
 				vec.erase(itt);
+				objectsById.erase(go->getId());
+				idAllocator[go->getId()] = false;
 				allocator.dealloc(go);
 				go = nullptr;
 			}
 
 			return true;
+		}
+
+		template<typename T, typename T2>
+		void Graphics::alloc(T2 *&t2) {
+
+			static_assert(std::is_same<typename T2::BaseType, T>::value, "Can't allocate if the extended type isn't part of the allocated type");
+
+			t2 = allocator.alloc<T2>();
+
+		}
+
+		template<typename T, typename T2>
+		void Graphics::dealloc(T2 *&t2) {
+
+			static_assert(std::is_same<typename T2::BaseType, T>::value, "Can't allocate if the extended type isn't part of the allocated type");
+
+			allocator.dealloc(t2);
+			t2 = nullptr;
+
 		}
 
 	}

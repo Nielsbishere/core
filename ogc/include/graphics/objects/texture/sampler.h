@@ -1,7 +1,7 @@
 #pragma once
 
 #include "template/enum.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "graphics/objects/graphicsresource.h"
 
 namespace oi {
@@ -48,7 +48,7 @@ namespace oi {
 		private:
 
 			SamplerInfo info;
-			SamplerExt ext;
+			SamplerExt *ext;
 
 		};
 

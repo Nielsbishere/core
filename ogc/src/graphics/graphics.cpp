@@ -78,7 +78,6 @@ Vec4d Graphics::convertColor(Vec4d cl, TextureFormat format) {
 }
 
 u32 Graphics::getFormatSize(TextureFormat format) { return getChannelSize(format) * getChannels(format); }
-GraphicsExt &Graphics::getExtension() { return ext; }
 
 RenderTarget *Graphics::getBackBuffer() { return backBuffer; }
 u32 Graphics::getBuffering() { return buffering; }
@@ -86,7 +85,7 @@ u32 Graphics::getBuffering() { return buffering; }
 void Graphics::printObjects() {
 	for (auto a : objects)
 		for (auto b : a.second)
-			Log::println(b->getName() + " (" + b->getTypeName() + ") refCount " + b->refCount);
+			Log::println(b->getName() + " (" + b->getTypeName() + ") " + b->refCount + " refs #" + b->getId());
 }
 
 bool Graphics::supports(GraphicsFeature feature) {
@@ -95,7 +94,7 @@ bool Graphics::supports(GraphicsFeature feature) {
 
 bool Graphics::remove(GraphicsObject *go) {
 
-	size_t id = go->getHash();
+	size_t id = go->getTypeId();
 
 	auto it = objects.find(id);
 	if (it == objects.end()) return false;
@@ -111,7 +110,7 @@ bool Graphics::remove(GraphicsObject *go) {
 
 bool Graphics::contains(GraphicsObject *go) const {
 
-	size_t id = go->getHash();
+	size_t id = go->getTypeId();
 
 	auto it = objects.find(id);
 	if (it == objects.end()) return false;
@@ -129,7 +128,7 @@ bool Graphics::destroyObject(GraphicsObject *go) {
 
 	if (go == nullptr) return false;
 
-	auto it = objects.find(go->hash);
+	auto it = objects.find(go->typeId);
 	if (it == objects.end()) return false;
 
 	auto &vec = it->second;
@@ -149,4 +148,20 @@ bool Graphics::destroyObject(GraphicsObject *go) {
 void Graphics::use(GraphicsObject *go) {
 	if (go != nullptr && contains(go)) 
 		++go->refCount;
+}
+
+GraphicsObject *Graphics::get(u32 id) {
+	return contains(id) ? objectsById[id] : nullptr;
+}
+
+bool Graphics::contains(u32 id) {
+	return idAllocator[id];
+}
+
+void Graphics::use(u32 id) {
+	use(get(id));
+}
+
+void Graphics::destroy(u32 id) {
+	destroyObject(get(id));
 }

@@ -17,6 +17,12 @@ ShaderBufferObject *ShaderBufferObject::find(String oname) {
 	return nullptr;
 }
 
+bool ShaderBufferObject::operator==(const ShaderBufferObject &other) const {
+	size_t start = offsetof(ShaderBufferObject, offset);
+	size_t end = offsetof(ShaderBufferObject, childs);
+	return memcmp((u8*) this + start, (u8*) &other + start, end - start) && arr == other.arr;
+}
+
 ///Shader buffer info
 
 ShaderBufferInfo::ShaderBufferInfo(ShaderRegisterType type, u32 size, u32 elements, bool allocate) : type(type), size(size), elements(elements), allocate(allocate), self(nullptr, 0, size, {}, "", TextureFormat::Undefined, SBOFlag::Value) {}
@@ -46,6 +52,10 @@ ShaderBufferInfo &ShaderBufferInfo::operator=(const ShaderBufferInfo &info) {
 
 ShaderBufferInfo::ShaderBufferInfo(const ShaderBufferInfo &info) {
 	copy(info);
+}
+
+bool ShaderBufferInfo::operator==(const ShaderBufferInfo &other) const {
+	return type == other.type && size == other.size && allocate == other.allocate && self == other.self && elements == other.elements;
 }
 
 void ShaderBufferInfo::copy(const ShaderBufferInfo &info) {

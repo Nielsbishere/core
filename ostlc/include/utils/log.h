@@ -2,6 +2,7 @@
 
 #include <typeinfo>
 #include "types/string.h"
+
 #undef ERROR
 
 namespace oi {

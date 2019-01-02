@@ -1,7 +1,7 @@
 #ifdef __WINDOWS__
 
-#include <Windows.h>
 #include "window/windowmanager.h"
+#include "platforms/windows.h"
 using namespace oi::wc;
 
 void WindowManager::waitAll() {

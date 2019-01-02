@@ -1,5 +1,6 @@
 #pragma once
 #include "types/string.h"
+#include "platforms/generic.h"
 #include <functional>
 
 namespace oi {
@@ -30,17 +31,31 @@ namespace oi {
 		//Returns bool continue
 		typedef std::function<bool(FileInfo)> FileCallback;
 
+		struct FileManagerExt;
+
+		struct ParentedFileInfo {
+
+			String name;
+			u32 dirId;
+
+			bool operator==(const ParentedFileInfo &other) const {
+				return name == other.name && dirId == other.dirId;
+			}
+		};
+
 		//File reading:
 		//resources (read only): res/
 		//files (read write): out/
 		//resources (write only): mod/			(PC only)
 		class FileManager {
 
+			friend struct FileManagerExt;
+
 		public:
 
 			static const FileManager *get();
 
-			FileManager(void *param);
+			FileManager(AppExt *app);
 			~FileManager();
 
 			bool read(String path, String &s) const;
@@ -64,10 +79,17 @@ namespace oi {
 
 			FileInfo getFile(String path) const;									//Get the file info
 
+		protected:
+
+			void init();
+
 		private:
 
 			static FileManager *instance;
-			void *param;
+			AppExt *param;
+
+			std::vector<String> dirs;
+			std::vector<ParentedFileInfo> files;
 		};
 
 	}

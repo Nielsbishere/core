@@ -66,12 +66,15 @@ namespace oi {
 
 			ShaderRegisterType type;
 			ShaderAccessType access;
-			String name;
 			u32 size, id;
 			TextureFormat format;
+			String name;
 
 			ShaderRegister(ShaderRegisterType type, ShaderAccessType access, String name, u32 size, u32 id, TextureFormat format) : type(type), access(access), name(name), size(size), id(id), format(format) {}
 			ShaderRegister() : ShaderRegister(0, ShaderAccessType::COMPUTE, "", 0, 0, TextureFormat::Undefined) { }
+
+			bool operator==(const ShaderRegister &other) const { return memcmp(this, &other, offsetof(ShaderRegister, name)) == 0 && name == other.name; }
+			bool operator!=(const ShaderRegister &other) const { return !(*this == other); }
 
 		};
 

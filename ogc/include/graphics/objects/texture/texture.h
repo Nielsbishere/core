@@ -1,10 +1,8 @@
 #pragma once
 #include "types/vector.h"
 #include "template/enum.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "textureobject.h"
-
-#undef RGB
 
 namespace oi {
 
@@ -131,6 +129,8 @@ namespace oi {
 			bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 			bool read(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
+			void resize(Vec2u size);
+
 		protected:
 
 			~Texture();
@@ -140,6 +140,7 @@ namespace oi {
 			bool getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output);
 
 			bool initData();
+			void destroyData(bool resize);
 
 			bool shouldStage();
 
@@ -153,7 +154,7 @@ namespace oi {
 			bool owned = false;
 
 			TextureInfo info;
-			TextureExt ext;
+			TextureExt *ext = nullptr;
 
 		};
 

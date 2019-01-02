@@ -8,56 +8,19 @@
 using namespace oi::gc;
 using namespace oi;
 
-BasicGraphicsInterface::~BasicGraphicsInterface() {
-	g.destroy(meshManager);
-	g.destroy(view);
-	g.destroy(cameraFrustum);
-	g.destroy(camera);
-	g.destroy(views);
-	g.destroy(linearSampler);
-	g.destroy(nearestSampler);
-	g.destroy(cmdList);
-}
-
 void BasicGraphicsInterface::initScene() {
 
-	//Command list
+	cmdList = CommandListRef(g, "Default command list", CommandListInfo());
 
-	cmdList = g.create("Default command list", CommandListInfo());
-	g.use(cmdList);
+	linearSampler = SamplerRef(g, "Linear sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
+	nearestSampler = SamplerRef(g, "Nearest sampler", SamplerInfo(SamplerMin::Nearest, SamplerMag::Nearest, SamplerWrapping::Clamp_border));
 
-	//Allocate samplers
+	views = ViewBufferRef(g, "Default view buffer", ViewBufferInfo());
+	camera = CameraRef(g, "Default camera", CameraInfo(views, Vec3(3), Vec4(0, 0, 0, 1)));
+	cameraFrustum = CameraFrustumRef(g, "Default viewport", CameraFrustumInfo(views, Vec2u(1), 1, 40, 0.1f, 100));
+	view = ViewRef(g, "Default view", ViewInfo(views, camera, cameraFrustum));
 
-	linearSampler = g.create("Linear sampler", SamplerInfo(SamplerMin::Linear, SamplerMag::Linear, SamplerWrapping::Repeat));
-	g.use(linearSampler);
-
-	nearestSampler = g.create("Nearest sampler", SamplerInfo(SamplerMin::Nearest, SamplerMag::Nearest, SamplerWrapping::Clamp_border));
-	g.use(nearestSampler);
-
-	//Setup our view buffer
-
-	views = g.create("Default view buffer", ViewBufferInfo());
-	g.use(views);
-
-	//Setup our camera
-
-	camera = g.create("Default camera", CameraInfo(views, Vec3(3), Vec4(0, 0, 0, 1)));
-	g.use(camera);
-
-	//Setup our viewport
-
-	cameraFrustum = g.create("Default viewport", CameraFrustumInfo(views, Vec2u(1), 1, 40, 0.1f, 100));
-	g.use(cameraFrustum);
-
-	//Setup our view
-
-	view = g.create("Default view", ViewInfo(views, camera, cameraFrustum));
-	g.use(view);
-
-	//Setup our mesh manager
-
-	meshManager = g.create("Default mesh manager", MeshManagerInfo(400'000, 500'000));
-	g.use(meshManager);
+	meshManager = MeshManagerRef(g, "Default mesh manager", MeshManagerInfo(400'000, 500'000));
 
 }
 

@@ -1,6 +1,7 @@
-#include "graphics/objects/texture/texture.h"
-#include "graphics/graphics.h"
 #include "file/filemanager.h"
+#include "graphics/graphics.h"
+#include "graphics/objects/texture/texture.h"
+#include "graphics/objects/texture/texturelist.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4100)
@@ -16,9 +17,6 @@
 #include "stb/stb_image_write.h"
 
 #pragma warning(pop)
-
-#undef min
-#undef max
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -43,12 +41,26 @@ TextureHandle Texture::getHandle() { return info.handle; }
 
 Texture::Texture(TextureInfo info) : info(info) {}
 
-TextureExt &Texture::getExtension() { return ext; }
+Texture::~Texture() {
+
+	info.dat.deconstruct();
+
+	if (info.parent != nullptr) {
+		info.parent->dealloc(this);
+		g->destroy(info.parent);
+	}
+
+	destroyData(false);
+}
+
 const TextureInfo Texture::getInfo() { return info; }
 
 void Texture::initParent(TextureList *parent) {
-	if (info.parent == nullptr)
+	if (info.parent == nullptr) {
 		info.parent = parent;
+		info.handle = parent->alloc(this);
+		g->use(parent);
+	}
 }
 
 bool Texture::setPixels(Vec2u start, Vec2u length, Buffer values) {
@@ -198,6 +210,20 @@ bool Texture::read(String path, Vec2u start, Vec2u length) {
 	return true;
 }
 
+void Texture::resize(Vec2u size) {
+
+	if (size.x == 0 || size.y == 0)
+		Log::throwError<Texture, 0x13>("Resizing to 0,0 is illegal, that resolution is only allowed to reserve a texture handle");
+
+	if (info.usage != TextureUsage::Render_depth && info.usage != TextureUsage::Render_target && info.usage != TextureUsage::Compute_target)
+		Log::throwError<Texture, 0x14>("Resizing a non-target texture is illegal, the creation size is constant");
+
+	info.res = size;
+	destroyData(true);
+	initData();
+
+}
+
 bool Texture::init(bool isOwned) {
 
 	owned = isOwned;
@@ -237,6 +263,9 @@ bool Texture::init(bool isOwned) {
 		info.dat = Buffer((u32)perChannel * info.res.x * info.res.y);
 
 	}
+
+	if ((info.res.x == 0 || info.res.y == 0) && info.usage != TextureUsage::Render_depth && info.usage != TextureUsage::Render_target && info.usage != TextureUsage::Compute_target)
+		Log::throwError<Texture, 0x15>("Initializing with resolution 0,0 isn't allowed, because non-target textures cannot be resized");
 
 	return initData();
 }

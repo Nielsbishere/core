@@ -1,6 +1,5 @@
-#ifdef __VULKAN__
-
 #include "graphics/graphics.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/drawlist.h"
 #include "graphics/objects/model/mesh.h"
@@ -62,5 +61,3 @@ bool DrawList::createCBO() {
 	g->use(info.drawBuffer = g->create(getName() + " CBO", GPUBufferInfo(GPUBufferType::CBO, getMaxBatches() * u32(info.meshBuffer->getInfo().maxIndices != 0 ? sizeof(VkDrawIndexedIndirectCommand) : sizeof(VkDrawIndirectCommand)))));
 	return true;
 }
-
-#endif

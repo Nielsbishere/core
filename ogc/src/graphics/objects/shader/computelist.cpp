@@ -65,6 +65,7 @@ ComputeList::ComputeList(ComputeListInfo info) : info(info) {}
 
 ComputeList::~ComputeList() {
 	g->destroy(info.dispatchBuffer);
+	g->destroy(info.computePipeline);
 }
 
 bool ComputeList::init() {
@@ -80,5 +81,6 @@ bool ComputeList::init() {
 	if (!createCBO())
 		return Log::error("Couldn't reserve compute list");
 
+	g->use(info.computePipeline);
 	return initData();
 }

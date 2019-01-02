@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types/bitset.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "graphics/objects/graphicsobject.h"
 #include "graphics/objects/shader/shaderbuffer.h"
 #include "graphics/objects/shader/shaderstage.h"
@@ -29,7 +29,6 @@ namespace oi {
 			std::vector<ShaderRegister> registers;
 
 			std::unordered_map<String, ShaderBufferInfo> buffer;
-			std::unordered_map<String, GraphicsResource*> shaderRegister;
 
 			Vec3u computeThreads;
 
@@ -48,14 +47,7 @@ namespace oi {
 			ShaderExt &getExtension();
 			const ShaderInfo &getInfo();
 
-			bool isCompute();
-
-			bool set(String path, GraphicsResource *res);
-
-			template<typename T>
-			T *get(String path);
-
-			void update();
+			Vec3u getComputeThreads();
 
 			static bool isCompatible(ShaderStageType t0, ShaderStageType t1);
 
@@ -66,30 +58,14 @@ namespace oi {
 			bool init();
 
 			bool initData();
+			void destroyData();
 
 		private:
 
 			ShaderInfo info;
-			ShaderExt ext;
-
-			Bitset changed;
+			ShaderExt *ext;
 
 		};
-
-		template<typename T>
-		T *Shader::get(String path) {
-
-			static_assert(std::is_base_of<GraphicsResource, T>::value, "Shader::get<T>(path) where T is base of ShaderResource");
-
-			auto it = info.shaderRegister.find(path);
-
-			if (it == info.shaderRegister.end())
-				return nullptr;
-			
-			return dynamic_cast<T*>(it->second);
-
-		}
-
 
 	}
 

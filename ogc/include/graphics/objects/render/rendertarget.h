@@ -42,6 +42,8 @@ namespace oi {
 			Texture *getDepth();
 			VersionedTexture *getTarget(u32 target);
 
+			bool resize(Vec2u size);
+
 			Vec2u getSize();
 			bool isOwned();
 
@@ -57,13 +59,14 @@ namespace oi {
 			bool init(bool isOwned = true);
 
 			bool initData();
+			void destroyData();
 
 		private:
 
 			bool owned = true;
 
 			RenderTargetInfo info;
-			RenderTargetExt ext;
+			RenderTargetExt *ext;
 
 		};
 

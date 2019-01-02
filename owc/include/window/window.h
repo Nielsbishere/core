@@ -28,9 +28,6 @@ namespace oi {
 			WindowManager *getParent();
 
 			WindowExt &getExtension();
-			
-			void *getSurfaceData();
-			u32 getSurfaceSize();
 
 			bool hasPreviousFrame();
 			void updateAspect();			//API dependent
@@ -59,7 +56,7 @@ namespace oi {
 
 			f32 lastTick = 0;
 
-			WindowExt ext;
+			WindowExt *ext;
 
 		};
 	}

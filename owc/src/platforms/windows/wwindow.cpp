@@ -1,14 +1,14 @@
 #ifdef __WINDOWS__
 
-#include "platforms/generic.h"
 #include "window/windowinterface.h"
 #include "window/windowmanager.h"
 #include "input/mouse.h"
 #include "input/keyboard.h"
+#include "platforms/windows.h"
 using namespace oi::wc;
 using namespace oi;
 
-Window *WWindow::getByHandle(HWND hwnd) {
+Window *WindowExt::getByHandle(HWND hwnd) {
 
 	WindowManager *wm = WindowManager::get();
 
@@ -22,7 +22,7 @@ Window *WWindow::getByHandle(HWND hwnd) {
 	return nullptr;
 }
 
-LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -40,7 +40,7 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 	case WM_KEYUP:
 	case WM_KEYDOWN:
 	{
-		Binding b = Binding(Key(WKey::find((u32) wParam).getName()));
+		Binding b = Binding(Key(KeyExt::find((u32) wParam).getName()));
 		Keyboard *keyboard = w->getInputHandler().getKeyboard();
 		bool isDown = message == WM_KEYDOWN;
 
@@ -192,16 +192,18 @@ LRESULT CALLBACK WWindow::windowEvents(HWND hwnd, UINT message, WPARAM wParam, L
 
 void Window::initPlatform() {
 
-	ext.instance = GetModuleHandle(NULL);
+	ext = new WindowExt();
+
+	ext->instance = GetModuleHandle(NULL);
 
 	String str = info.getTitle();
 
 	WNDCLASSEX wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = WWindow::windowEvents;
+	wc.lpfnWndProc = WindowExt::windowEvents;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
-	wc.hInstance = ext.instance;
+	wc.hInstance = ext->instance;
 	wc.hIcon = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 32, 32, 0);
 	wc.hIconSm = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 16, 16, 0);
 	wc.hCursor = LoadCursorA(NULL, IDC_ARROW);
@@ -213,7 +215,7 @@ void Window::initPlatform() {
 	if (!RegisterClassExA(&wc)) {
 		HRESULT res = GetLastError();
 		Log::error(res);
-		Log::throwError<WWindow, 0x0>("Couldn't init Windows class");
+		Log::throwError<WindowExt, 0x0>("Couldn't init Windows class");
 	}
 
 	int nStyle = WS_OVERLAPPED | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
@@ -221,13 +223,13 @@ void Window::initPlatform() {
 	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	ext.window = CreateWindowExA(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext.instance, NULL);
+	ext->window = CreateWindowExA(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext->instance, NULL);
 
-	if (ext.window == NULL)
-		Log::throwError<WWindow, 0x1>("Couldn't init Windows window");
+	if (ext->window == NULL)
+		Log::throwError<WindowExt, 0x1>("Couldn't init Windows window");
 
 	RECT rect;
-	GetClientRect(ext.window, &rect);
+	GetClientRect(ext->window, &rect);
 
 	info.size = Vec2u((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top));
 
@@ -241,43 +243,45 @@ void Window::initPlatform() {
 		wi->onAspectChange(Vec2(info.size).getAspect());
 }
 
-u32 Window::getSurfaceSize(){ return (u32) sizeof(WWindow); }
-void *Window::getSurfaceData() { return &ext; }
+WindowExt &Window::getExtension() { return *ext; }
 
 void Window::destroyPlatform() {
-	if (ext.window != NULL) {
+
+	if (ext->window != NULL) {
 		PostQuitMessage(0);
-		DestroyWindow(ext.window);
-		ext.window = NULL;
+		DestroyWindow(ext->window);
+		ext->window = NULL;
 	}
+
+	delete ext;
 }
 
 void Window::updatePlatform() {
 
 	if (isSet(info.pending, WindowAction::IN_FOCUS))
 		if (info.isInFocus()) {
-			ShowWindow(ext.window, SW_SHOW);
-			SetForegroundWindow(ext.window);
-			SetFocus(ext.window);
+			ShowWindow(ext->window, SW_SHOW);
+			SetForegroundWindow(ext->window);
+			SetFocus(ext->window);
 		}
 
 
 	if (isSet(info.pending, WindowAction::FULL_SCREEN)) {
 
-		DWORD dwStyle = GetWindowLongA(ext.window, GWL_STYLE);
+		DWORD dwStyle = GetWindowLongA(ext->window, GWL_STYLE);
 		MONITORINFO mi = { sizeof(mi) };
 
-		if (info.fullScreen && GetMonitorInfoA(MonitorFromWindow(ext.window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
-			SetWindowLongA(ext.window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
-			SetWindowPos(ext.window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		if (info.fullScreen && GetMonitorInfoA(MonitorFromWindow(ext->window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
+			SetWindowLongA(ext->window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+			SetWindowPos(ext->window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 		}
 		else {
-			SetWindowLongA(ext.window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
-			SetWindowPos(ext.window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+			SetWindowLongA(ext->window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+			SetWindowPos(ext->window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 		}
 
 		RECT rect;
-		GetClientRect(ext.window, &rect);
+		GetClientRect(ext->window, &rect);
 
 		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 

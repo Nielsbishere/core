@@ -8,16 +8,22 @@
 #include "types/string.h"
 #include "types/buffer.h"
 #include "utils/log.h"
-#include "platforms/generic.h"
+#include "platforms/android.h"
 #include "file/filemanager.h"
+#include <sys/types.h>
+#include <unistd.h>
 using namespace oi::wc;
 using namespace oi;
 
+void FileManager::init() {
+
+	Log::warn("Directories not currently supported https://github.com/googlesamples/android-ndk/issues/603");
+
+}
+
 String FileManager::getAbsolutePath(String path) const {
-	if (path == "res" || path == "mod") return "res";
-	if (path.startsWith("res/") || path.startsWith("mod/")) return String("res/") + path.cutBegin(4);
-	else if(path.startsWith("out/")) return String(((android_app*)param)->activity->internalDataPath) + "/" + path.cutBegin(4);
-	else if (path == "out") return String(((android_app*)param)->activity->internalDataPath);
+	if (path.startsWith("res") || path.startsWith("mod")) return String("res") + path.cutBegin(3);
+	else if(path.startsWith("out")) return String(((android_app*)param)->activity->internalDataPath) + "/" + path.cutBegin(3);
 	return "";
 }
 

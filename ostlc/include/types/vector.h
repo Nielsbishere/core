@@ -7,6 +7,9 @@
 #include <cmath>
 #include <limits>
 
+#undef min
+#undef max
+
 namespace oi {
 
 	//Data for a nth-vector (where n != 2 && != 3 && != 4)

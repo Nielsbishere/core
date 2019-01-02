@@ -4,9 +4,6 @@
 #include "types/matrix.h"
 #include "../graphicsobject.h"
 
-#undef near
-#undef far
-
 namespace oi {
 
 	namespace gc {

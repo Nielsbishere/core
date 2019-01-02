@@ -11,6 +11,19 @@ namespace oi {
 		class MaterialList;
 		class Texture;
 
+		enum class MaterialTextureType {
+			DIFFUSE = 0,
+			OPACITY = 1,
+			EMISSIVE = 2,
+			ROUGHNESS = 3,
+			AMBIENT_OCCLUSION = 4,
+			HEIGHT = 5,
+			METALLIC = 6,
+			NORMAL = 7,
+			SPECULAR = 8,
+			LENGTH
+		};
+
 		struct MaterialStruct {
 
 			Vec3 diffuse = 1.f;
@@ -55,8 +68,9 @@ namespace oi {
 
 			MaterialList *parent;
 			MaterialStruct *ptr;
+			StaticBitset<9> usedTextures;
 
-			MaterialInfo(MaterialList *parent) : parent(parent), ptr(&temp) {}
+			MaterialInfo(MaterialList *parent) : parent(parent), ptr(&temp), usedTextures(false) {}
 
 			MaterialStruct *operator->() { return ptr; }
 			const MaterialStruct *operator->() const { return ptr; }
@@ -105,7 +119,7 @@ namespace oi {
 			Material(MaterialInfo info);
 			bool init();
 
-			void setTex(TextureHandle &texHandle, Texture *tex);
+			void setTex(Texture *tex, MaterialTextureType type);
 			void notify();
 
 		private:

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "graphicsobject.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "types/vector.h"
+#include "template/enum.h"
 
 namespace oi {
 
@@ -58,6 +59,7 @@ namespace oi {
 			~GPUBuffer();
 			GPUBuffer(GPUBufferInfo info);
 			bool init();
+			void destroy();
 
 			//Push changes to GPU
 			void push();
@@ -67,7 +69,7 @@ namespace oi {
 		private:
 
 			GPUBufferInfo info;
-			GPUBufferExt ext;
+			GPUBufferExt *ext;
 
 		};
 

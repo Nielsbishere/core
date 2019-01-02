@@ -2,7 +2,7 @@
 
 #include "template/enum.h"
 #include "types/buffer.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "graphics/objects/graphicsobject.h"
 #include "graphics/objects/shader/shaderenums.h"
 
@@ -70,7 +70,7 @@ namespace oi {
 		private:
 
 			ShaderStageInfo info;
-			ShaderStageExt ext;
+			ShaderStageExt *ext;
 
 		};
 

@@ -213,7 +213,6 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 				mbinfo.maxVertices = mai.vbos[0].size() / mbinfo.vboStrides[0];
 				mbinfo.maxIndices = mai.ibo.size() / 4;
 				
-
 				MeshInfo mi;
 				mi.buffer = mai.meshBuffer;
 				mi.indices = mbinfo.maxIndices;
@@ -273,16 +272,15 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 
 		for (auto &elem0 : elem.second) {
 
-			u32 id = elem0.first;
+			i = elem0.first;
 
 			MeshInfo *mi = elem0.second;
 			mi->buffer = meshBuffer;
 
-			MeshAllocationInfo &mai = minfo[id];
-			mai.mesh = meshes[id] = g->create(mai.name, *mi);
+			MeshAllocationInfo &mai = minfo[i];
+			mai.mesh = meshes[i] = g->create(mai.name, *mi);
 			info.meshAllocations[mai.name] = mai;
 
-			meshBuffer->flush(mi->allocation);
 		}
 
 	}

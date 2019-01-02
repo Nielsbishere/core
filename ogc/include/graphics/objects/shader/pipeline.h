@@ -1,7 +1,8 @@
 #pragma once
 
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "graphics/objects/graphicsobject.h"
+#include "graphics/objects/shader/shaderdata.h"
 
 namespace oi {
 
@@ -13,6 +14,7 @@ namespace oi {
 		class Camera;
 		class MeshBuffer;
 		class Pipeline;
+		class GPUBuffer;
 
 		struct GraphicsPipelineInfo {
 
@@ -57,6 +59,16 @@ namespace oi {
 
 		UEnum(PipelineType, Graphics = 0, Compute = 1, Raytracing = 2);
 
+		struct PipelineInfo {
+
+			PipelineType type;
+			GraphicsPipelineInfo graphicsInfo;
+			ComputePipelineInfo computeInfo;
+			RaytracingPipelineInfo raytracingInfo;
+			ShaderData *shaderData = nullptr;
+
+		};
+
 		class Pipeline : public GraphicsObject {
 
 			friend class Graphics;
@@ -64,38 +76,69 @@ namespace oi {
 
 		public:
 
-			PipelineExt &getExtension() { return ext; }
-			const GraphicsPipelineInfo getGraphicsInfo() const { return graphicsInfo; }
-			const ComputePipelineInfo getComputeInfo() const { return computeInfo; }
-			const RaytracingPipelineInfo getRaytracingInfo() const { return raytracingInfo; }
+			PipelineExt &getExtension();
+			const GraphicsPipelineInfo getGraphicsInfo() const { return info.graphicsInfo; }
+			const ComputePipelineInfo getComputeInfo() const { return info.computeInfo; }
+			const RaytracingPipelineInfo getRaytracingInfo() const { return info.raytracingInfo; }
 
-			PipelineType getPipelineType() const { return type; }
+			PipelineType getPipelineType() const { return info.type; }
+			ShaderData *getData() const { return info.shaderData; }
 
-			Shader *getShader(u32 i = 0);
-			PipelineState *getPipelineState();
-			RenderTarget *getRenderTarget();
-			MeshBuffer *getMeshBuffer();
-			u32 getRecursionDepth();
+			Shader *getShader(u32 i = 0) const;
+			PipelineState *getPipelineState() const { return info.graphicsInfo.pipelineState; }
+			RenderTarget *getRenderTarget() const { return info.graphicsInfo.renderTarget; }
+			MeshBuffer *getMeshBuffer() const;
+			u32 getRecursionDepth() const { return info.raytracingInfo.maxRecursionDepth; }
+
+			void update();
+
+			template<typename T>
+			void setValue(String path, const T &value);
+
+			template<typename T>
+			void getValue(String path, T &value);
+
+			void setRegister(String path, GraphicsResource *res);
+			
+			template<typename T>
+			T *getRegister(String path);
+
+			void instantiateBuffer(String path, u32 objects);
+			void setBuffer(String path, u32 elements, GPUBuffer *buffer);
+			void setData(String path, Buffer data);
 
 		protected:
 
 			~Pipeline();
-			Pipeline(GraphicsPipelineInfo info) : type(PipelineType::Graphics), graphicsInfo(info) {}
-			Pipeline(ComputePipelineInfo info) : type(PipelineType::Compute), computeInfo(info) {}
-			Pipeline(RaytracingPipelineInfo info) : type(PipelineType::Raytracing), raytracingInfo(info) {}
+			Pipeline(GraphicsPipelineInfo info) : info{ PipelineType::Graphics, info } {}
+			Pipeline(ComputePipelineInfo info) : info{ PipelineType::Compute, {}, info } {}
+			Pipeline(RaytracingPipelineInfo info) : info{ PipelineType::Raytracing, {}, {}, info } {}
 			bool init();
 
 			bool initData();
+			void destroyData();
 
 		private:
 
-			PipelineType type;
-			GraphicsPipelineInfo graphicsInfo;
-			ComputePipelineInfo computeInfo;
-			RaytracingPipelineInfo raytracingInfo;
-			PipelineExt ext;
+			PipelineInfo info;
+			PipelineExt *ext;
 
 		};
+
+		template<typename T>
+		void Pipeline::setValue(String path, const T &value) {
+			info.shaderData->setValue(path, value);
+		}
+
+		template<typename T>
+		void Pipeline::getValue(String path, T &value) {
+			info.shaderData->getValue(path, value);
+		}
+
+		template<typename T>
+		T *Pipeline::getRegister(String path) {
+			return info.shaderData->get<T>(path);
+		}
 
 	}
 

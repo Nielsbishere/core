@@ -4,7 +4,7 @@
 using namespace oi::wc;
 using namespace oi;
 
-FileManager::FileManager(void *param) : param(param) { instance = this; }
+FileManager::FileManager(AppExt *param) : param(param) { instance = this; init(); }
 FileManager::~FileManager() { instance = nullptr; }
 const FileManager *FileManager::get() { return instance; }
 

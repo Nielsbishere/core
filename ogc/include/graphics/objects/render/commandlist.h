@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types/vector.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "graphics/objects/graphicsobject.h"
 
 namespace oi {
@@ -16,6 +16,7 @@ namespace oi {
 		class Mesh;
 		class DrawList;
 		class ComputeList;
+		class CommandList;
 
 		struct CommandListInfo { 
 
@@ -50,8 +51,8 @@ namespace oi {
 			void end(RenderTarget *target);
 
 			void bind(Pipeline *pipeline);
-			void draw(DrawList *drawList);
 
+			void draw(DrawList *drawList);
 			void dispatch(ComputeList *computeList);
 
 			CommandListExt &getExtension();
@@ -68,7 +69,7 @@ namespace oi {
 		private:
 
 			CommandListInfo info;
-			CommandListExt ext;
+			CommandListExt *ext;
 			MeshBuffer *boundMB = nullptr;
 
 		};

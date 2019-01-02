@@ -1,3 +1,4 @@
+#include "graphics/graphics.h"
 #include "graphics/objects/model/material.h"
 #include "graphics/objects/model/materiallist.h"
 #include "graphics/objects/texture/texture.h"
@@ -22,29 +23,62 @@ void Material::setClearcoatGloss(f32 val){ info.ptr->clearcoatGloss = val; notif
 void Material::setReflectiveness(f32 val) { info.ptr->reflectiveness = val; notify(); }
 void Material::setSheen(f32 val) { info.ptr->sheen = val; notify(); }
 
-void Material::setDiffuse(Texture *tex) { setTex(info.ptr->t_diffuse, tex); }
-void Material::setOpacity(Texture *tex) { setTex(info.ptr->t_opacity, tex); }
-void Material::setEmissive(Texture *tex) { setTex(info.ptr->t_emissive, tex); }
-void Material::setRoughness(Texture *tex) { setTex(info.ptr->t_roughness, tex); }
-void Material::setAmbientOcclusion(Texture *tex) { setTex(info.ptr->t_ao, tex); }
-void Material::setHeight(Texture *tex) { setTex(info.ptr->t_height, tex); }
-void Material::setMetallic(Texture *tex) { setTex(info.ptr->t_metallic, tex); }
-void Material::setNormal(Texture *tex) { setTex(info.ptr->t_normal, tex); }
-void Material::setSpecular(Texture *tex) { setTex(info.ptr->t_specular, tex); }
+void Material::setDiffuse(Texture *tex) { setTex(tex, MaterialTextureType::DIFFUSE); }
+void Material::setOpacity(Texture *tex) { setTex(tex, MaterialTextureType::OPACITY); }
+void Material::setEmissive(Texture *tex) { setTex(tex, MaterialTextureType::EMISSIVE); }
+void Material::setRoughness(Texture *tex) { setTex(tex, MaterialTextureType::ROUGHNESS); }
+void Material::setAmbientOcclusion(Texture *tex) { setTex(tex, MaterialTextureType::AMBIENT_OCCLUSION); }
+void Material::setHeight(Texture *tex) { setTex(tex, MaterialTextureType::HEIGHT); }
+void Material::setMetallic(Texture *tex) { setTex(tex, MaterialTextureType::METALLIC); }
+void Material::setNormal(Texture *tex) { setTex(tex, MaterialTextureType::NORMAL); }
+void Material::setSpecular(Texture *tex) { setTex(tex, MaterialTextureType::SPECULAR); }
 
-Material::~Material() { info.parent->dealloc(info.ptr); }
+Material::~Material() {
+
+	for (u32 i = 0, j = (u32)MaterialTextureType::LENGTH; i < j; ++i)
+		if (info.usedTextures[i])
+			setTex(nullptr, (MaterialTextureType)i);
+
+	info.parent->dealloc(info.ptr);
+	g->destroy(info.parent);
+}
+
 Material::Material(MaterialInfo info) : info(info) {}
 bool Material::init() {
 	info.ptr = info.parent->alloc(info.temp);
+	g->use(info.parent);
 	return true;
 }
 
-void Material::setTex(TextureHandle &texHandle, Texture *tex) {
+void Material::setTex(Texture *tex, MaterialTextureType type) {
+
+	TextureHandle &texHandle = *(&info.ptr->t_diffuse + (u32)type);
+
+	if (tex == nullptr) {
+
+		if (!info.usedTextures[(u32)type])
+			return;
+
+		g->destroyObject(info.parent->getInfo().textures->get(texHandle));
+		info.usedTextures[(u32)type] = false;
+		texHandle = 0;
+		notify();
+		return;
+	}
 
 	if (tex->getInfo().parent != info.parent->getInfo().textures)
 		Log::throwError<Material, 0x0>("Texture should be in same TextureList used in MaterialList");
 
+	if (texHandle == tex->getHandle())
+		return;
+
+	if (info.usedTextures[(u32)type])
+		g->destroyObject(info.parent->getInfo().textures->get(texHandle));
+	else
+		info.usedTextures[(u32)type] = true;
+
 	texHandle = tex->getHandle();
+	g->use(tex);
 	notify();
 
 }

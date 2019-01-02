@@ -7,6 +7,8 @@
 #undef ERROR
 #undef near
 #undef far
+#undef RGB
+#undef RGBA
 
 namespace oi {
 
@@ -14,7 +16,7 @@ namespace oi {
 
 		class Window;
 
-		struct WWindow {
+		struct WindowExt {
 
 			HINSTANCE instance;
 			HWND window;
@@ -24,7 +26,7 @@ namespace oi {
 
 		};
 
-		DEnum(WKey, WPARAM, Undefined = 0, Zero = 48, One = 49, Two = 50, Three = 51, Four = 52, Five = 53, Six = 54, Seven = 55, Eight = 56, Nine = 57, A = 65, B = 66, C = 67, D = 68, E = 69,
+		DEnum(KeyExt, WPARAM, Undefined = 0, Zero = 48, One = 49, Two = 50, Three = 51, Four = 52, Five = 53, Six = 54, Seven = 55, Eight = 56, Nine = 57, A = 65, B = 66, C = 67, D = 68, E = 69,
 			F = 70, G = 71, H = 72, I = 73, J = 74, K = 75, L = 76, M = 77, N = 78, O = 79, P = 80, Q = 81, R = 82, S = 83, T = 84, U = 85, V = 86, W = 87, X = 88,
 			Y = 89, Z = 90, Minus = VK_OEM_MINUS, Equals = VK_OEM_NEC_EQUAL, Left_brace = VK_OEM_4, Right_brace = VK_OEM_6, Semicolon = VK_OEM_1, Apostrophe = VK_OEM_7,
 			Tilde = VK_OEM_3, Backslash = VK_OEM_5, Comma = VK_OEM_COMMA, Period = VK_OEM_PERIOD, Slash = VK_OEM_2, Space = VK_SPACE, n0 = VK_NUMPAD0, n1 = VK_NUMPAD1,

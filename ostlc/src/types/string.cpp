@@ -515,3 +515,7 @@ Buffer String::encode(String charset, u8 perChar) const {
 }
 
 String String::getDefaultCharset() { return " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz."; }
+
+size_t String::getHash() const {
+	return std::hash<std::string>{}(source);
+}

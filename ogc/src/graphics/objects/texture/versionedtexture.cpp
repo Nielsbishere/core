@@ -27,3 +27,10 @@ VersionedTexture::~VersionedTexture() {
 		g->destroy(tex);
 
 }
+
+void VersionedTexture::resize(Vec2u size) {
+
+	for (Texture *tex : info.version)
+		tex->resize(size);
+
+}

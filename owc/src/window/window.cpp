@@ -13,7 +13,6 @@ InputHandler &Window::getInputHandler() { return inputHandler; }
 InputManager &Window::getInputManager() { return inputManager; }
 WindowInterface *Window::getInterface() { return wi; }
 WindowManager *Window::getParent() { return parent; }
-WindowExt &Window::getExtension() { return ext; }
 
 void Window::setInterface(WindowInterface *wif) {
 

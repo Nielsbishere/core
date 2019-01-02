@@ -9,7 +9,6 @@ u32 GPUBuffer::getSize() { return info.buffer.size(); }
 u8 *GPUBuffer::getAddress() { return info.buffer.addr(); }
 Buffer GPUBuffer::getBuffer() { return info.buffer; }
 
-GPUBufferExt &GPUBuffer::getExtension() { return ext; }
 const GPUBufferInfo &GPUBuffer::getInfo() { return info; }
 
 bool GPUBuffer::set(Buffer buf, u32 offset) {
@@ -20,4 +19,9 @@ bool GPUBuffer::set(Buffer buf, u32 offset) {
 	memcpy(info.buffer.addr() + offset, buf.addr(), buf.size());
 	flush(Vec2u(0, buf.size()) + offset);
 	return true;
+}
+
+GPUBuffer::~GPUBuffer() {
+	info.buffer.deconstruct();
+	destroy();
 }

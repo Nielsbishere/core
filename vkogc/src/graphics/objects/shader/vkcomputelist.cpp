@@ -1,6 +1,5 @@
-#ifdef __VULKAN__
 #include "graphics/graphics.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/shader/pipeline.h"
@@ -9,7 +8,6 @@ using namespace oi::gc;
 using namespace oi;
 
 #undef min
-#undef max
 
 void ComputeList::prepareComputeList() {
 
@@ -35,7 +33,7 @@ struct VkComputeList {};
 
 void ComputeList::checkDispatchGroups(Vec3u &groups) {
 
-	VkGraphics &graphics = g->getExtension();
+	GraphicsExt &graphics = g->getExtension();
 	Vec3u &maxComputeGroup = *(Vec3u*)(graphics.pproperties.properties.limits.maxComputeWorkGroupCount);
 
 	if (groups.min(maxComputeGroup) != groups)
@@ -45,7 +43,7 @@ void ComputeList::checkDispatchGroups(Vec3u &groups) {
 
 bool ComputeList::initData() {
 
-	VkGraphics &graphics = g->getExtension();
+	GraphicsExt &graphics = g->getExtension();
 	Vec3u &maxGroupSize = *(Vec3u*)(graphics.pproperties.properties.limits.maxComputeWorkGroupSize);
 
 	Vec3u groupSize = info.computePipeline->getComputeInfo().shader->getInfo().computeThreads;
@@ -58,5 +56,3 @@ bool ComputeList::initData() {
 
 	return true;
 }
-
-#endif

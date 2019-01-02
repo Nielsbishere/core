@@ -23,10 +23,19 @@ Vec2u RenderTarget::getSize() { return info.res; }
 bool RenderTarget::isOwned() { return owned; }
 bool RenderTarget::isComputeTarget() { return info.isComputeTarget; }
 
-RenderTargetExt &RenderTarget::getExtension() { return ext; }
 const RenderTargetInfo RenderTarget::getInfo() { return info; }
 
 RenderTarget::RenderTarget(RenderTargetInfo info) : info(info){}
+RenderTarget::~RenderTarget() {
+
+	for (VersionedTexture *t : info.textures)
+		g->destroy(t);
+
+	g->destroy(info.depth);
+
+	destroyData();
+
+}
 
 bool RenderTarget::init(bool isOwned) {
 
@@ -47,9 +56,9 @@ bool RenderTarget::init(bool isOwned) {
 		TextureInfo texInfo = TextureInfo(info.res, info.formats[i], info.isComputeTarget ? TextureUsage::Compute_target : TextureUsage::Render_target);
 
 		for (u32 j = 0; j < g->getBuffering(); ++j)
-			g->use(vtextures[j] = g->create(getName() + " - " + i + " #" + j, texInfo));
+			g->use(vtextures[j] = g->create(getName() + " " + i + " #" + j, texInfo));
 
-		g->use(textures[i] = g->create(getName() + " - " + i, VersionedTextureInfo(vtextures)));
+		g->use(textures[i] = g->create(getName() + " " + i, VersionedTextureInfo(vtextures)));
 
 	}
 

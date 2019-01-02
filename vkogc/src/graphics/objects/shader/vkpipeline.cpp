@@ -1,72 +1,44 @@
-#ifdef __VULKAN__
+#include "graphics/generic.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/model/meshbuffer.h"
 #include "graphics/objects/shader/pipeline.h"
 #include "graphics/objects/shader/pipelinestate.h"
 #include "graphics/objects/shader/shader.h"
+#include "graphics/objects/shader/shaderdata.h"
 #include "graphics/objects/shader/shaderstage.h"
 using namespace oi::gc;
 using namespace oi;
 
-Pipeline::~Pipeline() {
-
-	g->destroy(graphicsInfo.shader);
-	g->destroy(graphicsInfo.meshBuffer);
-	g->destroy(graphicsInfo.pipelineState);
-	g->destroy(graphicsInfo.renderTarget);
-	g->destroy(computeInfo.shader);
-
-	for(Shader *shader : raytracingInfo.shaders)
-		g->destroy(shader);
-
-	g->destroy(raytracingInfo.meshBuffer);
-
-	vkDestroyPipeline(g->getExtension().device, ext, vkAllocator);
+void Pipeline::destroyData() {
+	vkDestroyPipeline(g->getExtension().device, ext->obj, vkAllocator);
+	g->dealloc<Pipeline>(ext);
 }
+
+PipelineExt &Pipeline::getExtension() { return *ext; }
 
 bool Pipeline::initData() {
 
-	if (raytracingInfo.shaders.size() == 0 && computeInfo.shader == nullptr && graphicsInfo.shader == nullptr)
+	if (info.raytracingInfo.shaders.size() == 0 && info.computeInfo.shader == nullptr && info.graphicsInfo.shader == nullptr)
 		return Log::throwError<VkPipeline, 0x0>("Pipeline requires a shader");
+
+	g->alloc<Pipeline>(ext);
 
 	GraphicsExt &gext = g->getExtension();
 
-	if (type == PipelineType::Graphics) {
+	if (info.type == PipelineType::Graphics) {
 
-		GraphicsPipelineInfo &info = graphicsInfo;
+		GraphicsPipelineInfo &pinfo = info.graphicsInfo;
 
-		if (info.renderTarget == nullptr || info.pipelineState == nullptr || info.meshBuffer == nullptr)
+		if (pinfo.renderTarget == nullptr || pinfo.pipelineState == nullptr || pinfo.meshBuffer == nullptr)
 			return Log::throwError<VkPipeline, 0x1>("Graphics pipeline requires a render target, pipeline state and mesh buffer");
 
-		ShaderExt &shext = info.shader->getExtension();
+		ShaderExt &shext = pinfo.shader->getExtension();
 
 		std::vector<VkPipelineShaderStageCreateInfo> stage(shext.stage.size());
 		for (u32 i = 0; i < (u32)stage.size(); ++i)
 			stage[i] = shext.stage[i]->pipeline;
-
-		//Init viewport and scissor
-
-		VkPipelineViewportStateCreateInfo viewportInfo;
-		memset(&viewportInfo, 0, sizeof(viewportInfo));
-
-		VkViewport viewport;
-		memset(&viewport, 0, sizeof(viewport));
-
-		viewport.width = (float) info.renderTarget->getSize().x;
-		viewport.height = (float) info.renderTarget->getSize().y;
-		viewport.maxDepth = 1;
-
-		VkRect2D scissor;
-		memset(&scissor, 0, sizeof(scissor));
-
-		scissor.extent = { (u32) viewport.width, (u32) viewport.height };
-
-		viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewportInfo.viewportCount = 1;
-		viewportInfo.pViewports = &viewport;
-		viewportInfo.scissorCount = 1;
-		viewportInfo.pScissors = &scissor;
 
 		//Pipeline
 
@@ -74,30 +46,47 @@ bool Pipeline::initData() {
 		memset(&pipelineInfo, 0, sizeof(pipelineInfo));
 
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.pDynamicState = nullptr;									//No dynamic states
-		pipelineInfo.pViewportState = &viewportInfo;
+
+		VkDynamicState states[2] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
+		VkPipelineDynamicStateCreateInfo dynamicStates;
+		memset(&dynamicStates, 0, sizeof(dynamicStates));
+
+		dynamicStates.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		dynamicStates.dynamicStateCount = (u32)(sizeof(states) / sizeof(states[0]));
+		dynamicStates.pDynamicStates = states;
+
+		VkPipelineViewportStateCreateInfo viewportState;
+		memset(&viewportState, 0, sizeof(viewportState));
+
+		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		viewportState.scissorCount = 1;
+		viewportState.viewportCount = 1;
+
+		pipelineInfo.pDynamicState = &dynamicStates;									//Viewport and scissor are dynamic
+		pipelineInfo.pViewportState = &viewportState;
 
 		//Shader
 
 		pipelineInfo.stageCount = (u32)stage.size();
 		pipelineInfo.pStages = stage.data();
-		pipelineInfo.layout = shext.layout;
+		pipelineInfo.layout = info.shaderData->getExtension().layout;
 
 		//PipelineState
 
-		PipelineStateExt &psext = info.pipelineState->getExtension();
+		PipelineStateExt &psext = pinfo.pipelineState->getExtension();
 		
 		VkPipelineRasterizationStateCreateInfo rasterizer = psext.rasterizer;
 		VkPipelineInputAssemblyStateCreateInfo assembler = psext.assembler;
 
-		rasterizer.polygonMode = FillModeExt(info.meshBuffer->getInfo().fillMode.getName()).getValue();
-		assembler.topology = TopologyModeExt(info.meshBuffer->getInfo().topologyMode.getName()).getValue();
+		rasterizer.polygonMode = FillModeExt(pinfo.meshBuffer->getInfo().fillMode.getName()).getValue();
+		assembler.topology = TopologyModeExt(pinfo.meshBuffer->getInfo().topologyMode.getName()).getValue();
 
 		if (!g->getExtension().pfeatures.wideLines)
 			rasterizer.lineWidth = 1.f;
 
 		VkPipelineColorBlendStateCreateInfo blending = psext.blending;
-		std::vector<VkPipelineColorBlendAttachmentState> attachments(info.renderTarget->getInfo().targets);
+		std::vector<VkPipelineColorBlendAttachmentState> attachments(pinfo.renderTarget->getInfo().targets);
 
 		u32 j = (u32) attachments.size();
 
@@ -116,7 +105,7 @@ bool Pipeline::initData() {
 		//MeshBuffer
 		//Set up bindings and attributes
 
-		const MeshBufferInfo meshBuffer = info.meshBuffer->getInfo();
+		const MeshBufferInfo meshBuffer = pinfo.meshBuffer->getInfo();
 
 		VkPipelineVertexInputStateCreateInfo inputInfo;
 		memset(&inputInfo, 0, sizeof(inputInfo));
@@ -132,7 +121,7 @@ bool Pipeline::initData() {
 
 		u32 i = 0;
 
-		const ShaderInfo shinfo = info.shader->getInfo();
+		const ShaderInfo shinfo = pinfo.shader->getInfo();
 
 		for (auto &elem : meshBuffer.buffers) {
 
@@ -151,7 +140,7 @@ bool Pipeline::initData() {
 					if (var.name == ename) {
 
 						if (!Graphics::isCompatible(var.type, format))
-							return Log::throwError<VkPipeline, 0x2>(String("Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; ") + info.shader->getName() + "'s " + var.name + " and " + info.meshBuffer->getName() + "'s " + ename);
+							return Log::throwError<VkPipeline, 0x2>(String("Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; ") + pinfo.shader->getName() + "'s " + var.name + " and " + pinfo.meshBuffer->getName() + "'s " + ename);
 
 						break;
 					}
@@ -181,7 +170,7 @@ bool Pipeline::initData() {
 
 		//RenderTarget
 
-		RenderTarget *rt = info.renderTarget;
+		RenderTarget *rt = pinfo.renderTarget;
 		RenderTargetExt &rtext = rt->getExtension();
 
 		pipelineInfo.renderPass = rtext.renderPass;
@@ -189,7 +178,7 @@ bool Pipeline::initData() {
 
 		//Validate pipeline
 
-		for (const ShaderOutput so : info.shader->getInfo().outputs) {
+		for (const ShaderOutput so : pinfo.shader->getInfo().outputs) {
 
 			if (so.id >= rt->getTargets())
 				Log::throwError<VkPipeline, 0x5>("Invalid pipeline; Shader referenced a shader output to an unknown output");
@@ -202,13 +191,13 @@ bool Pipeline::initData() {
 
 		//Create the pipeline
 
-		vkCheck<0x7, VkPipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create graphics pipeline");
+		vkCheck<0x7, VkPipeline>(vkCreateGraphicsPipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext->obj), "Couldn't create graphics pipeline");
 
-	} else if(type == PipelineType::Compute) {
+	} else if(info.type == PipelineType::Compute) {
 	
-		ComputePipelineInfo &info = computeInfo;
+		ComputePipelineInfo &pinfo = info.computeInfo;
 
-		ShaderExt &shext = info.shader->getExtension();
+		ShaderExt &shext = pinfo.shader->getExtension();
 
 		//Create compute pipeline
 
@@ -217,34 +206,33 @@ bool Pipeline::initData() {
 
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 		pipelineInfo.stage = shext.stage[0]->pipeline;
-		pipelineInfo.layout = shext.layout;
+		pipelineInfo.layout = info.shaderData->getExtension().layout;
 
 		//Create the pipeline
 
-		vkCheck<0x8, VkPipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create compute pipeline");
+		vkCheck<0x8, VkPipeline>(vkCreateComputePipelines(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext->obj), "Couldn't create compute pipeline");
 
-	}
-	else if (type == PipelineType::Raytracing) {
+	} else if (info.type == PipelineType::Raytracing) {
 		#ifdef __RAYTRACING__ 
 
 			if (!g->supports(GraphicsFeature::Raytracing))
-				Log::throwError<VkGraphics, 0xA>("Couldn't create pipeline; raytracing isn't supported");
+				Log::throwError<GraphicsExt, 0xA>("Couldn't create pipeline; raytracing isn't supported");
 
-			RaytracingPipelineInfo &info = raytracingInfo;
+			RaytracingPipelineInfo &pinfo = info.raytracingInfo;
 
 			u32 stageCount = 0;
 
-			for (Shader *shader : info.shaders)
+			for (Shader *shader : pinfo.shaders)
 				stageCount += (u32) shader->getInfo().stage.size();
 
 			std::vector<VkPipelineShaderStageCreateInfo> stage(stageCount);
 
-			std::vector<VkRayTracingShaderGroupCreateInfoNV> groups(info.shaders.size());
+			std::vector<VkRayTracingShaderGroupCreateInfoNV> groups(pinfo.shaders.size());
 			memset(groups.data(), 0, groups.size() * sizeof(VkRayTracingPipelineCreateInfoNV));
 
 			u32 i = 0, j = 0;
 
-			for (Shader *shader : info.shaders) {
+			for (Shader *shader : pinfo.shaders) {
 
 				u32 gen = VK_SHADER_UNUSED_NV, chit = VK_SHADER_UNUSED_NV, 
 					ahit = VK_SHADER_UNUSED_NV, intersection = VK_SHADER_UNUSED_NV;
@@ -301,18 +289,18 @@ bool Pipeline::initData() {
 			memset(&pipelineInfo, 0, sizeof(pipelineInfo));
 
 			pipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_NV;
-			pipelineInfo.layout = info.shaders[0]->getExtension().layout;
+			pipelineInfo.layout = info.shaderData->getExtension().layout;
 			pipelineInfo.stageCount = stageCount;
 			pipelineInfo.pStages = stage.data();
-			pipelineInfo.maxRecursionDepth = info.maxRecursionDepth;
+			pipelineInfo.maxRecursionDepth = pinfo.maxRecursionDepth;
 			pipelineInfo.groupCount = (u32) groups.size();
 			pipelineInfo.pGroups = groups.data();
 
 			//Create the pipeline
 
-			VkGraphics &graphics = g->getExtension();
+			GraphicsExt &graphics = g->getExtension();
 
-			vkCheck<0x9, VkPipeline>(graphics.vkCreateRayTracingPipelinesNV(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext), "Couldn't create raytracing pipeline");
+			vkCheck<0x9, VkPipeline>(graphics.vkCreateRayTracingPipelinesNV(gext.device, VK_NULL_HANDLE, 1, &pipelineInfo, vkAllocator, &ext->obj), "Couldn't create raytracing pipeline");
 
 		#else
 
@@ -326,5 +314,3 @@ bool Pipeline::initData() {
 	Log::println("Successfully created pipeline");
 	return true;
 }
-
-#endif

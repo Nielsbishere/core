@@ -12,8 +12,6 @@ namespace oi {
 
 	class String {
 
-		friend struct std::hash<String>;
-
 	public:
 
 		String();
@@ -136,6 +134,8 @@ namespace oi {
 
 		static String getDefaultCharset();
 
+		size_t getHash() const;
+
 		auto begin() { return source.begin(); }
 		auto end() { return source.end(); }
 
@@ -151,7 +151,7 @@ namespace std {
 	template<>
 	struct hash<oi::String> {
 		inline size_t operator()(const oi::String &str) const {
-			return hash<std::string>{}(str.source);
+			return str.getHash();
 		}
 	};
 }

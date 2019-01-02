@@ -2,11 +2,12 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <fstream>
-#include <Windows.h>
+#include <algorithm>
 #include "types/string.h"
 #include "types/buffer.h"
 #include "utils/log.h"
 #include "file/filemanager.h"
+#include "platforms/windows.h"
 using namespace oi::wc;
 using namespace oi;
 
@@ -34,6 +35,50 @@ bool openFile(String file, std::ofstream &in) {
 	return true;
 }
 
+namespace oi {
+
+	namespace wc {
+
+		struct FileManagerExt {
+
+			static BOOL enumerateFiles(HMODULE, LPCSTR, LPSTR name, LONG_PTR fileManager) {
+
+				FileManager *fm = (FileManager*)fileManager;
+				String sname = String(name).toLowerCase();
+				std::vector<String> parts = sname.split("/");
+				String currName = "";
+				u32 last = 0;
+
+				for (u32 i = 0, j = (u32) parts.size() - 1; i < j; ++i) {
+
+					currName += String(currName != "" ? "/" : "") + parts[i];
+
+					auto it = std::find(fm->dirs.begin(), fm->dirs.end(), currName);
+
+					if (it == fm->dirs.end()){
+						fm->dirs.push_back(currName);
+						last = (u32) fm->dirs.size();
+					} else
+						last = (u32)(it - fm->dirs.begin());
+
+				}
+
+				fm->files.push_back({ sname, last });
+				return true;
+			}
+
+		};
+
+	}
+
+}
+
+void FileManager::init() {
+
+	EnumResourceNamesA(nullptr, RT_RCDATA, FileManagerExt::enumerateFiles, (LONG_PTR) this);
+
+}
+
 bool FileManager::mkdir(String path) const {
 
 	if (!validate(path, FileAccess::WRITE)) return Log::error("Mkdir requires write access");
@@ -59,12 +104,13 @@ bool FileManager::mkdir(String path) const {
 }
 
 String FileManager::getAbsolutePath(String path) const {
-	return (path == "" ? "" : (path.startsWith("mod") ? String("./res") + path.cutBegin(3) : String("./") + path));
+	return (path == "" ? "" : (path.startsWith("mod") ? String("res") + path.cutBegin(3) : path));
 
 }
 
 bool FileManager::dirExists(String path) const {
 	if (!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open folder for query");
+	if (path.startsWith("res")) return std::find(dirs.begin(), dirs.end(), path) != dirs.end();
 	return GetFileAttributesA(getAbsolutePath(path).toCString()) & FILE_ATTRIBUTE_DIRECTORY;
 }
 
@@ -72,6 +118,7 @@ bool FileManager::canModifyAssets() const { return true; }
 
 bool FileManager::fileExists(String path) const {
 	if (!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open file for query");
+	if (path.startsWith("res")) return std::find_if(files.begin(), files.end(), [path](const ParentedFileInfo &info) -> bool { return info.name == path.toLowerCase(); }) != files.end();
 	FILE *file = fopen(getAbsolutePath(path).toCString(), "r");
 	if (file != nullptr) fclose(file);
 	return file != nullptr;
@@ -80,6 +127,27 @@ bool FileManager::fileExists(String path) const {
 bool FileManager::read(String file, String &s) const {
 
 	if (!validate(file, FileAccess::READ)) return Log::error("Couldn't open file for read");
+
+	if (file.startsWith("res")) {
+
+		HRSRC data = FindResourceA(nullptr, file.toCString(), RT_RCDATA);
+
+		if (data == nullptr)
+			return Log::error("Couldn't find resource");
+
+		u32 size = (u32) SizeofResource(nullptr, data);
+		HGLOBAL handle = LoadResource(nullptr, data);
+
+		if (handle == nullptr)
+			return Log::error("Couldn't load resource");
+
+		char *dat = (char*) LockResource(handle);
+
+		s = String(dat, size);
+		UnlockResource(handle);
+		FreeResource(handle);
+		return true;
+	}
 
 	std::ifstream in;
 	if (!openFile(file, in)) return Log::error("Couldn't open file for read");
@@ -92,6 +160,27 @@ bool FileManager::read(String file, String &s) const {
 bool FileManager::read(String file, Buffer &b) const {
 
 	if (!validate(file, FileAccess::READ)) return Log::error("Couldn't open file for read");
+
+	if (file.startsWith("res")) {
+
+		HRSRC data = FindResourceA(nullptr, file.toCString(), RT_RCDATA);
+
+		if (data == nullptr)
+			return Log::error("Couldn't find resource");
+
+		u32 size = (u32)SizeofResource(nullptr, data);
+		HGLOBAL handle = LoadResource(nullptr, data);
+
+		if (handle == nullptr)
+			return Log::error("Couldn't load resource");
+
+		u8 *dat = (u8*) LockResource(handle);
+
+		b = Buffer(dat, size);
+		UnlockResource(handle);
+		FreeResource(handle);
+		return true;
+	}
 
 	std::ifstream in;
 	if (!openFile(file, in)) return Log::error("Couldn't open file for read");
@@ -136,6 +225,23 @@ bool FileManager::foreachFile(String path, FileCallback callback) const {
 
 	if(!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open folder for query");
 	if (!dirExists(path)) return Log::error("Couldn't find the specified folder");
+
+	if (path.startsWith("res")) {
+
+		u32 dirId = u32(std::find(dirs.begin(), dirs.end(), path) - dirs.begin());
+
+		for (auto &file : files)
+			if (file.dirId == dirId)
+				callback(getFile(file.name));
+
+		path += "/";
+
+		for (auto &dir : dirs)
+			if (dir.startsWith(path))
+				callback(getFile(dir));
+
+		return true;
+	}
 
 	String startPath = path + "/";
 	path = getAbsolutePath(path) + "/*";
@@ -187,7 +293,14 @@ FileInfo FileManager::getFile(String path) const {
 	String apath = getAbsolutePath(path);
 
 	struct _stat64 attr;
-	_stat64(apath.toCString(), &attr);
+	memset(&attr, 0, sizeof(attr));
+
+	if(!path.startsWith("res"))
+		_stat64(apath.toCString(), &attr);
+	else if (!isFolder) {
+		if (HRSRC data = FindResourceA(nullptr, path.toCString(), RT_RCDATA))
+			attr.st_size = (u64)SizeofResource(nullptr, data);
+	}
 
 	return FileInfo(isFolder, path, attr.st_mtime, attr.st_size);
 

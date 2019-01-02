@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.6.0)
+cmake_minimum_required(VERSION 3.13.0)
+cmake_policy(SET CMP0079 NEW)
+cmake_policy(SET CMP0077 NEW)
 project(oic)
 
 # User options
@@ -99,52 +101,13 @@ if(VR)
 endif()
 
 if(Vulkan)
-
 	add_definitions(-D__VULKAN__)
 	message("-- Vulkan - enabled")
-
-	if(WIN32)
-		if(DEFINED ENV{VULKAN_SDK})
-
-			set(VULKAN_LIB vulkan-1)
-			
-			include_directories($ENV{VULKAN_SDK}/Include)
-
-			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-				link_directories($ENV{VULKAN_SDK}/Lib)
-			else()
-				link_directories($ENV{VULKAN_SDK}/Lib32)
-			endif()
-
-		else()
-			message(FATAL_ERROR "-- Vulkan - disabled: Please download the Vulkan SDK so you can compile")
-		endif()
-	else()
-		set(VULKAN_LIB vulkan)
-	endif()
-
-	if(Windows)
-		add_definitions(-D__VK_SURFACE_TYPE__=VkWin32SurfaceCreateInfoKHR)
-		add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR)
-		add_definitions(-D__VK_SURFACE_CREATE__=vkCreateWin32SurfaceKHR)
-		add_definitions(-D__VK_SURFACE_HANDLE__=hinstance)
-		add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_win32_surface")
-		add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
-	elseif(Android)
-		add_definitions(-D__VK_SURFACE_TYPE__=VkAndroidSurfaceCreateInfoKHR)
-		add_definitions(-D__VK_SURFACE_STYPE__=VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR)
-		add_definitions(-D__VK_SURFACE_CREATE__=vkCreateAndroidSurfaceKHR)
-		add_definitions(-D__VK_SURFACE_HANDLE__=window)
-		add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_android_surface")
-		add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
-	endif()
-	
-	link_libraries(${VULKAN_LIB})
-	
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 	add_definitions(-D__DEBUG__)
+	message("-- Debug - enabled")
 endif()
 
 # dependencies
@@ -155,6 +118,13 @@ add_subdirectory(ostlc)
 add_subdirectory(owc)
 add_subdirectory(ogc)
 set_property(TARGET ostlc owc ogc PROPERTY FOLDER ocore)
+
+# api dependent
+if(Vulkan)
+	add_subdirectory(vkogc)
+	set_property(TARGET vkogc PROPERTY FOLDER api)
+	target_link_libraries(ogc vkogc)
+endif()
 
 # desktop conversion tools
 add_subdirectory(oibaker)
