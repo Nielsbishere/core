@@ -392,7 +392,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 
 | File                                  | Message                      | Class   | Id   | Description                                                  |
 | --------------------------------------- | ---------------------------- | ------- | ---- | ------------------------------------------------------------ |
-| platforms<br />windows<br />wwindow.cpp | Couldn't init Windows class  | WWindow | 0x0  | RegisterClassEx failed, meaning the window couldn't be created for this system |
+| platforms<br />windows<br />wwindow.cpp | Couldn't init Windows class  | WindowExt | 0x0  | RegisterClassEx failed, meaning the window couldn't be created for this system |
 |                                         | Couldn't init Windows window |         | 0x1  | CreateWindowEx failed, meaning that the window data is invalid |
 
 #### Errors
@@ -410,7 +410,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 |                                              | Couldn't find the specified file                             | File doesn't exist                                           |
 |                                              | Couldn't find resource                                       | The resource couldn't be found in the exe. If you added the resource after creating the exe, rebuild app_pc |
 |                                              | Couldn't load resource                                       | The resource could be found, but couldn't be loaded into memory |
-| platforms<br />windows<br />wwindow.cpp      | {HRESULT}                                                    | Occurs on WWindow error 0x0, prints the HRESULT when it can't init the Windows class |
+| platforms<br />windows<br />wwindow.cpp      | {HRESULT}                                                    | Occurs on WindowExt error 0x0, prints the HRESULT when it can't init the Windows class |
 
 ### Fatal errors
 

@@ -1,6 +1,6 @@
 #ifdef __ANDROID__
 
-#include "platforms/generic.h"
+#include "platforms/android.h"
 #include "window/windowmanager.h"
 using namespace oi::wc;
 
@@ -14,7 +14,7 @@ void WindowManager::waitAll() {
 	initAll();
 	
 	Window *w = operator[](0);
-	struct android_app *state = w->info.handle;
+	struct android_app *state = (struct android_app*) w->info.handle;
 	
 	while(getWindows() != 0){
 		

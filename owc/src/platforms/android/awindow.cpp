@@ -1,6 +1,6 @@
 #ifdef __ANDROID__
 
-#include "platforms/generic.h"
+#include "platforms/android.h"
 #include "window/windowinterface.h"
 #include "window/windowmanager.h"
 #include "input/mouse.h"
@@ -13,7 +13,7 @@
 using namespace oi::wc;
 using namespace oi;
 
-Window *AWindow::getWindow(struct android_app *app){
+Window *WindowExt::getWindow(struct android_app *app){
 
 	WindowManager *wm = WindowManager::get();
 
@@ -30,13 +30,13 @@ Window *AWindow::getWindow(struct android_app *app){
 
 }
 
-void AWindow::initDisplay(Window *w){
+void WindowExt::initDisplay(Window *w){
 	w->updatePlatform();
 	w->initialized = true;
 	w->finalize();
 }
 
-void AWindow::terminate(Window *w){
+void WindowExt::terminate(Window *w){
 	WindowInterface *wi = w->getInterface();
 	if(wi != nullptr)
 		wi->destroySurface();
@@ -44,7 +44,7 @@ void AWindow::terminate(Window *w){
 	w->initialized = false;
 }
 
-void AWindow::handleCmd(struct android_app *app, int32_t cmd){
+void WindowExt::handleCmd(struct android_app *app, int32_t cmd){
 
 	Window *w = getWindow(app);
 	WindowInterface *wi = w->getInterface();
@@ -144,7 +144,7 @@ void AWindow::handleCmd(struct android_app *app, int32_t cmd){
 
 }
 
-int32_t AWindow::handleInput(struct android_app *app, AInputEvent *event){
+int32_t WindowExt::handleInput(struct android_app *app, AInputEvent *event){
 
 	Window *w = getWindow(app);
 	WindowInterface *wi = w->getInterface();
@@ -218,12 +218,12 @@ int32_t AWindow::handleInput(struct android_app *app, AInputEvent *event){
 		case AINPUT_EVENT_TYPE_KEY:
 			{
 				int32_t keycode = AKeyEvent_getKeyCode(event);
-				AKey key = AKey::find(keycode);
+				KeyExt key = KeyExt::find(keycode);
 				Binding b = Key(key.getName()).getValue();
 				
 				if(key.getIndex() == 0){
 
-					AControllerButton button = AControllerButton::find(keycode);
+					ControllerButtonExt button = ControllerButtonExt::find(keycode);
 					b = Binding(ControllerButton(button.getName()).getValue(), 0);
 
 					if(button.getIndex() != 0){
@@ -250,18 +250,19 @@ int32_t AWindow::handleInput(struct android_app *app, AInputEvent *event){
 }
 
 void Window::initPlatform() {
-
-	//Get data
-
-	ext.app = getInfo().handle;
-	ext.app->userData = this;
-	ext.app->onAppCmd = AWindow::handleCmd;
-	ext.app->onInputEvent = AWindow::handleInput;
+	ext = new WindowExt();
+	ext->app = (struct android_app*) getInfo().handle;
+	ext->app->userData = this;
+	ext->app->onAppCmd = WindowExt::handleCmd;
+	ext->app->onInputEvent = WindowExt::handleInput;
 }
 
 void Window::destroyPlatform() {
-	AWindow::terminate(this);
+	WindowExt::terminate(this);
+	delete ext;
 }
+
+WindowExt &Window::getExtension() { return *ext; }
 
 void Window::updatePlatform() {
 

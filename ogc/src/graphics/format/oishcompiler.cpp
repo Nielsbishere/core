@@ -5,7 +5,6 @@
 #include "graphics/helper/spvhelper.h"
 #include "graphics/format/oish.h"
 #include "graphics/objects/shader/shader.h"
-#undef ERROR
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;

@@ -1,7 +1,8 @@
 #if defined(__VULKAN__) && defined(__WINDOWS__)
+#include "window/window.h"
 #include "graphics/gl/vulkan.h"
 #include "graphics/graphics.h"
-#include "window/window.h"
+#include "platforms/windows.h"
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;

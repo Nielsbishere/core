@@ -18,9 +18,6 @@
 
 #pragma warning(pop)
 
-#undef min
-#undef max
-
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;

@@ -18,13 +18,13 @@ namespace oi {
 
 		public:
 
-			WindowInfo(String title, u32 version, WindowHandleExt *handle = nullptr, bool inFocus = true);
+			WindowInfo(String title, u32 version, AppExt *app = nullptr, bool inFocus = true);
 
 			String getTitle() const;
 			Vec2i getPosition() const;
 			Vec2u getSize() const;
 			Window *getParent() const;
-			WindowHandleExt *getParam() const;
+			AppExt *getApp() const;
 			bool isFullScreen() const;
 
 			void toggleFullScreen();
@@ -51,7 +51,7 @@ namespace oi {
 			u32 version;
 			String title;
 			Window *parent;
-			WindowHandleExt *handle;
+			AppExt *handle;
 
 		};
 

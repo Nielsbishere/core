@@ -15,7 +15,7 @@ using namespace oi::wc;
 using namespace oi;
 
 //Set up a main window
-void Application::instantiate(WindowHandleExt *param){
+void Application::instantiate(AppExt *param){
 	Random::seedRandom();
 	FileManager fmanager(param);
 	WindowManager wmanager;
@@ -172,6 +172,8 @@ void MainInterface::initScene() {
 
 	BasicGraphicsInterface::initScene();
 	Log::println("Started main interface!");
+
+	FileManager::get()->foreachFileRecurse("res", [](FileInfo info) -> bool { Log::println(info.name); return false; });
 
 	//Setup our input manager
 

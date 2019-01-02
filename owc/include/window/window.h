@@ -56,7 +56,7 @@ namespace oi {
 
 			f32 lastTick = 0;
 
-			WindowExt ext;
+			WindowExt *ext;
 
 		};
 	}

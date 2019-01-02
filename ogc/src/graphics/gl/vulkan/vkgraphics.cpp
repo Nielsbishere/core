@@ -10,7 +10,6 @@
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/gpubuffer.h"
 
-
 #undef min
 #undef max
 #undef ERROR

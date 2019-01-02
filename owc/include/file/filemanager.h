@@ -1,5 +1,6 @@
 #pragma once
 #include "types/string.h"
+#include "platforms/generic.h"
 #include <functional>
 
 namespace oi {
@@ -54,7 +55,7 @@ namespace oi {
 
 			static const FileManager *get();
 
-			FileManager(void *param);
+			FileManager(AppExt *app);
 			~FileManager();
 
 			bool read(String path, String &s) const;
@@ -85,7 +86,7 @@ namespace oi {
 		private:
 
 			static FileManager *instance;
-			void *param;
+			AppExt *param;
 
 			std::vector<String> dirs;
 			std::vector<ParentedFileInfo> files;

@@ -9,7 +9,6 @@ using namespace oi::gc;
 using namespace oi;
 
 #undef min
-#undef max
 
 void ComputeList::prepareComputeList() {
 

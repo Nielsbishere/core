@@ -9,7 +9,7 @@ void printstr(String str){
 }
 
 void printerr(String str){
-	OutputDebugString(str.toCString());
+	OutputDebugStringA(str.toCString());
 	printstr(str);
 }
 

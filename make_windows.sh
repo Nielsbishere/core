@@ -95,13 +95,15 @@ reload(){
 
 # Prepare resources
 
-cd ../../app
+cd app
 
 if [ $strip ] ; then
 	"../oibaker.exe" -strip_debug_info
 else
 	"../oibaker.exe"
 fi
+
+cd ../
 
 checkErrors
 

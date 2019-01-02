@@ -9,7 +9,7 @@ namespace oi {
 
 		class Window;
 
-		struct AWindow {
+		struct WindowExt {
 			
 			struct android_app *app;
 
@@ -20,7 +20,7 @@ namespace oi {
 			static void terminate(Window *w);
 		};
 
-		DEnum(AKey, int32_t, Undefined = AKEYCODE_UNKNOWN, Zero = AKEYCODE_0, One = AKEYCODE_1, Two = AKEYCODE_2, Three = AKEYCODE_3, Four = AKEYCODE_4, Five = AKEYCODE_5, Six = AKEYCODE_6, Seven = AKEYCODE_7, Eight = AKEYCODE_8, Nine = AKEYCODE_9,
+		DEnum(KeyExt, int32_t, Undefined = AKEYCODE_UNKNOWN, Zero = AKEYCODE_0, One = AKEYCODE_1, Two = AKEYCODE_2, Three = AKEYCODE_3, Four = AKEYCODE_4, Five = AKEYCODE_5, Six = AKEYCODE_6, Seven = AKEYCODE_7, Eight = AKEYCODE_8, Nine = AKEYCODE_9,
 			A = AKEYCODE_A, B = AKEYCODE_B, C = AKEYCODE_C, D = AKEYCODE_D, E = AKEYCODE_E, F = AKEYCODE_F, G = AKEYCODE_G, H = AKEYCODE_H, I = AKEYCODE_I, J = AKEYCODE_J, K = AKEYCODE_K, L = AKEYCODE_L, M = AKEYCODE_M, N = AKEYCODE_N, O = AKEYCODE_O,
 			P = AKEYCODE_P, Q = AKEYCODE_Q, R = AKEYCODE_R, S = AKEYCODE_S, T = AKEYCODE_T, U = AKEYCODE_U, V = AKEYCODE_V, W = AKEYCODE_W, X = AKEYCODE_X, Y = AKEYCODE_Y, Z = AKEYCODE_Z, Minus = AKEYCODE_MINUS, Equals = AKEYCODE_EQUALS, Left_brace = AKEYCODE_LEFT_BRACKET,
 			Right_brace = AKEYCODE_RIGHT_BRACKET, Semicolon = AKEYCODE_SEMICOLON, Apostrophe = AKEYCODE_APOSTROPHE, Tilde = AKEYCODE_GRAVE, Backslash = AKEYCODE_BACKSLASH, Comma = AKEYCODE_COMMA, Period = AKEYCODE_PERIOD, Slash = AKEYCODE_SLASH, Space = AKEYCODE_SPACE,
@@ -33,8 +33,8 @@ namespace oi {
 			Up = AKEYCODE_DPAD_UP, Down = AKEYCODE_DPAD_DOWN, Left = AKEYCODE_DPAD_LEFT, Right = AKEYCODE_DPAD_RIGHT
 		);
 
-		//PS4 implementation
-		DEnum(AControllerButton, int32_t, Undefined = AKEYCODE_UNKNOWN, Cross = AKEYCODE_BUTTON_B, Square = AKEYCODE_BUTTON_A, Triangle = AKEYCODE_BUTTON_X, Circle = AKEYCODE_BUTTON_C,
+		//PS4/DS4 implementation
+		DEnum(ControllerButtonExt, int32_t, Undefined = AKEYCODE_UNKNOWN, Cross = AKEYCODE_BUTTON_B, Square = AKEYCODE_BUTTON_A, Triangle = AKEYCODE_BUTTON_X, Circle = AKEYCODE_BUTTON_C,
 			L1 = AKEYCODE_BUTTON_Y, R1 = AKEYCODE_BUTTON_Z, L3 = AKEYCODE_BUTTON_SELECT, R3 = AKEYCODE_BUTTON_START, Share = AKEYCODE_BUTTON_L2, Options = AKEYCODE_BUTTON_R2
 		);
 

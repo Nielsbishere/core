@@ -4,8 +4,6 @@
 #include "graphics/gl/generic.h"
 #include "textureobject.h"
 
-#undef RGB
-
 namespace oi {
 
 	namespace gc {

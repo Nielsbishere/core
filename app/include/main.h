@@ -17,7 +17,7 @@ namespace oi {
 }
 
 struct Application {
-	static void instantiate(oi::wc::WindowHandleExt *param = nullptr);
+	static void instantiate(oi::wc::AppExt *param = nullptr);
 };
 
 struct NoiseLayer {
