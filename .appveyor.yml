@@ -9,7 +9,7 @@ install:
     
     git submodule update
     
-    wmic product where "description='CMake 3.12.2' " uninstall
+    wmic product where "description='CMake' " uninstall
     
     appveyor DownloadFile "https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2.zip" -FileName cmake.zip
     
