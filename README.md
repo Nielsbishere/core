@@ -29,7 +29,7 @@ git submodule update --init --recursive
 
 The following dependencies are required for the entire project:
 
-[CMake](https://cmake.org/download/) 3.6.0 or later  
+[CMake](https://cmake.org/download/) 3.13.0 or later  
 [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) 1.1.92.1 or later (ogc dependency)  
 [Python](https://www.python.org/downloads/) 3.7.1 or later (SPIRV-Tools-opt dependency)
 
@@ -204,6 +204,7 @@ You can view progress and planned features on [our trello board](https://trello.
 # Special thanks
 
 [Koen](https://github.com/161563) for helping out with with Vulkan versioning/synchronization and GPU allocation.
-[Lagmeester4000](https://github.com/lagmeester4000) for reviewing CPU memory allocation code.
-[Velddev](https://github.com/velddev) for creating a new logo.
 
+[Lagmeester4000](https://github.com/lagmeester4000) for reviewing CPU memory allocation code.
+
+[Velddev](https://github.com/velddev) for creating a new logo.
