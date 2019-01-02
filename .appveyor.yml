@@ -17,7 +17,7 @@ install:
     
     set PATH=%cd%\cmake\bin;%PATH%
     
-    make --version
+    cmake --version
     
     set VULKAN_SDK=C:\VulkanSDK\%VULKAN_VERSION%
     
