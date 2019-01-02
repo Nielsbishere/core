@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 #include "graphics/graphics.h"
-#include "graphics/gl/generic.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/generic.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/texture/sampler.h"
 using namespace oi::gc;
 using namespace oi;

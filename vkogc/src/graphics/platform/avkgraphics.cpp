@@ -1,7 +1,7 @@
 #if defined(__VULKAN__) && defined(__ANDROID__)
 #include "window/window.h"
 #include "platforms/android.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/vulkan.h"
 #include "graphics/graphics.h"
 using namespace oi::gc;
 using namespace oi::wc;

@@ -1,6 +1,6 @@
 #ifdef __VULKAN__
-#include "graphics/gl/generic.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/generic.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/model/meshbuffer.h"

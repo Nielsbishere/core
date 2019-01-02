@@ -1,7 +1,7 @@
 #pragma once
 #include "types/vector.h"
 #include "template/enum.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "textureobject.h"
 
 namespace oi {

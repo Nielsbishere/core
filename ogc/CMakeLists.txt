@@ -19,7 +19,3 @@ add_library(
 
 target_link_libraries(ogc ostlc owc)
 target_link_libraries(ogc glslang OGLCompiler OSDependent SPIRV SPVRemapper spirv-cross-core)
-
-if(Vulkan)
-	target_link_libraries(ogc ${VULKAN_LIB})
-endif()

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "graphics/objects/graphicsobject.h"
 #include "graphics/objects/shader/shaderdata.h"
 

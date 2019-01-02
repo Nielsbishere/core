@@ -1,8 +1,8 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
-#include "graphics/gl/generic.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/generic.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/render/rendertarget.h"

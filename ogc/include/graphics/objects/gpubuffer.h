@@ -1,7 +1,7 @@
 #pragma once
 
 #include "graphicsobject.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "types/vector.h"
 #include "template/enum.h"
 

@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 
 #include <cmath>
-#include "graphics/gl/vulkan.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/shader/pipelinestate.h"
 using namespace oi::gc;
 using namespace oi;

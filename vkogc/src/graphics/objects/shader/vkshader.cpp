@@ -1,7 +1,7 @@
 #ifdef __VULKAN__
 
 #include "graphics/graphics.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/shader.h"
 #include "graphics/objects/shader/shaderstage.h"

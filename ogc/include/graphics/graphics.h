@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "types/vector.h"
 #include "utils/timer.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "memory/blockallocator.h"
 #include "types/bitset.h"
 #include "template/enum.h"

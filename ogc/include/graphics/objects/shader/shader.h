@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types/bitset.h"
-#include "graphics/gl/generic.h"
+#include "graphics/generic.h"
 #include "graphics/objects/graphicsobject.h"
 #include "graphics/objects/shader/shaderbuffer.h"
 #include "graphics/objects/shader/shaderstage.h"

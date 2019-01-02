@@ -1,6 +1,6 @@
 #ifdef __VULKAN__
 #include "graphics/graphics.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/texture/versionedtexture.h"
 using namespace oi::gc;
 using namespace oi;

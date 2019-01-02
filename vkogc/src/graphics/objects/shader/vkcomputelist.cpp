@@ -1,6 +1,6 @@
 #ifdef __VULKAN__
 #include "graphics/graphics.h"
-#include "graphics/gl/vulkan.h"
+#include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/computelist.h"
 #include "graphics/objects/shader/pipeline.h"
