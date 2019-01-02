@@ -15,9 +15,9 @@ install:
     
     7z x cmake.zip > nul
     
-    move cmake-3.13.2 cmake
+    move cmake-3.13.2 C:\projects\ocore\cmake
     
-    set PATH=%cd%\cmake\bin;%PATH%
+    set PATH=C:\projects\ocore\cmake\bin;%PATH%
     
     cmake --version
     
