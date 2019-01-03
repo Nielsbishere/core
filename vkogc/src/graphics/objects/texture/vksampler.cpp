@@ -2,6 +2,7 @@
 #include "graphics/generic.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/texture/sampler.h"
+#include "graphics/objects/texture/vksampler.h"
 using namespace oi::gc;
 using namespace oi;
 

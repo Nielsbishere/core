@@ -8,6 +8,12 @@
 #include "graphics/objects/shader/shader.h"
 #include "graphics/objects/shader/shaderdata.h"
 #include "graphics/objects/shader/shaderstage.h"
+#include "graphics/objects/shader/vkpipeline.h"
+#include "graphics/objects/shader/vkshader.h"
+#include "graphics/objects/shader/vkshaderdata.h"
+#include "graphics/objects/shader/vkpipelinestate.h"
+#include "graphics/objects/texture/vktexture.h"
+#include "graphics/objects/render/vkrendertarget.h"
 using namespace oi::gc;
 using namespace oi;
 

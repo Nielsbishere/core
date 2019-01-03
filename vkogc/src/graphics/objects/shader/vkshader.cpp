@@ -1,12 +1,7 @@
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
-#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/shader/shader.h"
-#include "graphics/objects/shader/shaderstage.h"
-#include "graphics/objects/texture/sampler.h"
-#include "graphics/objects/texture/versionedtexture.h"
-#include "graphics/objects/texture/texturelist.h"
-#include "graphics/objects/render/rendertarget.h"
+#include "graphics/objects/shader/vkshader.h"
 using namespace oi::gc;
 using namespace oi;
 

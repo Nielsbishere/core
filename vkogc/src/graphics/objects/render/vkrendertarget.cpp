@@ -2,6 +2,8 @@
 #include "graphics/graphics.h"
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/texture/versionedtexture.h"
+#include "graphics/objects/render/vkrendertarget.h"
+#include "graphics/objects/texture/vktexture.h"
 using namespace oi::gc;
 using namespace oi;
 

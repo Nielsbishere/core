@@ -2,6 +2,8 @@
 #include "graphics/vulkan.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/render/commandlist.h"
+#include "graphics/objects/vkgpubuffer.h"
+#include "graphics/objects/render/vkcommandlist.h"
 using namespace oi::gc;
 using namespace oi;
 

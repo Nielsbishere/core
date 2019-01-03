@@ -5,6 +5,10 @@
 #include "graphics/objects/texture/sampler.h"
 #include "graphics/objects/texture/versionedtexture.h"
 #include "graphics/objects/texture/texturelist.h"
+#include "graphics/objects/shader/vkshaderdata.h"
+#include "graphics/objects/texture/vksampler.h"
+#include "graphics/objects/texture/vktexture.h"
+#include "graphics/objects/shader/vkshaderstage.h"
 using namespace oi::gc;
 
 void ShaderData::destroyData() {

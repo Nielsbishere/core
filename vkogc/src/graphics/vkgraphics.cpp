@@ -7,6 +7,7 @@
 #include "graphics/objects/render/rendertarget.h"
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/gpubuffer.h"
+#include "graphics/objects/texture/vktexture.h"
 
 #undef min
 #undef max

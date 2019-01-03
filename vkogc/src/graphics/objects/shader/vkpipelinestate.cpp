@@ -1,6 +1,7 @@
 #include <cmath>
 #include "graphics/vulkan.h"
 #include "graphics/objects/shader/pipelinestate.h"
+#include "graphics/objects/shader/vkpipelinestate.h"
 using namespace oi::gc;
 using namespace oi;
 

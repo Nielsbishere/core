@@ -22,9 +22,6 @@ target_link_libraries(vkogc glslang OGLCompiler OSDependent SPIRV SPVRemapper sp
 
 if(Vulkan)
 
-	add_definitions(-D__VULKAN__)
-	message("-- Vulkan - enabled")
-
 	if(WIN32)
 		if(DEFINED ENV{VULKAN_SDK})
 

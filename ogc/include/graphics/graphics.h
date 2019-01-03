@@ -27,6 +27,8 @@ namespace oi {
 
 		UEnum(GraphicsFeature, Raytracing = 0, VR = 1);
 
+		struct GraphicsExt;
+
 		class Graphics {
 
 			friend class GraphicsObject;

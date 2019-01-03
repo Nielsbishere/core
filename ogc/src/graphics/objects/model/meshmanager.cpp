@@ -111,8 +111,6 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 			mi.buffer = minfo.meshBuffer;
 
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->flush(mi.allocation);
-
 			info.meshAllocations[minfo.name] = minfo;
 
 		} else {
@@ -148,8 +146,6 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 			mi.ibo = minfo.ibo;
 
 			m = minfo.mesh = g->create(minfo.name, mi);
-			mi.buffer->flush(mi.allocation);
-
 			info.meshAllocations[minfo.name] = minfo;
 
 		}

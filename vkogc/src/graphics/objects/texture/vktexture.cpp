@@ -3,6 +3,8 @@
 #include "graphics/objects/texture/texture.h"
 #include "graphics/objects/texture/texturelist.h"
 #include "graphics/objects/render/commandlist.h"
+#include "graphics/objects/texture/vktexture.h"
+#include "graphics/objects/render/vkcommandlist.h"
 using namespace oi::gc;
 using namespace oi;
 

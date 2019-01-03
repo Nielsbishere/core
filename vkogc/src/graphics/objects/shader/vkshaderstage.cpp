@@ -1,6 +1,7 @@
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/shader/shaderstage.h"
+#include "graphics/objects/shader/vkshaderstage.h"
 using namespace oi::gc;
 using namespace oi;
 
