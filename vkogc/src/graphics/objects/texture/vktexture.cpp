@@ -173,7 +173,7 @@ bool Texture::initData() {
 bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 	if (!owned || info.usage != TextureUsage::Image)
-		return Log::throwError<TextureExt, 0x19>("Couldn't get pixels; resource has to be owned by the application (render target or depth buffer isn't allowed)");
+		return Log::throwError<TextureExt, 0x12>("Couldn't get pixels; resource has to be owned by the application (render target or depth buffer isn't allowed)");
 
 	GraphicsExt &graphics = g->getExtension();
 
@@ -199,7 +199,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
 	VkFence fence;
-	vkCheck<0x11, TextureExt>(vkCreateFence(graphics.device, &fenceInfo, vkAllocator, &fence), "Couldn't allocate intermediate fence");
+	vkCheck<0xA, TextureExt>(vkCreateFence(graphics.device, &fenceInfo, vkAllocator, &fence), "Couldn't allocate intermediate fence");
 
 	//Get image layout & aspect
 
@@ -224,7 +224,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 	VkBuffer dst;
 
-	vkCheck<0x14, TextureExt>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &dst), "Failed to create intermediate buffer");
+	vkCheck<0xD, TextureExt>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &dst), "Failed to create intermediate buffer");
 	vkName(graphics, dst, VK_OBJECT_TYPE_BUFFER, getName() + " intermediate");
 
 	//Allocate memory (TODO: by GraphicsExt)
@@ -260,12 +260,12 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 		}
 
 	if (memoryIndex == u32_MAX)
-		Log::throwError<TextureExt, 0x15>(String("Couldn't find a valid memory type for a VkBuffer: ") + getName() + " intermediate");
+		Log::throwError<TextureExt, 0xE>(String("Couldn't find a valid memory type for a VkBuffer: ") + getName() + " intermediate");
 
 	memoryInfo.memoryTypeIndex = memoryIndex;
 
-	vkCheck<0x16, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &dstMemory), "Couldn't allocate memory");
-	vkCheck<0x17, TextureExt>(vkBindBufferMemory(graphics.device, dst, dstMemory, 0), String("Couldn't bind memory to buffer ") + getName() + " intermediate");
+	vkCheck<0xF, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &dstMemory), "Couldn't allocate memory");
+	vkCheck<0x10, TextureExt>(vkBindBufferMemory(graphics.device, dst, dstMemory, 0), String("Couldn't bind memory to buffer ") + getName() + " intermediate");
 
 	//Copy to intermediate buffer
 
@@ -287,8 +287,8 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &cmd;
 
-	vkCheck<0x12, TextureExt>(vkQueueSubmit(graphics.queue, 1, &submitInfo, fence), "Couldn't submit intermediate commands");
-	vkCheck<0x13, TextureExt>(vkWaitForFences(graphics.device, 1, &fence, true, u64_MAX), "Couldn't wait for intermediate fences");
+	vkCheck<0xB, TextureExt>(vkQueueSubmit(graphics.queue, 1, &submitInfo, fence), "Couldn't submit intermediate commands");
+	vkCheck<0xC, TextureExt>(vkWaitForFences(graphics.device, 1, &fence, true, u64_MAX), "Couldn't wait for intermediate fences");
 
 	//Destroy command buffer and fence
 
@@ -297,7 +297,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 	//Copy buffer to copy buffer
 	void *memory;
-	vkCheck<0x18, TextureExt>(vkMapMemory(graphics.device, dstMemory, 0, VK_WHOLE_SIZE, 0, &memory), "Couldn't map intermediate memory");
+	vkCheck<0x11, TextureExt>(vkMapMemory(graphics.device, dstMemory, 0, VK_WHOLE_SIZE, 0, &memory), "Couldn't map intermediate memory");
 	output = CopyBuffer((u8*)memory, (u32) requirements.size);
 	vkUnmapMemory(graphics.device, dstMemory);
 

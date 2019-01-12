@@ -46,6 +46,7 @@ declFlag exclude_ext_formats exexfo
 declFlag help helpMe
 declFlag strip_debug_info strip
 declFlag apk apk
+declFlag rebuild rebuild
 declFlag run run
 declFlag cmake cmake
 declParam abi abi
@@ -79,6 +80,7 @@ if [ $helpMe ] ; then
 	echo
 	echo "Command line args:"
 	echo "-cmake Reloads or initializes the CMake data"
+	echo "-rebuild Regenerates the apk and gets rid of old files"
 	echo "-apk Creates apk file; otherwise only compiles"
 	echo "-run Runs the build"
 	echo "-abi=all Android ABI (ARM64, ARM32, x64, x86)"
@@ -162,7 +164,10 @@ else
 	params="-j$jobs"
 fi
 
-rm -rf build
+if [ $rebuild ] ; then
+	rm -rf build
+fi
+
 mkdir -p build
 mkdir -p build/lib
 
