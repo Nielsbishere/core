@@ -2,8 +2,7 @@
 #include "vulkan/vulkan.h"
 #include "types/datatype.h"
 #include "template/enum.h"
-#include "graphics/vkgraphics.h"
-#include "memory/blockallocator.h"
+#include "../vkgpuallocator.h"
 
 namespace oi {
 
@@ -11,24 +10,13 @@ namespace oi {
 
 		class GPUBuffer;
 		class GPUBufferType;
-		struct GPUMemoryBlockExt;
-
-		struct GPUBufferAllocationExt {
-
-			GPUMemoryBlockExt *block;
-			u32 offset;
-			BlockAllocation allocation;
-
-			bool operator==(const GPUBufferAllocationExt &other) const;
-
-		};
 
 		struct GPUBufferExt {
 
 			typedef GPUBuffer BaseType;
 
 			std::vector<VkBuffer> resource;
-			std::vector<GPUBufferAllocationExt> allocations;
+			std::vector<GPUAllocationExt> allocations;
 			u32 alignment = 0;
 
 			static bool isVersioned(GPUBufferType type);

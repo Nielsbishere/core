@@ -3,31 +3,16 @@
 #include "types/string.h"
 #include "objects/vkgpubuffer.h"
 #include "objects/render/vkcommandlist.h"
-#include "memory/blockallocator.h"
 
 namespace oi {
-	
+
+	struct BlockAllocation;
+
 	namespace gc {
-		
-		struct GraphicsExt;
-
-		struct GPUMemoryBlockExt {
-
-			GraphicsExt *g;
-			u32 memoryId;
-			VirtualBlockAllocator allocator;
-			VkDeviceMemory memory;
-			bool isDedicated = false;
-
-			bool compatible(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements) const;
-
-			void free();
-			bool free(BlockAllocation range);
-
-		};
 
 		class Graphics;
 		struct TextureExt;
+		struct GPUMemoryBlockExt;
 
 		struct GraphicsExt {
 
@@ -79,7 +64,7 @@ namespace oi {
 			#endif
 
 			void alloc(GPUBufferExt &ext, GPUBufferType type, String name, bool isStaging = false);
-			void alloc(TextureExt &ext);
+			void alloc(TextureExt &ext, String name);
 			
 			GPUMemoryBlockExt *alloc(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements, String &resourceName, u32 &offset, BlockAllocation &allocation, std::pair<VkImage, VkBuffer> res);
 			void dealloc(GPUMemoryBlockExt *block, BlockAllocation allocation);

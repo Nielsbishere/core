@@ -20,10 +20,6 @@ GPUBufferExt &GPUBuffer::getExtension() {
 	return *ext;
 }
 
-bool GPUBufferAllocationExt::operator==(const GPUBufferAllocationExt &other) const {
-	return block == other.block && offset == other.offset && allocation == other.allocation;
-}
-
 bool GPUBufferExt::isVersioned(GPUBufferType type) {
 	return type != GPUBufferType::VBO && type != GPUBufferType::IBO;
 }
@@ -191,7 +187,7 @@ void GPUBuffer::push() {
 
 	//Map memory
 	u8 *addr;
-	vkCheck<0x3, GPUBuffer>(vkMapMemory(g->getExtension().device, mem, mapOffset + boffset, mapLength, 0, (void**)&addr), "Couldn't map memory");
+	vkCheck<0x3, GPUBufferExt>(vkMapMemory(g->getExtension().device, mem, mapOffset + boffset, mapLength, 0, (void**)&addr), "Couldn't map memory");
 
 	//Copy buffer
 	memcpy(addr + dif, getAddress() + off, len);
