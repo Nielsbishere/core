@@ -3,16 +3,37 @@
 #include "types/string.h"
 #include "objects/vkgpubuffer.h"
 #include "objects/render/vkcommandlist.h"
+#include "memory/blockallocator.h"
 
 namespace oi {
 	
 	namespace gc {
 		
+		struct GraphicsExt;
+
+		struct GPUMemoryBlockExt {
+
+			GraphicsExt *g;
+			u32 memoryId;
+			VirtualBlockAllocator allocator;
+			VkDeviceMemory memory;
+			bool isDedicated = false;
+
+			bool compatible(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements) const;
+
+			void free();
+			bool free(BlockAllocation range);
+
+		};
+
 		class Graphics;
+		struct TextureExt;
 
 		struct GraphicsExt {
 
 			typedef Graphics BaseType;
+
+			static constexpr u32 memoryBlockSize = 32 * 1024 * 1024;
 
 			VkInstance instance = VK_NULL_HANDLE;
 			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
@@ -33,13 +54,15 @@ namespace oi {
 			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
 
 			CommandList *stagingCmdList;
-			std::vector<std::vector<GPUBufferExt>> stagingBuffers;
+			std::vector<std::unordered_map<String, GPUBufferExt>> stagingBuffers;
 
 			u32 current = 0, frames = 0;
 			u32 queueFamilyIndex = u32_MAX;
 
 			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2 = nullptr;
 			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2 = nullptr;
+
+			std::vector<GPUMemoryBlockExt*> memoryBlocks;
 
 			#ifdef __RAYTRACING__
 				PFN_vkCreateRayTracingPipelinesNV vkCreateRayTracingPipelinesNV = nullptr;
@@ -54,7 +77,15 @@ namespace oi {
 				#endif
 
 			#endif
+
+			void alloc(GPUBufferExt &ext, GPUBufferType type, String name, bool isStaging = false);
+			void alloc(TextureExt &ext);
 			
+			GPUMemoryBlockExt *alloc(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements, String &resourceName, u32 &offset, BlockAllocation &allocation, std::pair<VkImage, VkBuffer> res);
+			void dealloc(GPUMemoryBlockExt *block, BlockAllocation allocation);
+
+			void dealloc(GPUBufferExt &ext, String name);
+
 		};
 
 	}

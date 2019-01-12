@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 #include "template/enum.h"
+#include "graphics/vkgraphics.h"
 
 namespace oi {
 
@@ -13,8 +14,8 @@ namespace oi {
 			typedef Texture BaseType;
 
 			VkImage resource = VK_NULL_HANDLE;
-			VkDeviceMemory memory = VK_NULL_HANDLE;
 			VkImageView view = VK_NULL_HANDLE;
+			VkDeviceMemory memory = VK_NULL_HANDLE;
 
 		};
 

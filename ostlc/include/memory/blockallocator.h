@@ -9,7 +9,8 @@ namespace oi {
 
 		u32 start, size;
 
-		u32 end() const { return start + size; }
+		u32 end() const;
+		bool operator==(const BlockAllocation &other) const;
 
 	};
 
@@ -23,9 +24,13 @@ namespace oi {
 		BlockAllocation alloc(u32 length);
 		bool dealloc(u32 pos);
 
-		bool hasSpace(u32 length);
+		BlockAllocation allocAligned(u32 length, u32 alignment, u32 &alignedStart);
 
-		u32 size();
+		bool hasSpace(u32 length) const;
+		bool hasAlignedSpace(u32 length, u32 alignment) const;
+
+		u32 size() const;
+		u32 getAllocations() const;
 
 	protected:
 

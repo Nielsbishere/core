@@ -42,7 +42,7 @@ public:
 	void readPlanets(bool fromResource = false);
 	void writePlanets();
     
-    void refreshPlanetMesh(bool fromResource);
+	void refreshPlanetMesh(bool fromResource);
   
 };
 ```

@@ -1,9 +1,11 @@
 #include "graphics/graphics.h"
 #include "graphics/vulkan.h"
 #include "graphics/objects/texture/texture.h"
+#include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/texture/texturelist.h"
 #include "graphics/objects/render/commandlist.h"
 #include "graphics/objects/texture/vktexture.h"
+#include "graphics/objects/vkgpubuffer.h"
 #include "graphics/objects/render/vkcommandlist.h"
 using namespace oi::gc;
 using namespace oi;
@@ -87,7 +89,7 @@ bool Texture::initData() {
 
 			}
 
-			vkCheck<0x4, TextureExt>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext->resource), "Couldn't create image");
+			vkCheck<0x3, TextureExt>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext->resource), "Couldn't create image");
 			vkName(graphics, ext->resource, VK_OBJECT_TYPE_IMAGE, getName());
 
 			//Allocate memory (TODO: by GraphicsExt)
@@ -125,8 +127,8 @@ bool Texture::initData() {
 
 			memoryInfo.memoryTypeIndex = memoryIndex;
 
-			vkCheck<0x5, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext->memory), "Couldn't allocate memory");
-			vkCheck<0x6, TextureExt>(vkBindImageMemory(graphics.device, ext->resource, ext->memory, 0), String("Couldn't bind memory to texture ") + getName());
+			vkCheck<0x4, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext->memory), "Couldn't allocate memory");
+			vkCheck<0x5, TextureExt>(vkBindImageMemory(graphics.device, ext->resource, ext->memory, 0), String("Couldn't bind memory to texture ") + getName());
 
 		}
 
@@ -143,7 +145,7 @@ bool Texture::initData() {
 		viewInfo.subresourceRange.levelCount = info.mipLevels;
 		viewInfo.subresourceRange.layerCount = 1;
 
-		vkCheck<0x7, TextureExt>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext->view), "Couldn't create image view");
+		vkCheck<0x6, TextureExt>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext->view), "Couldn't create image view");
 		vkName(graphics, ext->view, VK_OBJECT_TYPE_IMAGE_VIEW, getName() + " view");
 
 		//Prepare texture for update
@@ -186,7 +188,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	commandInfo.commandBufferCount = 1;
 
 	VkCommandBuffer cmd;
-	vkCheck<0x10, TextureExt>(vkAllocateCommandBuffers(graphics.device, &commandInfo, &cmd), "Couldn't allocate intermediate command list");
+	vkCheck<0x9, TextureExt>(vkAllocateCommandBuffers(graphics.device, &commandInfo, &cmd), "Couldn't allocate intermediate command list");
 	vkName(graphics, cmd, VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " intermediate commands");
 
 	//Create submit fence
@@ -378,54 +380,21 @@ void Texture::push() {
 	stagingInfo.queueFamilyIndexCount = 1;
 	stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-	vkCheck<0x8, TextureExt>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.data()), "Couldn't send texture data to GPU");
+	vkCheck<0x7, TextureExt>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.data()), "Couldn't send texture data to GPU");
 	vkName(graphics, gbext.resource[0], VK_OBJECT_TYPE_IMAGE, getName() + " staging buffer");
 
-	//Allocate memory (TODO: by GraphicsExt)
-
-	VkMemoryAllocateInfo memoryInfo;
-	memset(&memoryInfo, 0, sizeof(memoryInfo));
-
-	VkMemoryRequirements2 requirements2;
-	memset(&requirements2, 0, sizeof(requirements2));
-
-	requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
-
-	VkBufferMemoryRequirementsInfo2 bufferMemoryRequirements2;
-	memset(&bufferMemoryRequirements2, 0, sizeof(bufferMemoryRequirements2));
-
-	bufferMemoryRequirements2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
-	bufferMemoryRequirements2.buffer = gbext.resource[0];
-
-	graphics.vkGetBufferMemoryRequirements2(graphics.device, &bufferMemoryRequirements2, &requirements2);
-	VkMemoryRequirements &requirements = requirements2.memoryRequirements;
-
-	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryInfo.allocationSize = requirements.size;
-
-	uint32_t memoryIndex = u32_MAX;
-
-	for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)
-		if ((requirements.memoryTypeBits & (1 << i)) && (graphics.pmemory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0) {
-			memoryIndex = i;
-			break;
-		}
-
-	if (memoryIndex == u32_MAX)
-		Log::throwError<TextureExt, 0x3>(String("Couldn't find a valid memory type for a texture staging buffer: ") + getName());
-
-	memoryInfo.memoryTypeIndex = memoryIndex;
-
-	vkCheck<0x9, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &gbext.memory), "Couldn't allocate memory");
-	vkCheck<0xA, TextureExt>(vkBindBufferMemory(graphics.device, gbext.resource[0], gbext.memory, 0), String("Couldn't bind memory to staging buffer ") + getName());
+	graphics.alloc(gbext, GPUBufferType::SSBO /* unused */, getName() + " staging buffer", true);
 
 	//Copy data to staging buffer
 
+	auto balloc = gbext.allocations[0];
+	VkDeviceMemory mem = balloc.block->memory;
+
 	void *stagingData;
 
-	vkCheck<0xB, TextureExt>(vkMapMemory(graphics.device, gbext.memory, 0, size, 0, &stagingData), "Couldn't map texture staging buffer");
+	vkCheck<0x8, TextureExt>(vkMapMemory(graphics.device, mem, balloc.offset, size, 0, &stagingData), "Couldn't map texture staging buffer");
 	memcpy(stagingData, dat.addr(), size);
-	vkUnmapMemory(graphics.device, gbext.memory);
+	vkUnmapMemory(graphics.device, mem);
 
 	//Copy data to cmd list
 
@@ -537,7 +506,7 @@ void Texture::push() {
 
 	//Clean up staging buffer and free memory
 
-	graphics.stagingBuffers[graphics.current].push_back(gbext);
+	graphics.stagingBuffers[graphics.current][getName() + " staging buffer"] = gbext;
 
 	if (!fullTexture)
 		dat.deconstruct();

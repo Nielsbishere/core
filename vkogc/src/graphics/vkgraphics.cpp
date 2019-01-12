@@ -148,10 +148,11 @@ void Graphics::init(Window *w){
 	if(!supported)
 		Log::throwError<GraphicsExt, 0x24>("Vulkan driver not supported; PhysicalDeviceProperties2 required");
 
-	std::vector<const char*> dlayers, dextensions(3);								///Device layers and extensions
+	std::vector<const char*> dlayers, dextensions(4);								///Device layers and extensions
 	dextensions[0] = "VK_KHR_swapchain";
 	dextensions[1] = "VK_KHR_shader_draw_parameters";
 	dextensions[2] = "VK_KHR_get_memory_requirements2";
+	dextensions[3] = "VK_KHR_dedicated_allocation";
 
 	//Set up the application
 	
@@ -724,19 +725,12 @@ void Graphics::begin() {
 
 	//Clean up staging buffers from previous frame
 
-	std::vector<GPUBufferExt> &stagingBuffers = ext->stagingBuffers[ext->current];
+	std::unordered_map<String, GPUBufferExt> &stagingBuffers = ext->stagingBuffers[ext->current];
 
 	if (stagingBuffers.size() != 0) {
 
-		for (u32 i = 0, j = (u32) stagingBuffers.size(); i < j; ++i) {
-
-			GPUBufferExt &buffer = stagingBuffers[i];
-
-			for(VkBuffer &vkBuffer : buffer.resource)
-				vkDestroyBuffer(ext->device, vkBuffer, vkAllocator);
-
-			vkFreeMemory(ext->device, buffer.memory, vkAllocator);
-		}
+		for (auto &elem : stagingBuffers)
+			ext->dealloc(elem.second, elem.first);
 
 		stagingBuffers.clear();
 
@@ -890,5 +884,218 @@ void Window::updateAspect() {
 		f32 aspect = Vec2(info.size).getAspect();
 		wi->onAspectChange(info.flipped != info.flippedOnStart ? 1 / aspect : aspect);
 	}
+
+}
+
+//Alocations
+
+bool GPUMemoryBlockExt::compatible(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements) const {
+	return !isDedicated && (g->pmemory.memoryTypes[memoryId].propertyFlags & std::get<0>(requirements)) == (u32)std::get<0>(requirements) &&
+		(std::get<1>(requirements).memoryTypeBits & (1 << memoryId)) != 0 &&
+		allocator.hasAlignedSpace((u32) std::get<1>(requirements).size, (u32) std::get<1>(requirements).alignment);
+}
+
+void GPUMemoryBlockExt::free() {
+	vkFreeMemory(g->device, memory, vkAllocator);
+}
+
+bool GPUMemoryBlockExt::free(BlockAllocation range) {
+
+	allocator.dealloc(range.start);
+
+	if (allocator.getAllocations() == 0)
+		free();
+
+	return allocator.getAllocations() == 0;
+}
+
+GPUMemoryBlockExt *GraphicsExt::alloc(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements, String &resourceName, u32 &offset, BlockAllocation &allocation, std::pair<VkImage, VkBuffer> res) {
+
+	const VkMemoryPropertyFlagBits &allocFlags = std::get<0>(requirements);
+	const VkMemoryRequirements &requirements1 = std::get<1>(requirements);
+	const VkMemoryDedicatedRequirementsKHR &dedicatedInfo = std::get<2>(requirements);
+
+	bool dedicated = dedicatedInfo.prefersDedicatedAllocation || dedicatedInfo.requiresDedicatedAllocation;
+
+	if (dedicated) {
+
+		VkMemoryAllocateInfo memoryInfo;
+		memset(&memoryInfo, 0, sizeof(memoryInfo));
+
+		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		memoryInfo.allocationSize = requirements1.size;
+
+		VkMemoryDedicatedAllocateInfoKHR dedicatedAlloc = { VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR, nullptr, res.first, res.second };
+		memoryInfo.pNext = &dedicatedAlloc;
+
+		uint32_t memoryIndex = u32_MAX;
+
+		for (uint32_t i = 0; i < pmemory.memoryTypeCount; ++i)
+			if ((requirements1.memoryTypeBits & (1 << i)) && (pmemory.memoryTypes[i].propertyFlags & allocFlags) == (u32)allocFlags) {
+				memoryIndex = i;
+				break;
+			}
+
+		if (memoryIndex == u32_MAX)
+			Log::throwError<GraphicsExt, 0x26>("Couldn't find a valid memory type that fits the resource");
+
+		memoryInfo.memoryTypeIndex = memoryIndex;
+
+		VkDeviceMemory memory;
+		vkCheck<0x27, GraphicsExt>(vkAllocateMemory(device, &memoryInfo, vkAllocator, &memory), "Couldn't allocate memory for resource");
+
+		vkName(*this, memory, VK_OBJECT_TYPE_DEVICE_MEMORY, resourceName + " memory");
+
+		GPUMemoryBlockExt *block = new GPUMemoryBlockExt{
+			this,
+			memoryIndex,
+			VirtualBlockAllocator((u32)requirements1.size),
+			memory,
+			true
+		};
+
+		memoryBlocks.push_back(block);
+		allocation = block->allocator.alloc((u32)requirements1.size);
+		offset = 0;
+		Log::println(String("Allocated dedicated memory for resource: ") + resourceName + " (" + allocation.size + " bytes)");
+		return block;
+	}
+
+	std::vector<GPUMemoryBlockExt*>::iterator it;
+
+	for (it = memoryBlocks.begin(); it != memoryBlocks.end(); ++it)
+		if ((*it)->compatible(requirements))
+			break;
+
+	if (it == memoryBlocks.end()) {
+
+		VkMemoryAllocateInfo memoryInfo;
+		memset(&memoryInfo, 0, sizeof(memoryInfo));
+
+		u32 size = requirements1.size > memoryBlockSize ? (u32) requirements1.size : (u32) memoryBlockSize;
+
+		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		memoryInfo.allocationSize = size;
+
+		uint32_t memoryIndex = u32_MAX;
+
+		for (uint32_t i = 0; i < pmemory.memoryTypeCount; ++i)
+			if ((requirements1.memoryTypeBits & (1 << i)) && (pmemory.memoryTypes[i].propertyFlags & allocFlags) == (u32)allocFlags) {
+				memoryIndex = i;
+				break;
+			}
+
+		if (memoryIndex == u32_MAX)
+			Log::throwError<GraphicsExt, 0x28>("Couldn't find a valid memory type");
+
+		memoryInfo.memoryTypeIndex = memoryIndex;
+
+		VkDeviceMemory memory;
+		vkCheck<0x29, GraphicsExt>(vkAllocateMemory(device, &memoryInfo, vkAllocator, &memory), "Couldn't allocate memory");
+
+		GPUMemoryBlockExt *block = new GPUMemoryBlockExt{
+			this,
+			memoryIndex,
+			VirtualBlockAllocator(size),
+			memory
+		};
+
+		memoryBlocks.push_back(block);
+		allocation = block->allocator.alloc((u32)requirements1.size);
+		offset = 0;
+		Log::println(String("Allocated memory for resource: ") + resourceName + " (" + allocation.size + " bytes / " + size + " chunk size)");
+		return block;
+	}
+
+	allocation = (*it)->allocator.allocAligned((u32) requirements1.size, (u32) requirements1.alignment, offset);
+	Log::println(String("Allocated memory for resource: ") + resourceName + " (" + allocation.size + " bytes at " + offset + ")");
+	return memoryBlocks[it - memoryBlocks.begin()];
+}
+
+void GraphicsExt::dealloc(GPUMemoryBlockExt *block, BlockAllocation allocation) {
+
+	Log::println(String("Freeing object at offset ") + allocation.start + " with " + allocation.size + " bytes");
+
+	if (block->free(allocation)) {
+
+		auto it = std::find(memoryBlocks.begin(), memoryBlocks.end(), block);
+
+		if (it != memoryBlocks.end()) {
+			memoryBlocks.erase(it);
+			Log::println(String("Freeing memory block; ") + block->allocator.size() + " bytes");
+			delete block;
+		}
+
+	}
+
+}
+
+void GraphicsExt::alloc(GPUBufferExt &ext, GPUBufferType type, String name, bool isStaging) {
+
+	VkMemoryPropertyFlagBits allocFlags = 
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;	//CBOs and UBOs are host visible for quicker access from CPU
+
+	if (GPUBufferExt::isStaged(type))			//SSBOs, VBOs and IBOs are rarely write, mostly read; so device local
+		allocFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	if (GPUBufferExt::isCoherent(type))			//CBOs are frequently unmapped; so should be placed in coherent memory
+		allocFlags = (VkMemoryPropertyFlagBits)(allocFlags | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	if (isStaging)								//Staging buffers should be host visible & coherent
+		allocFlags = (VkMemoryPropertyFlagBits)(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	for (u32 i = 0, j = (u32)ext.resource.size(); i < j; ++i) {
+
+		VkBuffer &res = ext.resource[i];
+		String rname = name + " #" + i;
+
+		VkMemoryDedicatedRequirementsKHR dedicatedReq = { VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR };
+		VkBufferMemoryRequirementsInfo2 bufferReq = { VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR, nullptr, res };
+
+		VkMemoryRequirements2 memReq = { VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR, &dedicatedReq };
+		vkGetBufferMemoryRequirements2(device, &bufferReq, &memReq);
+
+		VkMemoryRequirements requirements = memReq.memoryRequirements;
+
+		auto allocInfo = std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR>(allocFlags, requirements, dedicatedReq);
+
+		u32 offset = 0;
+
+		BlockAllocation allocation;
+		GPUMemoryBlockExt *gallocation = alloc(allocInfo, rname, offset, allocation, { VK_NULL_HANDLE, res });
+
+		if (i == 0) 
+			ext.alignment = (u32)requirements.alignment;
+
+		ext.allocations.push_back({ gallocation, offset, allocation });
+
+		vkCheck<0x2A>(vkBindBufferMemory(device, res, gallocation->memory, offset), "Couldn't bind buffer memory");
+
+	}
+
+}
+
+void GraphicsExt::dealloc(GPUBufferExt &ext, String name) {
+
+	for (u32 i = 0, j = (u32)ext.resource.size(); i < j; ++i) {
+
+		VkBuffer buffer = ext.resource[i];
+		vkDestroyBuffer(device, buffer, vkAllocator);
+
+		auto balloc = ext.allocations[i];
+		GPUMemoryBlockExt *memoryBlock = balloc.block;
+
+		Log::println(String("Deallocated ") + name + " #" + i + " at " + balloc.allocation.start + " with size " + balloc.allocation.size);
+
+		if (memoryBlock->free(balloc.allocation)) {
+			delete memoryBlock;
+			memoryBlocks.erase(std::find(memoryBlocks.begin(), memoryBlocks.end(), memoryBlock));
+		}
+
+	}
+
+}
+
+void GraphicsExt::alloc(TextureExt &) {
 
 }
