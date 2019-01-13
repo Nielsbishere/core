@@ -31,16 +31,16 @@ namespace oi {
 
 		public:
 
-			TextureObject *get(TextureHandle i);
+			TextureObject *get(TextureHandle i) const;
 			TextureHandle alloc(TextureObject *tex);
 			void dealloc(TextureObject *tex);
 
 			template<typename T>
-			T *get(TextureHandle i);
+			T *get(TextureHandle i) const;
 
-			u32 size();
+			u32 size() const;
 
-			const TextureListInfo getInfo() { return info; }
+			const TextureListInfo &getInfo() const { return info; }
 
 		protected:
 
@@ -55,7 +55,7 @@ namespace oi {
 		};
 
 		template<typename T>
-		T *TextureList::get(TextureHandle i) {
+		T *TextureList::get(TextureHandle i) const {
 
 			static_assert(std::is_base_of<TextureObject, T>::value, "Texture::get<T>: T has to be a TextureObject (VersionedTexture or Texture)");
 

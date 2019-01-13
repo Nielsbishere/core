@@ -23,7 +23,7 @@ Vec2u RenderTarget::getSize() { return info.res; }
 bool RenderTarget::isOwned() { return owned; }
 bool RenderTarget::isComputeTarget() { return info.isComputeTarget; }
 
-const RenderTargetInfo RenderTarget::getInfo() { return info; }
+const RenderTargetInfo &RenderTarget::getInfo() { return info; }
 
 RenderTarget::RenderTarget(RenderTargetInfo info) : info(info){}
 RenderTarget::~RenderTarget() {

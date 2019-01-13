@@ -49,7 +49,7 @@ const MaterialStruct *MaterialList::operator[](MaterialHandle handle) const { re
 u32 MaterialList::getSize() const { return (u32) info.size; }
 u32 MaterialList::getBufferSize() const { return getSize() * (u32) sizeof(MaterialStruct); }
 
-const MaterialListInfo MaterialList::getInfo() const { return info; }
+const MaterialListInfo &MaterialList::getInfo() const { return info; }
 GPUBuffer *MaterialList::getBuffer() const { return info.buffer; }
 
 MaterialList::~MaterialList() { g->destroy(info.buffer); }

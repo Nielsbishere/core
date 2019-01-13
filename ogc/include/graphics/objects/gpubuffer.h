@@ -38,15 +38,15 @@ namespace oi {
 
 		public:
 
-			GPUBufferType getType();
+			GPUBufferType getType() const;
 
-			u32 getSize();
-			u8 *getAddress();
+			u32 getSize() const;
+			u8 *getAddress() const;
 
-			Buffer getBuffer();
+			Buffer getBuffer() const;
 
 			GPUBufferExt &getExtension();
-			const GPUBufferInfo &getInfo();
+			const GPUBufferInfo &getInfo() const;
 
 			bool set(Buffer buf, u32 offset = 0);
 

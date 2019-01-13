@@ -3,8 +3,8 @@
 #include "graphics/graphics.h"
 using namespace oi::gc;
 
-TextureObject *TextureList::get(TextureHandle i) { return info.textures[i]; }
-u32 TextureList::size() { return (u32) info.textures.size(); }
+TextureObject *TextureList::get(TextureHandle i) const { return info.textures[i]; }
+u32 TextureList::size() const { return (u32) info.textures.size(); }
 
 TextureHandle TextureList::alloc(TextureObject *tex) {
 	TextureHandle j = size();

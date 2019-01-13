@@ -119,7 +119,7 @@ namespace oi {
 			TextureHandle getHandle();
 
 			TextureExt &getExtension();
-			const TextureInfo getInfo();
+			const TextureInfo &getInfo() const;
 
 			void initParent(TextureList *parent);
 

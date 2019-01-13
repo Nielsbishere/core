@@ -9,12 +9,16 @@ using namespace oi::gc;
 using namespace oi;
 
 bool GPUMemoryBlockExt::compatible(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements) const {
-	return !isDedicated && (g->pmemory.memoryTypes[memoryId].propertyFlags & std::get<0>(requirements)) == (u32)std::get<0>(requirements) &&
+	return !isDedicated && (memoryBits & std::get<0>(requirements)) == std::get<0>(requirements) &&
 		(std::get<1>(requirements).memoryTypeBits & (1 << memoryId)) != 0 &&
 		allocator.hasAlignedSpace((u32)std::get<1>(requirements).size, (u32)std::get<1>(requirements).alignment);
 }
 
 void GPUMemoryBlockExt::free() {
+
+	if (mappedMemory.size() != 0)
+		vkUnmapMemory(g->device, memory);
+
 	vkFreeMemory(g->device, memory, vkAllocator);
 }
 
@@ -33,9 +37,9 @@ bool GPUAllocationExt::operator==(const GPUAllocationExt &other) const {
 }
 
 
-GPUMemoryBlockExt *GraphicsExt::alloc(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements, String &resourceName, u32 &offset, BlockAllocation &allocation, std::pair<VkImage, VkBuffer> res) {
+GPUMemoryBlockExt *GraphicsExt::alloc(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements, String &resourceName, u32 &offset, BlockAllocation &allocation, Buffer &mapped, std::pair<VkImage, VkBuffer> res) {
 
-	const VkMemoryPropertyFlagBits &allocFlags = std::get<0>(requirements);
+	VkMemoryPropertyFlagBits allocFlags = std::get<0>(requirements);
 	const VkMemoryRequirements &requirements1 = std::get<1>(requirements);
 	const VkMemoryDedicatedRequirementsKHR &dedicatedInfo = std::get<2>(requirements);
 
@@ -66,22 +70,35 @@ GPUMemoryBlockExt *GraphicsExt::alloc(const std::tuple<VkMemoryPropertyFlagBits,
 		memoryInfo.memoryTypeIndex = memoryIndex;
 
 		VkDeviceMemory memory;
-		vkCheck<0x27, GraphicsExt>(vkAllocateMemory(device, &memoryInfo, vkAllocator, &memory), "Couldn't allocate memory for resource");
+		vkCheck<0x27>(vkAllocateMemory(device, &memoryInfo, vkAllocator, &memory), "Couldn't allocate memory for resource");
 
 		vkName(*this, memory, VK_OBJECT_TYPE_DEVICE_MEMORY, resourceName + " memory");
+
+		allocFlags = (VkMemoryPropertyFlagBits) pmemory.memoryTypes[memoryIndex].propertyFlags;
+
+		if ((allocFlags & (u32)VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0) {
+
+			u8 *addr = nullptr;
+			vkCheck<0x2D>(vkMapMemory(device, memory, 0, VK_WHOLE_SIZE, 0, (void**) &addr), "Couldn't map dedicated memory");
+			
+			mapped = Buffer::construct(addr, (u32) requirements1.size);
+
+		}
 
 		GPUMemoryBlockExt *block = new GPUMemoryBlockExt{
 			this,
 			memoryIndex,
+			(VkMemoryAllocateFlagBits) pmemory.memoryTypes[memoryIndex].propertyFlags,
 			VirtualBlockAllocator((u32)requirements1.size),
 			memory,
+			mapped,
 			true
 		};
 
 		memoryBlocks.push_back(block);
 		allocation = block->allocator.alloc((u32)requirements1.size);
 		offset = 0;
-		Log::println(String("Allocated dedicated memory for resource: ") + resourceName + " (" + allocation.size + " bytes)");
+		Log::println(String("Allocated dedicated memory for resource: ") + resourceName + " (" + allocation.size + " bytes mapped at " + String((void*)mapped.addr()) + ")");
 		return block;
 	}
 
@@ -117,22 +134,45 @@ GPUMemoryBlockExt *GraphicsExt::alloc(const std::tuple<VkMemoryPropertyFlagBits,
 		VkDeviceMemory memory;
 		vkCheck<0x29, GraphicsExt>(vkAllocateMemory(device, &memoryInfo, vkAllocator, &memory), "Couldn't allocate memory");
 
+		Buffer mappedMemory;
+		allocFlags = (VkMemoryPropertyFlagBits)pmemory.memoryTypes[memoryIndex].propertyFlags;
+
+		if ((allocFlags & (u32)VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0) {
+
+			u8 *addr = nullptr;
+			vkCheck<0x2E>(vkMapMemory(device, memory, 0, VK_WHOLE_SIZE, 0, (void**)&addr), "Couldn't map memory");
+
+			mappedMemory = Buffer::construct(addr, size);
+			mapped = mappedMemory.subbuffer(0, (u32)requirements1.size);
+		}
+
 		GPUMemoryBlockExt *block = new GPUMemoryBlockExt{
 			this,
 			memoryIndex,
+			(VkMemoryAllocateFlagBits) pmemory.memoryTypes[memoryIndex].propertyFlags,
 			VirtualBlockAllocator(size),
-			memory
+			memory,
+			mappedMemory
 		};
 
 		memoryBlocks.push_back(block);
 		allocation = block->allocator.alloc((u32)requirements1.size);
 		offset = 0;
-		Log::println(String("Allocated memory for resource: ") + resourceName + " (" + allocation.size + " bytes / " + size + " chunk size)");
+		Log::println(String("Allocated memory for resource: ") + resourceName + " (" + allocation.size + " bytes / " + size + " chunk size mapped at " + String((void*)mapped.addr()) + ")");
 		return block;
 	}
 
-	allocation = (*it)->allocator.allocAligned((u32)requirements1.size, (u32)requirements1.alignment, offset);
-	Log::println(String("Allocated memory for resource: ") + resourceName + " (" + allocation.size + " bytes at " + offset + ")");
+	u32 aliasing = (u32) pproperties.properties.limits.bufferImageGranularity;
+	u32 alignment = (u32) requirements1.alignment;
+
+	allocation = (*it)->allocator.allocAligned((u32)requirements1.size, alignment < aliasing ? aliasing : alignment, offset);
+	
+	Buffer mappedMemory = (*it)->mappedMemory;
+
+	if (mappedMemory.size() != 0)
+		mapped = mappedMemory.subbuffer(offset, (u32)requirements1.size);
+
+	Log::println(String("Allocated memory for resource: ") + resourceName + " (" + allocation.size + " bytes at " + offset + " mapped at " + String((void*)mapped.addr()) + ")");
 	return memoryBlocks[it - memoryBlocks.begin()];
 }
 
@@ -186,12 +226,13 @@ void GraphicsExt::alloc(GPUBufferExt &ext, GPUBufferType type, String name, bool
 		u32 offset = 0;
 
 		BlockAllocation allocation;
-		GPUMemoryBlockExt *gallocation = alloc(allocInfo, rname, offset, allocation, { VK_NULL_HANDLE, res });
+		Buffer mapped;
+		GPUMemoryBlockExt *gallocation = alloc(allocInfo, rname, offset, allocation, mapped, { VK_NULL_HANDLE, res });
 
 		if (i == 0)
 			ext.alignment = (u32)requirements.alignment;
 
-		ext.allocations.push_back({ gallocation, offset, allocation });
+		ext.allocations.push_back({ gallocation, offset, allocation, mapped });
 
 		vkCheck<0x2A>(vkBindBufferMemory(device, res, gallocation->memory, offset), "Couldn't bind buffer memory");
 
@@ -239,9 +280,10 @@ void GraphicsExt::alloc(TextureExt &ext, String name) {
 	u32 offset = 0;
 
 	BlockAllocation allocation;
-	GPUMemoryBlockExt *gallocation = alloc(allocInfo, name, offset, allocation, { res, VK_NULL_HANDLE });
+	Buffer mapped;
+	GPUMemoryBlockExt *gallocation = alloc(allocInfo, name, offset, allocation, mapped, { res, VK_NULL_HANDLE });
 
-	ext.allocation = { gallocation, offset, allocation };
+	ext.allocation = { gallocation, offset, allocation, mapped };
 
 	vkCheck<0x2B>(vkBindImageMemory(device, res, gallocation->memory, offset), "Couldn't bind image memory");
 

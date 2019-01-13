@@ -53,7 +53,7 @@ Texture::~Texture() {
 	destroyData(false);
 }
 
-const TextureInfo Texture::getInfo() { return info; }
+const TextureInfo &Texture::getInfo() const { return info; }
 
 void Texture::initParent(TextureList *parent) {
 	if (info.parent == nullptr) {

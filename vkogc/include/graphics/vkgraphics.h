@@ -66,7 +66,7 @@ namespace oi {
 			void alloc(GPUBufferExt &ext, GPUBufferType type, String name, bool isStaging = false);
 			void alloc(TextureExt &ext, String name);
 			
-			GPUMemoryBlockExt *alloc(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements, String &resourceName, u32 &offset, BlockAllocation &allocation, std::pair<VkImage, VkBuffer> res);
+			GPUMemoryBlockExt *alloc(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements, String &resourceName, u32 &offset, BlockAllocation &allocation, Buffer &mapped, std::pair<VkImage, VkBuffer> res);
 			void dealloc(GPUMemoryBlockExt *block, BlockAllocation allocation);
 
 			void dealloc(GPUBufferExt &ext, String name);

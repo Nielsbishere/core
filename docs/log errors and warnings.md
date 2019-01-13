@@ -49,14 +49,17 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't enumerate extensions | | 0x21 | The Vulkan driver was unable to provide VkGraphics with the extensions |
 | | Couldn't enumerate device layers | | 0x22 | see 0x20 |
 | | Couldn't enumerate device extensions | | 0x23 | see 0x21 |
-| | Vulkan driver not supported; PhysicalDeviceProperties2 required | | 0x24 | Vulkan driver out of date or not supported; physical device properties 2 is required |
+| | Instance extension wasn't supported: {name} | | 0x24 | Vulkan driver out of date or not supported; extension couldn't be found |
 | | Couldn't get surface capabilities | | 0x25 | Surface capabilities couldn't be obtained from surface (probably because the surface is invalid) |
-| | Couldn't find a valid memory type that fits the resource | | 0x26 | Resource memory with requirements couldn't be found |
+| graphics<br />vkgpuallocator.cpp | Couldn't find a valid memory type that fits the resource | | 0x26 | Resource memory with requirements couldn't be found |
 | | Couldn't allocate memory for resource | | 0x27 | Resource memory couldn't be allocated; even though it required or preferred dedicated memory |
 | | Couldn't find a valid memory type | | 0x28 | see 0x26 |
 | | Couldn't allocate memory | | 0x29 | see 0x27 |
 | | Couldn't bind buffer memory | | 0x2A | The memory allocated couldn't be bound to the buffer |
 | | Couldn't bind image memory | | 0x2B | The memory allocated couldn't be bound to the image |
+| | Instance layer wasn't supported: {name} | | 0x2C | Vulkan driver out of date or not supported; layer couldn't be found |
+| | Couldn't map dedicated memory | | 0x2D | The memory region couldn't be mapped |
+| | Couldn't map memory | | 0x2E | see 0x2D |
 | graphics<br />objects<br />shader<br />vkpipeline.cpp   | Pipeline requires a shader                                   | PipelineExt   | 0x0  | All pipelines require a shader                               |
 |                                                         | Graphics pipeline requires a render target, pipeline state and mesh buffer |                 | 0x1  | A graphics pipeline needs a mesh buffer, pipeline state and render target to be set |
 |                                                         | Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; {shaderName}'s {varName} and {meshBufferName}'s {meshVarName} |                 | 0x2  | The inputs of the vertex shader didn't match up with the MeshBuffer's layout |

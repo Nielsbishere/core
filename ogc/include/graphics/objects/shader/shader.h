@@ -45,9 +45,9 @@ namespace oi {
 		public:
 
 			ShaderExt &getExtension();
-			const ShaderInfo &getInfo();
+			const ShaderInfo &getInfo() const;
 
-			Vec3u getComputeThreads();
+			Vec3u getComputeThreads() const;
 
 			static bool isCompatible(ShaderStageType t0, ShaderStageType t1);
 

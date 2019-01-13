@@ -38,7 +38,7 @@ namespace oi {
 
 		public:
 
-			const DrawListInfo getInfo();
+			const DrawListInfo &getInfo() const;
 
 			u32 getBatches();
 			u32 getMaxBatches();

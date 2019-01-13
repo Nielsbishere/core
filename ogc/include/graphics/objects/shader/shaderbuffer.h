@@ -129,15 +129,15 @@ namespace oi {
 
 		public:
 
-			const ShaderBufferInfo getInfo();
+			const ShaderBufferInfo &getInfo() const;
 
 			ShaderBufferVar get(String path);
 			ShaderBufferVar get();
 
-			u32 getElements();
-			u32 getSize();
+			u32 getElements() const;
+			u32 getSize() const;
 
-			GPUBuffer *getBuffer();
+			GPUBuffer *getBuffer() const;
 
 			//If info.allocate is false, you have to instantiate the buffer yourself
 			//This can be a dynamic object buffer, light buffer, etc.

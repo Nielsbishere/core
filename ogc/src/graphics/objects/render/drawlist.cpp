@@ -5,7 +5,7 @@
 using namespace oi::gc;
 using namespace oi;
 
-const DrawListInfo DrawList::getInfo() { return info; }
+const DrawListInfo &DrawList::getInfo() const { return info; }
 u32 DrawList::getBatches() { return (u32) info.objects.size(); }
 u32 DrawList::getMaxBatches() { return info.maxBatches; }
 GPUBuffer *DrawList::getBuffer() { return info.drawBuffer; }

@@ -3,16 +3,16 @@
 using namespace oi::gc;
 using namespace oi;
 
-TextureFormat VersionedTexture::getFormat() { return getVersion(0)->getInfo().format; }
-TextureUsage VersionedTexture::getUsage() { return getVersion(0)->getInfo().usage; }
-Vec2u VersionedTexture::getSize() { return getVersion(0)->getInfo().res; }
-bool VersionedTexture::isOwned() { return getVersion(0)->isOwned(); }
-u32 VersionedTexture::getVersions() { return info.versions; }
-const VersionedTextureInfo VersionedTexture::getInfo() { return info; }
+TextureFormat VersionedTexture::getFormat() const { return getVersion(0)->getInfo().format; }
+TextureUsage VersionedTexture::getUsage() const { return getVersion(0)->getInfo().usage; }
+Vec2u VersionedTexture::getSize() const { return getVersion(0)->getInfo().res; }
+bool VersionedTexture::isOwned() const { return getVersion(0)->isOwned(); }
+u32 VersionedTexture::getVersions() const { return info.versions; }
+const VersionedTextureInfo &VersionedTexture::getInfo() const { return info; }
 VersionedTexture::VersionedTexture(VersionedTextureInfo info) : info(info) { }
 bool VersionedTexture::init() { return getVersions() != 0; }
 
-Texture *VersionedTexture::getVersion(u32 i) {
+Texture *VersionedTexture::getVersion(u32 i) const {
 
 	if (i >= getVersions())
 		return nullptr;

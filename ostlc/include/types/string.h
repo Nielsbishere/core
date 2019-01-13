@@ -87,6 +87,7 @@ namespace oi {
 		f32 toFloat() const;
 		std::string toStdString() const;
 		const char *toCString() const;
+		char *ptr();
 
 		template<typename T, u32 n>
 		TVec<T, n> toVector() const;

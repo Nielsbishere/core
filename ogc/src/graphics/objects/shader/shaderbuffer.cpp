@@ -138,14 +138,15 @@ ShaderBufferVar::ShaderBufferVar(ShaderBufferObject &obj, Buffer buf) : obj(obj)
 
 ///ShaderBuffer
 
-const ShaderBufferInfo ShaderBuffer::getInfo() { return info; }
+const ShaderBufferInfo &ShaderBuffer::getInfo() const { return info; }
 
 ShaderBufferVar ShaderBuffer::get() {
 	return { info.self, buffer->getBuffer() }; 
 }
 
-u32 ShaderBuffer::getElements(){ return (u32) info.self.childs.size(); }
-u32 ShaderBuffer::getSize() { return (u32) info.size; }
+u32 ShaderBuffer::getElements() const { return (u32) info.self.childs.size(); }
+u32 ShaderBuffer::getSize() const { return (u32) info.size; }
+GPUBuffer *ShaderBuffer::getBuffer() const { return buffer; }
 
 ShaderBuffer *ShaderBuffer::instantiate(u32 objects) {
 
@@ -192,10 +193,6 @@ void ShaderBuffer::setObjectCount(u32 count) {
 		}
 	}
 
-}
-
-GPUBuffer *ShaderBuffer::getBuffer() {
-	return buffer;
 }
 
 void ShaderBuffer::set(Buffer buf) {
@@ -251,24 +248,34 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 	u32 offset = 0, count = 0;
 
 	std::vector<u32> arr;
-	std::vector<String> paths = path.split("/");
 
-	for (String str : paths) {
+	for (char *beg = path.ptr(), *c = beg, *end = beg + path.size(), *prev = beg; c < end; ++c) {
 
-		if (!str.isUint()) {
+		bool isEnd = c == end - 1;
 
-			if (arr.size() != 0) {
-				calculateArrayInfo(arr, sbo->arr, sbo->length, offset, count);
-				arr.clear();
+		if (*c == '/' || isEnd) {
+
+			String str(prev, u32(c - prev + isEnd));
+
+			if (!str.isUint()) {
+
+				if (arr.size() != 0) {
+					calculateArrayInfo(arr, sbo->arr, sbo->length, offset, count);
+					arr.clear();
+				}
+
+				if ((sbo = sbo->find(str)) == nullptr)
+					Log::throwError<ShaderBufferVar, 0x1>(String("Couldn't find the path \"") + path + "\"");
+				else
+					offset += sbo->offset;
+
 			}
-
-			if ((sbo = sbo->find(str)) == nullptr)
-				Log::throwError<ShaderBufferVar, 0x1>(String("Couldn't find the path \"") + path + "\"");
 			else
-				offset += sbo->offset;
+				arr.push_back((u32)str.toLong());
 
-		} else 
-			arr.push_back((u32)str.toLong());
+			prev = c + 1;
+
+		}
 		
 	}
 

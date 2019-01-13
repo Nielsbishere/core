@@ -49,7 +49,7 @@ namespace oi {
 
 		public:
 
-			const MeshBufferInfo getInfo() const;
+			const MeshBufferInfo &getInfo() const;
 
 			//Flush updates from an allocation
 			void flush(const MeshAllocation &allocation);

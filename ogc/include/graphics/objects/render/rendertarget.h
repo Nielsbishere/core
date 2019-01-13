@@ -50,7 +50,7 @@ namespace oi {
 			bool isComputeTarget();
 
 			RenderTargetExt &getExtension();
-			const RenderTargetInfo getInfo();
+			const RenderTargetInfo &getInfo();
 
 		protected:
 

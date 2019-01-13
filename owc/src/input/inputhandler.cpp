@@ -17,20 +17,25 @@ InputDevice *InputHandler::getDevice(InputDeviceBinding binding) {
 
 InputDevice *InputHandler::getDevice(Binding b) {
 
+	InputDeviceBinding type = InputDeviceBinding((u32) InputDeviceBinding::MISC + b.getControllerId());
+
 	switch (b.getInputType()) {
 
 	case InputType::KEYBOARD:
-		return getDevice(InputDeviceBinding::KEYBOARD);
+		type = InputDeviceBinding::KEYBOARD;
+		break;
 
 	case InputType::MOUSE:
-		return getDevice(InputDeviceBinding::MOUSE);
+		type = InputDeviceBinding::MOUSE;
+		break;
 
 	case InputType::CONTROLLER:
-		return getDevice((InputDeviceBinding)((u32)InputDeviceBinding::CONTROLLER0 + b.getControllerId()));
+		type = (InputDeviceBinding)((u32)InputDeviceBinding::CONTROLLER0 + b.getControllerId());
+		break;
 
-	default:
-		return getDevice((InputDeviceBinding)(b.getControllerId() + (u32) InputDeviceBinding::MISC));
 	}
+
+	return getDevice(type);
 
 }
 

@@ -350,13 +350,7 @@ void Texture::push() {
 	//Copy data to staging buffer
 
 	auto balloc = gbext.allocations[0];
-	VkDeviceMemory mem = balloc.block->memory;
-
-	void *stagingData;
-
-	vkCheck<0x5, TextureExt>(vkMapMemory(graphics.device, mem, balloc.offset, size, 0, &stagingData), "Couldn't map texture staging buffer");
-	memcpy(stagingData, dat.addr(), size);
-	vkUnmapMemory(graphics.device, mem);
+	memcpy(balloc.mappedMemory.addr(), dat.addr(), size);
 
 	//Copy data to cmd list
 

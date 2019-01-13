@@ -388,9 +388,9 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 	return result;
 }
 
-RMFile oiRM::convert(MeshInfo info) {
+RMFile oiRM::convert(const MeshInfo &info) {
 
-	MeshBufferInfo meshBuffer = info.buffer->getInfo();
+	const MeshBufferInfo &meshBuffer = info.buffer->getInfo();
 
 	auto buffers = meshBuffer.buffers;
 	u32 attributeCount = 0;

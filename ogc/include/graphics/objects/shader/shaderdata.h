@@ -32,7 +32,7 @@ namespace oi {
 		public:
 
 			ShaderDataExt &getExtension();
-			const ShaderDataInfo &getInfo() { return info; }
+			const ShaderDataInfo &getInfo() const { return info; }
 
 			bool set(String path, GraphicsResource *res);
 

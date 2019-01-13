@@ -36,7 +36,7 @@ namespace oi {
 
 		public:
 
-			const SamplerInfo getInfo();
+			const SamplerInfo &getInfo() const;
 			SamplerExt &getExtension();
 
 		protected:

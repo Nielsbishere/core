@@ -147,7 +147,7 @@ namespace oi {
 			static bool read(String path, RMFile &file);
 			static bool read(Buffer data, RMFile &file);
 
-			static RMFile convert(MeshInfo info);
+			static RMFile convert(const MeshInfo &info);
 
 			//Returns a MeshInfo and a MeshBufferInfo for the format
 			//Ideally you would remember MeshBuffer's with this exact info (except vertices and indices)

@@ -26,20 +26,20 @@ namespace oi {
 
 		public:
 
-			TextureFormat getFormat();
-			TextureUsage getUsage();
-			Vec2u getSize();
-			u32 getVersions();
-			bool isOwned();
+			TextureFormat getFormat() const;
+			TextureUsage getUsage() const;
+			Vec2u getSize() const;
+			u32 getVersions() const;
+			bool isOwned() const;
 
-			Texture *getVersion(u32 i);
+			Texture *getVersion(u32 i) const;
 
 			bool getPixels(Vec2u start, Vec2u length, CopyBuffer &output);
 			bool write(String path, Vec2u start = Vec2u(), Vec2u length = Vec2u());
 
 			void resize(Vec2u size);
 
-			const VersionedTextureInfo getInfo();
+			const VersionedTextureInfo &getInfo() const;
 
 		protected:
 

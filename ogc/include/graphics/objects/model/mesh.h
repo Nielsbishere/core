@@ -33,10 +33,10 @@ namespace oi {
 
 		public:
 
-			const MeshInfo getInfo();
+			const MeshInfo &getInfo() const;
 
-			MeshBuffer *getBuffer();
-			MeshAllocation getAllocation();
+			MeshBuffer *getBuffer() const;
+			MeshAllocation getAllocation() const;
 
 		protected:
 

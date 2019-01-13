@@ -3,10 +3,10 @@ using namespace oi::gc;
 using namespace oi;
 
 
-const MeshInfo Mesh::getInfo() { return info; }
+const MeshInfo &Mesh::getInfo() const { return info; }
 
-MeshBuffer *Mesh::getBuffer() { return info.buffer; }
-MeshAllocation Mesh::getAllocation() { return info.allocation; }
+MeshBuffer *Mesh::getBuffer() const { return info.buffer; }
+MeshAllocation Mesh::getAllocation() const { return info.allocation; }
 
 Mesh::Mesh(MeshInfo info) : info(info) {}
 

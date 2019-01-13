@@ -49,7 +49,7 @@ namespace oi {
 			u32 getBufferSize() const;
 			GPUBuffer *getBuffer() const;
 
-			const MaterialListInfo getInfo() const;
+			const MaterialListInfo &getInfo() const;
 
 		protected:
 

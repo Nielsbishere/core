@@ -65,7 +65,7 @@ namespace oi {
 		}
 
 		BitsetRef operator[](u32 i);
-		bool operator[](u32 i) const;
+		inline bool operator[](u32 i) const;
 
 		~Bitset();
 		Bitset(const Bitset &other);
@@ -178,8 +178,8 @@ namespace oi {
 			return StaticBitsetRef<n>(this, i);
 		}
 
-		bool operator[](u32 i) const {
-			return StaticBitsetRef<n>(this, i);
+		inline bool operator[](u32 i) const {
+			return fetch(i);
 		}
 
 		StaticBitset(const StaticBitset &other) { copy(other); }

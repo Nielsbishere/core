@@ -80,7 +80,7 @@ namespace oi {
 
 		public:
 
-			const MeshManagerInfo &getInfo();
+			const MeshManagerInfo &getInfo() const;
 
 			//Loads one mesh (multiple should be batched with loadAll)
 			Mesh *load(MeshAllocationInfo info);
@@ -91,8 +91,8 @@ namespace oi {
 			void unload(Mesh *mesh);
 			void unloadAll(MeshBuffer *meshBuffer);
 
-			Mesh *get(String path);
-			bool contains(String path);
+			Mesh *get(String path) const;
+			bool contains(String path) const;
 
 		protected:
 

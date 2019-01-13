@@ -213,6 +213,7 @@ f32 String::toFloat() const {
 
 std::string String::toStdString() const { return source; }
 const char *String::toCString() const { return source.c_str(); }
+char *String::ptr() { return (char*) source.c_str(); }
 
 String String::combine(std::vector<String> strings, String seperator) {
 

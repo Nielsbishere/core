@@ -3,4 +3,4 @@ using namespace oi::gc;
 using namespace oi;
 
 Sampler::Sampler(SamplerInfo info) : info(info) {}
-const SamplerInfo Sampler::getInfo() { return info; }
+const SamplerInfo &Sampler::getInfo() const { return info; }

@@ -111,7 +111,7 @@ bool Pipeline::initData() {
 		//MeshBuffer
 		//Set up bindings and attributes
 
-		const MeshBufferInfo meshBuffer = pinfo.meshBuffer->getInfo();
+		const MeshBufferInfo &meshBuffer = pinfo.meshBuffer->getInfo();
 
 		VkPipelineVertexInputStateCreateInfo inputInfo;
 		memset(&inputInfo, 0, sizeof(inputInfo));
@@ -127,7 +127,7 @@ bool Pipeline::initData() {
 
 		u32 i = 0;
 
-		const ShaderInfo shinfo = pinfo.shader->getInfo();
+		const ShaderInfo &shinfo = pinfo.shader->getInfo();
 
 		for (auto &elem : meshBuffer.buffers) {
 
@@ -184,7 +184,7 @@ bool Pipeline::initData() {
 
 		//Validate pipeline
 
-		for (const ShaderOutput so : pinfo.shader->getInfo().outputs) {
+		for (const ShaderOutput &so : pinfo.shader->getInfo().outputs) {
 
 			if (so.id >= rt->getTargets())
 				Log::throwError<VkPipeline, 0x5>("Invalid pipeline; Shader referenced a shader output to an unknown output");

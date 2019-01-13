@@ -16,8 +16,8 @@ Shader::~Shader() {
 }
 
 Shader::Shader(ShaderInfo info) : info(info) { }
-const ShaderInfo &Shader::getInfo() { return info; }
-Vec3u Shader::getComputeThreads() { return info.computeThreads; }
+const ShaderInfo &Shader::getInfo() const { return info; }
+Vec3u Shader::getComputeThreads() const { return info.computeThreads; }
 
 bool Shader::isCompatible(ShaderStageType t0, ShaderStageType t1) {
 

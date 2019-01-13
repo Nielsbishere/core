@@ -7,7 +7,7 @@ using namespace oi::gc;
 using namespace oi;
 
 MeshManager::MeshManager(MeshManagerInfo info) : info(info) { }
-const MeshManagerInfo &MeshManager::getInfo() { return info; }
+const MeshManagerInfo &MeshManager::getInfo() const { return info; }
 MeshManager::~MeshManager() {
 
 	for(auto &ma : info.meshAllocations)
@@ -26,7 +26,7 @@ bool MeshManager::validateBuffer(MeshAllocationInfo &mai, MeshBufferInfo &mbi) {
 	return mai.meshBuffer->canAllocate(mbi);	//TODO: Actually allocate space!
 }
 
-bool MeshManager::contains(String path) {
+bool MeshManager::contains(String path) const {
 	return info.meshAllocations.find(path) != info.meshAllocations.end();
 }
 
@@ -38,7 +38,7 @@ bool MeshManager::init() {
 	return true; 
 }
 
-Mesh *MeshManager::get(String path) {
+Mesh *MeshManager::get(String path) const {
 
 	auto it = info.meshAllocations.find(path);
 

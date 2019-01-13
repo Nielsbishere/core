@@ -58,7 +58,7 @@ namespace oi {
 
 		public:
 
-			const ShaderStageInfo getInfo();
+			const ShaderStageInfo &getInfo() const;
 			ShaderStageExt &getExtension();
 
 		protected:

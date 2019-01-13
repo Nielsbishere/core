@@ -97,7 +97,9 @@ void GPUBuffer::push() {
 	VkBuffer &resource = ext->resource[frame];
 	GraphicsExt &graphics = g->getExtension();
 
-	if (GPUBufferExt::isStaged(info.type)) {
+	auto balloc = ext->allocations[frame];
+
+	if (balloc.mappedMemory.size() == 0) {			//Staging
 
 		CommandListExt &cmdList = graphics.stagingCmdList->getExtension();
 
@@ -136,14 +138,8 @@ void GPUBuffer::push() {
 
 		//Copy data to staging buffer
 
-		auto balloc = stagingBuffer.allocations[0];
-
-		u8 *ptr;
-		vkCheck<0x2, GPUBufferExt>(vkMapMemory(graphics.device, balloc.block->memory, balloc.offset, len, 0, (void**)&ptr), "Failed to map staging buffer");
-
-		memcpy(ptr, getAddress() + off, len);
-
-		vkUnmapMemory(graphics.device, balloc.block->memory);
+		balloc = stagingBuffer.allocations[0];
+		memcpy(balloc.mappedMemory.addr(), getAddress() + off, len);
 
 		//Copy staging buffer
 
@@ -173,28 +169,23 @@ void GPUBuffer::push() {
 		return;
 	}
 
-	auto balloc = ext->allocations[graphics.current % ext->resource.size()];
-	VkDeviceMemory mem = balloc.block->memory;
-	u32 boffset = balloc.offset;
+	//Copy to memory
+	memcpy(balloc.mappedMemory.addr() + off, getAddress() + off, len);
 
-	u32 offsetAlignment = (u32) graphics.pproperties.properties.limits.nonCoherentAtomSize;
-	u32 mapOffset = off / offsetAlignment * offsetAlignment;
-	u32 dif = off - mapOffset;
+	//Update required if it's non coherent
+	if ((balloc.block->memoryBits & (u32)VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0) {
 
-	len += dif;
+		u32 boffset = balloc.offset;
 
-	VkDeviceSize mapLength = len % ext->alignment == 0 ? len : (len / ext->alignment + 1) * ext->alignment;
+		VkDeviceMemory mem = balloc.block->memory;
 
-	//Map memory
-	u8 *addr;
-	vkCheck<0x3, GPUBufferExt>(vkMapMemory(g->getExtension().device, mem, mapOffset + boffset, mapLength, 0, (void**)&addr), "Couldn't map memory");
+		u32 offsetAlignment = (u32)graphics.pproperties.properties.limits.nonCoherentAtomSize;
+		u32 mapOffset = off / offsetAlignment * offsetAlignment;
+		u32 dif = off - mapOffset;
 
-	//Copy buffer
-	memcpy(addr + dif, getAddress() + off, len);
+		len += dif;
 
-	//Flush (if needed)
-
-	if (!GPUBufferExt::isCoherent(info.type)) {
+		VkDeviceSize mapLength = len % ext->alignment == 0 ? len : (len / ext->alignment + 1) * ext->alignment;
 
 		VkMappedMemoryRange range = {
 			VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
@@ -206,9 +197,6 @@ void GPUBuffer::push() {
 
 		vkFlushMappedMemoryRanges(g->getExtension().device, 1, &range);
 	}
-
-	//Unmap memory
-	vkUnmapMemory(g->getExtension().device, mem);
 
 	changes = Vec2u(u32_MAX, 0);
 

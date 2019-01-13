@@ -4,12 +4,12 @@ using namespace oi::gc;
 using namespace oi;
 
 GPUBuffer::GPUBuffer(GPUBufferInfo info) : info(info) {}
-GPUBufferType GPUBuffer::getType() { return info.type; }
-u32 GPUBuffer::getSize() { return info.buffer.size(); }
-u8 *GPUBuffer::getAddress() { return info.buffer.addr(); }
-Buffer GPUBuffer::getBuffer() { return info.buffer; }
+GPUBufferType GPUBuffer::getType() const { return info.type; }
+u32 GPUBuffer::getSize() const { return info.buffer.size(); }
+u8 *GPUBuffer::getAddress() const { return info.buffer.addr(); }
+Buffer GPUBuffer::getBuffer() const { return info.buffer; }
 
-const GPUBufferInfo &GPUBuffer::getInfo() { return info; }
+const GPUBufferInfo &GPUBuffer::getInfo() const { return info; }
 
 bool GPUBuffer::set(Buffer buf, u32 offset) {
 

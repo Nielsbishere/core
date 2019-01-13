@@ -54,8 +54,8 @@ BitsetRef Bitset::operator[](u32 i) {
 	return BitsetRef(this, i);
 }
 
-bool Bitset::operator[](u32 i) const {
-	return BitsetRef(this, i);
+inline bool Bitset::operator[](u32 i) const {
+	return fetch(i);
 }
 
 Bitset::~Bitset() {

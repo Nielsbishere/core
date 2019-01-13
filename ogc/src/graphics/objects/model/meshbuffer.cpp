@@ -3,7 +3,7 @@
 using namespace oi::gc;
 using namespace oi;
 
-const MeshBufferInfo MeshBuffer::getInfo() const { return info; }
+const MeshBufferInfo &MeshBuffer::getInfo() const { return info; }
 
 void MeshBuffer::flush(const MeshAllocation &allocation) {
 
