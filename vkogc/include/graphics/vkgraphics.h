@@ -18,7 +18,7 @@ namespace oi {
 
 			typedef Graphics BaseType;
 
-			static constexpr u32 memoryBlockSize = 32 * 1024 * 1024;
+			static constexpr u32 memoryBlockSize = 128 * 1024 * 1024;
 
 			VkInstance instance = VK_NULL_HANDLE;
 			VkPhysicalDevice pdevice = VK_NULL_HANDLE;
@@ -70,6 +70,7 @@ namespace oi {
 			void dealloc(GPUMemoryBlockExt *block, BlockAllocation allocation);
 
 			void dealloc(GPUBufferExt &ext, String name);
+			void dealloc(TextureExt &ext, String name);
 
 		};
 

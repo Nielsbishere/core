@@ -89,46 +89,10 @@ bool Texture::initData() {
 
 			}
 
-			vkCheck<0x3, TextureExt>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext->resource), "Couldn't create image");
+			vkCheck<0x2, TextureExt>(vkCreateImage(graphics.device, &imageInfo, vkAllocator, &ext->resource), "Couldn't create image");
 			vkName(graphics, ext->resource, VK_OBJECT_TYPE_IMAGE, getName());
 
-			//Allocate memory (TODO: by GraphicsExt)
-
-			VkMemoryAllocateInfo memoryInfo;
-			memset(&memoryInfo, 0, sizeof(memoryInfo));
-
-			VkMemoryRequirements2 requirements2;
-			memset(&requirements2, 0, sizeof(requirements2));
-
-			requirements2.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR;
-
-			VkImageMemoryRequirementsInfo2 imageRequirement;
-			memset(&imageRequirement, 0, sizeof(imageRequirement));
-
-			imageRequirement.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR;
-			imageRequirement.image = ext->resource;
-
-			graphics.vkGetImageMemoryRequirements2(graphics.device, &imageRequirement, &requirements2);
-			VkMemoryRequirements &requirements = requirements2.memoryRequirements;
-
-			memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			memoryInfo.allocationSize = requirements.size;
-
-			uint32_t memoryIndex = u32_MAX;
-
-			for (uint32_t i = 0; i < graphics.pmemory.memoryTypeCount; ++i)
-				if ((requirements.memoryTypeBits & (1 << i)) && (graphics.pmemory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
-					memoryIndex = i;
-					break;
-				}
-
-			if (memoryIndex == u32_MAX)
-				Log::throwError<TextureExt, 0x1>(String("Couldn't find a valid memory type for a VkTexture: ") + getName());
-
-			memoryInfo.memoryTypeIndex = memoryIndex;
-
-			vkCheck<0x4, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &ext->memory), "Couldn't allocate memory");
-			vkCheck<0x5, TextureExt>(vkBindImageMemory(graphics.device, ext->resource, ext->memory, 0), String("Couldn't bind memory to texture ") + getName());
+			graphics.alloc(*ext, getName());
 
 		}
 
@@ -145,7 +109,7 @@ bool Texture::initData() {
 		viewInfo.subresourceRange.levelCount = info.mipLevels;
 		viewInfo.subresourceRange.layerCount = 1;
 
-		vkCheck<0x6, TextureExt>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext->view), "Couldn't create image view");
+		vkCheck<0x3, TextureExt>(vkCreateImageView(graphics.device, &viewInfo, vkAllocator, &ext->view), "Couldn't create image view");
 		vkName(graphics, ext->view, VK_OBJECT_TYPE_IMAGE_VIEW, getName() + " view");
 
 		//Prepare texture for update
@@ -153,7 +117,7 @@ bool Texture::initData() {
 		if (info.dat.size() != 0U) {
 
 			if (info.dat.size() != info.res.x * info.res.y * Graphics::getFormatSize(info.format))
-				return Log::throwError<TextureExt, 0x2>("The buffer was of incorrect size");
+				return Log::throwError<TextureExt, 0x1>("The buffer was of incorrect size");
 
 			flush(Vec2u(), info.res);
 
@@ -188,7 +152,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	commandInfo.commandBufferCount = 1;
 
 	VkCommandBuffer cmd;
-	vkCheck<0x9, TextureExt>(vkAllocateCommandBuffers(graphics.device, &commandInfo, &cmd), "Couldn't allocate intermediate command list");
+	vkCheck<0x6, TextureExt>(vkAllocateCommandBuffers(graphics.device, &commandInfo, &cmd), "Couldn't allocate intermediate command list");
 	vkName(graphics, cmd, VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " intermediate commands");
 
 	//Create submit fence
@@ -199,7 +163,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
 	VkFence fence;
-	vkCheck<0xA, TextureExt>(vkCreateFence(graphics.device, &fenceInfo, vkAllocator, &fence), "Couldn't allocate intermediate fence");
+	vkCheck<0x7, TextureExt>(vkCreateFence(graphics.device, &fenceInfo, vkAllocator, &fence), "Couldn't allocate intermediate fence");
 
 	//Get image layout & aspect
 
@@ -224,7 +188,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 	VkBuffer dst;
 
-	vkCheck<0xD, TextureExt>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &dst), "Failed to create intermediate buffer");
+	vkCheck<0xA, TextureExt>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, &dst), "Failed to create intermediate buffer");
 	vkName(graphics, dst, VK_OBJECT_TYPE_BUFFER, getName() + " intermediate");
 
 	//Allocate memory (TODO: by GraphicsExt)
@@ -260,12 +224,12 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 		}
 
 	if (memoryIndex == u32_MAX)
-		Log::throwError<TextureExt, 0xE>(String("Couldn't find a valid memory type for a VkBuffer: ") + getName() + " intermediate");
+		Log::throwError<TextureExt, 0xB>(String("Couldn't find a valid memory type for a VkBuffer: ") + getName() + " intermediate");
 
 	memoryInfo.memoryTypeIndex = memoryIndex;
 
-	vkCheck<0xF, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &dstMemory), "Couldn't allocate memory");
-	vkCheck<0x10, TextureExt>(vkBindBufferMemory(graphics.device, dst, dstMemory, 0), String("Couldn't bind memory to buffer ") + getName() + " intermediate");
+	vkCheck<0xC, TextureExt>(vkAllocateMemory(graphics.device, &memoryInfo, vkAllocator, &dstMemory), "Couldn't allocate memory");
+	vkCheck<0xD, TextureExt>(vkBindBufferMemory(graphics.device, dst, dstMemory, 0), String("Couldn't bind memory to buffer ") + getName() + " intermediate");
 
 	//Copy to intermediate buffer
 
@@ -287,8 +251,8 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &cmd;
 
-	vkCheck<0xB, TextureExt>(vkQueueSubmit(graphics.queue, 1, &submitInfo, fence), "Couldn't submit intermediate commands");
-	vkCheck<0xC, TextureExt>(vkWaitForFences(graphics.device, 1, &fence, true, u64_MAX), "Couldn't wait for intermediate fences");
+	vkCheck<0x8, TextureExt>(vkQueueSubmit(graphics.queue, 1, &submitInfo, fence), "Couldn't submit intermediate commands");
+	vkCheck<0x9, TextureExt>(vkWaitForFences(graphics.device, 1, &fence, true, u64_MAX), "Couldn't wait for intermediate fences");
 
 	//Destroy command buffer and fence
 
@@ -318,10 +282,8 @@ void Texture::destroyData(bool resize) {
 
 		vkDestroyImageView(graphics.device, ext->view, vkAllocator);
 		
-		if(owned){
-			vkFreeMemory(graphics.device, ext->memory, vkAllocator);
-			vkDestroyImage(graphics.device, ext->resource, vkAllocator);
-		}
+		if(owned)
+			graphics.dealloc(*ext, getName());
 
 	}
 
@@ -380,7 +342,7 @@ void Texture::push() {
 	stagingInfo.queueFamilyIndexCount = 1;
 	stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-	vkCheck<0x7, TextureExt>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.data()), "Couldn't send texture data to GPU");
+	vkCheck<0x4, TextureExt>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.data()), "Couldn't send texture data to GPU");
 	vkName(graphics, gbext.resource[0], VK_OBJECT_TYPE_IMAGE, getName() + " staging buffer");
 
 	graphics.alloc(gbext, GPUBufferType::SSBO /* unused */, getName() + " staging buffer", true);
@@ -392,7 +354,7 @@ void Texture::push() {
 
 	void *stagingData;
 
-	vkCheck<0x8, TextureExt>(vkMapMemory(graphics.device, mem, balloc.offset, size, 0, &stagingData), "Couldn't map texture staging buffer");
+	vkCheck<0x5, TextureExt>(vkMapMemory(graphics.device, mem, balloc.offset, size, 0, &stagingData), "Couldn't map texture staging buffer");
 	memcpy(stagingData, dat.addr(), size);
 	vkUnmapMemory(graphics.device, mem);
 

@@ -1,8 +1,10 @@
 #include "graphics/objects/gpubuffer.h"
+#include "graphics/objects/texture/texture.h"
 #include "graphics/vulkan.h"
 #include "graphics/vkgraphics.h"
 #include "graphics/vkgpuallocator.h"
 #include "graphics/objects/vkgpubuffer.h"
+#include "graphics/objects/texture/vktexture.h"
 using namespace oi::gc;
 using namespace oi;
 
@@ -218,29 +220,49 @@ void GraphicsExt::dealloc(GPUBufferExt &ext, String name) {
 
 }
 
-void GraphicsExt::alloc(TextureExt &, String) {
-	/*
-		VkMemoryPropertyFlagBits allocFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+void GraphicsExt::alloc(TextureExt &ext, String name) {
 
-		VkImage &res = ext.resource;
+	VkMemoryPropertyFlagBits allocFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		VkMemoryDedicatedRequirementsKHR dedicatedReq = { VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR };
-		VkBufferMemoryRequirementsInfo2 bufferReq = { VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR, nullptr, res };
+	VkImage &res = ext.resource;
 
-		VkMemoryRequirements2 memReq = { VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR, &dedicatedReq };
-		vkGetBufferMemoryRequirements2(device, &bufferReq, &memReq);
+	VkMemoryDedicatedRequirementsKHR dedicatedReq = { VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR };
+	VkImageMemoryRequirementsInfo2 imageReq = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR, nullptr, res };
 
-		VkMemoryRequirements requirements = memReq.memoryRequirements;
+	VkMemoryRequirements2 memReq = { VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR, &dedicatedReq };
+	vkGetImageMemoryRequirements2(device, &imageReq, &memReq);
 
-		auto allocInfo = std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR>(allocFlags, requirements, dedicatedReq);
+	VkMemoryRequirements requirements = memReq.memoryRequirements;
 
-		u32 offset = 0;
+	auto allocInfo = std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR>(allocFlags, requirements, dedicatedReq);
 
-		BlockAllocation allocation;
-		GPUMemoryBlockExt *gallocation = alloc(allocInfo, name, offset, allocation, { res, VK_NULL_HANDLE });
+	u32 offset = 0;
 
-		ext.allocation = { gallocation, offset, allocation };
+	BlockAllocation allocation;
+	GPUMemoryBlockExt *gallocation = alloc(allocInfo, name, offset, allocation, { res, VK_NULL_HANDLE });
 
-		vkCheck<0x2A>(vkBindBufferMemory(device, res, gallocation->memory, offset), "Couldn't bind buffer memory");*/
+	ext.allocation = { gallocation, offset, allocation };
+
+	vkCheck<0x2B>(vkBindImageMemory(device, res, gallocation->memory, offset), "Couldn't bind image memory");
+
+}
+
+void GraphicsExt::dealloc(TextureExt &ext, String name) {
+
+	GPUAllocationExt &balloc = ext.allocation;
+	GPUMemoryBlockExt *memoryBlock = balloc.block;
+
+	if (memoryBlock == nullptr)
+		return;
+
+	VkImage image = ext.resource;
+	vkDestroyImage(device, image, vkAllocator);
+
+	Log::println(String("Deallocated ") + name + " at " + balloc.allocation.start + " with size " + balloc.allocation.size);
+
+	if (memoryBlock->free(balloc.allocation)) {
+		delete memoryBlock;
+		memoryBlocks.erase(std::find(memoryBlocks.begin(), memoryBlocks.end(), memoryBlock));
+	}
 
 }

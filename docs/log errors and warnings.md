@@ -56,6 +56,7 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Couldn't find a valid memory type | | 0x28 | see 0x26 |
 | | Couldn't allocate memory | | 0x29 | see 0x27 |
 | | Couldn't bind buffer memory | | 0x2A | The memory allocated couldn't be bound to the buffer |
+| | Couldn't bind image memory | | 0x2B | The memory allocated couldn't be bound to the image |
 | graphics<br />objects<br />shader<br />vkpipeline.cpp   | Pipeline requires a shader                                   | PipelineExt   | 0x0  | All pipelines require a shader                               |
 |                                                         | Graphics pipeline requires a render target, pipeline state and mesh buffer |                 | 0x1  | A graphics pipeline needs a mesh buffer, pipeline state and render target to be set |
 |                                                         | Couldn't create pipeline; Shader vertex input type didn't match up with vertex input type; {shaderName}'s {varName} and {meshBufferName}'s {meshVarName} |                 | 0x2  | The inputs of the vertex shader didn't match up with the MeshBuffer's layout |
@@ -86,24 +87,21 @@ When errors occur, it might be hard to locate, but with ocore, fatal errors have
 | | Uninitialized RenderTargets can't be forwarded to Shader into a TextureList register, use RenderTarget::resize to initialize it or set a valid resolution | | 0xE | see 0xD |
 | graphics<br />objects<br />shader<br />vkshaderstage.cpp | Shader stage creation failed | ShaderStageExt | 0x0 | Shader stage couldn't be created, internal errors were logged |
 | graphics<br />objects<br />texture<br />vktexture.cpp   | Couldn't get depth texture; no optimal format available      | TextureExt    | 0x0  | The GPU doesn't support depth buffers                        |
-|                                                         | Couldn't find a valid memory type for a VkTexture: {name}    |                 | 0x1  | The GPU couldn't find how to allocate the texture or didn't have enough space |
-|                                                         | The buffer was of incorrect size                             |                 | 0x2  | The initialization data didn't match the texture's resolution and or format |
-| | Couldn't create image | | 0x3 | Couldn't create image object, internal errors have been logged |
-| | Couldn't allocate memory | | 0x4 | No space could be allocated for the texture; GPU was out of memory or didn't have correct memory space |
-| | Couldn't bind memory to texture {name} | | 0x5 | Memory allocated was a different type than what the texture expected |
-| | Couldn't create image view | | 0x6 | The image was invalid or the image view couldn't be created |
-| | Couldn't send texture data to GPU | | 0x7 | Couldn't create staging buffer |
-| | Couldn't map texture staging buffer | | 0x8 | The memory for the staging buffer couldn't be unmapped |
-| | Couldn't allocate intermediate command list | | 0x9 | The command list created for copying the data to the CPU couldn't be created |
-| | Couldn't allocate intermediate fence | | 0xA | The fence required for the copy operation couldn't be created |
-| | Couldn't submit intermediate commands | | 0xB | The command buffer used for the copy operation couldn't be submitted |
-| | Couldn't wait for intermediate fences | | 0xC | The fence required for the copy operation couldn't be waited for |
-| | Failed to create intermediate buffer | | 0xD | Couldn't create the intermediate buffer |
-| | Couldn't find a valid memory type for a VkBuffer: {name} intermediate | | 0xE | The intermediate buffer couldn't be created |
-| | Couldn't allocate memory | | 0xF |  |
-| | Couldn't bind memory to buffer {name} intermediate | | 0x10 |  |
-| | Couldn't map intermediate memory | | 0x11 |  |
-| | Couldn't get pixels; resource has to be owned by the application (render target or depth buffer) | | 0x12 |  |
+|                                                         | The buffer was of incorrect size                             |                 | 0x1  | The initialization data didn't match the texture's resolution and or format |
+| | Couldn't create image | | 0x2 | Couldn't create image object, internal errors have been logged |
+| | Couldn't create image view | | 0x3 | The image was invalid or the image view couldn't be created |
+| | Couldn't send texture data to GPU | | 0x4 | Couldn't create staging buffer |
+| | Couldn't map texture staging buffer | | 0x5 | The memory for the staging buffer couldn't be unmapped |
+| | Couldn't allocate intermediate command list | | 0x6 | The command list created for copying the data to the CPU couldn't be created |
+| | Couldn't allocate intermediate fence | | 0x7 | The fence required for the copy operation couldn't be created |
+| | Couldn't submit intermediate commands | | 0x8 | The command buffer used for the copy operation couldn't be submitted |
+| | Couldn't wait for intermediate fences | | 0x9 | The fence required for the copy operation couldn't be waited for |
+| | Failed to create intermediate buffer | | 0xA | Couldn't create the intermediate buffer |
+| | Couldn't find a valid memory type for a VkBuffer: {name} intermediate | | 0xB | The intermediate buffer couldn't be created |
+| | Couldn't allocate memory | | 0xC |  |
+| | Couldn't bind memory to buffer {name} intermediate | | 0xD |  |
+| | Couldn't map intermediate memory | | 0xE |  |
+| | Couldn't get pixels; resource has to be owned by the application (render target or depth buffer) | | 0xF |  |
 | graphics<br />objects<br />render<br />vkrendertarget.cpp | Couldn't create render pass for render target | RenderTargetExt | 0x0 | Render pass settings were invalid, internal errors have been logged |
 | | Couldn't create framebuffers for render target | | 0x1 | Framebuffer settings were invalid, internal errors have been logged |
 | graphics<br />objects<br />texture<br />vksampler.cpp | Couldn't create sampler object | SamplerExt | 0x0 | Sampler settings were invalid |

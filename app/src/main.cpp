@@ -228,7 +228,7 @@ void MainInterface::initScene() {
 	pipelineState = PipelineStateRef(g, "Default pipeline state", PipelineStateInfo(DepthMode::All, BlendMode::Off));
 
 	deferredPipeline = PipelineRef(g, "Deferred pipeline", GraphicsPipelineInfo(deferred, pipelineState, gbuffer, mesh3D));
-	lightingPipeline = g.create("Lighting pipeline", ComputePipelineInfo(lighting));
+	lightingPipeline = PipelineRef(g, "Lighting pipeline", ComputePipelineInfo(lighting));
 	postProcessingPipeline = PipelineRef(g, "Post process pipeline", GraphicsPipelineInfo(postProcessing, pipelineState, g.getBackBuffer(), mesh2D));
 
 	//Create draw and compute lists
