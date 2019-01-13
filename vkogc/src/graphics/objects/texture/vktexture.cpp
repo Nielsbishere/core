@@ -137,7 +137,7 @@ bool Texture::initData() {
 bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 	if (!owned || info.usage != TextureUsage::Image)
-		return Log::throwError<TextureExt, 0x12>("Couldn't get pixels; resource has to be owned by the application (render target or depth buffer isn't allowed)");
+		return Log::throwError<TextureExt, 0xF>("Couldn't get pixels; resource has to be owned by the application (render target or depth buffer isn't allowed)");
 
 	GraphicsExt &graphics = g->getExtension();
 
@@ -261,7 +261,7 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 	//Copy buffer to copy buffer
 	void *memory;
-	vkCheck<0x11, TextureExt>(vkMapMemory(graphics.device, dstMemory, 0, VK_WHOLE_SIZE, 0, &memory), "Couldn't map intermediate memory");
+	vkCheck<0xE, TextureExt>(vkMapMemory(graphics.device, dstMemory, 0, VK_WHOLE_SIZE, 0, &memory), "Couldn't map intermediate memory");
 	output = CopyBuffer((u8*)memory, (u32) requirements.size);
 	vkUnmapMemory(graphics.device, dstMemory);
 
