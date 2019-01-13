@@ -88,7 +88,7 @@ void Graphics::init(Window *w){
 	//Init platform dependent data
 	alloc<Graphics>(ext);
 
-	//Get extensions and layers
+	//Get instance extensions and layers
 
 	u32 layerCount = 0, extensionCount = 0;
 	vkCheck<0x20>(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), "Couldn't enumerate layers");
@@ -115,7 +115,7 @@ void Graphics::init(Window *w){
 	
 	#endif
 	
-	//Constants
+	//Add instance layers and extensions
 	
 	const u32 majorVersion = 1, minorVersion = 0, patchVersion = 0;					///Vulkan version
 	
@@ -136,23 +136,34 @@ void Graphics::init(Window *w){
 		cextensions.push_back("VK_EXT_debug_report");
 	#endif
 
-	bool supported = false;
+	cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
-	for (VkExtensionProperties *extension = extensions; extension != extensions + extensionCount; ++extension) {
-		if (String(extension->extensionName) == VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME){
-			cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-			supported = true;
-		}
-	}
+	//Validate instance extensions & layers
 
-	if(!supported)
-		Log::throwError<GraphicsExt, 0x24>("Vulkan driver not supported; PhysicalDeviceProperties2 required");
+	Bitset extensionPresent((u32)cextensions.size());
+	Bitset layerPresent((u32)clayers.size());
 
-	std::vector<const char*> dlayers, dextensions(4);								///Device layers and extensions
-	dextensions[0] = "VK_KHR_swapchain";
-	dextensions[1] = "VK_KHR_shader_draw_parameters";
-	dextensions[2] = "VK_KHR_get_memory_requirements2";
-	dextensions[3] = "VK_KHR_dedicated_allocation";
+	u32 j = (u32)cextensions.size();
+
+	for (VkExtensionProperties *extension = extensions; extension != extensions + extensionCount; ++extension)
+		for (u32 i = 0; i < j; ++i)
+			if (String(extension->extensionName) == cextensions[i])
+				extensionPresent[i] = true;
+
+	for(u32 i = 0; i < j; ++i)
+		if(!extensionPresent[i])
+			Log::throwError<GraphicsExt, 0x24>(String("Instance extension wasn't supported: ") + cextensions[i]);
+	
+	j = (u32) clayers.size();
+
+	for (VkLayerProperties *layer = layers; layer != layers + layerCount; ++layer)
+		for (u32 i = 0; i < j; ++i)
+			if (String(layer->layerName) == clayers[i])
+				layerPresent[i] = true;
+
+	for(u32 i = 0; i < j; ++i)
+		if(!layerPresent[i])
+			Log::throwError<GraphicsExt, 0x2C>(String("Instance layer wasn't supported: ") + clayers[i]);
 
 	//Set up the application
 	
@@ -203,7 +214,6 @@ void Graphics::init(Window *w){
 	initialized = true;
 	
 	Log::println("Successfully initialized Graphics with Vulkan context");
-
 
 	#ifdef __DEBUG__
 
@@ -308,6 +318,18 @@ void Graphics::init(Window *w){
 			Log::println(String("\t") + extensions[i].extensionName);
 	
 	#endif
+
+	//Add device extensions & layers
+
+	std::vector<const char*> dlayers, dextensions(4);								///Device layers and extensions
+	dextensions[0] = "VK_KHR_swapchain";
+	dextensions[1] = "VK_KHR_shader_draw_parameters";
+	dextensions[2] = "VK_KHR_get_memory_requirements2";
+	dextensions[3] = "VK_KHR_dedicated_allocation";
+
+	//TODO: Validate device layers & extensions
+
+	//Check if features are present (raytracing & vr)
 
 	for(VkExtensionProperties *extension = extensions; extension < extensions + extensionCount; ++extension){
 
