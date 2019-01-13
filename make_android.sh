@@ -158,6 +158,12 @@ buildAbi(){
 
 # CMake & build
 
+if [ $release ] ; then
+	cmakeParams=-DCMAKE_BUILD_TYPE=Release
+else
+	cmakeParams=-DCMAKE_BUILD_TYPE=Debug
+fi
+
 if ! [ $jobs ] ; then
 	params="-j"
 else
