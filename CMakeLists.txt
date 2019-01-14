@@ -39,6 +39,7 @@ option(no_console "no_console" OFF)
 
 if(no_console)
 	add_definitions(-D__NO_CONSOLE__)
+	message ("-- Console - disabled")
 else()
 	message ("-- Console - enabled")
 endif()
@@ -115,15 +116,9 @@ add_subdirectory(deps)
 # ocore
 add_subdirectory(ostlc)
 add_subdirectory(owc)
+
 add_subdirectory(ogc)
 set_property(TARGET ostlc owc ogc PROPERTY FOLDER ocore)
-
-# api dependent
-if(Vulkan)
-	add_subdirectory(vkogc)
-	set_property(TARGET vkogc PROPERTY FOLDER api)
-	target_link_libraries(ogc vkogc)
-endif()
 
 # desktop conversion tools
 add_subdirectory(oibaker)
@@ -132,12 +127,7 @@ set_property(TARGET oibaker PROPERTY FOLDER tools)
 # app projects
 add_subdirectory(app)
 set_property(TARGET app PROPERTY FOLDER application)
-	
-if(Android)
-	add_subdirectory(app_android)
-	set_property(TARGET app_android PROPERTY FOLDER application)
-else()
-	add_subdirectory(app_pc)
-	set_property(TARGET app_pc PROPERTY FOLDER application)
-	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT app_pc)
+
+if(Windows)
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT app_windows)
 endif()

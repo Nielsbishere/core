@@ -202,8 +202,8 @@ cp -r $d/bin/build/* build
 # Prepare assets and src
 
 mkdir -p build/src
-cp -r ../../app_android/src/* build/src
-cp -r ../../app_android/res/* build/res
+cp -r ../../app/app_android/src/* build/src
+cp -r ../../app/app_android/res/* build/res
 
 mkdir -p build/assets
 mkdir -p build/assets/res

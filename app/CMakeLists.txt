@@ -32,3 +32,11 @@ add_library(
 target_link_libraries(app ostlc)
 target_link_libraries(app owc)
 target_link_libraries(app ogc)
+
+if(Android)
+	add_subdirectory(app_android)
+	set_property(TARGET app_android PROPERTY FOLDER platform)
+else()
+	add_subdirectory(app_windows)
+	set_property(TARGET app_windows PROPERTY FOLDER platform)
+endif()

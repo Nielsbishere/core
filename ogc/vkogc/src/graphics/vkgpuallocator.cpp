@@ -9,7 +9,8 @@ using namespace oi::gc;
 using namespace oi;
 
 bool GPUMemoryBlockExt::compatible(const std::tuple<VkMemoryPropertyFlagBits, VkMemoryRequirements, VkMemoryDedicatedRequirementsKHR> &requirements) const {
-	return !isDedicated && (memoryBits & std::get<0>(requirements)) == std::get<0>(requirements) &&
+	return !isDedicated && 
+		(memoryBits & std::get<0>(requirements)) == std::get<0>(requirements) &&
 		(std::get<1>(requirements).memoryTypeBits & (1 << memoryId)) != 0 &&
 		allocator.hasAlignedSpace((u32)std::get<1>(requirements).size, (u32)std::get<1>(requirements).alignment);
 }
@@ -165,7 +166,7 @@ GPUMemoryBlockExt *GraphicsExt::alloc(const std::tuple<VkMemoryPropertyFlagBits,
 	u32 aliasing = (u32) pproperties.properties.limits.bufferImageGranularity;
 	u32 alignment = (u32) requirements1.alignment;
 
-	allocation = (*it)->allocator.allocAligned((u32)requirements1.size, alignment < aliasing ? aliasing : alignment, offset);
+	allocation = (*it)->allocator.allocAligned((u32)requirements1.size, aliasing > alignment ? aliasing : alignment, offset);
 	
 	Buffer mappedMemory = (*it)->mappedMemory;
 

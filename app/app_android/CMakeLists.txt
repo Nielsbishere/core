@@ -22,12 +22,7 @@ target_link_libraries(app_android owc)
 target_link_libraries(app_android ogc)
 target_link_libraries(app_android app)
 
-# Convert .so to .apk (Thanks to Discordia; check android_apk_make.txt)
-
-set(ANDROID_NAME app_android)
-set(ANDROID_DIR ${HOME_DIR}/${ANDROID_NAME})
-set(APK_DIR ../bin/build)
-set(LIBS_DIR ../lib)
+set(APK_DIR ../../bin/build)
 
 # Set debuggable
 
@@ -40,5 +35,5 @@ else()
 endif()
 
 # Configure android project
-configure_file("${ANDROID_DIR}/AndroidManifest.xml" "${APK_DIR}/AndroidManifest.xml")
-configure_file("${ANDROID_DIR}/strings.xml" "${APK_DIR}/res/values/strings.xml")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/AndroidManifest.xml" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build/AndroidManifest.xml")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/strings.xml" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build/res/values/strings.xml")

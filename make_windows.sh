@@ -74,18 +74,6 @@ reload(){
 	
 	mkdir -p "$1"
 	cd "$1"
-
-	if [ $noConsole ] ; then
-		params="-Dno_console=ON "
-	fi
-	
-	if [ $strip ] ; then
-		params="-Dstrip_debug_info=ON $params"
-	fi
-
-	if [ $exexfo ] ; then
-		params="-Dexclude_ext_formats=ON $params"
-	fi
 	
 	cmake ../../../ -G "$2" $params
 	checkErrors
@@ -107,10 +95,39 @@ cd ../
 
 checkErrors
 
+
+# Build type
+
+if [ $release ] ; then
+	btype="Release"
+else
+	btype="Debug"
+fi
+
 # Make build
 
 mkdir -p builds/Windows
 cd builds/Windows
+
+params=-DCMAKE_BUILD_TYPE=$btype
+
+if [ $noConsole ] ; then
+	params="-Dno_console=ON $params"
+else
+	params="-Dno_console=OFF $params"
+fi
+
+if [ $strip ] ; then
+	params="-Dstrip_debug_info=ON $params"
+else
+	params="-Dstrip_debug_info=OFF $params"
+fi
+
+if [ $exexfo ] ; then
+	params="-Dexclude_ext_formats=ON $params"
+else
+	params="-Dexclude_ext_formats=OFF $params"
+fi
 
 if [ $cmake ] ; then
 
@@ -130,14 +147,6 @@ if [ $cmake ] ; then
 		reload "ARM" "Visual Studio 15 2017 ARM"
 	fi
 
-fi
-
-# Build type
-
-if [ $release ] ; then
-	btype="Release"
-else
-	btype="Debug"
 fi
 
 # Build

@@ -19,3 +19,10 @@ add_library(
 
 target_link_libraries(ogc ostlc owc)
 target_link_libraries(ogc glslang OGLCompiler OSDependent SPIRV SPVRemapper spirv-cross-core)
+
+# api dependent
+if(Vulkan)
+	add_subdirectory(vkogc)
+	set_property(TARGET vkogc PROPERTY FOLDER api)
+	target_link_libraries(ogc vkogc)
+endif()

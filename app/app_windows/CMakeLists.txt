@@ -4,17 +4,17 @@ include_directories(../ogc/include)
 include_directories(../app/include)
 include_directories(include)
 
-file(GLOB_RECURSE app_pc_SRC
+file(GLOB_RECURSE app_windows_SRC
 	"include/*.h"
 	"src/*.c"
 	"include/*.hpp"
 	"src/*.cpp"
 )
 
-if(WIN32)
+if(Windows)
 
 	file(GLOB_RECURSE app_RES
-		"../app/res/*"
+		"../res/*"
 	)
 	
 	if(exclude_ext_formats)
@@ -37,44 +37,37 @@ if(WIN32)
 		list(FILTER app_RES EXCLUDE REGEX ".*rcall$")
 	endif()
 	
-	file(WRITE "app_pc.rc" "")
+	file(WRITE "app_windows.rc" "")
 	
 	foreach(res ${app_RES})
-		string(REPLACE "${CMAKE_SOURCE_DIR}/app_pc/" "" rcPath ${res})
-		string(REPLACE "${CMAKE_SOURCE_DIR}/app_pc/../app/" "" resPath ${res})
-		file(APPEND "app_pc.rc" "${resPath}               RCDATA               \"${rcPath}\"\n")
+		string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/../" "../../" rcPath ${res})
+		string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/../" "" resPath ${res})
+		file(APPEND "app_windows.rc" "${resPath}               RCDATA               \"${rcPath}\"\n")
 	endforeach()
 	
-	file(APPEND "app_pc.rc" "LOGO               ICON               \"res/app_pc.ico\"\n")
+	file(APPEND "app_windows.rc" "LOGO               ICON               \"res/app_windows.ico\"\n")
 
-	file(GLOB_RECURSE app_pc_RES
-		"res/*.ico"
-		"app_pc.rc"
+	file(GLOB_RECURSE app_windows_RES
+		"res/app_windows.ico"
+		"app_windows.rc"
 	)
 
 	# Executable and icon
 	add_executable(
-		app_pc
-		${app_pc_SRC}
+		app_windows
+		${app_windows_SRC}
 		${app_RES}
-		${app_pc_RES}
-	)
-
-else()
-
-	add_executable(
-		app_pc
-		${app_pc_SRC}
+		${app_windows_RES}
 	)
 	
 endif()
 
-target_link_libraries(app_pc ostlc)
-target_link_libraries(app_pc owc)
-target_link_libraries(app_pc ogc)
-target_link_libraries(app_pc app)
+target_link_libraries(app_windows ostlc)
+target_link_libraries(app_windows owc)
+target_link_libraries(app_windows ogc)
+target_link_libraries(app_windows app)
 
 if(MSVC)
-	set_target_properties(app_pc PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/app_pc")
-	set_target_properties(app_pc PROPERTIES OUTPUT_NAME "${APP_NAME}")
+	set_target_properties(app_windows PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+	set_target_properties(app_windows PROPERTIES OUTPUT_NAME "${APP_NAME}")
 endif()
