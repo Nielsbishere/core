@@ -23,6 +23,7 @@ target_link_libraries(app_android ogc)
 target_link_libraries(app_android app)
 
 set(APK_DIR ../../bin/build)
+set(ANDROID_NAME app_android)
 
 # Set debuggable
 
