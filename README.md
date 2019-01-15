@@ -198,6 +198,8 @@ There is documentation on [Osomi Graphics Core](docs/ogc.md) (ogc; rendering), [
 
 There's also documentation about the file formats used; [oiSL](docs/oiSL.md) (String List), [oiSB](docs/oiSB.md) (Shader Buffer), [oiSH](docs/oiSH.md) (SHader), [oiRM](docs/oiRM.md) (Raw Model), [oiBM](docs/oiBM.md) (BakeManager).
 
+Shaders can be written through both GLSL, HLSL and our own shading format [ogsl](docs/ogsl.md) (Osomi Graphics Shading Language). ogsl allows transpiling shading languages to one-another and re-using the same shader code in hlsl/glsl files. ogsl might even allow compiling to C++ (for debugging) in the future.
+
 # Viewing progress
 You can view progress and planned features on [our trello board](https://trello.com/b/US4bChrI/osomi-core).
 

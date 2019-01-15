@@ -35,6 +35,7 @@ if(Windows)
 		list(FILTER app_RES EXCLUDE REGEX ".*rchit$")
 		list(FILTER app_RES EXCLUDE REGEX ".*rint$")
 		list(FILTER app_RES EXCLUDE REGEX ".*rcall$")
+		list(FILTER app_RES EXCLUDE REGEX ".*ogsl$")
 	endif()
 	
 	file(WRITE "app_windows.rc" "")

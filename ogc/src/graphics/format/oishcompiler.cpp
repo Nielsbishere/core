@@ -48,7 +48,7 @@ struct FileIncluder : glslang::TShader::Includer {
 		if (inclusionDepth >= 256)
 			return (IncludeResult*)Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 256 nested includes");
 
-		currentFile = std::string("res/shaders/") + headerName;
+		currentFile = std::string("mod/shaders/") + headerName;
 		
 		if (std::find(dependencies.begin(), dependencies.end(), currentFile) == dependencies.end())
 			dependencies.push_back(currentFile);
@@ -217,7 +217,9 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 		String preamble = lang == ShaderSourceType::HLSL ? "" :
 			String("#version ") + shaderVersion + String::lineEnd() +
 			"#extension GL_GOOGLE_include_directive : require" + String::lineEnd() +
-			"#extension GL_ARB_separate_shader_objects : enable" + String::lineEnd();
+			"#extension GL_ARB_separate_shader_objects : enable" + String::lineEnd() +
+			"#extension GL_ARB_shader_draw_parameters : require" + String::lineEnd() +
+			"#include <types.glsl>" + String::lineEnd();
 
 		source.src[ext] = preamble + source.src[ext];
 

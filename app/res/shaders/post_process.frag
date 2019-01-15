@@ -1,28 +1,14 @@
-#include <types.glsl>
+In(0, uv, Vec2);
+Out(0, outColor, Vec4);
 
-layout(location = 0) in Vec2 uv;
+Sampler(0, linear);
+Texture2D(1, tex);
+Uniform(2, settings, PostProcessingSettings, { Vec2 padding; f32 exposure; f32 gamma; });
 
-layout(location = 0) out Vec4 outColor;
-
-layout(binding = 0) uniform sampler samp;
-layout(binding = 1) uniform texture2D tex;
-
-layout(binding = 2) uniform PostProcessingSettings {
-
-	Vec2 padding;
-	f32 exposure;
-	f32 gamma;
-
-} settings;
-
-Vec4 sample2D(sampler s, texture2D t, Vec2 uv){
-	return texture(sampler2D(t, s), uv);
-}
-
-void main() {
+Fragment() {
 	
     //Sample color
-	Vec3 col = sample2D(samp, tex, uv).rgb;
+	Vec3 col = sample2D(linear, tex, uv).rgb;
 	
     //Exposure & gamma correction
     col = pow(Vec3(1) - exp(-col * settings.exposure), Vec3(1.0f / settings.gamma));

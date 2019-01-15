@@ -22,6 +22,7 @@ file(GLOB_RECURSE app_SRC
 	"res/shaders/*.rcall"
 	"res/shaders/*.glsl"
 	"res/shaders/*.hlsl"
+	"res/shaders/*.ogsl"
 )
 
 add_library(

@@ -272,15 +272,15 @@ void MainInterface::initScene() {
 
 	//Clustered material indirect lighting
 
-	lightingPipeline->setRegister("tex", textureList);
-	lightingPipeline->setRegister("samp", linearSampler);
+	lightingPipeline->setRegister("textures", textureList);
+	lightingPipeline->setRegister("linear", linearSampler);
 	lightingPipeline->setRegister("nearest", nearestSampler);
 
 	//Setup shader data
 
 	deferredPipeline->instantiateBuffer("Objects", totalObjects);
 
-	postProcessingPipeline->setRegister("samp", nearestSampler);
+	postProcessingPipeline->setRegister("linear", nearestSampler);
 
 	lightingPipeline->setBuffer("Views", 0, views->getBuffer());
 	lightingPipeline->setBuffer("Materials", materialList->getSize(), materialList->getBuffer());
@@ -288,15 +288,15 @@ void MainInterface::initScene() {
 	lightingPipeline->instantiateBuffer("SpotLights", 1);
 	lightingPipeline->instantiateBuffer("DirectionalLights", 1);
 	
-	lightingPipeline->setValue("DirectionalLights/light/dir", Vec3(-1, 0, -1));
-	lightingPipeline->setValue("DirectionalLights/light/intensity", 16.f);
-	lightingPipeline->setValue("DirectionalLights/light/col", Vec3(1.f));
+	lightingPipeline->setValue("DirectionalLights/directionalLights/dir", Vec3(-1, 0, -1));
+	lightingPipeline->setValue("DirectionalLights/directionalLights/intensity", 16.f);
+	lightingPipeline->setValue("DirectionalLights/directionalLights/col", Vec3(1.f));
 
 	lightingPipeline->setRegister("outputTexture", lightingTarget->getTarget(0));
-	lightingPipeline->setRegister("uvs", gbuffer->getTarget(0));
-	lightingPipeline->setRegister("normals", gbuffer->getTarget(1));
-	lightingPipeline->setRegister("materials", gbuffer->getTarget(2));
-	lightingPipeline->setRegister("depth", gbuffer->getDepth());
+	lightingPipeline->setRegister("gUvs", gbuffer->getTarget(0));
+	lightingPipeline->setRegister("gNormals", gbuffer->getTarget(1));
+	lightingPipeline->setRegister("gMaterials", gbuffer->getTarget(2));
+	lightingPipeline->setRegister("gDepth", gbuffer->getDepth());
 
 	lightingPipeline->setValue("Global/ambient", Vec3(1));
 	lightingPipeline->setValue("Global/power", 1.f);

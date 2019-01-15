@@ -1,10 +1,20 @@
-#include <types.glsl>
-
 //Handle to a texture
-#define TextureHandle uint
+#define TextureHandle u32
 
 //Handle to a material
-#define MaterialHandle uint
+#define MaterialHandle u32
+
+//A handle to a light
+#define LightHandle u32
+
+//Handle to a camera (0 - 127) (MAX_CAMERAS)
+#define CameraHandle u32
+
+//Handle to a camera frustum (0 - 127) (MAX_CAMERA_FRUSTA)
+#define CameraFrustumHandle u32
+
+//Handle to a view (0 - 255) (MAX_VIEWS)
+#define ViewHandle u32
 
 //Material
 //128 bytes; ~8192 material (structs) per MiB
@@ -45,9 +55,6 @@ struct MaterialStruct {
 };
 
 //Lighting
-
-//A handle to a light
-#define LightHandle uint
 
 //Point, spot or directional light; 48 bytes
 struct Light {
@@ -119,7 +126,7 @@ LightResult calculatePoint(Light pli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 powe
 f32 calculateSpotIntensity(Light sli, Vec3 dir){
 
 	f32 minCos = cos(radians(sli.angle));
-	f32 maxCos = mix(minCos, 1, 0.5f);
+	f32 maxCos = lerp(minCos, 1, 0.5f);
 	f32 cosAngle = dot(sli.dir, -dir);
 	return smoothstep(minCos, maxCos, cosAngle);
 
@@ -152,9 +159,6 @@ Vec3 reconstructPosition(Vec2 uv, f32 depth, Matrix vpInv) {
 	return worldPos.xyz;
 }
 
-//Handle to a camera (0 - 127) (MAX_CAMERAS)
-#define CameraHandle uint
-
 //Camera (positional / orientation data)
 //length: 7x16 = 112 bytes
 struct Camera {
@@ -170,9 +174,6 @@ struct Camera {
 	Vec4 forward;		//Forward / camera direction or center (if .w == 1)
 
 };
-
-//Handle to a camera frustum (0 - 127) (MAX_CAMERA_FRUSTA)
-#define CameraFrustumHandle uint
 
 //CameraFrustum (projection data)
 //length: 6x16 = 96
@@ -191,9 +192,6 @@ struct CameraFrustum {
 
 };
 
-//Handle to a view (0 - 255) (MAX_VIEWS)
-#define ViewHandle uint
-
 //View (projection and orientation data)
 //It only includes handles to cameras and viewports
 //cameras[camera] is the view's camera
@@ -204,7 +202,7 @@ struct View {
 
 	CameraHandle camera;
 	CameraFrustumHandle cameraFrustum;
-	uint p0, p1;
+	u32 p0, p1;
 
 	Matrix vp;
 

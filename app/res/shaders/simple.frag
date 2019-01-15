@@ -1,23 +1,19 @@
-#include <types.glsl>
+In(0, uv, Vec2);
+In(1, normal, Vec3);
+ConstIn(2, material, u32);
 
-layout(location = 0) in Vec2 uv;
-layout(location = 1) in Vec3 normal;
-layout(location = 2) in flat u32 material;
-
-layout(location = 0) out Vec2 guv;
-layout(location = 1) out Vec2 gnormal;
-layout(location = 2) out u32 gmaterial;
-
-layout(early_fragment_tests) in;
+Out(0, guv, Vec2);
+Out(1, gnormal, Vec2);
+Out(2, gmaterial, u32);
 
 //Spheremap transform
 Vec2 encodeNormal(Vec3 n) {
-    float p = sqrt(n.z * 8 + 8);
+    f32 p = sqrt(n.z * 8 + 8);
     return n.xy / p + 0.5;
 }
 
 //Output to G-Buffer
-void main() {
+Fragment() {
 	guv = uv;
 	gnormal = encodeNormal(normal);
 	gmaterial = material + 1;

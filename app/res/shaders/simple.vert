@@ -1,5 +1,4 @@
-#extension GL_ARB_shader_draw_parameters : require
-#include <lighting.glsl>
+#include <lighting.ogsl>
 
 struct PerObject {
 
@@ -11,29 +10,21 @@ struct PerObject {
 
 };
 
-layout(std430, binding = 0) readonly buffer Objects {
+ConstArray(0, objects, Objects, PerObject);
 
-	PerObject arr[];
-	
-} obj;
+In(0, inPosition, Vec3);
+In(1, inUv, Vec2);
+In(2, inNormal, Vec3);
 
-layout(location = 0) in Vec3 inPosition;
-layout(location = 1) in Vec2 inUv;
-layout(location = 2) in Vec3 inNormal;
+Out(0, uv, Vec2);
+Out(1, normal, Vec3);
+Out(2, material, MaterialHandle);
 
-layout(location = 0) out Vec2 uv;
-layout(location = 1) out Vec3 normal;
-layout(location = 2) flat out MaterialHandle material;
+Vertex() {
 
-out gl_PerVertex {
-    Vec4 gl_Position;
-};
+	PerObject obj = objects[instanceId];
 
-void main() {
-
-	PerObject obj = obj.arr[gl_InstanceIndex];
-
-    gl_Position = obj.mvp * Vec4(inPosition, 1);
+    vPosition = obj.mvp * Vec4(inPosition, 1);
 
 	uv = inUv;
 	normal = normalize(obj.m * Vec4(normalize(inNormal), 0)).xyz;

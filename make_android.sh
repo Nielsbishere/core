@@ -241,11 +241,17 @@ if [ $apk ] ; then
 		find . -type f -name '*.fbx' -exec rm -f {} +
 		find . -type f -name '*.obj' -exec rm -f {} +
 		find . -type f -name '*.glsl' -exec rm -f {} +
+		find . -type f -name '*.ogsl' -exec rm -f {} +
 		find . -type f -name '*.hlsl' -exec rm -f {} +
 		find . -type f -name '*.vert' -exec rm -f {} +
 		find . -type f -name '*.frag' -exec rm -f {} +
 		find . -type f -name '*.geom' -exec rm -f {} +
 		find . -type f -name '*.comp' -exec rm -f {} +
+		find . -type f -name '*.rahit' -exec rm -f {} +
+		find . -type f -name '*.rchit' -exec rm -f {} +
+		find . -type f -name '*.rgen' -exec rm -f {} +
+		find . -type f -name '*.rmiss' -exec rm -f {} +
+		find . -type f -name '*.rcall' -exec rm -f {} +
 		cd ../../../
 	fi
 	

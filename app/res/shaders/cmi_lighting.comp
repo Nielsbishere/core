@@ -1,54 +1,37 @@
-#include <lighting.glsl>
+#include <lighting.ogsl>
 
-layout(binding = 0) uniform Global {
+//Output data
 
-	Vec3 ambient;
-	f32 time;
+Image2D(0, outputTexture, rgba16f);
 
-	Vec2u resolution;
-	f32 power;
-	u32 view;
-	
-} global;
+//Input data
 
-layout(binding = 1) uniform Views_noalloc { ViewBuffer viewData; };
+Texture2D(1, gUvs);
+Texture2Du(2, gMaterials);
+Texture2D(3, gDepth);
+Texture2D(4, gNormals);
 
-layout(binding = 2) uniform sampler samp;
-layout(binding = 3) uniform texture2D tex[2];
+//Uniform & view data
 
-layout(std430, binding = 4) readonly buffer DirectionalLights {
+Uniform(5, global, Global, { Vec3 ambient; f32 time; Vec2u resolution; f32 power; u32 view; });
+Uniform(6, views, Views_noalloc, { ViewBuffer data; });
 
-	Light light[];
+//Textures & materials
 
-} dir;
+Sampler(7, linear);
+Sampler(8, nearest);
+TextureList(9, textures, 2);
+ConstArray(10, materials, Materials, MaterialStruct);
 
-layout(std430, binding = 5) readonly buffer PointLights {
+//Lights
 
-	Light light[];
+ConstArray(11, directionalLights, DirectionalLights, Light);
+ConstArray(12, pointLights, PointLights, Light);
+ConstArray(13, spotLights, SpotLights, Light);
 
-} point;
-
-layout(std430, binding = 6) readonly buffer SpotLights {
-
-	Light light[];
-
-} spot;
-
-layout(std430, binding = 7) readonly buffer Materials {
-
-	MaterialStruct mat[];
-
-};
-
-layout(binding = 8, rgba16f) uniform image2D outputTexture;
-layout(binding = 9) uniform texture2D uvs;
-layout(binding = 10) uniform sampler nearest;
-layout(binding = 11) uniform utexture2D materials;
-layout(binding = 12) uniform texture2D depth;
-layout(binding = 13) uniform texture2D normals;
-
+//Sample from handle
 Vec4 sample2D(sampler s, TextureHandle handle, Vec2 uv){
-	return texture(sampler2D(tex[handle], s), uv);
+	return sample2D(s, textures[handle], uv);
 }
 
 //Spheremap transform
@@ -59,27 +42,24 @@ Vec3 unpackNormal(Vec2 enc) {
     return Vec3(fenc * g, 1 - f / 2);
 }
 
-layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
-void main() {
+Compute(16, 16, 1) {
 
-	Vec2u coords = gl_GlobalInvocationID.xy;
+	Vec2u coords = invocationId.xy;
 
 	if(coords.x >= global.resolution.x || coords.y >= global.resolution.y)		//TODO: Avoid this branching
 		return;
 
 	Vec2 globalUv = Vec2(coords) / Vec2(global.resolution - 1);
 
-	View view = viewData.views[global.view];
-	Camera cam = viewData.cameras[view.camera];
+	View view = views.data.views[global.view];
+	Camera cam = views.data.cameras[view.camera];
 
-	Vec2 uv = texture(sampler2D(uvs, nearest), globalUv).xy;
-	Vec2 sNormal = texture(sampler2D(normals, nearest), globalUv).xy;
-	u32 sMaterial = texture(usampler2D(materials, nearest), globalUv).r;
-	f32 sDepth = texture(sampler2D(depth, nearest), globalUv).r;
+	Vec2 uv = sample2D(nearest, gUvs, globalUv).xy;
+	Vec3 normal = unpackNormal(sample2D(nearest, gNormals, globalUv).xy);
+	u32 material = max(1, sample2Du(nearest, gMaterials, globalUv).x) - 1;
+	f32 depth = sample2D(nearest, gDepth, globalUv).x;
 
-	Vec3 pos = reconstructPosition(globalUv, sDepth, view.vpInv);
-	Vec3 normal = unpackNormal(sNormal);
-	u32 material = max(1, sMaterial) - 1;
+	Vec3 pos = reconstructPosition(globalUv, depth, view.vpInv);
 
     //Get camera position
 	Vec3 cpos = normalize(cam.position - pos);
@@ -87,31 +67,31 @@ void main() {
     //Calculate lighting result
 	LightResult lr = { Vec3(0, 0, 0), 0, Vec3(0, 0, 0), 0 };
 	
-	for(int i = 0; i < dir.light.length(); i++){
-		LightResult res = calculateDirectional(dir.light[i], pos, normal, cpos, global.power);
+	for(int i = 0; i < directionalLights.length(); i++){
+		LightResult res = calculateDirectional(directionalLights[i], pos, normal, cpos, global.power);
 		lr.diffuse += res.diffuse;
 		lr.specular += res.specular;
 	}
 	
-	for(int j = 0; j < point.light.length(); j++){
-		LightResult res = calculatePoint(point.light[j], pos, normal, cpos, global.power);
+	for(int j = 0; j < pointLights.length(); j++){
+		LightResult res = calculatePoint(pointLights[j], pos, normal, cpos, global.power);
 		lr.diffuse += res.diffuse;
 		lr.specular += res.specular;
 	}
 	
-	for(int k = 0; k < spot.light.length(); k++){
-		LightResult res = calculateSpot(spot.light[k], pos, normal, cpos, global.power);
+	for(int k = 0; k < spotLights.length(); k++){
+		LightResult res = calculateSpot(spotLights[k], pos, normal, cpos, global.power);
 		lr.diffuse += res.diffuse;
 		lr.specular += res.specular;
 	}
 	
     //Get material
-	MaterialStruct m = mat[material];
+	MaterialStruct m = materials[material];
     
     //Get diffuse texture
-	Vec3 dif = sample2D(samp, m.t_diffuse, uv).rgb;
+	Vec3 dif = sample2D(linear, m.t_diffuse, uv).rgb;
     
     //Write lighting result to render target
-    imageStore(outputTexture, Vec2i(coords), Vec4(calculateLighting(lr, dif, global.ambient, m), 1));
+	write2D(outputTexture, coords, Vec4(calculateLighting(lr, dif, global.ambient, m), 1));
 
 }
