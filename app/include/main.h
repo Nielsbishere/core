@@ -89,7 +89,7 @@ private:
 	oi::gc::MaterialRef water, rock;
 	oi::gc::TextureRef twater, trock;
 
-	float exposure = .15f, gamma = .85f;
+	float exposure = .15f, gamma = .85f, camSpeed = 0.5f;
 	oi::Vec2 prevMouse;
 
 	struct PerObject {

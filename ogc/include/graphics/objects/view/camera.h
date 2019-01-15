@@ -25,7 +25,10 @@ namespace oi {
 			CameraStruct() { memset(this, 0, sizeof(CameraStruct));  }
 			CameraStruct(Vec3 position, Vec3 up, Vec4 forward) : position(position), up(up), forward(forward.normalize()) {}
 
-			void makeView() { v = Matrix::makeView(position, forward.w == 1 ? Vec3(forward) : position + Vec3(forward), up); }
+			void makeView() { 
+				Vec3 center = forward.w == 1 ? Vec3(forward) : position + Vec3(forward);
+				v = Matrix::makeView(position, center, up); 
+			}
 
 		};
 
@@ -56,6 +59,7 @@ namespace oi {
 			const CameraStruct &getStruct();
 
 			void move(Vec3 dposition);
+			void moveLocal(Vec3 dposition);
 
 			void setPosition(Vec3 position);
 			void setUp(Vec3 up);

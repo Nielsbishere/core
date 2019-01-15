@@ -16,7 +16,7 @@ void BasicGraphicsInterface::initScene() {
 	nearestSampler = SamplerRef(g, "Nearest sampler", SamplerInfo(SamplerMin::Nearest, SamplerMag::Nearest, SamplerWrapping::Clamp_border));
 
 	views = ViewBufferRef(g, "Default view buffer", ViewBufferInfo());
-	camera = CameraRef(g, "Default camera", CameraInfo(views, Vec3(3), Vec4(0, 0, 0, 1)));
+	camera = CameraRef(g, "Default camera", CameraInfo(views, Vec3(0, 0, 3)));
 	cameraFrustum = CameraFrustumRef(g, "Default viewport", CameraFrustumInfo(views, Vec2u(1), 1, 40, 0.1f, 100));
 	view = ViewRef(g, "Default view", ViewInfo(views, camera, cameraFrustum));
 

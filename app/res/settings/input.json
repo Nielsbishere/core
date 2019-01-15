@@ -26,12 +26,12 @@
          {  
             "binding":"E key",
             "effect":"y",
-            "axisScale":1
+            "axisScale":-1
          },
          {  
             "binding":"Q key",
             "effect":"y",
-            "axisScale":-1
+            "axisScale":1
          },
          {  
             "binding":"W key",
@@ -63,6 +63,18 @@
             "effect":"z",
             "axisScale":1
          }
-      ]
+      ],
+	  "Speed": [
+		{
+			"binding":"R key",
+			"effect":"x",
+			"axisScale":-1
+		},
+		{
+			"binding":"T key",
+			"effect":"x",
+			"axisScale":1
+		}
+	  ]
    }
 }
