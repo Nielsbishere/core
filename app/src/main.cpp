@@ -386,6 +386,8 @@ void MainInterface::update(f32 dt) {
 		gamma += delta.y / 3;
 	}
 
+	camera->move(getParent()->getInputManager().getAxis("Move") * dt);
+
 	prevMouse = nextMouse;
 	planetRotation += Vec3(30, 50) * dt;
 

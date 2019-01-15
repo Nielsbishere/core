@@ -84,7 +84,7 @@ elseif(WIN32)
 	
 	option(Raytracing "Raytracing" ON)
 		
-	link_libraries(Xinput.lib)
+	link_libraries(Xinput9_1_0.lib)
 
 else()
 
