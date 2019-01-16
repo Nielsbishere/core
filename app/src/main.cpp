@@ -1,4 +1,5 @@
 #include "main.h"
+#include "types/quat.h"
 #include "utils/random.h"
 #include "file/filemanager.h"
 #include "math/simplexnoise.h"
@@ -184,6 +185,7 @@ void MainInterface::initScene() {
 	deferred = ShaderRef(g, "Deferred pass", ShaderInfo("res/shaders/simple.graphics.oiSH"));
 	postProcessing = ShaderRef(g, "Post processing pass", ShaderInfo("res/shaders/post_process.graphics.oiSH"));
 	lighting = ShaderRef(g, "Lighting pass", ShaderInfo("res/shaders/cmi_lighting.compute.oiSH"));
+	nodeSystem = ShaderRef(g, "Node system", ShaderInfo("res/shaders/node_system.compute.oiSH"));
 
 	//Setup render targets
 
@@ -230,10 +232,12 @@ void MainInterface::initScene() {
 	deferredPipeline = PipelineRef(g, "Deferred pipeline", GraphicsPipelineInfo(deferred, pipelineState, gbuffer, mesh3D));
 	lightingPipeline = PipelineRef(g, "Lighting pipeline", ComputePipelineInfo(lighting));
 	postProcessingPipeline = PipelineRef(g, "Post process pipeline", GraphicsPipelineInfo(postProcessing, pipelineState, g.getBackBuffer(), mesh2D));
+	nodeSystemPipeline = PipelineRef(g, "Node system pipeline", ComputePipelineInfo(nodeSystem));
 
 	//Create draw and compute lists
 
 	lightingDispatch = ComputeListRef(g, "CMI lighting compute list", ComputeListInfo(lightingPipeline, 1));
+	nodeSystemDispatch = ComputeListRef(g, "Node system dispatch", ComputeListInfo(nodeSystemPipeline, 1));
 	drawList = DrawListRef(g, "Draw list (main geometry)", DrawListInfo(mesh3D, 2, false));
 	quad = DrawListRef(g, "Draw list (post processing quad)", DrawListInfo(mesh2D, 1, false));
 
@@ -303,6 +307,177 @@ void MainInterface::initScene() {
 	lightingPipeline->setValue("Global/view", view->getHandle());
 
 	postProcessingPipeline->setRegister("tex", lightingTarget->getTarget(0));
+
+	//Setup node pass
+
+	const u32 NodeType_object = 0;
+	const u32 NodeType_light = 1;
+	const u32 NodeType_camera = 2;
+
+	struct Node {
+
+		Quat lRotation;			//Local rotation
+
+		Vec3 lPosition;			//Local position
+		u32 typeId;				//typeId & 0x3 = type, typeId >> 2 = id
+
+		Vec3 lScale;			//Local scale
+		u32 parent;				//Parent's id
+
+		Quat gRotation;			//Global rotation
+
+		Quat gScale;			//Global scale
+
+		Quat gPosition;			//Global position
+
+	};
+
+	const Node nodes[10] = {
+
+		//Root node
+		{
+			Quat(0, 0, 0, 1),
+
+			Vec3(),
+			NodeType_object,
+
+			Vec3(1),
+			0, /* parented to self, but nothing is calculated, so doesn't matter */
+
+			Quat(0, 0, 0, 1),
+
+			Quat(1, 1, 1, 1),
+
+			Quat(0, 0, 0, 0)
+
+		},
+
+		//Center cube
+		{
+			Quat(0.354f, 0.146f, 0.354f, 0.854f),	//0,45,45
+
+			Vec3(),
+			NodeType_object,
+
+			Vec3(0.6f),
+			0
+
+		},
+
+		//Back cube
+		{
+			Quat(0, 0, 0, 1),
+
+			Vec3(0, 0, -5),
+			NodeType_object,
+
+			Vec3(1.2f),
+			0
+
+		},
+
+		//Front cube
+		{
+			Quat(0, 0, 0, 1),
+
+			Vec3(0, 0, 5),
+			NodeType_object,
+
+			Vec3(0.8f),
+			0
+
+		},
+
+		//Right cube
+		{
+			Quat(0, 0, 0, 1),
+
+			Vec3(5, 0, 0),
+			NodeType_object,
+
+			Vec3(1.f),
+			0
+
+		},
+
+		//Top cube
+		{
+			Quat(0, 0, 0, 1),
+
+			Vec3(0, 5, 0),
+			NodeType_object,
+
+			Vec3(1.f),
+			0
+
+		},
+
+		//Bottom cube
+		{
+			Quat(0, 0, 0, 1),
+
+			Vec3(0, -5, 0),
+			NodeType_object,
+
+			Vec3(1.f),
+			0
+
+		},
+
+		//Left cube
+		{
+			Quat(-0.354f, -0.146f, -0.354f, 0.854f),
+
+			Vec3(-5, 0, 0),
+			NodeType_object,
+
+			Vec3(1.f),
+			0
+		},
+
+		//Left parented cube
+		{
+			Quat(-0.211f, -0.211f, -0.047f, 0.953f),
+
+			Vec3(-1, 0, 0),
+			NodeType_object,
+
+			Vec3(0.6f),
+			7
+		},
+
+		//Most left parented cube
+		{
+			Quat(-0.211f, -0.211f, -0.047f, 0.953f),
+
+			Vec3(-1, 0, 0),
+			NodeType_object,
+
+			Vec3(0.9f),
+			8
+		}
+	};
+
+	const u32 nodeOrdered[9] = { 1, 2, 3, 4, 5, 6, 7,  8,  9 };
+	const Vec2u nodeLayers[3] = { Vec2u(0, 7), Vec2u(7, 1), Vec2u(8, 1) };
+	const u32 layers = 3;
+
+	const u32 nodeCount = u32(sizeof(nodes) / sizeof(nodes[0]));
+
+	nodeSystemPipeline->instantiateBuffer("NodeSystem", nodeCount);
+	nodeSystemPipeline->setData("NodeSystem", Buffer::construct((u8*)nodes, u32(sizeof(nodes))));
+
+	nodeSystemPipeline->instantiateBuffer("NodesOrdered", nodeCount - 1);
+	nodeSystemPipeline->setData("NodesOrdered", Buffer::construct((u8*)nodeOrdered, u32(sizeof(nodeOrdered))));
+
+	nodeSystemPipeline->instantiateBuffer("NodeLayers", layers);
+	nodeSystemPipeline->setData("NodeLayers", Buffer::construct((u8*)nodeLayers, u32(sizeof(nodeLayers))));
+
+	const u32 maxNodes = nodeLayers[0].y;
+
+	nodeSystemDispatch->dispatchThreads(Vec2u(maxNodes, layers));
+	nodeSystemDispatch->flush();
+
 }
 
 void MainInterface::renderScene(){
@@ -317,6 +492,11 @@ void MainInterface::renderScene(){
 	cmdList->bind(deferredPipeline);
 	cmdList->draw(drawList);
 	cmdList->end(gbuffer);
+
+	//Node system
+
+	cmdList->bind(nodeSystemPipeline);
+	cmdList->dispatch(nodeSystemDispatch);
 
 	//Clustered Material Indirect Rendering
 

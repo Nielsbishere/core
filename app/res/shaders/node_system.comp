@@ -1,0 +1,23 @@
+#include <lighting.ogsl>
+
+Array(0, nodeSystem, NodeSystem, Node);
+ConstArray(1, nodesOrdered, NodesOrdered, NodeHandle);
+ConstArray(2, nodeLayers, NodeLayers, Vec2u);			//u32 offset, length; with NodesOrdered array
+
+//Thread size of 64 because NV uses 32 threads per warp and AMD 64
+Compute(64, 1, 1) {
+
+	const Vec2u layer = nodeLayers[invocationId.y];
+	const u32 nodeOffset = invocationId.x;
+	
+	if(nodeOffset >= layer.y)
+		return;
+		
+	const NodeHandle hnode = nodesOrdered[nodeOffset + layer.x];
+		
+	const Node node = nodeSystem[hnode];
+	const Node parent = nodeSystem[node.parent];
+	
+	nodeSystem[hnode] = parentNode(node, parent);
+	
+}

@@ -6,6 +6,7 @@ res/models/sphere.oiRM               RCDATA               "../../res/models/sphe
 res/models/sword.oiRM               RCDATA               "../../res/models/sword.oiRM"
 res/settings/input.json               RCDATA               "../../res/settings/input.json"
 res/shaders/cmi_lighting.compute.oiSH               RCDATA               "../../res/shaders/cmi_lighting.compute.oiSH"
+res/shaders/node_system.compute.oiSH               RCDATA               "../../res/shaders/node_system.compute.oiSH"
 res/shaders/post_process.graphics.oiSH               RCDATA               "../../res/shaders/post_process.graphics.oiSH"
 res/shaders/simple.graphics.oiSH               RCDATA               "../../res/shaders/simple.graphics.oiSH"
 res/textures/osomi.png               RCDATA               "../../res/textures/osomi.png"

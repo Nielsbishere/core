@@ -304,7 +304,7 @@ inline Node parentNode(const Node node, const Node parent) {
 	Node result = node;
 	result.gPosition = parent.gPosition + multiplyQuat(parent.gRotation, positionQuat(node.lPosition * node.lScale));
 	result.gRotation = multiplyQuat(parent.gRotation, node.lRotation);
-	result.gScale = multiplyQuat(parent.gScale, multiplyQuat(parent.gRotation, positionQuat(node.lScale)));
+	result.gScale = parent.gScale * Vec4(node.lScale, 1);
 	return result;
 }
 
