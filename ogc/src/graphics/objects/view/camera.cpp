@@ -36,7 +36,7 @@ void Camera::moveLocal(Vec3 dposition) {
 	Vec3 u = info.ptr->up;
 	Vec3 r = f.cross(u);
 
-	move(f * dposition.z + u * dposition.y + r * dposition.x);
+	move(f * dposition.z + u * -dposition.y + r * dposition.x);
 
 }
 
