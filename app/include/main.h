@@ -76,13 +76,13 @@ protected:
 
 private:
 	
-	oi::gc::ShaderRef deferred, postProcessing, lighting;
+	oi::gc::ShaderRef deferred, postProcessing, lighting, nodeSystem;
 	oi::gc::PipelineStateRef pipelineState;
-	oi::gc::PipelineRef deferredPipeline, postProcessingPipeline, lightingPipeline;
+	oi::gc::PipelineRef deferredPipeline, postProcessingPipeline, lightingPipeline, nodeSystemPipeline;
 	oi::gc::MeshBufferRef mesh3D, mesh2D;
 	std::vector<oi::gc::Mesh*> meshes;
 	oi::gc::DrawListRef drawList, quad;
-	oi::gc::ComputeListRef lightingDispatch;
+	oi::gc::ComputeListRef lightingDispatch, nodeSystemDispatch;
 	oi::gc::RenderTargetRef gbuffer, lightingTarget;
 	oi::gc::MaterialListRef materialList;
 	oi::gc::TextureListRef textureList;

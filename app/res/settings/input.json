@@ -2,8 +2,6 @@
    "bindings":{  
       "Shoot":[  
          "Cross key #0",
-         "R1 key #0",
-         "L1 key #0",
          "Space key",
          "Left mouse"
       ],
@@ -26,12 +24,12 @@
          {  
             "binding":"E key",
             "effect":"y",
-            "axisScale":-1
+            "axisScale":1
          },
          {  
             "binding":"Q key",
             "effect":"y",
-            "axisScale":1
+            "axisScale":-1
          },
          {  
             "binding":"W key",
@@ -44,23 +42,53 @@
             "axisScale":-1
          },
          {  
+            "binding":"Right key",
+            "effect":"x",
+            "axisScale":1
+         },
+         {  
+            "binding":"Left key",
+            "effect":"x",
+            "axisScale":-1
+         },
+         {  
+            "binding":"Left_ctrl key",
+            "effect":"y",
+            "axisScale":-1
+         },
+         {  
+            "binding":"Space key",
+            "effect":"y",
+            "axisScale":1
+         },
+         {  
+            "binding":"Up key",
+            "effect":"z",
+            "axisScale":1
+         },
+         {  
+            "binding":"Down key",
+            "effect":"z",
+            "axisScale":-1
+         },
+         {   
             "binding":"Lx axis #0",
             "effect":"x",
             "axisScale":1
          },
          {  
-            "binding":"L2 axis #0",
-            "effect":"y",
+            "binding":"R1 key #0",
+            "effect":"z",
             "axisScale":1
          },
          {  
-            "binding":"R2 axis #0",
-            "effect":"y",
+            "binding":"L1 key #0",
+            "effect":"z",
             "axisScale":-1
          },
          {  
             "binding":"Ly axis #0",
-            "effect":"z",
+            "effect":"y",
             "axisScale":1
          }
       ],
@@ -74,7 +102,17 @@
 			"binding":"T key",
 			"effect":"x",
 			"axisScale":1
-		}
+		},
+        {  
+           "binding":"L2 axis #0",
+           "effect":"x",
+           "axisScale":-1
+        },
+        {  
+           "binding":"R2 axis #0",
+           "effect":"x",
+           "axisScale":1
+        }
 	  ]
    }
 }

@@ -24,10 +24,10 @@ Vertex() {
 
 	PerObject obj = objects[instanceId];
 
-    vPosition = obj.mvp * Vec4(inPosition, 1);
+    vPosition = mul(obj.mvp, Vec4(inPosition, 1));
 
 	uv = inUv;
-	normal = normalize(obj.m * Vec4(normalize(inNormal), 0)).xyz;
+	normal = normalize(mul(obj.m, Vec4(normalize(inNormal), 0))).xyz;
 	material = obj.material;
 
 }

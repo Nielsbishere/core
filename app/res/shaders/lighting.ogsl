@@ -1,10 +1,6 @@
-//Handle to a texture
 #define TextureHandle u32
-
-//Handle to a material
 #define MaterialHandle u32
-
-//A handle to a light
+#define NodeHandle u32
 #define LightHandle u32
 
 //Handle to a camera (0 - 127) (MAX_CAMERAS)
@@ -81,15 +77,15 @@ struct LightResult {
 
 };
 
-Vec3 calculateDiffuse(Light li, Vec3 dir, Vec3 normal){
+inline Vec3 calculateDiffuse(Light li, Vec3 dir, Vec3 normal){
 	return li.col * max(0, dot(normal, dir)) * li.intensity;
 }
 
-Vec3 calculateSpecular(Light li, Vec3 dir, Vec3 normal, Vec3 cdir, f32 power){
+inline Vec3 calculateSpecular(Light li, Vec3 dir, Vec3 normal, Vec3 cdir, f32 power){
 	return li.col * pow(max(0, dot(normalize(reflect(-dir, normal)), cdir)), power) * li.intensity;
 }
 
-LightResult calculateDirectional(Light dli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power){
+inline LightResult calculateDirectional(Light dli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power){
 
 	LightResult res;
 	res.diffuse = calculateDiffuse(dli, -dli.dir, normal);
@@ -99,21 +95,21 @@ LightResult calculateDirectional(Light dli, Vec3 pos, Vec3 normal, Vec3 cdir, f3
 
 }
 
-f32 attenuation(f32 r, f32 d, f32 smoothness) {
+inline f32 attenuation(f32 r, f32 d, f32 smoothness) {
 	return 1.0f - smoothstep(r * smoothness, r, d);
 }
 
-f32 attenuation(f32 r, f32 d) {
+inline f32 attenuation(f32 r, f32 d) {
 	return attenuation(r, d, 0); 
 }
 
-LightResult calculatePoint(Light pli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power){
+inline LightResult calculatePoint(Light pli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power){
 
 	Vec3 dir = pli.pos - pos;
-	f32 dist = length(dir);
+	const f32 dist = length(dir);
 	dir = dir / dist;
 
-	f32 a = attenuation(pli.radius, dist);
+	const f32 a = attenuation(pli.radius, dist);
 
 	LightResult res;
 	res.diffuse = calculateDiffuse(pli, dir, normal) * a;
@@ -123,22 +119,22 @@ LightResult calculatePoint(Light pli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 powe
 
 }
 
-f32 calculateSpotIntensity(Light sli, Vec3 dir){
+inline f32 calculateSpotIntensity(Light sli, Vec3 dir){
 
-	f32 minCos = cos(radians(sli.angle));
-	f32 maxCos = lerp(minCos, 1, 0.5f);
-	f32 cosAngle = dot(sli.dir, -dir);
+	const f32 minCos = cos(radians(sli.angle));
+	const f32 maxCos = lerp(minCos, 1, 0.5f);
+	const f32 cosAngle = dot(sli.dir, -dir);
 	return smoothstep(minCos, maxCos, cosAngle);
 
 }
 
-LightResult calculateSpot(Light sli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power){
+inline LightResult calculateSpot(Light sli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power){
 
 	Vec3 dir = sli.pos - pos;
-	f32 dist = length(dir);
+	const f32 dist = length(dir);
 	dir = dir / dist;
 
-	f32 a = attenuation(sli.radius, dist) * calculateSpotIntensity(sli, dir);
+	const f32 a = attenuation(sli.radius, dist) * calculateSpotIntensity(sli, dir);
 
 	LightResult res;
 	res.diffuse = calculateDiffuse(sli, dir, normal) * a;
@@ -148,12 +144,12 @@ LightResult calculateSpot(Light sli, Vec3 pos, Vec3 normal, Vec3 cdir, f32 power
 
 }
 
-Vec3 calculateLighting(LightResult res, Vec3 col, Vec3 ambient, MaterialStruct mat){
+inline Vec3 calculateLighting(LightResult res, Vec3 col, Vec3 ambient, MaterialStruct mat){
 	return (res.diffuse * mat.diffuse + res.specular * mat.specular * mat.shininess + ambient * mat.ambient) * col;
 }
 
-Vec3 reconstructPosition(Vec2 uv, f32 depth, Matrix vpInv) {
-	Vec4 clipPos = Vec4(uv.x * 2 - 1, (1 - uv.y) * 2 - 1, depth, 1);
+inline Vec3 reconstructPosition(Vec2 uv, f32 depth, Matrix vpInv) {
+	const Vec4 clipPos = Vec4(uv.x * 2 - 1, (1 - uv.y) * 2 - 1, depth, 1);
 	Vec4 worldPos = vpInv * clipPos;
 	worldPos /= worldPos.w;
 	return worldPos.xyz;
@@ -223,3 +219,99 @@ struct ViewBuffer {
 	View views[MAX_VIEWS];
 
 };
+
+//General definition of a Node
+
+const u32 NodeType_object = 0;
+const u32 NodeType_light = 1;
+const u32 NodeType_camera = 2;
+
+//96 bytes per node
+struct Node {
+
+	Quat lRotation;			//Local rotation
+	
+	Vec3 lPosition;			//Local position
+	u32 typeId;				//typeId & 0x3 = type, typeId >> 2 = id
+	
+	Vec3 lScale;			//Local scale
+	u32 parent;				//Parent's id
+	
+	Quat gRotation;			//Global rotation
+	
+	Quat gScale;			//Global scale
+	
+	Quat gPosition;			//Global position
+
+};
+
+inline Quat multiplyQuat(const Quat x, const Quat y) {
+
+	const Quat q0 = y * x.w;
+	
+	return Quat(
+		q0.x + x.x * y.w + x.y * y.z - x.z * y.y,
+		q0.y - x.x * y.z + x.y * y.w + x.z * y.x,
+		q0.z + x.x * y.y - x.y * y.x + x.z * y.w,
+		q0.w - x.x * y.x - x.y * y.y - x.z * y.z
+	);
+
+}
+
+inline Quat positionQuat(const Vec3 pos) {
+	return Quat(pos, 0);
+}
+
+inline Quat rotateAxisQuat(const Vec3 axis, f32 angle) {
+	angle *= 0.5f;
+	return Quat(axis * sin(angle), cos(angle));
+}
+
+inline Quat rotateEulerQuat(Vec3 euler /* pitch, yaw, roll */) {
+
+	euler *= 0.5f;
+	
+	const Vec3 c = cos(euler);
+	const Vec3 s = sin(euler);
+	
+	const f32 cycp = c.y * c.x;
+	const f32 sycp = s.y * c.x;
+	const f32 cysp = c.y * s.x;
+	const f32 sysp = s.y * s.x;
+	
+	return Quat(
+		cycp * c.z + sysp * s.z,
+		cycp * s.z + sysp * c.z,
+		sycp * s.z + cysp * c.z,
+		sycp * c.z + cysp * s.z
+	);
+}
+
+inline Quat normalizeQuat(const Quat x) {
+	return normalize(x);
+}
+
+inline Quat inverseRotQuat(const Quat x){
+	return Quat(-x.xyz, x.w);
+}
+
+inline Quat inverseQuat(const Quat x){
+	f32 ilen = 1.0f / length(x);
+	return inverseRotQuat(x) * ilen;
+}
+
+inline Node parentNode(const Node node, const Node parent) {
+	Node result = node;
+	result.gPosition = parent.gPosition + multiplyQuat(parent.gRotation, positionQuat(node.lPosition * node.lScale));
+	result.gRotation = multiplyQuat(parent.gRotation, node.lRotation);
+	result.gScale = multiplyQuat(parent.gScale, multiplyQuat(parent.gRotation, positionQuat(node.lScale)));
+	return result;
+}
+
+inline Vec3 transformVert(const Node node, const Vec3 pos) {
+	return (node.gPosition + multiplyQuat(node.gRotation, positionQuat(pos * node.gScale.xyz))).xyz;
+}
+
+inline Quat transformQuat(const Node node, const Quat dir) {
+	return multiplyQuat(node.gRotation, dir);
+}

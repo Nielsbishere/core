@@ -227,6 +227,26 @@ namespace oi {
 			return res;
 		}
 
+		TVec cos() const {
+
+			TVec res = *this;
+
+			for (u32 i = 0; i < n; ++i)
+				res.arr[i] = (T) std::cos(res.arr[i]);
+
+			return res;
+		}
+
+		TVec sin() const {
+
+			TVec res = *this;
+
+			for (u32 i = 0; i < n; ++i)
+				res.arr[i] = (T) std::sin(res.arr[i]);
+
+			return res;
+		}
+
 		TVec clamp(T mi, T ma) const {
 			return min(ma).max(mi);
 		}

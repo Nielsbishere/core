@@ -8,6 +8,7 @@
 #define Vec2 vec2
 #define Vec3 vec3
 #define Vec4 vec4
+#define Quat Vec4
 #define Vec2d dvec2
 #define Vec3d dvec3
 #define Vec4d dvec4
@@ -83,3 +84,6 @@ Vec4i sample2Di(sampler s, itexture2D t, Vec2 uv){
 #define instanceId gl_InstanceIndex
 #define invocationId gl_GlobalInvocationID
 #define vPosition gl_Position
+#define mul(x, y) x * y
+#define ref inout
+#define inline 
