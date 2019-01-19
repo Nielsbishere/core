@@ -80,7 +80,7 @@ namespace oi {
 			const f32 cysp = c.y * s.x;
 			const f32 sysp = s.y * s.x;
 
-			return Quat(
+			return TQuat(
 				cycp * c.z + sysp * s.z,
 				cycp * s.z + sysp * c.z,
 				sycp * s.z + cysp * c.z,
