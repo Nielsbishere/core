@@ -37,6 +37,9 @@ namespace oi {
 
 			MeshBuffer *getBuffer() const;
 			MeshAllocation getAllocation() const;
+			u32 getVertices() const;
+			u32 getIndices() const;
+			u32 getAllocationId() const;
 
 		protected:
 

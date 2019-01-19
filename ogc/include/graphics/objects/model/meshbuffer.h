@@ -1,6 +1,7 @@
 #pragma once
 
 #include "memory/blockallocator.h"
+#include "types/bitset.h"
 #include "graphics/graphics.h"
 #include "graphics/objects/gpubuffer.h"
 #include "graphics/objects/texture/texture.h"
@@ -10,10 +11,14 @@ namespace oi {
 
 	namespace gc {
 
-		struct MeshAllocation {
-
+		struct MeshStruct {
 			u32 baseVertex = 0, baseIndex = 0;
 			u32 vertices = 0, indices = 0;
+		};
+
+		struct MeshAllocation : MeshStruct {
+
+			u32 id;
 
 			std::vector<Buffer> vbo;
 			Buffer ibo;
@@ -26,7 +31,7 @@ namespace oi {
 
 			typedef MeshBuffer ResourceType;
 
-			u32 maxVertices, maxIndices;
+			u32 maxVertices, maxIndices, maxMeshes;
 			std::vector<std::vector<std::pair<String, TextureFormat>>> buffers;
 			TopologyMode topologyMode;
 			FillMode fillMode;
@@ -34,11 +39,14 @@ namespace oi {
 			VirtualBlockAllocator *vertices = nullptr, *indices = nullptr;
 			std::vector<u32> vboStrides;
 
-			std::vector<GPUBuffer*> vbos;
-			GPUBuffer *ibo = nullptr;
+			std::vector<MeshStruct> meshes;
+			Bitset freeMeshes;
 
-			MeshBufferInfo(u32 maxVertices, u32 maxIndices, std::vector<std::vector<std::pair<String, TextureFormat>>> vbos, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : maxVertices(maxVertices), maxIndices(maxIndices), buffers(vbos), topologyMode(topologyMode), fillMode(fillMode) { }
-			MeshBufferInfo() : MeshBufferInfo(0, 0, {}) {}
+			std::vector<GPUBuffer*> vbos;
+			GPUBuffer *ibo = nullptr, *meshBuffer = nullptr;
+
+			MeshBufferInfo(u32 maxVertices, u32 maxIndices, u32 maxMeshes, std::vector<std::vector<std::pair<String, TextureFormat>>> vbos, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : maxVertices(maxVertices), maxIndices(maxIndices), buffers(vbos), topologyMode(topologyMode), fillMode(fillMode), maxMeshes(maxMeshes), freeMeshes(maxMeshes), meshes(maxMeshes) { }
+			MeshBufferInfo() : MeshBufferInfo(0, 0, 0, {}) {}
 
 		};
 
@@ -50,6 +58,10 @@ namespace oi {
 		public:
 
 			const MeshBufferInfo &getInfo() const;
+
+			GPUBuffer *getMeshBuffer() const;
+			GPUBuffer *getIndexBuffer() const;
+			GPUBuffer *getVertexBuffer(u32 id) const;
 
 			//Flush updates from an allocation
 			void flush(const MeshAllocation &allocation);

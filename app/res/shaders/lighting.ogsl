@@ -224,7 +224,26 @@ struct ViewBuffer {
 
 const u32 NodeType_object = 0;
 const u32 NodeType_light = 1;
-const u32 NodeType_camera = 2;
+const u32 NodeType_view = 2;
+
+const u32 NodeObjectType_empty = NodeType_object;
+const u32 NodeObjectType_mesh = 4 | NodeType_object;
+const u32 NodeObjectType_skeleton = 8 | NodeType_object;
+const u32 NodeObjectType_bone = 12 | NodeType_object;
+
+const u32 NodeLightType_point = NodeType_light;
+const u32 NodeLightType_directional = 4 | NodeType_light;
+const u32 NodeLightType_spot = 8 | NodeType_light;
+const u32 NodeLightType_sun = 12 | NodeType_light;
+
+const u32 NodeTypeBits = 5;
+const u32 NodeTypeMask = (1 << 5) - 1;
+
+//16 bytes per node
+struct Mesh {
+	u32 baseVertex, baseIndex;
+	u32 vertices, indices;
+};
 
 //96 bytes per node
 struct Node {

@@ -20,7 +20,7 @@ void BasicGraphicsInterface::initScene() {
 	cameraFrustum = CameraFrustumRef(g, "Default viewport", CameraFrustumInfo(views, Vec2u(1), 1, 40, 0.1f, 100));
 	view = ViewRef(g, "Default view", ViewInfo(views, camera, cameraFrustum));
 
-	meshManager = MeshManagerRef(g, "Default mesh manager", MeshManagerInfo(400'000, 500'000));
+	meshManager = MeshManagerRef(g, "Default mesh manager", MeshManagerInfo(400'000, 500'000, 1024));
 
 }
 

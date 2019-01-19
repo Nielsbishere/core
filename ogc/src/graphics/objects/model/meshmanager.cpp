@@ -73,6 +73,10 @@ MeshBuffer *MeshManager::findBuffer(MeshBufferInfo &mbi, MeshAllocationInfo &mai
 	else if (mai.hintMaxVertices != MeshAllocationHint::SIZE_TO_FIT)
 		allocation.maxVertices = (u32)mai.hintMaxVertices;
 
+	allocation.maxMeshes = info.meshes;
+	allocation.meshes.resize(info.meshes);
+	allocation.freeMeshes = Bitset(info.meshes);
+
 	MeshBuffer *mb = g->create(getName() + " MeshBuffer " + mbId, allocation);
 	info.meshBuffers.push_back(mb);
 	++mbId;
@@ -134,6 +138,9 @@ Mesh *MeshManager::load(MeshAllocationInfo minfo) {
 
 			mbinfo.maxVertices = minfo.vbos[0].size() / mbinfo.vboStrides[0];
 			mbinfo.maxIndices = minfo.ibo.size() / 4;
+			mbinfo.maxMeshes = info.meshes;
+			mbinfo.meshes.resize(info.meshes);
+			mbinfo.freeMeshes = Bitset(info.meshes);
 
 			if(!validateBuffer(minfo, mbinfo))
 				return (Mesh*)Log::error(String("Couldn't write mesh into meshBuffer \"") + minfo.name + "\" (" + minfo.meshBuffer->getName() + ")");
@@ -208,6 +215,9 @@ std::vector<Mesh*> MeshManager::loadAll(std::vector<MeshAllocationInfo> &minfo) 
 
 				mbinfo.maxVertices = mai.vbos[0].size() / mbinfo.vboStrides[0];
 				mbinfo.maxIndices = mai.ibo.size() / 4;
+				mbinfo.maxMeshes = info.meshes;
+				mbinfo.meshes.resize(info.meshes);
+				mbinfo.freeMeshes = Bitset(info.meshes);
 				
 				MeshInfo mi;
 				mi.buffer = mai.meshBuffer;

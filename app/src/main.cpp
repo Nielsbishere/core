@@ -225,6 +225,11 @@ void MainInterface::initScene() {
 
 	refreshPlanetMesh(true);
 
+	//Get sphere
+	Mesh *msphere = meshes[2];
+	Mesh *mquad = meshes[3];
+	Mesh *mplanet = meshes[4];
+
 	//Setup pipelines
 
 	pipelineState = PipelineStateRef(g, "Default pipeline state", PipelineStateInfo(DepthMode::All, BlendMode::Off));
@@ -243,13 +248,13 @@ void MainInterface::initScene() {
 
 	//Setup geometry draw calls
 
-	drawList->draw(meshes[2], 1);		//Reserve objects[0] for the sphere/water
-	drawList->draw(meshes[4], 1);		//Reserve objects[1] for the planet
+	drawList->draw(msphere, 1);		//Reserve objects[0] for the sphere/water
+	drawList->draw(mplanet, 1);		//Reserve objects[1] for the planet
 	drawList->flush();
 
 	//Setup our post processing pass to draw a quad
 
-	quad->draw(meshes[3], 1);
+	quad->draw(mquad, 1);
 	quad->flush();
 
 	//Create our textures
@@ -312,7 +317,20 @@ void MainInterface::initScene() {
 
 	const u32 NodeType_object = 0;
 	const u32 NodeType_light = 1;
-	const u32 NodeType_camera = 2;
+	const u32 NodeType_view = 2;
+
+	const u32 NodeObjectType_empty = NodeType_object;
+	const u32 NodeObjectType_mesh = 4 | NodeType_object;
+	const u32 NodeObjectType_skeleton = 8 | NodeType_object;
+	const u32 NodeObjectType_bone = 12 | NodeType_object;
+
+	const u32 NodeLightType_point = NodeType_light;
+	const u32 NodeLightType_directional = 4 | NodeType_light;
+	const u32 NodeLightType_spot = 8 | NodeType_light;
+	const u32 NodeLightType_sun = 12 | NodeType_light;
+
+	const u32 NodeTypeBits = 5;
+	const u32 NodeTypeMask = (1 << 5) - 1;
 
 	struct Node {
 
@@ -339,7 +357,7 @@ void MainInterface::initScene() {
 			Quat(0, 0, 0, 1),
 
 			Vec3(),
-			NodeType_object,
+			NodeObjectType_empty,
 
 			Vec3(1),
 			0, /* parented to self, but nothing is calculated, so doesn't matter */
@@ -357,7 +375,7 @@ void MainInterface::initScene() {
 			Quat(0.354f, 0.146f, 0.354f, 0.854f),	//0,45,45
 
 			Vec3(),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(0.6f),
 			0
@@ -369,7 +387,7 @@ void MainInterface::initScene() {
 			Quat(0, 0, 0, 1),
 
 			Vec3(0, 0, -5),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(1.2f),
 			0
@@ -381,7 +399,7 @@ void MainInterface::initScene() {
 			Quat(0, 0, 0, 1),
 
 			Vec3(0, 0, 5),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(0.8f),
 			0
@@ -393,7 +411,7 @@ void MainInterface::initScene() {
 			Quat(0, 0, 0, 1),
 
 			Vec3(5, 0, 0),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(1.f),
 			0
@@ -405,7 +423,7 @@ void MainInterface::initScene() {
 			Quat(0, 0, 0, 1),
 
 			Vec3(0, 5, 0),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(1.f),
 			0
@@ -417,7 +435,7 @@ void MainInterface::initScene() {
 			Quat(0, 0, 0, 1),
 
 			Vec3(0, -5, 0),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(1.f),
 			0
@@ -429,7 +447,7 @@ void MainInterface::initScene() {
 			Quat(-0.354f, -0.146f, -0.354f, 0.854f),
 
 			Vec3(-5, 0, 0),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(1.f),
 			0
@@ -440,7 +458,7 @@ void MainInterface::initScene() {
 			Quat(-0.211f, -0.211f, -0.047f, 0.953f),
 
 			Vec3(-1, 0, 0),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(0.6f),
 			7
@@ -451,7 +469,7 @@ void MainInterface::initScene() {
 			Quat(-0.211f, -0.211f, -0.047f, 0.953f),
 
 			Vec3(-1, 0, 0),
-			NodeType_object,
+			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
 
 			Vec3(0.9f),
 			8

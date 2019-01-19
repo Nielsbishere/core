@@ -8,6 +8,10 @@ const MeshInfo &Mesh::getInfo() const { return info; }
 MeshBuffer *Mesh::getBuffer() const { return info.buffer; }
 MeshAllocation Mesh::getAllocation() const { return info.allocation; }
 
+u32 Mesh::getVertices() const { return info.allocation.vertices; }
+u32 Mesh::getIndices() const { return info.allocation.indices; }
+u32 Mesh::getAllocationId() const { return info.allocation.id; }
+
 Mesh::Mesh(MeshInfo info) : info(info) {}
 
 Mesh::~Mesh() { 

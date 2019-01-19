@@ -382,7 +382,7 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 	if (file.header.indices != 0)
 		ib = Buffer(file.indices.addr(), file.header.indices * 4);
 
-	result.first = MeshBufferInfo(file.header.vertices, file.header.indices, vbos, file.header.topologyMode, file.header.fillMode);
+	result.first = MeshBufferInfo(file.header.vertices, file.header.indices, 0, vbos, file.header.topologyMode, file.header.fillMode);
 	result.second = MeshInfo(nullptr, file.header.vertices, file.header.indices, vb, ib);
 	
 	return result;

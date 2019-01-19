@@ -5,6 +5,10 @@ using namespace oi;
 
 const MeshBufferInfo &MeshBuffer::getInfo() const { return info; }
 
+GPUBuffer *MeshBuffer::getMeshBuffer() const { return info.meshBuffer; }
+GPUBuffer *MeshBuffer::getIndexBuffer() const { return info.ibo; }
+GPUBuffer *MeshBuffer::getVertexBuffer(u32 i) const { return info.vbos[i]; }
+
 void MeshBuffer::flush(const MeshAllocation &allocation) {
 
 	for (u32 i = 0, j = (u32) info.vboStrides.size(); i < j; ++i)
@@ -12,6 +16,8 @@ void MeshBuffer::flush(const MeshAllocation &allocation) {
 
 	if (info.ibo != nullptr)
 		info.ibo->flush(Vec2u(allocation.baseIndex, allocation.baseIndex + allocation.indices) * 4);
+
+	info.meshBuffer->flush(Vec2u(allocation.id, allocation.id + 1) * u32(sizeof(MeshStruct)));
 
 }
 
@@ -22,7 +28,21 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 		return {};
 	}
 
+	u32 index;
+
+	for (index = 0; index < info.maxMeshes; ++index)
+		if (!info.freeMeshes[index]) {
+			info.freeMeshes[index] = true;
+			break;
+		}
+
+	if (index == info.maxMeshes) {
+		Log::throwError<MeshBuffer, 0x3>("Couldn't allocate mesh");
+		return {};
+	}
+
 	MeshAllocation result;
+	result.id = index;
 	result.vertices = vertices;
 	result.indices = indices;
 
@@ -43,6 +63,8 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 	BlockAllocation alloc = info.vertices->alloc(vertices);
 	result.baseVertex = alloc.start;
 
+	info.meshes[index] = result;
+
 	if(alloc.size == 0) {
 		Log::throwError<MeshBuffer, 0x2>("Couldn't allocate vertices");
 		return {};
@@ -57,6 +79,7 @@ MeshAllocation MeshBuffer::alloc(u32 vertices, u32 indices) {
 }
 
 bool MeshBuffer::dealloc(MeshAllocation allocation) {
+	info.freeMeshes[allocation.id] = false;
 	bool vdealloc = info.vertices->dealloc(allocation.baseVertex);
 	bool idealloc = (info.indices != nullptr && info.indices->dealloc(allocation.baseIndex)) || info.indices == nullptr;
 	return vdealloc && idealloc;
@@ -111,6 +134,7 @@ MeshBuffer::MeshBuffer(MeshBufferInfo info) : info(info) {}
 MeshBuffer::~MeshBuffer() {
 
 	delete info.vertices;
+	g->destroy(info.meshBuffer);
 
 	for (GPUBuffer *buf : info.vbos)
 		g->destroy(buf);
@@ -153,6 +177,9 @@ bool MeshBuffer::init() {
 
 		++i;
 	}
+
+	g->use(info.meshBuffer = g->create(getName() + " model buffer", 
+		GPUBufferInfo(GPUBufferType::SSBO, info.maxMeshes * u32(sizeof(MeshStruct)))));
 
 	return true;
 }

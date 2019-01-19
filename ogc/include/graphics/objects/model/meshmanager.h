@@ -59,7 +59,7 @@ namespace oi {
 
 			typedef MeshManager ResourceType;
 
-			u32 vertices, indices;
+			u32 vertices, indices, meshes;
 			TopologyMode defTopologyMode;
 			FillMode defFillMode;
 
@@ -67,9 +67,9 @@ namespace oi {
 
 			std::vector<MeshBuffer*> meshBuffers;
 
-			//Determines the state of an allocated MeshBuffer; how many vertices/indices can be used and what default topology/fill mode can be used.
+			//Determines the state of an allocated MeshBuffer; how many vertices/indices/meshes can be used and what default topology/fill mode can be used.
 			//By default; uses triangle fill
-			MeshManagerInfo(u32 maxVertices, u32 maxIndices, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : vertices(maxVertices), indices(maxIndices), defTopologyMode(topologyMode), defFillMode(fillMode) {}
+			MeshManagerInfo(u32 maxVertices, u32 maxIndices, u32 maxMeshes, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : vertices(maxVertices), indices(maxIndices), meshes(maxMeshes), defTopologyMode(topologyMode), defFillMode(fillMode) {}
 
 		};
 
