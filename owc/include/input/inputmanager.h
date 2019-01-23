@@ -19,9 +19,10 @@ namespace oi {
 
 			Binding binding;
 			InputAxis1D effect;
-			f32 axisScale;
+			f32 axisScale, threshold;
+			bool delta;
 
-			InputAxis(Binding binding, InputAxis1D effect, f32 axisScale = 1);
+			InputAxis(Binding binding, InputAxis1D effect, f32 axisScale = 1, bool delta = false, f32 threshold = 0);
 		};
 
 		struct MappedStateBinding {
@@ -69,9 +70,9 @@ namespace oi {
 			void bindAxis(String handle, InputAxis axis);
 			void clearAxis(String handle);
 
-			Vec3 getAxis(String handle, bool clamp = true) const;
-			Vec2 getAxis2D(String handle, InputAxes2D ia = InputAxes2D::XY, bool clamp = true) const;
-			f32 getAxis1D(String handle, InputAxis1D ia = InputAxis1D::X, bool clamp = true) const;
+			Vec3 getAxis(String handle) const;
+			Vec2 getAxis2D(String handle, InputAxes2D ia = InputAxes2D::XY) const;
+			f32 getAxis1D(String handle, InputAxis1D ia = InputAxis1D::X) const;
 
 			///Loading/writing
 

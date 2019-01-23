@@ -144,7 +144,7 @@ void WindowExt::handleCmd(struct android_app *app, int32_t cmd){
 
 }
 
-int32_t WindowExt::handleInput(struct android_app *app, AInputEvent *event){
+int32_t WindowExt::handleInput(struct android_app *app, AInputEvent *ievent){
 
 	Window *w = getWindow(app);
 	WindowInterface *wi = w->getInterface();
@@ -153,26 +153,26 @@ int32_t WindowExt::handleInput(struct android_app *app, AInputEvent *event){
 	
 	Keyboard *keyboard = w->getInputHandler().getKeyboard();
 
-	bool isDown = AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN;
+	bool isDown = AKeyEvent_getAction(ievent) == AKEY_EVENT_ACTION_DOWN;
 	
-	int32_t type = AInputEvent_getType(event);
-	int32_t source = AInputEvent_getSource(event);
+	int32_t type = AInputEvent_getType(ievent);
+	int32_t source = AInputEvent_getSource(ievent);
 	
 	switch(type){
 
 		case AINPUT_EVENT_TYPE_MOTION:
 			{
-				int32_t action = AMotionEvent_getAction(event);
-				float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
+				int32_t action = AMotionEvent_getAction(ievent);
+				float x = AMotionEvent_getX(ievent, 0), y = AMotionEvent_getY(ievent, 0);
 				
 				if(source & AINPUT_SOURCE_JOYSTICK){		//Update controller (PS4 implementation)
 				
-					float ax = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X, 0);						//Left x
-					float ay = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y, 0);						//Left y
-					float az = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Z, 0);						//Right x
-					float arx = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RX, 0) * 0.5 + 0.5;			//Left trigger
-					float ary = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RY, 0) * 0.5 + 0.5;			//Right trigger
-					float arz = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RZ, 0);						//Right y
+					float ax = AMotionEvent_getAxisValue(ievent, AMOTION_EVENT_AXIS_X, 0);						//Left x
+					float ay = AMotionEvent_getAxisValue(ievent, AMOTION_EVENT_AXIS_Y, 0);						//Left y
+					float az = AMotionEvent_getAxisValue(ievent, AMOTION_EVENT_AXIS_Z, 0);						//Right x
+					float arx = AMotionEvent_getAxisValue(ievent, AMOTION_EVENT_AXIS_RX, 0) * 0.5 + 0.5;			//Left trigger
+					float ary = AMotionEvent_getAxisValue(ievent, AMOTION_EVENT_AXIS_RY, 0) * 0.5 + 0.5;			//Right trigger
+					float arz = AMotionEvent_getAxisValue(ievent, AMOTION_EVENT_AXIS_RZ, 0);						//Right y
 				
 					Controller *c = w->getInputHandler().getController(0);
 					
@@ -189,12 +189,14 @@ int32_t WindowExt::handleInput(struct android_app *app, AInputEvent *event){
 				
 					Vec2 pos = Vec2(x, y) / Vec2(w->getInfo().size);
 					pos.y = 1 - pos.y;
+
+					Log::println(pos);
 					
 					Mouse *mouse = w->getInputHandler().getMouse();
 					
 					if(action == AMOTION_EVENT_ACTION_MOVE){
 						
-						float xoff = AMotionEvent_getXOffset(event), yoff = AMotionEvent_getYOffset(event);
+						float xoff = AMotionEvent_getXOffset(ievent), yoff = AMotionEvent_getYOffset(ievent);
 						if(wi != nullptr) wi->onMouseDrag(Vec2(xoff, yoff) / Vec2(w->getInfo().size));
 						
 					} else if(action == AMOTION_EVENT_ACTION_POINTER_UP || AMOTION_EVENT_ACTION_UP){
@@ -202,22 +204,25 @@ int32_t WindowExt::handleInput(struct android_app *app, AInputEvent *event){
 						Binding b = MouseButton::Left;
 						mouse->update(b, isDown);
 						
+						if(isDown)
+							mouse->axes[Mouse::prevAxes] = u16_MAX;
+
 						if(wi != nullptr && mouse->prev[b.getCode() - 1] != isDown)
 							wi->onInput(mouse, b, isDown);
 					}
 				
 					mouse->axes[0] = pos.x;
 					mouse->axes[1] = pos.y;
-					mouse->axes[2] = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_VSCROLL, 0);
+					mouse->axes[2] = AMotionEvent_getAxisValue(ievent, AMOTION_EVENT_AXIS_VSCROLL, 0);
 
 				} else
-					Log::warn(String("Motion event not supported; ") + source + " " + action + " " + x + " " + y);
+					Log::warn(String("Motion ievent not supported; ") + source + " " + action + " " + x + " " + y);
 			}
 			return 0;
 
 		case AINPUT_EVENT_TYPE_KEY:
 			{
-				int32_t keycode = AKeyEvent_getKeyCode(event);
+				int32_t keycode = AKeyEvent_getKeyCode(ievent);
 				KeyExt key = KeyExt::find(keycode);
 				Binding b = Key(key.getName()).getValue();
 				

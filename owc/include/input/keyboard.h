@@ -15,7 +15,7 @@ namespace oi {
 
 			Keyboard();
 			InputState getState(Binding b) const override;
-			f32 getAxis(Binding b) const override;
+			f32 getAxis(Binding b, bool delta) const override;
 
 			void update(Window *w, f32 dt) override;
 

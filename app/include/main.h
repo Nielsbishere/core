@@ -58,7 +58,6 @@ public:
 	~MainInterface();
 	void initScene() override;
 	void renderScene() override;
-	void onInput(oi::wc::InputDevice *device, oi::wc::Binding b, bool down) override;
 	
 	void load(oi::String path) override {}
 	void save(oi::String path) override {}
@@ -90,7 +89,6 @@ private:
 	oi::gc::TextureRef twater, trock;
 
 	float exposure = .15f, gamma = .85f, camSpeed = 0.5f;
-	oi::Vec2 prevMouse;
 
 	struct PerObject {
 

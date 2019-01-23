@@ -13,6 +13,9 @@ namespace oi {
 		class InputHandler;
 		class InputManager;
 		class InputDevice;
+		class Keyboard;
+		class Mouse;
+		class Controller;
 
 		class WindowInterface {
 
@@ -54,6 +57,10 @@ namespace oi {
 			Window *getParent();
 			InputHandler &getInputHandler();
 			InputManager &getInputManager();
+
+			Keyboard *getKeyboard();
+			Mouse *getMouse();
+			Controller *getController(u32 id);
 
 			Timer getTimer() { return timer; }
 			f64 getDuration() { return timer.getDuration(); }

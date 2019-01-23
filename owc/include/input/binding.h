@@ -25,11 +25,11 @@ namespace oi {
 		public:
 
 			Binding();
-			Binding(const Key_s k);
-			Binding(const MouseButton_s c);
-			Binding(const MouseAxis_s ma);
-			Binding(const ControllerButton_s cb, u8 controllerId = 0);
-			Binding(const ControllerAxis_s ca, u8 controllerId = 0);
+			Binding(const Key_s k, bool delta = false);
+			Binding(const MouseButton_s c, bool delta = false);
+			Binding(const MouseAxis_s ma, bool delta = false);
+			Binding(const ControllerButton_s cb, u8 controllerId = 0, bool delta = false);
+			Binding(const ControllerAxis_s ca, u8 controllerId = 0, bool delta = false);
 
 			Binding(String name);
 			Binding(u32 value);
@@ -40,6 +40,7 @@ namespace oi {
 			InputType getInputType() const;
 			u32 getControllerId() const;
 			u32 getCode() const;
+			bool useDelta() const;
 
 			Key toKey() const;
 			MouseButton toMouseButton() const;
@@ -51,9 +52,10 @@ namespace oi {
 
 		private:
 
-			u8 bindingType;
+			u8 bindingType;			//flag 0x80: use delta
 			u8 controllerId = 0;
 			u16 code;
+
 		};
 
 	}

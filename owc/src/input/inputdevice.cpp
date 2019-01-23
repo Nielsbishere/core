@@ -1,5 +1,4 @@
 #include "input/inputdevice.h"
-#include <algorithm>
 using namespace oi::wc;
 using namespace oi;
 
@@ -11,7 +10,13 @@ bool InputDevice::isUp(Binding b) const { return getState(b) == InputState::UP; 
 bool InputDevice::isPressed(Binding b) const { return getState(b) == InputState::PRESSED; }
 bool InputDevice::isReleased(Binding b) const { return getState(b) == InputState::RELEASED; }
 
-f32 InputDevice::toAxis(InputState state) const { return state == InputState::DOWN ? 1.f : 0.f; }
-
 u32 InputDevice::getId() const { return id; }
 const InputType InputDevice::getType() const { return type; }
+
+f32 InputDevice::toAxis(InputState state, bool delta) const {
+
+	if (delta)
+		return state == InputState::RELEASED ? -1.f : (state == InputState::PRESSED ? 1.f : 0.f);
+
+	return state == InputState::DOWN ? 1.f : 0.f; 
+}

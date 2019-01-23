@@ -156,7 +156,7 @@ inline Vec3 reconstructPosition(Vec2 uv, f32 depth, Matrix vpInv) {
 }
 
 //Camera (positional / orientation data)
-//length: 7x16 = 112 bytes
+//length: 6x16 = 96 bytes
 struct Camera {
 
 	Matrix v;			//View matrix
@@ -164,10 +164,8 @@ struct Camera {
 	Vec3 position;		//Camera 'eye'
 	f32 p0;
 
-	Vec3 up;			//Normal / camera up direction
+	Vec3 rotation;		//Rotation of the camera (degrees; pitch, yaw, roll)
 	f32 p1;
-
-	Vec4 forward;		//Forward / camera direction or center (if .w == 1)
 
 };
 
@@ -211,7 +209,7 @@ struct View {
 #define MAX_VIEWS 256
 
 //ViewData (contains all cameras, frusta and viewports)
-//128 * (112 + 96) + 256 * 80 = 128 * 208 + 256 * 144 = 62 KiB = 64 KiB (min UBO max length) - 2 KiB
+//128 * 96 + 128 * 96 + 256 * 144 = 256 * (96 + 144) = 60 KiB < 64 KiB (UBO speed limit)
 struct ViewBuffer {
 
 	Camera cameras[MAX_CAMERAS];

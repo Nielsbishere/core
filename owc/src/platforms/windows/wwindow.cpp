@@ -117,9 +117,9 @@ LRESULT CALLBACK WindowExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam,
 			Vec2 c = Vec2(LOWORD(lParam), HIWORD(lParam)) / Vec2(w->getInfo().getSize());
 			Mouse *mouse = w->getInputHandler().getMouse();
 			
+			c.y = -c.y;
+
 			Vec2 &ax = *(Vec2*) mouse->axes;
-			Vec2 d = c - ax;
-			
 			ax = c;
 
 			if (wi != nullptr){

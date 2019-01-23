@@ -4,7 +4,7 @@
 using namespace oi;
 using namespace wc;
 
-InputAxis::InputAxis(Binding binding, InputAxis1D effect, f32 axisScale) : binding(binding), effect(effect), axisScale(axisScale) {}
+InputAxis::InputAxis(Binding binding, InputAxis1D effect, f32 axisScale, bool delta, f32 threshold) : binding(binding), effect(effect), axisScale(axisScale), delta(delta), threshold(threshold) {}
 InputManager::InputManager(InputHandler *handler) : handler(handler) {}
 
 bool InputManager::contains(String handle) const {
@@ -61,16 +61,17 @@ bool InputManager::isPressed(String handle) const { return getState(handle) == I
 bool InputManager::isReleased(String handle) const { return getState(handle) == InputState::RELEASED; }
 bool InputManager::isUp(String handle) const { return getState(handle) == InputState::UP; }
 
-Vec3 InputManager::getAxis(String handle, bool clamp) const {
+Vec3 InputManager::getAxis(String handle) const {
 	auto it = axes.find(handle);
 	if (it != axes.end())
-		return clamp ? it->second.value.clamp(-1, 1) : it->second.value;
+		return it->second.value;
+
 	return {};
 }
 
-f32 InputManager::getAxis1D(String handle, InputAxis1D ia, bool clamp) const {
+f32 InputManager::getAxis1D(String handle, InputAxis1D ia) const {
 
-	Vec3 val = getAxis(handle, clamp);
+	Vec3 val = getAxis(handle);
 
 	switch (ia) {
 	case InputAxis1D::X:
@@ -84,9 +85,9 @@ f32 InputManager::getAxis1D(String handle, InputAxis1D ia, bool clamp) const {
 	}
 }
 
-Vec2 InputManager::getAxis2D(String handle, InputAxes2D ia, bool clamp) const {
+Vec2 InputManager::getAxis2D(String handle, InputAxes2D ia) const {
 
-	Vec3 val = getAxis(handle, clamp);
+	Vec3 val = getAxis(handle);
 	u32 iai = (u32) ia;
 
 	u32 axx = iai / 2U;
@@ -145,9 +146,10 @@ bool InputManager::load(String path) {
 					continue;
 				}
 
-				f32 axisScale = nnode.second.get<f32>("axisScale");
+				f32 axisScale = nnode.second.exists("axisScale") ? nnode.second.get<f32>("axisScale") : 1;
+				f32 threshold = nnode.second.exists("threshold") ? nnode.second.get<f32>("threshold") : 0;
 
-				bindAxis(node.first, InputAxis(b, axis, axisScale));
+				bindAxis(node.first, InputAxis(b, axis, axisScale, b.useDelta(), threshold));
 
 			}
 
@@ -183,6 +185,7 @@ String InputManager::write() const {
 			base[j].set("binding", elem.binding.toString());
 			base[j].set("effect", elem.effect == InputAxis1D::X ? "x" : (elem.effect == InputAxis1D::Y ? "y" : "z"));
 			base[j].set("axisScale", elem.axisScale);
+			base[j].set("threshold", elem.threshold);
 			++j;
 		}
 
@@ -240,7 +243,10 @@ void InputManager::update() {
 
 			if (mapped == nullptr) continue;
 
-			f32 val = mapped->getAxis(elem.binding) * elem.axisScale;
+			f32 val = mapped->getAxis(elem.binding, elem.delta) * elem.axisScale;
+
+			if (std::abs(val) <= elem.threshold)
+				continue;
 
 			ax.value[(u32)elem.effect] += val;
 

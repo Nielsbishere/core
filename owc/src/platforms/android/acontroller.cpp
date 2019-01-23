@@ -9,7 +9,14 @@ using namespace oi;
 Controller::~Controller() {}
 
 void Controller::update(Window *w, f32 dt) {
+
+	if (axes[prevAxes] != u16_MAX)
+		for (u32 i = 0; i < axisCount; ++i)
+			axes[deltaAxes + i] = axes[i] - axes[prevAxes + i];
+
 	prev = next;
+	memcpy(axes + prevAxes, axes, axesSize);
+
 }
 
 void Controller::vibrate(Vec2 amount, f32 time) {

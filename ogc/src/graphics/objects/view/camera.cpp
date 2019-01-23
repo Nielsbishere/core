@@ -3,7 +3,13 @@
 using namespace oi::gc;
 using namespace oi;
 
+CameraStruct::CameraStruct() { memset(this, 0, sizeof(CameraStruct)); }
+CameraStruct::CameraStruct(Vec3 position, Vec3 rotation) : position(position), rotation(rotation) {}
 const CameraStruct &Camera::getStruct() { return *info.ptr; }
+
+void CameraStruct::makeView() {
+	v = Matrix::makeView(position, rotation);
+}
 
 Camera::~Camera() { 
 	info.parent->dealloc(info.ptr); 
@@ -25,25 +31,19 @@ CameraHandle Camera::getHandle() { return handle; }
 ViewBuffer *Camera::getParent() { return info.parent; }
 
 void Camera::move(Vec3 dposition) { setPosition(info.ptr->position + dposition); }
+void Camera::rotate(Vec3 drotation) { 
 
-void Camera::moveLocal(Vec3 dposition) { 
 
-	Vec3 f = Vec3(info.ptr->forward);
-
-	if (info.ptr->forward.w == 1)
-		f = (info.ptr->position - f).normalize();
-
-	Vec3 u = info.ptr->up;
-	Vec3 r = f.cross(u);
-
-	move(f * dposition.z + u * -dposition.y + r * dposition.x);
-
+	setRotation(info.ptr->rotation + drotation); 
 }
 
-void Camera::setUp(Vec3 up) { info.ptr->up = up; changed(); }
+void Camera::moveLocal(Vec3 dposition) { 
+	Matrix &v = info.ptr->v;
+	move(v.getForward() * dposition.z + v.getUp() * dposition.y + v.getRight() * -dposition.x);
+}
+
+void Camera::setRotation(Vec3 rotation) { info.ptr->rotation = rotation; changed(); }
 void Camera::setPosition(Vec3 position) { info.ptr->position = position; changed(); }
-void Camera::setDirection(Vec3 direction) { info.ptr->forward = Vec4(direction, 0); changed(); }
-void Camera::setCenter(Vec3 center) { info.ptr->forward = Vec4(center, 1); changed(); }
 
 void Camera::changed() {
 	info.parent->notify(handle);

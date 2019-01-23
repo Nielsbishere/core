@@ -1,13 +1,23 @@
 {
-   "bindings":{  
-      "Shoot":[  
-         "Cross key #0",
-         "Space key",
-         "Left mouse"
+   "bindings":{
+      "Fullscreen":[  
+         "F11 key"
       ],
-      "Woof":[  
-         "Backspace key"
-      ]
+	  "Print graphics objects":[
+		"Enter key"
+	  ],
+	  "Reload planet":[
+		"Volume_down key",
+		"One key"
+	  ],
+	  "Save planet":[
+		"Volume_up key",
+		"Two key"
+	  ],
+	  "Rotate":[
+		"Left mouse",
+		"R3 key #0"
+	  ]
    },
    "axes":{  
       "Move":[  
@@ -74,7 +84,8 @@
          {   
             "binding":"Lx axis #0",
             "effect":"x",
-            "axisScale":1
+            "axisScale":1,
+			"threshold":0.1
          },
          {  
             "binding":"R1 key #0",
@@ -89,7 +100,8 @@
          {  
             "binding":"Ly axis #0",
             "effect":"y",
-            "axisScale":1
+            "axisScale":1,
+			"threshold":0.1
          }
       ],
 	  "Speed": [
@@ -106,13 +118,39 @@
         {  
            "binding":"L2 axis #0",
            "effect":"x",
-           "axisScale":-1
+           "axisScale":-1,
+			"threshold":0.1
         },
         {  
            "binding":"R2 axis #0",
            "effect":"x",
-           "axisScale":1
+           "axisScale":1,
+			"threshold":0.1
         }
+	  ],
+	  "Rotation": [
+		{
+			"binding":"Delta X axis",
+			"effect":"x",
+			"axisScale":90000
+		},
+		{
+			"binding":"Delta Y axis",
+			"effect":"y",
+			"axisScale":90000
+		},
+		{
+			"binding":"Rx axis #0",
+			"effect":"x",
+			"axisScale":90,
+			"threshold":0.1
+		},
+		{
+			"binding":"Ry axis #0",
+			"effect":"y",
+			"axisScale":90,
+			"threshold":0.1
+		}
 	  ]
    }
 }

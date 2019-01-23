@@ -2,7 +2,7 @@
 using namespace oi::wc;
 using namespace oi;
 
-Controller::Controller(u32 id) : InputDevice(InputType::CONTROLLER, id) {}
+Controller::Controller(u32 id) : InputDevice(InputType::CONTROLLER, id) { memset(axes, 0, sizeof(axes)); axes[prevAxes] = u16_MAX; }
 
 InputState Controller::getState(Binding b) const {
 
@@ -17,14 +17,14 @@ InputState Controller::getState(Binding b) const {
 	return InputState::RELEASED;
 }
 
-f32 Controller::getAxis(Binding b) const {
+f32 Controller::getAxis(Binding b, bool delta) const {
 
 	if (b.getBindingType() != BindingType::CONTROLLER_AXIS)
-		return toAxis(getState(b));
+		return toAxis(getState(b), delta);
 
 	if (b.getCode() == 0) return 0.f;
 
-	return axes[b.getCode() - 1];
+	return axes[b.getCode() - 1 + deltaAxes * delta];
 }
 
 void Controller::update(Binding b, bool down) {

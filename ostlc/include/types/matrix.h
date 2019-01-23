@@ -228,9 +228,9 @@ namespace oi {
 			static_assert((w == 4 || w == 3) && (h == 4 || h == 3), "TMatrix::makeRotate only works if there are orientation params (4x3, 4x4, 3x4 and 3x3)");
 
 			TMatrix m;
-			m.m[1][1] = m.m[2][2] = (T) cos(x);
-			m.m[2][1] = (T) -sin(x);
-			m.m[1][2] = (T) sin(x);
+			m.m[0][0] = m.m[2][2] = (T)cos(x);
+			m.m[0][2] = (T)-sin(x);
+			m.m[2][0] = (T)sin(x);
 
 			return m;
 		}
@@ -238,11 +238,11 @@ namespace oi {
 		static TMatrix makeRotateY(T y) {
 
 			static_assert((w == 4 || w == 3) && (h == 4 || h == 3), "TMatrix::makeRotate only works if there are orientation params (4x3, 4x4, 3x4 and 3x3)");
-
+			
 			TMatrix m;
-			m.m[0][0] = m.m[2][2] = (T) cos(y);
-			m.m[0][2] = (T) -sin(y);
-			m.m[2][0] = (T) sin(y);
+			m.m[1][1] = m.m[2][2] = (T) cos(y);
+			m.m[2][1] = (T) -sin(y);
+			m.m[1][2] = (T) sin(y);
 
 			return m;
 		}
@@ -287,16 +287,11 @@ namespace oi {
 			return makeTranslate(pos) * makeRotate(drot) * makeScale(TVec4<T>(scl, (T) 1));
 		}
 
-		static TMatrix makeView(TVec3<T> eye, TVec3<T> center, TVec3<T> up) {
+		static TMatrix makeView(TVec3<T> eye, TVec3<T> drot) {
 
 			static_assert(w == 4 && h == 4, "TMatrix::makeView is only available on TMatrix4x4");
 
-			TVec3<T> z = (eye - center).normalize();
-			TVec3<T> x = (up.cross(z)).normalize();
-			TVec3<T> y = (z.cross(x)).normalize();
-
-			TMatrix m = TMatrix().setOrientation(x, y, z);
-			return m * makeTranslate(-eye);
+			return makeRotate(drot) * makeTranslate(eye);
 		}
 
 		TMatrix &setOrientation(TVec3<T> x, TVec3<T> y, TVec3<T> z) {
@@ -489,6 +484,30 @@ namespace oi {
 				m[i] = inv[i] * det;
 
 			return true;
+
+		}
+
+		TVec3<T> getRight() {
+
+			static_assert(w >= 3 && h >= 3, "TMatrix::getForward is only possible for a 4x4, 3x3, 4x3 or 4x3 Matrix");
+
+			return TVec3<T>(this->m[0][0], this->m[1][0], this->m[2][0]);
+
+		}
+
+		TVec3<T> getUp() {
+
+			static_assert(w >= 3 && h >= 3, "TMatrix::getUp is only possible for a 4x4, 3x3, 4x3 or 4x3 Matrix");
+
+			return TVec3<T>(this->m[0][1], this->m[1][1], this->m[2][1]);
+
+		}
+
+		TVec3<T> getForward() {
+
+			static_assert(w >= 3 && h >= 3, "TMatrix::getRight is only possible for a 4x4, 3x3, 4x3 or 4x3 Matrix");
+
+			return TVec3<T>(this->m[0][2], this->m[1][2], this->m[2][2]);
 
 		}
 

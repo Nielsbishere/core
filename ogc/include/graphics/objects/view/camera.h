@@ -17,18 +17,13 @@ namespace oi {
 			Vec3 position;
 			f32 p0 = 0;
 
-			Vec3 up;
+			Vec3 rotation;
 			f32 p1 = 0;
 
-			Vec4 forward;
+			CameraStruct();
+			CameraStruct(Vec3 position, Vec3 rotation);
 
-			CameraStruct() { memset(this, 0, sizeof(CameraStruct));  }
-			CameraStruct(Vec3 position, Vec3 up, Vec4 forward) : position(position), up(up), forward(forward.normalize()) {}
-
-			void makeView() { 
-				Vec3 center = forward.w == 1 ? Vec3(forward) : position + Vec3(forward);
-				v = Matrix::makeView(position, center, up); 
-			}
+			void makeView();
 
 		};
 
@@ -44,7 +39,7 @@ namespace oi {
 			ViewBuffer *parent;
 			CameraStruct *ptr;
 
-			CameraInfo(ViewBuffer *parent, Vec3 position = { }, Vec4 directionOrCenter = { 0, 0, -1, 0 }, Vec3 up = { 0, 1, 0 }) : parent(parent), temp(position, up, directionOrCenter), ptr(&temp) {}
+			CameraInfo(ViewBuffer *parent, Vec3 position = { }, Vec3 rotation = {}) : parent(parent), temp(position, rotation), ptr(&temp) {}
 
 		};
 
@@ -61,10 +56,10 @@ namespace oi {
 			void move(Vec3 dposition);
 			void moveLocal(Vec3 dposition);
 
+			void rotate(Vec3 drotation);
+
 			void setPosition(Vec3 position);
-			void setUp(Vec3 up);
-			void setDirection(Vec3 direction);
-			void setCenter(Vec3 center);
+			void setRotation(Vec3 rotation);
 
 			CameraHandle getHandle();
 			ViewBuffer *getParent();

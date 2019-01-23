@@ -17,12 +17,12 @@ InputState Keyboard::getState(Binding b) const {
 	return InputState::RELEASED;
 }
 
-f32 Keyboard::getAxis(Binding b) const {
+f32 Keyboard::getAxis(Binding b, bool delta) const {
 
 	if (b.toKey() == Key::Undefined)
 		return 0.f;
 
-	return toAxis(getState(b));
+	return toAxis(getState(b), delta);
 }
 
 void Keyboard::update(Binding b, bool down) {

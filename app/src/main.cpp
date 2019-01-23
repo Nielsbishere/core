@@ -496,7 +496,14 @@ void MainInterface::initScene() {
 	nodeSystemDispatch->dispatchThreads(Vec2u(maxNodes, layers));
 	nodeSystemDispatch->flush();
 
+	//Setup camera
+
 	camera->moveLocal(Vec3(0, 0, -10));
+
+	//Setup post processing settings
+
+	postProcessingPipeline->setValue("PostProcessingSettings/exposure", exposure);
+	postProcessingPipeline->setValue("PostProcessingSettings/gamma", gamma);
 
 }
 
@@ -554,43 +561,28 @@ void MainInterface::initSceneSurface(Vec2u res){
 
 }
 
-void MainInterface::onInput(InputDevice*, Binding b, bool down) {
-
-	if (b.getBindingType() == BindingType::KEYBOARD && down) {
-
-		if (b.toKey() == Key::Volume_up || b.toKey() == Key::Up)
-			writePlanets();
-		else if (b.toKey() == Key::Volume_down || b.toKey() == Key::Down)
-			refreshPlanetMesh(true);
-		else if (b.toKey() == Key::Enter)
-			g.printObjects();
-
-	}
-
-}
-
 void MainInterface::update(f32 dt) {
 
 	WindowInterface::update(dt); 
 
-	if (getParent()->getInputHandler().getKeyboard()->isPressed(Key::F11))
+	if (getInputManager().isPressed("Fullscreen"))
 		getParent()->getInfo().toggleFullScreen();
 
-	Vec2 nextMouse;
-	nextMouse.x = getParent()->getInputHandler().getMouse()->getAxis(MouseAxis::X);
-	nextMouse.y = getParent()->getInputHandler().getMouse()->getAxis(MouseAxis::Y);
+	if (getInputManager().isPressed("Print graphics objects"))
+		g.printObjects();
 
-	if (getParent()->getInputHandler().getMouse()->isDown(MouseButton::Left)) {
-		Vec2 delta = nextMouse - prevMouse;
-		exposure += delta.x / 3;
-		gamma += delta.y / 3;
-	}
+	if (getInputManager().isPressed("Reload planet"))
+		refreshPlanetMesh(true);
+	else if(getInputManager().isPressed("Save planet"))
+		writePlanets();
 
-	camSpeed += getParent()->getInputManager().getAxis("Speed").x * dt;
-	camera->moveLocal(getParent()->getInputManager().getAxis("Move") * camSpeed * dt);
+	camSpeed += getInputManager().getAxis("Speed").x * dt;
+	camera->moveLocal(getInputManager().getAxis("Move") * camSpeed * dt);
 
-	prevMouse = nextMouse;
-	planetRotation += Vec3(30, 50) * dt;
+	if(getInputManager().isDown("Rotate"))
+		camera->rotate(getInputManager().getAxis("Rotation") * camSpeed * dt);
+
+	planetRotation += Vec3(3, 5) * dt;
 
 	//Force view buffer to update matrices of cameras, viewports and views
 	views->update();
@@ -608,11 +600,6 @@ void MainInterface::update(f32 dt) {
 	//Update time
 
 	lightingPipeline->setValue("Global/time", (f32)getRuntime());
-
-	//Setup post processing settings
-
-	postProcessingPipeline->setValue("PostProcessingSettings/exposure", exposure);
-	postProcessingPipeline->setValue("PostProcessingSettings/gamma", gamma);
 
 }
 
