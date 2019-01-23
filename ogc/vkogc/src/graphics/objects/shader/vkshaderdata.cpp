@@ -30,7 +30,7 @@ void ShaderData::requestUpdate() {
 void ShaderData::update() {
 
 	GraphicsExt &graphics = g->getExtension();
-	u32 frame = graphics.current;
+	u32 frame = graphics.frameId;
 
 	//Update the descriptor set for this frame
 

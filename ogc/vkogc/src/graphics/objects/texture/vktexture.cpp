@@ -462,7 +462,7 @@ void Texture::push() {
 
 	//Clean up staging buffer and free memory
 
-	graphics.stagingBuffers[graphics.current][getName() + " staging buffer"] = gbext;
+	graphics.stagingBuffers[graphics.frameId][getName() + " staging buffer"] = gbext;
 
 	if (!fullTexture)
 		dat.deconstruct();

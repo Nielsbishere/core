@@ -38,7 +38,7 @@ void GPUBuffer::flush(Vec2u r) {
 }
 
 bool GPUBuffer::shouldStage() {
-	return info.changes[g->getExtension().current % (u32)info.changes.size()].y != 0 && GPUBufferExt::isVersioned(info.type);
+	return info.changes[g->getExtension().frameId % (u32)info.changes.size()].y != 0 && GPUBufferExt::isVersioned(info.type);
 }
 
 bool GPUBuffer::init() {
@@ -85,7 +85,7 @@ bool GPUBuffer::init() {
 
 void GPUBuffer::push() {
 
-	u32 frame = g->getExtension().current % (u32) ext->resource.size();
+	u32 frame = g->getExtension().frameId % (u32) ext->resource.size();
 	Vec2u &changes = info.changes[frame];
 
 	if (changes.y == 0)
@@ -163,7 +163,7 @@ void GPUBuffer::push() {
 
 		vkCmdPipelineBarrier(cmdList.cmd(graphics), VK_PIPELINE_STAGE_TRANSFER_BIT, stage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 
-		graphics.stagingBuffers[graphics.current][getName() + " staging buffer"] = stagingBuffer;
+		graphics.stagingBuffers[graphics.frameId][getName() + " staging buffer"] = stagingBuffer;
 
 		changes = Vec2u(u32_MAX, 0);
 		return;

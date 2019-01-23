@@ -729,25 +729,20 @@ void Graphics::destroySurface() {
 
 void Graphics::begin() {
 
-	//renderTimer.reset();
+	//Wait for previous frameId
 
-	u32 next = ext->frames == 0 ? 0 : (ext->current + 1) % buffering;
+	ext->frameId = ext->frames % buffering;
+
+	vkCheck<0x15>(vkWaitForFences(ext->device, 1, ext->presentFence.data() + ext->frameId, VK_TRUE, u64_MAX), "Couldn't wait for fences");
+	vkCheck<0x16>(vkResetFences(ext->device, 1, ext->presentFence.data() + ext->frameId), "Couldn't reset fences");
 
 	//Get next image
 
-	vkCheck<0x14>(vkAcquireNextImageKHR(ext->device, ext->swapchain, u64_MAX, ext->swapchainSemaphore[next], VK_NULL_HANDLE, &ext->current), "Couldn't acquire next image");
-
-	//renderTimer.lap("vkAcquireNextImageKHR");
-
-	//Wait for previous frame
-
-	vkCheck<0x15>(vkWaitForFences(ext->device, 1, ext->presentFence.data() + ext->current, VK_TRUE, u64_MAX), "Couldn't wait for fences");
-
-	//renderTimer.lap("vkWaitForFences");
+	vkCheck<0x14>(vkAcquireNextImageKHR(ext->device, ext->swapchain, u64_MAX, ext->swapchainSemaphore[ext->frameId], VK_NULL_HANDLE, &ext->swapchainId), "Couldn't acquire next image");
 
 	//Clean up staging buffers from previous frame
 
-	std::unordered_map<String, GPUBufferExt> &stagingBuffers = ext->stagingBuffers[ext->current];
+	std::unordered_map<String, GPUBufferExt> &stagingBuffers = ext->stagingBuffers[ext->frameId];
 
 	if (stagingBuffers.size() != 0) {
 
@@ -758,19 +753,9 @@ void Graphics::begin() {
 
 	}
 
-	//renderTimer.lap("Free staging buffers");
-
-	//Reset fences
-
-	vkCheck<0x16>(vkResetFences(ext->device, 1, ext->presentFence.data() + ext->current), "Couldn't reset fences");
-
-	//renderTimer.lap("vkResetFences");
-
 }
 
 void Graphics::end() {
-
-	//renderTimer.lap("Frame");
 
 	//Submit commands
 
@@ -836,14 +821,12 @@ void Graphics::end() {
 	submitInfo.commandBufferCount = (u32)commandBuffer.size();
 	submitInfo.pCommandBuffers = commandBuffer.data();
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = ext->submitSemaphore.data() + ext->current;
+	submitInfo.pSignalSemaphores = ext->submitSemaphore.data() + ext->frameId;
 	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = ext->swapchainSemaphore.data() + ext->current;
+	submitInfo.pWaitSemaphores = ext->swapchainSemaphore.data() + ext->frameId;
 	submitInfo.pWaitDstStageMask = &stageWait;
 
-	vkCheck<0x17>(vkQueueSubmit(ext->queue, 1, &submitInfo, ext->presentFence[ext->current]), "Couldn't submit queue");
-
-	//renderTimer.lap("vkQueueSubmit");
+	vkCheck<0x17>(vkQueueSubmit(ext->queue, 1, &submitInfo, ext->presentFence[ext->frameId]), "Couldn't submit queue");
 
 	//Present it
 
@@ -856,31 +839,21 @@ void Graphics::end() {
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = &ext->swapchain;
 	presentInfo.pResults = &result;
-	presentInfo.pImageIndices = &ext->current;
+	presentInfo.pImageIndices = &ext->swapchainId;
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = ext->submitSemaphore.data() + ext->current;
+	presentInfo.pWaitSemaphores = ext->submitSemaphore.data() + ext->frameId;
 
 	vkCheck<0x18>(vkQueuePresentKHR(ext->queue, &presentInfo), "Couldn't present image");
 	vkCheck<0x19>(result, "Couldn't present image");
-
-	//renderTimer.lap("vkQueuePresentKHR");
-
-	/*if (ext->frames % 100 == 0) {
-		Log::println(String("Frame #") + ext->frames + ":");
-		for (auto &elem : renderTimer.getTotalTime())
-			Log::println(elem.first + "; " + elem.second);
-	}*/
 
 	++ext->frames;
 
 }
 
-
 GraphicsExt &Graphics::getExtension() { return *ext; }
 
 void Graphics::finish() {
 	vkQueueWaitIdle(ext->queue);
-	ext->current = 0;
 	ext->frames = 0;
 }
 

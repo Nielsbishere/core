@@ -496,6 +496,8 @@ void MainInterface::initScene() {
 	nodeSystemDispatch->dispatchThreads(Vec2u(maxNodes, layers));
 	nodeSystemDispatch->flush();
 
+	camera->moveLocal(Vec3(0, 0, -10));
+
 }
 
 void MainInterface::renderScene(){

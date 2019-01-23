@@ -25,7 +25,7 @@ CommandList::~CommandList() {
 
 CommandListExt &CommandList::getExtension() { return *ext; }
 
-VkCommandBuffer &CommandListExt::cmd(GraphicsExt &g) { return cmds[g.current % cmds.size()]; }
+VkCommandBuffer &CommandListExt::cmd(GraphicsExt &g) { return cmds[g.frameId % cmds.size()]; }
 #define ext_cmd ext->cmd(g->getExtension())
 
 void CommandList::begin() {
@@ -41,9 +41,11 @@ void CommandList::begin() {
 
 void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 
-	if (target->isComputeTarget()) {
+	u32 frameId = g->getExtension().frameId;
+	u32 swapchainId = g->getExtension().swapchainId;
+	u32 rid = target->isOwned() ? frameId : swapchainId;
 
-		u32 frame = g->getExtension().current;
+	if (target->isComputeTarget()) {
 
 		VkImageMemoryBarrier imageBarrier;
 		memset(&imageBarrier, 0, sizeof(imageBarrier));
@@ -58,7 +60,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
 
 		for (u32 i = 0; i < target->getTargets(); ++i) {
-			Texture *tex = target->getTarget(i)->getVersion(frame);
+			Texture *tex = target->getTarget(i)->getVersion(rid);
 			(barriers[i] = imageBarrier).image = tex->getExtension().resource;
 		}
 
@@ -109,7 +111,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	beginInfo.renderArea.extent = { target->getSize().x, target->getSize().y };
 	beginInfo.renderPass = rtext.renderPass;
-	beginInfo.framebuffer = rtext.frameBuffer[g->getExtension().current];
+	beginInfo.framebuffer = rtext.frameBuffer[rid];
 	beginInfo.clearValueCount = (u32)clearValue.size();
 	beginInfo.pClearValues = clearValue.data();
 
@@ -134,8 +136,12 @@ void CommandList::end(RenderTarget *target) {
 
 		VkImageMemoryBarrier *barriers = new VkImageMemoryBarrier[target->getTargets()];
 
+		u32 frameId = g->getExtension().frameId;
+		u32 swapchainId = g->getExtension().swapchainId;
+		u32 rid = target->isOwned() ? frameId : swapchainId;
+
 		for (u32 i = 0; i < target->getTargets(); ++i) {
-			Texture *tex = target->getTarget(i)->getVersion(g->getExtension().current);
+			Texture *tex = target->getTarget(i)->getVersion(rid);
 			(barriers[i] = imageBarrier).image = tex->getExtension().resource;
 		}
 
@@ -201,7 +207,7 @@ void CommandList::bind(Pipeline *pipeline) {
 
 	pipeline->getData()->update();
 
-	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getData()->getExtension().layout, 0, 1, pipeline->getData()->getExtension().descriptorSet.data() + g->getExtension().current, 0, nullptr);
+	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getData()->getExtension().layout, 0, 1, pipeline->getData()->getExtension().descriptorSet.data() + g->getExtension().frameId, 0, nullptr);
 
 }
 
@@ -241,7 +247,7 @@ void CommandList::draw(DrawList *drawList) {
 	const DrawListInfo &drawListInfo = drawList->getInfo();
 	const MeshBufferInfo &meshBufferInfo = drawListInfo.meshBuffer->getInfo();
 
-	VkBuffer &resource = drawListInfo.drawBuffer->getExtension().resource[g->getExtension().current];
+	VkBuffer &resource = drawListInfo.drawBuffer->getExtension().resource[g->getExtension().frameId];
 
 	if (g->getExtension().pfeatures.multiDrawIndirect) {
 
@@ -265,7 +271,7 @@ void CommandList::draw(DrawList *drawList) {
 void CommandList::dispatch(ComputeList *computeList) {
 	for(u32 i = 0; i < computeList->getDispatches(); ++i)
 		vkCmdDispatchIndirect(ext_cmd, 
-			computeList->getDispatchBuffer()->getExtension().resource[g->getExtension().current], 
+			computeList->getDispatchBuffer()->getExtension().resource[g->getExtension().frameId], 
 			i * sizeof(VkDispatchIndirectCommand)
 		);
 }

@@ -41,7 +41,7 @@ namespace oi {
 			CommandList *stagingCmdList;
 			std::vector<std::unordered_map<String, GPUBufferExt>> stagingBuffers;
 
-			u32 current = 0, frames = 0;
+			u32 frames = 0, swapchainId, frameId;
 			u32 queueFamilyIndex = u32_MAX;
 
 			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2 = nullptr;

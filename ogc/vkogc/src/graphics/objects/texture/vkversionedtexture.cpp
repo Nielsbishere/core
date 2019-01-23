@@ -8,10 +8,10 @@ struct VkVersionedTexture;
 
 bool VersionedTexture::getPixels(Vec2u start, Vec2u length, CopyBuffer &output) {
 	GraphicsExt &graphics = g->getExtension();
-	return info.version[graphics.current % info.versions]->getPixels(start, length, output);
+	return info.version[(isOwned() ? graphics.frameId : graphics.swapchainId) % info.versions]->getPixels(start, length, output);
 }
 
 bool VersionedTexture::write(String path, Vec2u start, Vec2u length) {
 	GraphicsExt &graphics = g->getExtension();
-	return info.version[graphics.current % info.versions]->write(path, start, length);
+	return info.version[(isOwned() ? graphics.frameId : graphics.swapchainId) % info.versions]->write(path, start, length);
 }
