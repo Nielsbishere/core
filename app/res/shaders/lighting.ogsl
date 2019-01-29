@@ -256,9 +256,11 @@ struct Node {
 	
 	Quat gRotation;			//Global rotation
 	
-	Quat gScale;			//Global scale
-	
-	Quat gPosition;			//Global position
+	Vec3 gScale;			//Global scale
+	u32 localId;			//Local id
+
+	Vec3 gPosition;			//Global position
+	u32 globalId;			//Global id
 
 };
 
@@ -319,14 +321,14 @@ inline Quat inverseQuat(const Quat x){
 
 inline Node parentNode(const Node node, const Node parent) {
 	Node result = node;
-	result.gPosition = parent.gPosition + multiplyQuat(parent.gRotation, positionQuat(node.lPosition * node.lScale));
+	result.gPosition = parent.gPosition + multiplyQuat(parent.gRotation, positionQuat(node.lPosition * node.lScale)).xyz;
 	result.gRotation = multiplyQuat(parent.gRotation, node.lRotation);
-	result.gScale = parent.gScale * Vec4(node.lScale, 1);
+	result.gScale = parent.gScale * node.lScale;
 	return result;
 }
 
 inline Vec3 transformVert(const Node node, const Vec3 pos) {
-	return (node.gPosition + multiplyQuat(node.gRotation, positionQuat(pos * node.gScale.xyz))).xyz;
+	return node.gPosition + multiplyQuat(node.gRotation, positionQuat(pos * node.gScale)).xyz;
 }
 
 inline Quat transformQuat(const Node node, const Quat dir) {

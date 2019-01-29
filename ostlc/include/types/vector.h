@@ -232,7 +232,7 @@ namespace oi {
 			TVec res = *this;
 
 			for (u32 i = 0; i < n; ++i)
-				res.arr[i] = (T) std::cos(res.arr[i]);
+				res.arr[i] = T(std::cos(res.arr[i]));
 
 			return res;
 		}

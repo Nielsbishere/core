@@ -107,6 +107,8 @@ namespace oi {
 			void setBuffer(String path, u32 elements, GPUBuffer *buffer);
 			void setData(String path, Buffer data);
 
+			GPUBuffer *getBuffer(String path);
+
 		protected:
 
 			~Pipeline();

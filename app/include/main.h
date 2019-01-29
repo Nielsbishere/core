@@ -1,5 +1,6 @@
 #pragma once
 #include "types/vector.h"
+#include "types/quat.h"
 #include "utils/serialization.h"
 #include "window/window.h"
 #include "graphics/interface/basicgraphicsinterface.h"
@@ -90,22 +91,71 @@ private:
 
 	float exposure = .15f, gamma = .85f, camSpeed = 0.5f;
 
-	struct PerObject {
+	std::unordered_map<oi::String, Planet> planets;
 
-		oi::Matrix m;
-		oi::Matrix mvp;
+	struct Node {
 
-		oi::Vec3u padding;
-		oi::gc::MaterialHandle diffuse;
+		oi::Quat lRotation;			//Local rotation
+
+		oi::Vec3 lPosition;			//Local position
+		u32 typeId;					//typeId & Node::TypeMask = type, typeId >> Node::TypeBits = id
+
+		oi::Vec3 lScale;			//Local scale
+		u32 parent;					//Parent's id
+
+		oi::Quat gRotation;			//Global rotation
+
+		oi::Vec3 gScale;			//Global scale
+		u32 localId;				//Local id
+
+		oi::Vec3 gPosition;			//Global position
+		u32 globalId;				//Global id
+
+		enum class Type : u32 {
+			OBJECT, LIGHT, VIEW, UNDEFINED
+		};
+
+		enum class ObjectType : u32 {
+			EMPTY = (u32) Type::OBJECT | 0 << 2, 
+			MESH = (u32) Type::OBJECT | 1 << 2, 
+			SKELETON = (u32) Type::OBJECT | 2 << 2, 
+			BONE = (u32) Type::OBJECT | 3 << 2
+		};
+
+		enum class LightType : u32 {
+			POINT = (u32) Type::LIGHT | 0 << 2, 
+			DIRECTIONAL = (u32) Type::LIGHT | 1 << 2,
+			SPOT = (u32) Type::LIGHT | 2 << 2,
+			SUN = (u32) Type::LIGHT | 3 << 2
+		};
+
+		static constexpr u32 TypeBits = 5;
+		static constexpr u32 TypeMask = (1 << TypeBits) - 1;
 
 	};
 
-	static constexpr u32 totalObjects = 2U;
+	Node nodes[3] = {
 
-	PerObject objects[totalObjects];
+		//Root node
+		{
+			oi::Quat::identity(),
 
-	oi::Vec3 planetRotation;
+			oi::Vec3(),
+			(u32) Node::ObjectType::EMPTY,
 
-	std::unordered_map<oi::String, Planet> planets;
+			oi::Vec3(1),
+			0, /* parented to self, but nothing is calculated, so doesn't matter */
+
+			oi::Quat::identity(),
+
+			oi::Vec3(1),
+			0,
+
+			oi::Vec3(),
+			0
+
+		}
+
+	};
 
 };

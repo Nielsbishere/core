@@ -1,16 +1,10 @@
 #include <lighting.ogsl>
 
-struct PerObject {
+ConstArray(0, nodes, NodeSystem, Node);
+ConstArray(1, nodeIds, NodeIds, u32);
 
-	Matrix m;
-	Matrix mvp;
-
-	Vec3u padding;
-	MaterialHandle material;
-
-};
-
-ConstArray(0, objects, Objects, PerObject);
+Uniform(2, global, Global, { Vec3u padding; ViewHandle view; });
+Uniform(3, views, Views_noalloc, { ViewBuffer data; });
 
 In(0, inPosition, Vec3);
 In(1, inUv, Vec2);
@@ -22,12 +16,16 @@ Out(2, material, MaterialHandle);
 
 Vertex() {
 
-	PerObject obj = objects[instanceId];
+	u32 nodeId = nodeIds[instanceId];
+	Node node = nodes[nodeId];
 
-    vPosition = mul(obj.mvp, Vec4(inPosition, 1));
+	Vec3 wpos = transformVert(node, inPosition);
+	
+	View view = views.data.views[global.view];
 
+    vPosition = mul(view.vp, Vec4(wpos, 1));
 	uv = inUv;
-	normal = normalize(mul(obj.m, Vec4(normalize(inNormal), 0))).xyz;
-	material = obj.material;
+	normal = transformQuat(node, positionQuat(inNormal)).xyz;
+	material = node.localId + 1;
 
 }

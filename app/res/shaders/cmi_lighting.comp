@@ -13,7 +13,7 @@ Texture2D(4, gNormals);
 
 //Uniform & view data
 
-Uniform(5, global, Global, { Vec3 ambient; f32 time; Vec2u resolution; f32 power; u32 view; });
+Uniform(5, global, Global, { Vec3 ambient; f32 time; Vec2u resolution; f32 power; ViewHandle view; });
 Uniform(6, views, Views_noalloc, { ViewBuffer data; });
 
 //Textures & materials

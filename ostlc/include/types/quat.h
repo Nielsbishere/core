@@ -6,6 +6,12 @@ namespace oi {
 	template<typename T>
 	struct TQuat {
 
+	private:
+
+		static constexpr T halfDegToRad = T(3.141592653598 / 180 * 0.5);
+
+	public:
+
 		union {
 
 			T data[4];
@@ -44,15 +50,23 @@ namespace oi {
 		}
 
 		T length() const {
-			return (T)sqrt((f64)(x * x + y * y + z * z + w * w));
+			return T(sqrt((f64)(x * x + y * y + z * z + w * w)));
 		}
 
 		TQuat normalize() const {
-			return *this / length();
+
+			T len = length();
+
+			return {
+				x / len,
+				y / len,
+				z / len,
+				w / len
+			};
 		}
 
 		TQuat inverse() const {
-			return inverseRotation() / length();
+			return inverseRotation().normalize();
 		}
 
 		TQuat inverseRotation() const {
@@ -64,21 +78,21 @@ namespace oi {
 		}
 
 		static TQuat rotateAxis(TVec3<T> axis, f32 angleDeg) {
-			angleDeg = angleDeg / 180.f * 3.141592653598f * 0.5f;
+			angleDeg = angleDeg * halfDegToRad;
 			return TQuat(axis * sin(angleDeg), cos(angleDeg));
 		}
 
 		static TQuat rotate(TVec3<T> eulerDeg) {
 
-			eulerDeg = eulerDeg / 180.f * 3.141592653598f * 0.5f;
+			eulerDeg = eulerDeg * halfDegToRad;
 
-			const Vec3 c = eulerDeg.cos();
-			const Vec3 s = eulerDeg.sin();
+			const TVec3<T> c = eulerDeg.cos();
+			const TVec3<T> s = eulerDeg.sin();
 
-			const f32 cycp = c.y * c.x;
-			const f32 sycp = s.y * c.x;
-			const f32 cysp = c.y * s.x;
-			const f32 sysp = s.y * s.x;
+			const T cycp = c.y * c.x;
+			const T sycp = s.y * c.x;
+			const T cysp = c.y * s.x;
+			const T sysp = s.y * s.x;
 
 			return TQuat(
 				cycp * c.z + sysp * s.z,
@@ -88,6 +102,8 @@ namespace oi {
 			);
 
 		}
+
+		static constexpr TQuat identity() { return { 0, 0, 0, 1 }; }
 
 	};
 

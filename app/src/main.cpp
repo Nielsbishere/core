@@ -274,10 +274,7 @@ void MainInterface::initScene() {
 	water = MaterialRef(g, "Water material", MaterialInfo(materialList));
 	water->setDiffuse(twater.get());
 
-	//Set our materials in our objects array
-
-	objects[0].diffuse = water->getHandle();	//Water
-	objects[1].diffuse = rock->getHandle();		//Planet
+	//TODO: Set our materials in our objects array
 
 	//Clustered material indirect lighting
 
@@ -287,9 +284,10 @@ void MainInterface::initScene() {
 
 	//Setup shader data
 
-	deferredPipeline->instantiateBuffer("Objects", totalObjects);
-
 	postProcessingPipeline->setRegister("linear", nearestSampler);
+
+	deferredPipeline->setBuffer("Views", 0, views->getBuffer());
+	deferredPipeline->setValue("Global/view", view->getHandle());
 
 	lightingPipeline->setBuffer("Views", 0, views->getBuffer());
 	lightingPipeline->setBuffer("Materials", materialList->getSize(), materialList->getBuffer());
@@ -313,177 +311,66 @@ void MainInterface::initScene() {
 
 	postProcessingPipeline->setRegister("tex", lightingTarget->getTarget(0));
 
-	//Setup node pass
+	//Planet
+	nodes[1] = {
 
-	const u32 NodeType_object = 0;
-	const u32 NodeType_light = 1;
-	const u32 NodeType_view = 2;
+		Quat::identity(),
 
-	const u32 NodeObjectType_empty = NodeType_object;
-	const u32 NodeObjectType_mesh = 4 | NodeType_object;
-	const u32 NodeObjectType_skeleton = 8 | NodeType_object;
-	const u32 NodeObjectType_bone = 12 | NodeType_object;
+		Vec3(),
+		(u32) Node::ObjectType::MESH | mplanet->getAllocationId() << Node::TypeBits,
 
-	const u32 NodeLightType_point = NodeType_light;
-	const u32 NodeLightType_directional = 4 | NodeType_light;
-	const u32 NodeLightType_spot = 8 | NodeType_light;
-	const u32 NodeLightType_sun = 12 | NodeType_light;
+		Vec3(1.5f),
+		0,
 
-	const u32 NodeTypeBits = 5;
-	const u32 NodeTypeMask = (1 << 5) - 1;
+		Quat::identity(),
 
-	struct Node {
+		{},
+		1,
 
-		Quat lRotation;			//Local rotation
-
-		Vec3 lPosition;			//Local position
-		u32 typeId;				//typeId & 0x3 = type, typeId >> 2 = id
-
-		Vec3 lScale;			//Local scale
-		u32 parent;				//Parent's id
-
-		Quat gRotation;			//Global rotation
-
-		Quat gScale;			//Global scale
-
-		Quat gPosition;			//Global position
+		{},
+		1
 
 	};
 
-	const Node nodes[10] = {
+	//Water
+	nodes[2] = {
+		Quat::identity(),
 
-		//Root node
-		{
-			Quat(0, 0, 0, 1),
+		Vec3(),
+		(u32)Node::ObjectType::MESH | msphere->getAllocationId() << Node::TypeBits,
 
-			Vec3(),
-			NodeObjectType_empty,
+		Vec3(3.f),
+		0,
 
-			Vec3(1),
-			0, /* parented to self, but nothing is calculated, so doesn't matter */
+		Quat::identity(),
 
-			Quat(0, 0, 0, 1),
+		{},
+		0,
 
-			Quat(1, 1, 1, 1),
+		{},
+		2
 
-			Quat(0, 0, 0, 0)
-
-		},
-
-		//Center cube
-		{
-			Quat(0.354f, 0.146f, 0.354f, 0.854f),	//0,45,45
-
-			Vec3(),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(0.6f),
-			0
-
-		},
-
-		//Back cube
-		{
-			Quat(0, 0, 0, 1),
-
-			Vec3(0, 0, -5),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(1.2f),
-			0
-
-		},
-
-		//Front cube
-		{
-			Quat(0, 0, 0, 1),
-
-			Vec3(0, 0, 5),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(0.8f),
-			0
-
-		},
-
-		//Right cube
-		{
-			Quat(0, 0, 0, 1),
-
-			Vec3(5, 0, 0),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(1.f),
-			0
-
-		},
-
-		//Top cube
-		{
-			Quat(0, 0, 0, 1),
-
-			Vec3(0, 5, 0),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(1.f),
-			0
-
-		},
-
-		//Bottom cube
-		{
-			Quat(0, 0, 0, 1),
-
-			Vec3(0, -5, 0),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(1.f),
-			0
-
-		},
-
-		//Left cube
-		{
-			Quat(-0.354f, -0.146f, -0.354f, 0.854f),
-
-			Vec3(-5, 0, 0),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(1.f),
-			0
-		},
-
-		//Left parented cube
-		{
-			Quat(-0.211f, -0.211f, -0.047f, 0.953f),
-
-			Vec3(-1, 0, 0),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(0.6f),
-			7
-		},
-
-		//Most left parented cube
-		{
-			Quat(-0.211f, -0.211f, -0.047f, 0.953f),
-
-			Vec3(-1, 0, 0),
-			NodeObjectType_mesh | msphere->getAllocationId() << NodeTypeBits,
-
-			Vec3(0.9f),
-			8
-		}
 	};
 
-	const u32 nodeOrdered[9] = { 1, 2, 3, 4, 5, 6, 7,  8,  9 };
-	const Vec2u nodeLayers[3] = { Vec2u(0, 7), Vec2u(7, 1), Vec2u(8, 1) };
-	const u32 layers = 3;
+	//Setup nodes
 
-	const u32 nodeCount = u32(sizeof(nodes) / sizeof(nodes[0]));
+	const u32 nodeOrdered[] = { 1, 2 };
+	const Vec2u nodeLayers[] = { Vec2u(0, 2) };
+	
+	const u32 layers = u32(sizeof(nodeLayers) / sizeof(nodeLayers[0])),
+			nodeCount = u32(sizeof(nodes) / sizeof(nodes[0]));
 
-	nodeSystemPipeline->instantiateBuffer("NodeSystem", nodeCount);
-	nodeSystemPipeline->setData("NodeSystem", Buffer::construct((u8*)nodes, u32(sizeof(nodes))));
+	const u32 nodeIds[] = { 1, 2 }, nodeIdCount = u32(sizeof(nodeIds) / sizeof(nodeIds[0]));
+
+	//Send to shader
+
+	deferredPipeline->instantiateBuffer("NodeSystem", nodeCount);
+	deferredPipeline->setData("NodeSystem", Buffer::construct((u8*)nodes, u32(sizeof(nodes))));
+
+	deferredPipeline->instantiateBuffer("NodeIds", nodeIdCount);
+	deferredPipeline->setData("NodeIds", Buffer::construct((u8*)nodeIds, u32(sizeof(nodeIds))));
+
+	nodeSystemPipeline->setBuffer("NodeSystem", nodeCount, deferredPipeline->getBuffer("NodeSystem"));
 
 	nodeSystemPipeline->instantiateBuffer("NodesOrdered", nodeCount - 1);
 	nodeSystemPipeline->setData("NodesOrdered", Buffer::construct((u8*)nodeOrdered, u32(sizeof(nodeOrdered))));
@@ -513,17 +400,17 @@ void MainInterface::renderScene(){
 
 	cmdList->begin();
 
+	//Node system
+
+	cmdList->bind(nodeSystemPipeline);
+	cmdList->dispatch(nodeSystemDispatch);
+
 	//Render to g-buffer
 
 	cmdList->begin(gbuffer);
 	cmdList->bind(deferredPipeline);
 	cmdList->draw(drawList);
 	cmdList->end(gbuffer);
-
-	//Node system
-
-	cmdList->bind(nodeSystemPipeline);
-	cmdList->dispatch(nodeSystemDispatch);
 
 	//Clustered Material Indirect Rendering
 
@@ -565,6 +452,8 @@ void MainInterface::update(f32 dt) {
 
 	WindowInterface::update(dt); 
 
+	//Key events
+
 	if (getInputManager().isPressed("Fullscreen"))
 		getParent()->getInfo().toggleFullScreen();
 
@@ -582,20 +471,16 @@ void MainInterface::update(f32 dt) {
 	if(getInputManager().isDown("Rotate"))
 		camera->rotate(getInputManager().getAxis("Rotation") * camSpeed * dt);
 
-	planetRotation += Vec3(3, 5) * dt;
-
 	//Force view buffer to update matrices of cameras, viewports and views
+
 	views->update();
 
 	//Update planet rotation
 
-	objects[0].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(1.5f));
-	objects[0].mvp = view->getStruct().vp * objects[0].m;
+	Vec3 drotation = Vec3(3, 5) * dt;
 
-	objects[1].m = Matrix::makeModel(Vec3(), Vec3(planetRotation, 0.f), Vec3(3.f));
-	objects[1].mvp = view->getStruct().vp * objects[1].m;
-
-	deferredPipeline->setData("Objects", Buffer::construct((u8*)objects, sizeof(objects)));
+	nodes[1].lRotation = nodes[2].lRotation *= Quat::rotateAxis(Vec3(1, 0, 0), drotation.y);
+	deferredPipeline->setData("NodeSystem", Buffer::construct((u8*)nodes, u32(sizeof(nodes))));
 
 	//Update time
 

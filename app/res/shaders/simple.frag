@@ -16,5 +16,5 @@ Vec2 encodeNormal(Vec3 n) {
 Fragment() {
 	guv = uv;
 	gnormal = encodeNormal(normal);
-	gmaterial = material + 1;
+	gmaterial = material;
 }

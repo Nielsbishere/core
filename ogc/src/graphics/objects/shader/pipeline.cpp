@@ -172,3 +172,16 @@ void Pipeline::setData(String path, Buffer data) {
 	sbuffer->set(data);
 
 }
+
+GPUBuffer *Pipeline::getBuffer(String path) {
+
+	ShaderBuffer *sbuffer = info.shaderData->get<ShaderBuffer>(path);
+
+	if (sbuffer == nullptr) {
+		Log::warn("Couldn't find the requested buffer");
+		return nullptr;
+	}
+
+	return sbuffer->getBuffer();
+
+}
