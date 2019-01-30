@@ -274,8 +274,6 @@ void MainInterface::initScene() {
 	water = MaterialRef(g, "Water material", MaterialInfo(materialList));
 	water->setDiffuse(twater.get());
 
-	//TODO: Set our materials in our objects array
-
 	//Clustered material indirect lighting
 
 	lightingPipeline->setRegister("textures", textureList);
@@ -311,13 +309,13 @@ void MainInterface::initScene() {
 
 	postProcessingPipeline->setRegister("tex", lightingTarget->getTarget(0));
 
-	//Planet
+	//Water
 	nodes[1] = {
 
 		Quat::identity(),
 
 		Vec3(),
-		(u32) Node::ObjectType::MESH | mplanet->getAllocationId() << Node::TypeBits,
+		(u32)Node::ObjectType::MESH | msphere->getAllocationId() << Node::TypeBits,
 
 		Vec3(1.5f),
 		0,
@@ -325,19 +323,20 @@ void MainInterface::initScene() {
 		Quat::identity(),
 
 		{},
-		1,
+		water->getHandle(),
 
 		{},
 		1
 
 	};
 
-	//Water
+	//Planet
 	nodes[2] = {
+
 		Quat::identity(),
 
 		Vec3(),
-		(u32)Node::ObjectType::MESH | msphere->getAllocationId() << Node::TypeBits,
+		(u32)Node::ObjectType::MESH | mplanet->getAllocationId() << Node::TypeBits,
 
 		Vec3(3.f),
 		0,
@@ -345,7 +344,7 @@ void MainInterface::initScene() {
 		Quat::identity(),
 
 		{},
-		0,
+		rock->getHandle(),
 
 		{},
 		2
@@ -477,9 +476,9 @@ void MainInterface::update(f32 dt) {
 
 	//Update planet rotation
 
-	Vec3 drotation = Vec3(3, 5) * dt;
+	planetRotation += Vec3(18, 30) * dt;
 
-	nodes[1].lRotation = nodes[2].lRotation *= Quat::rotateAxis(Vec3(1, 0, 0), drotation.y);
+	nodes[1].lRotation = nodes[2].lRotation = Quat::rotate(planetRotation);
 	deferredPipeline->setData("NodeSystem", Buffer::construct((u8*)nodes, u32(sizeof(nodes))));
 
 	//Update time

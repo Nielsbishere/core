@@ -25,7 +25,7 @@ Vertex() {
 
     vPosition = mul(view.vp, Vec4(wpos, 1));
 	uv = inUv;
-	normal = transformQuat(node, positionQuat(inNormal)).xyz;
+	normal = transformDir(node, inNormal);
 	material = node.localId + 1;
 
 }

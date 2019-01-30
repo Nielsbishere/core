@@ -264,46 +264,15 @@ struct Node {
 
 };
 
-inline Quat multiplyQuat(const Quat x, const Quat y) {
+inline Quat multiplyQuat(const Quat a, const Quat b) {
 
-	const Quat q0 = y * x.w;
-	
 	return Quat(
-		q0.x + x.x * y.w + x.y * y.z - x.z * y.y,
-		q0.y - x.x * y.z + x.y * y.w + x.z * y.x,
-		q0.z + x.x * y.y - x.y * y.x + x.z * y.w,
-		q0.w - x.x * y.x - x.y * y.y - x.z * y.z
+		a.x * b.w + a.w * b.x + a.y * b.z - a.z * b.y,
+		a.y * b.w + a.w * b.y + a.z * b.x - a.x * b.z,
+		a.z * b.w + a.w * b.z + a.x * b.y - a.y * b.x,
+		a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
 	);
 
-}
-
-inline Quat positionQuat(const Vec3 pos) {
-	return Quat(pos, 0);
-}
-
-inline Quat rotateAxisQuat(const Vec3 axis, f32 angle) {
-	angle *= 0.5f;
-	return Quat(axis * sin(angle), cos(angle));
-}
-
-inline Quat rotateEulerQuat(Vec3 euler /* pitch, yaw, roll */) {
-
-	euler *= 0.5f;
-	
-	const Vec3 c = cos(euler);
-	const Vec3 s = sin(euler);
-	
-	const f32 cycp = c.y * c.x;
-	const f32 sycp = s.y * c.x;
-	const f32 cysp = c.y * s.x;
-	const f32 sysp = s.y * s.x;
-	
-	return Quat(
-		cycp * c.z + sysp * s.z,
-		cycp * s.z + sysp * c.z,
-		sycp * s.z + cysp * c.z,
-		sycp * c.z + cysp * s.z
-	);
 }
 
 inline Quat normalizeQuat(const Quat x) {
@@ -320,15 +289,27 @@ inline Quat inverseQuat(const Quat x){
 }
 
 inline Node parentNode(const Node node, const Node parent) {
+
+	const Quat igrot = inverseRotQuat(node.gRotation);
+	const Quat qpos = Quat(node.lPosition * node.lScale, 0);
+
 	Node result = node;
-	result.gPosition = parent.gPosition + multiplyQuat(parent.gRotation, positionQuat(node.lPosition * node.lScale)).xyz;
+	result.gPosition = parent.gPosition + multiplyQuat(multiplyQuat(parent.gRotation, qpos), igrot).xyz;
 	result.gRotation = multiplyQuat(parent.gRotation, node.lRotation);
 	result.gScale = parent.gScale * node.lScale;
 	return result;
 }
 
 inline Vec3 transformVert(const Node node, const Vec3 pos) {
-	return node.gPosition + multiplyQuat(node.gRotation, positionQuat(pos * node.gScale)).xyz;
+	const Quat qpos = Quat(pos * node.gScale, 0);
+	const Quat igrot = inverseRotQuat(node.gRotation);
+	return node.gPosition + multiplyQuat(multiplyQuat(node.gRotation, qpos), igrot).xyz;
+}
+
+inline Vec3 transformDir(const Node node, const Vec3 dir) {
+	const Quat qdir = Quat(dir, 0);
+	const Quat igrot = inverseRotQuat(node.gRotation);
+	return multiplyQuat(multiplyQuat(node.gRotation, qdir), igrot).xyz;
 }
 
 inline Quat transformQuat(const Node node, const Quat dir) {

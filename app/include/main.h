@@ -91,6 +91,8 @@ private:
 
 	float exposure = .15f, gamma = .85f, camSpeed = 0.5f;
 
+	oi::Vec3 planetRotation;
+
 	std::unordered_map<oi::String, Planet> planets;
 
 	struct Node {

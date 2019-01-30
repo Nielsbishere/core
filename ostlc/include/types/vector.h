@@ -52,6 +52,9 @@ namespace oi {
 			struct {
 				T s, t, u;
 			};
+			struct {
+				T yaw, pitch, roll;
+			};
 		};
 
 	};
@@ -352,14 +355,13 @@ namespace oi {
 		//Will return 92 * 0.5 + 28 * 0.5, 95 * 0.5 + 39 * 0.5, 99 * 0.5 + 25 * 0.5
 		//(60, 67, 62)
 		template<typename T2>
-		TVec lerp(const TVec &other, const TVec<T2, n> &perc) const {
+		TVec lerp(const TVec &other, T2 t) const {
 
 			static_assert(std::is_floating_point<T2>::value, "TVec<T, n>::lerp<T2>; T2 should be a floating point (f<x>)");
 
-			TVec<T2, n> f0 = *this;
-			TVec<T2, n> f1 = other;
+			T tT(t);
 
-			return TVec(f0 * perc + f1 * (TVec<T2, n>(1) - perc));
+			return TVec(*this * (1 - tT) + other * tT);
 		}
 
 		TVec floor() const {
