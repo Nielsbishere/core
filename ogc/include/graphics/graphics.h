@@ -50,9 +50,7 @@ namespace oi {
 			void finish();
 
 			template<typename T2>
-			typename T2::ResourceType *create(String name, T2 info) {
-				return init<typename T2::ResourceType, T2>(name, info);
-			}
+			typename T2::ResourceType *create(String name, T2 info);
 
 			GraphicsExt &getExtension();
 
@@ -88,11 +86,14 @@ namespace oi {
 			template<typename T>
 			[[nodiscard]] std::vector<GraphicsObject*> get();
 
-			template<typename T, typename T2>
-			void alloc(T2 *&t2);
+			template<typename T>
+			void alloc(T *&t);
 
-			template<typename T, typename T2>
-			void dealloc(T2 *&t2);
+			template<typename T>
+			void alloc(T *&t, const T &def);
+
+			template<typename T>
+			void dealloc(T *&t);
 
 		protected:
 
@@ -213,23 +214,25 @@ namespace oi {
 			return true;
 		}
 
-		template<typename T, typename T2>
-		void Graphics::alloc(T2 *&t2) {
-
-			static_assert(std::is_same<typename T2::BaseType, T>::value, "Can't allocate if the extended type isn't part of the allocated type");
-
-			t2 = allocator.alloc<T2>();
-
+		template<typename T2>
+		typename T2::ResourceType *Graphics::create(String name, T2 info) {
+			return init<typename T2::ResourceType, T2>(name, info);
 		}
 
-		template<typename T, typename T2>
-		void Graphics::dealloc(T2 *&t2) {
+		template<typename T>
+		void Graphics::alloc(T *&t) {
+			t = allocator.alloc<T>();
+		}
 
-			static_assert(std::is_same<typename T2::BaseType, T>::value, "Can't allocate if the extended type isn't part of the allocated type");
+		template<typename T>
+		void Graphics::alloc(T *&t, const T &def) {
+			t = allocator.alloc<T>(def);
+		}
 
+		template<typename T>
+		void Graphics::dealloc(T *&t) {
 			allocator.dealloc(t2);
 			t2 = nullptr;
-
 		}
 
 	}
