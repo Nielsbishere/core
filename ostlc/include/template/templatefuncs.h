@@ -68,9 +68,13 @@ namespace oi {
 	struct TFillArray {
 
 		template<typename T2>
-		static inline void exec(T2 *dat, const T &t0, const args&... arg) {
-			*dat = t0;
-			TFillArray<args...>::exec(++dat, arg...);
+		static inline void exec(T2 *dat, size_t i, size_t j, const T &t0, const args&... arg) {
+
+			if (i == j)
+				return;
+
+			dat[i] = t0;
+			TFillArray<args...>::exec(dat, i + 1, j, arg...);
 		}
 
 	};
@@ -79,8 +83,9 @@ namespace oi {
 	struct TFillArray<T> {
 
 		template<typename T2>
-		static inline void exec(T2 *dat, const T &t0) {
-			*dat = t0;
+		static inline void exec(T2 *dat, size_t i, size_t j, const T &t0) {
+			if (i != j)
+				dat[i] = t0;
 		}
 
 	};

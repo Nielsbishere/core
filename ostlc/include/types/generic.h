@@ -5,41 +5,56 @@
 #include <unordered_map>
 #include <stdint.h>
 
-typedef int8_t i8;
-typedef uint8_t u8;
+using i8 = int8_t;
+using u8 = uint8_t;
 
-typedef int16_t i16;
-typedef uint16_t u16;
+using octal = uint8_t;
+using nibble = uint8_t;
 
-typedef int32_t i32;
-typedef uint32_t u32;
+using i16 = int16_t;
+using u16 = uint16_t;
 
-typedef int64_t i64;
-typedef uint64_t u64;
+using i32 = int32_t;
+using u32 = uint32_t;
 
-typedef float f32;
-typedef double f64;
+using i64 = int64_t;
+using u64 = uint64_t;
 
-typedef u8 nibble;
-typedef u8 octal;
+using f32 = float;
+using f64 = double;
 
-constexpr u8 u8_MAX = 0xFFU;
-constexpr u8 u8_MIN = 0U;
-constexpr u16 u16_MAX = 0xFFFFU;
-constexpr u16 u16_MIN = 0U;
-constexpr u32 u32_MAX = 0xFFFFFFFFU;
-constexpr u32 u32_MIN = 0U;
-constexpr u64 u64_MAX = 0xFFFFFFFFFFFFFFFFU;
-constexpr u64 u64_MIN = 0U;
+constexpr u8 operator ""_u8(unsigned long long test) { return (u8)test; }
+constexpr i8 operator ""_i8(unsigned long long test) { return (i8)test; }
 
-constexpr i8 i8_MAX = 0x7F;
-constexpr i8 i8_MIN = (i8)0x80U;
-constexpr i16 i16_MAX = 0x7FFF;
-constexpr i16 i16_MIN = (i16)0x8000U;
-constexpr i32 i32_MAX = 0x7FFFFFFF;
-constexpr i32 i32_MIN = (i32)0x80000000U;
-constexpr i64 i64_MAX = 0x7FFFFFFFFFFFFFFF;
-constexpr i64 i64_MIN = (i64)0x8000000000000000U;
+constexpr u16 operator ""_u16(unsigned long long test) { return (u16)test; }
+constexpr i16 operator ""_i16(unsigned long long test) { return (i16)test; }
+
+constexpr u32 operator ""_u32(unsigned long long test) { return (u32)test; }
+constexpr i32 operator ""_i32(unsigned long long test) { return (i32)test; }
+
+constexpr u64 operator ""_u64(unsigned long long test) { return (u64)test; }
+constexpr i64 operator ""_i64(unsigned long long test) { return (i64)test; }
+
+constexpr f32 operator ""_f32(long double test) { return (f32)test; }
+constexpr f64 operator ""_f64(long double test) { return (f64)test; }
+
+constexpr u8 u8_MAX = 0xFF_u8;
+constexpr u8 u8_MIN = 0_u8;
+constexpr u16 u16_MAX = 0xFFFF_u16;
+constexpr u16 u16_MIN = 0_u16;
+constexpr u32 u32_MAX = 0xFFFFFFFF_u32;
+constexpr u32 u32_MIN = 0_u32;
+constexpr u64 u64_MAX = 0xFFFFFFFFFFFFFFFF_u64;
+constexpr u64 u64_MIN = 0_u64;
+
+constexpr i8 i8_MAX = 0x7F_i8;
+constexpr i8 i8_MIN = 0x80_i8;
+constexpr i16 i16_MAX = 0x7FFF_i16;
+constexpr i16 i16_MIN = 0x8000_i16;
+constexpr i32 i32_MAX = 0x7FFFFFFF_i32;
+constexpr i32 i32_MIN = 0x80000000_i32;
+constexpr i64 i64_MAX = 0x7FFFFFFFFFFFFFFF_i64;
+constexpr i64 i64_MIN = 0x8000000000000000_i64;
 
 class gbool {
 

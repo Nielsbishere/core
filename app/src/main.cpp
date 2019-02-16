@@ -10,6 +10,7 @@
 #include "graphics/format/oirm.h"
 #include "graphics/format/fbx.h"
 #include "graphics/objects/model/mesh.h"
+#include "types/array.h"
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -86,10 +87,10 @@ void MainInterface::refreshPlanet(Planet planet, MeshAllocationInfo &mai) {
 		norm[5].cross(tang[5])
 	};
 
-	std::vector<f32> vertex(vertices * 8);
-	std::vector<u32> index(indices);
-	f32 *avertex = vertex.data();
-	u32 *aindex = index.data();
+	Array<f32> vertex(vertices * 8);
+	Array<u32> index(indices);
+	f32 *avertex = vertex.begin();
+	u32 *aindex = index.begin();
 
 	planet.seed();
 
