@@ -8,14 +8,14 @@ using namespace oi;
 
 Sampler::~Sampler() {
 	vkDestroySampler(g->getExtension().device, ext->obj, vkAllocator);
-	g->dealloc<Sampler>(ext);
+	g->dealloc(ext);
 }
 
 SamplerExt &Sampler::getExtension() { return *ext; }
 
 bool Sampler::init() {
 
-	g->alloc<Sampler>(ext);
+	g->alloc(ext);
 
 	VkSamplerCreateInfo samplerInfo;
 	memset(&samplerInfo, 0, sizeof(samplerInfo));

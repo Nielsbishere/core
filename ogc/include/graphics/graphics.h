@@ -231,8 +231,8 @@ namespace oi {
 
 		template<typename T>
 		void Graphics::dealloc(T *&t) {
-			allocator.dealloc(t2);
-			t2 = nullptr;
+			allocator.dealloc(t);
+			t = nullptr;
 		}
 
 	}

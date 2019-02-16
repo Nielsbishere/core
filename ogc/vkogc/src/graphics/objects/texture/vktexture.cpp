@@ -15,7 +15,7 @@ TextureExt &Texture::getExtension() { return *ext; }
 bool Texture::initData() {
 
 	if(ext == nullptr)
-		g->alloc<Texture>(ext);
+		g->alloc(ext);
 
 	GraphicsExt &graphics = g->getExtension();
 
@@ -288,7 +288,7 @@ void Texture::destroyData(bool resize) {
 	}
 
 	if(!resize)
-		g->dealloc<Texture>(ext);
+		g->dealloc(ext);
 
 }
 

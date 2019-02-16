@@ -19,7 +19,7 @@ using namespace oi;
 
 void Pipeline::destroyData() {
 	vkDestroyPipeline(g->getExtension().device, ext->obj, vkAllocator);
-	g->dealloc<Pipeline>(ext);
+	g->dealloc(ext);
 }
 
 PipelineExt &Pipeline::getExtension() { return *ext; }
@@ -29,7 +29,7 @@ bool Pipeline::initData() {
 	if (info.raytracingInfo.shaders.size() == 0 && info.computeInfo.shader == nullptr && info.graphicsInfo.shader == nullptr)
 		return Log::throwError<VkPipeline, 0x0>("Pipeline requires a shader");
 
-	g->alloc<Pipeline>(ext);
+	g->alloc(ext);
 
 	GraphicsExt &gext = g->getExtension();
 

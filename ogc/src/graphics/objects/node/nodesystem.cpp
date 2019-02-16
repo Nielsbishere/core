@@ -9,10 +9,10 @@ bool NodeSystem::init(BaseNode *node) {
 
 	Vec2u range(0, info.maxPhysicalNodes);
 
-	if (node->type >= NodeType::TEXTURE)
+	if (node->type.getValue() >= NodeType::Texture)
 		range = Vec2u(info.maxPhysicalNodes, info.maxNodes);
 
-	Bitset &localIds = data.local[(u32)node->type];
+	Bitset &localIds = data.local[(u32)node->type.getValue()];
 
 	for(u32 i = range.x; i < range.y; ++i)
 		if (!data.global[i]) {
@@ -67,6 +67,6 @@ bool NodeSystem::init() {
 
 	//TODO: Create buffer
 
-	return;
+	return true;
 
 }

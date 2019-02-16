@@ -17,7 +17,7 @@ void RenderTarget::destroyData() {
 	for (VkFramebuffer fb : ext->frameBuffer)
 		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
 
-	g->dealloc<RenderTarget>(ext);
+	g->dealloc(ext);
 }
 
 bool RenderTarget::resize(Vec2u size) {
@@ -93,7 +93,7 @@ bool RenderTarget::initData() {
 
 	GraphicsExt &gext = g->getExtension();
 
-	g->alloc<RenderTarget>(ext);
+	g->alloc(ext);
 
 	if (!info.isComputeTarget) {
 

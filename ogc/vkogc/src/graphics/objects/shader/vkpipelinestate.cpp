@@ -6,14 +6,14 @@ using namespace oi::gc;
 using namespace oi;
 
 PipelineState::~PipelineState() {
-	g->dealloc<PipelineState>(ext);
+	g->dealloc(ext);
 }
 
 PipelineStateExt &PipelineState::getExtension() { return *ext; }
 
 bool PipelineState::init() {
 
-	g->alloc<PipelineState>(ext);
+	g->alloc(ext);
 
 	if (std::pow(2, (u32) std::log2(info.samples)) != info.samples)
 		return Log::throwError<PipelineStateExt, 0x0>("PipelineState creation failed; sample count has to be base2");

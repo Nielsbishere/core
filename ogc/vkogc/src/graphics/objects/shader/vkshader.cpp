@@ -6,14 +6,14 @@ using namespace oi::gc;
 using namespace oi;
 
 void Shader::destroyData() {
-	g->dealloc<Shader>(ext);
+	g->dealloc(ext);
 }
 
 ShaderExt &Shader::getExtension() { return *ext; }
 
 bool Shader::initData() {
 
-	g->alloc<Shader>(ext);
+	g->alloc(ext);
 
 	ext->stage.resize(info.stage.size());
 

@@ -12,7 +12,7 @@ void GPUBuffer::destroy() {
 	GraphicsExt &gext = g->getExtension();
 	gext.dealloc(*ext, getName());
 	
-	g->dealloc<GPUBuffer>(ext);
+	g->dealloc(ext);
 
 }
 
@@ -43,7 +43,7 @@ bool GPUBuffer::shouldStage() {
 
 bool GPUBuffer::init() {
 
-	g->alloc<GPUBuffer>(ext);
+	g->alloc(ext);
 
 	GraphicsExt &graphics = g->getExtension();
 	info.changes.resize(GPUBufferExt::isVersioned(info.type) ? g->getBuffering() : 1);

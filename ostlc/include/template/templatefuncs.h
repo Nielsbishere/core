@@ -62,4 +62,53 @@ namespace oi {
 		return ((u32)enum0 & (u32)enum1) != 0;
 	}
 
+	//Filling an array
+
+	template<typename T, typename ...args>
+	struct TFillArray {
+
+		template<typename T2>
+		static inline void exec(T2 *dat, const T &t0, const args&... arg) {
+			*dat = t0;
+			TFillArray<args...>::exec(++dat, arg...);
+		}
+
+	};
+
+	template<typename T>
+	struct TFillArray<T> {
+
+		template<typename T2>
+		static inline void exec(T2 *dat, const T &t0) {
+			*dat = t0;
+		}
+
+	};
+
+	//Copying an array
+
+	template<typename T, bool b = std::is_arithmetic<T>::value || std::is_pod<T>::value>
+	struct TCopyArray {
+
+		static inline void exec(T *dst, const T *src, size_t count, size_t offset = 0) {
+
+			if (count == offset)
+				return;
+
+			dst[offset] = src[offset];
+			exec(dst, src, count, offset + 1);
+
+		}
+
+	};
+
+	template<typename T>
+	struct TCopyArray<T, true> {
+
+		static inline void exec(T *dst, const T *src, size_t count) {
+			memcpy(dst, src, count * sizeof(T));
+		}
+
+	};
+
 }

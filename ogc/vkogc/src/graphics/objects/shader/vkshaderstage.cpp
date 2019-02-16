@@ -14,12 +14,12 @@ ShaderStage::~ShaderStage() {
 	if (ext->shader != VK_NULL_HANDLE)
 		vkDestroyShaderModule(graphics.device, ext->shader, vkAllocator);
 
-	g->dealloc<ShaderStage>(ext);
+	g->dealloc(ext);
 }
 
 bool ShaderStage::init() {
 
-	g->alloc<ShaderStage>(ext);
+	g->alloc(ext);
 
 	GraphicsExt &graphics = g->getExtension();
 

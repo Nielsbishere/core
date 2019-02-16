@@ -77,7 +77,7 @@ Graphics::~Graphics(){
 		Log::println("Successfully destroyed Vulkan instance and device");
 	}
 
-	dealloc<Graphics>(ext);
+	dealloc(ext);
 	
 }
 
@@ -86,7 +86,7 @@ void Graphics::init(Window *w){
 	this->buffering = 3;				//Assume triple buffering
 
 	//Init platform dependent data
-	alloc<Graphics>(ext);
+	alloc(ext);
 
 	//Get instance extensions and layers
 
@@ -620,7 +620,7 @@ void Graphics::initSurface(Window *w) {
 		for (u32 i = 0; i < buffering; ++i) {
 
 			Texture *tex = textures[i] = new Texture(TextureInfo(size, format, TextureUsage::Render_target));
-			alloc<Texture>(tex->ext);
+			alloc(tex->ext);
 			TextureExt &vkTex = tex->getExtension();
 			vkTex.resource = swapchainImages[i];
 

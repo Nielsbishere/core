@@ -19,7 +19,7 @@ void ShaderData::destroyData() {
 	vkDestroyDescriptorSetLayout(gext.device, ext->setLayout, vkAllocator);
 	vkDestroyPipelineLayout(gext.device, ext->layout, vkAllocator);
 
-	g->dealloc<ShaderData>(ext);
+	g->dealloc(ext);
 
 }
 
@@ -168,7 +168,7 @@ ShaderDataExt &ShaderData::getExtension() { return *ext; }
 
 bool ShaderData::initData() {
 
-	g->alloc<ShaderData>(ext);
+	g->alloc(ext);
 
 	GraphicsExt &gext = g->getExtension();
 

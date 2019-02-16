@@ -20,7 +20,7 @@ using namespace oi;
 
 CommandList::~CommandList() {
 	vkFreeCommandBuffers(g->getExtension().device, ext->pool, (u32) ext->cmds.size(), ext->cmds.data());
-	g->dealloc<CommandList>(ext);
+	g->dealloc(ext);
 }
 
 CommandListExt &CommandList::getExtension() { return *ext; }
@@ -156,7 +156,7 @@ void CommandList::end() {
 
 bool CommandList::init() {
 
-	g->alloc<CommandList>(ext);
+	g->alloc(ext);
 
 	GraphicsExt &glext = g->getExtension();
 
