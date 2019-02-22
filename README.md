@@ -185,7 +185,7 @@ oibaker compiles GLSL/HLSL files into oiSH (SPIRV and reflection) and fbx/obj to
 
 If you want to use Oxsomi core for your project, you can go to your repo root directory. From there, you can add this repo as a dependency:
 ```bat
-git submodule add https://github.com/osomilunar/ocore ocore
+git submodule add https://github.com/oxsomi/core ocore
 git submodule update --init --recursive 
 ```
 This will fetch ocore into your project dir. Now you can include the subdirectory in CMake.
@@ -201,7 +201,7 @@ There's also documentation about the file formats used; [oiSL](docs/oiSL.md) (St
 Shaders can be written through both GLSL, HLSL and our own shading format [ogsl](docs/ogsl.md) (Oxsomi Graphics Shading Language). ogsl allows transpiling shading languages to one-another and re-using the same shader code in hlsl/glsl files. ogsl might even allow compiling to C++ (for debugging) in the future.
 
 # Viewing progress
-You can view progress and planned features on [our trello board](https://trello.com/b/US4bChrI/osomi-core).
+You can view progress and planned features on [our trello board](https://trello.com/b/US4bChrI/oxsomi-core).
 
 # Special thanks
 
