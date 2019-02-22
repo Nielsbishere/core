@@ -16,7 +16,7 @@ Oxsomi core - A basic framework for graphics and engines.
 For fetching this repo and dependencies:
 
 ```bat
-git clone --recurse-submodules -j8 git://github.com/osomilunar/ocore.git
+git clone --recurse-submodules -j8 git://github.com/oxsomi/core.git
 ```
 
 Or for already cloned repos:
@@ -138,19 +138,19 @@ What is your first and last name?
 What is the name of your organizational unit?
   [Unknown]:  Lunar
 What is the name of your organization?
-  [Unknown]:  Osomi
+  [Unknown]:  Oxsomi
 What is the name of your City or Locality?
   [Unknown]:  Central City
 What is the name of your State or Province?
   [Unknown]:  Ohio
 What is the two-letter country code for this unit?
   [Unknown]:  OH
-Is CN=John Doe, OU=Osomi, O=Osomi, L=Central City, ST=Ohio, C=OH correct?
+Is CN=John Doe, OU=Oxsomi, O=Oxsomi, L=Central City, ST=Ohio, C=OH correct?
   [no]:  yes
   
 # Step three; set the password for the cert
 Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
-        for: CN=John Doe, OU=Osomi, O=Osomi, L=Central City, ST=Ohio, C=OH
+        for: CN=John Doe, OU=Oxsomi, O=Oxsomi, L=Central City, ST=Ohio, C=OH
 Enter key password for <mykey>
         (RETURN if same as keystore password):
 [Storing ../../.keystore]
@@ -183,7 +183,7 @@ oibaker compiles GLSL/HLSL files into oiSH (SPIRV and reflection) and fbx/obj to
 
 # How to use ocore in a project
 
-If you want to use Osomi core for your project, you can go to your repo root directory. From there, you can add this repo as a dependency:
+If you want to use Oxsomi core for your project, you can go to your repo root directory. From there, you can add this repo as a dependency:
 ```bat
 git submodule add https://github.com/osomilunar/ocore ocore
 git submodule update --init --recursive 
@@ -194,11 +194,11 @@ Please do yourself and us a favor and don't push this directory onto your repo, 
 
 If you want to use ocore cross platform, it is recommended that you use the app entrypoints (app_pc, app_android, etc.).
 # Getting started
-There is documentation on [Osomi Graphics Core](docs/ogc.md) (ogc; rendering), [Osomi Window Core](docs/owc.md) (owc; window/app and input), [Osomi STandard Library Core](docs/ostlc.md) (ostlc; main data types and utils) and the top level entry [app](docs/app.md).
+There is documentation on [Oxsomi Graphics Core](docs/ogc.md) (ogc; rendering), [Oxsomi Window Core](docs/owc.md) (owc; window/app and input), [Oxsomi STandard Library Core](docs/ostlc.md) (ostlc; main data types and utils) and the top level entry [app](docs/app.md).
 
 There's also documentation about the file formats used; [oiSL](docs/oiSL.md) (String List), [oiSB](docs/oiSB.md) (Shader Buffer), [oiSH](docs/oiSH.md) (SHader), [oiRM](docs/oiRM.md) (Raw Model), [oiBM](docs/oiBM.md) (BakeManager).
 
-Shaders can be written through both GLSL, HLSL and our own shading format [ogsl](docs/ogsl.md) (Osomi Graphics Shading Language). ogsl allows transpiling shading languages to one-another and re-using the same shader code in hlsl/glsl files. ogsl might even allow compiling to C++ (for debugging) in the future.
+Shaders can be written through both GLSL, HLSL and our own shading format [ogsl](docs/ogsl.md) (Oxsomi Graphics Shading Language). ogsl allows transpiling shading languages to one-another and re-using the same shader code in hlsl/glsl files. ogsl might even allow compiling to C++ (for debugging) in the future.
 
 # Viewing progress
 You can view progress and planned features on [our trello board](https://trello.com/b/US4bChrI/osomi-core).
