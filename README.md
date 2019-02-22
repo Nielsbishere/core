@@ -3,7 +3,7 @@ Oxsomi core - A basic framework for graphics and engines.
 
 # Build status & quality
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc530b2832e64edc8b2f320e0f38bf50)](https://www.codacy.com/app/niels_3/ocore?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Oxsomi/core&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a932e6bb5205400598c2ab82597b088a)](https://www.codacy.com/app/Nielsbishere/core?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Oxsomi/core&amp;utm_campaign=Badge_Grade)
 
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |
