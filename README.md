@@ -7,7 +7,7 @@ Oxsomi core - A basic framework for graphics and engines.
 
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |
-| Windows      |  x86, x64, ARM32, ARM64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/Oxsomi/core) |
+| Windows      |  x86, x64, ARM32, ARM64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore) |
 | Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   [![Build Status](https://api.travis-ci.com/Oxsomi/core.svg?branch=master)](https://travis-ci.com/Oxsomi/core) ||
 | Linux | none      |    no |
 | Mac OS | none      |    no |
