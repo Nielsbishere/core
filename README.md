@@ -1,14 +1,14 @@
-# OCore (Osomi Core)
-Osomi Core - A basic framework for graphics and engines.
+# ocore (Oxsomi core)
+Oxsomi core - A basic framework for graphics and engines.
 
 # Build status & quality
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc530b2832e64edc8b2f320e0f38bf50)](https://www.codacy.com/app/niels_3/ocore?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=OsomiLunar/ocore&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc530b2832e64edc8b2f320e0f38bf50)](https://www.codacy.com/app/niels_3/ocore?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Oxsomi/core&amp;utm_campaign=Badge_Grade)
 
 | Device        | Platform           | Status  |
 | ------------- | ------------- | ----- |
-| Windows      |  x86, x64, ARM32, ARM64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/OsomiLunar/ocore) |
-| Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   [![Build Status](https://api.travis-ci.com/OsomiLunar/ocore.svg?branch=master)](https://travis-ci.com/OsomiLunar/ocore) ||
+| Windows      |  x86, x64, ARM32, ARM64 | [![Build status](https://ci.appveyor.com/api/projects/status/mtmreeiiey3y1ksd?svg=true)](https://ci.appveyor.com/project/Oxsomi/core) |
+| Android      | x86, x86_64, armeabi-v7a, arm64-v8a      |   [![Build Status](https://api.travis-ci.com/Oxsomi/core.svg?branch=master)](https://travis-ci.com/Oxsomi/core) ||
 | Linux | none      |    no |
 | Mac OS | none      |    no |
 # Fetching from git
