@@ -12,6 +12,7 @@ namespace oi {
 
 		Array(const T *dat);
 		Array(const T &def);
+		Array() : Array(T{}) {}
 
 		Array(const T (&dat)[count]) {
 			TCopyArray<T>::exec(data, dat, count);
@@ -106,6 +107,7 @@ namespace oi {
 		}
 
 		T &operator[](size_t i) { return data[i]; }
+		const T &operator[](size_t i) const { return data[i]; }
 
 		void set(size_t i, const T &t) { data[i] = t; }
 
@@ -114,8 +116,6 @@ namespace oi {
 		const T *end() const { return data + count; }
 
 		size_t lastIndex() const { return (count - 1) * (count > 0); }
-
-		const T &operator[](size_t i) const { return data[i]; }
 
 		const T &get(size_t i) const { return data[i]; }
 
@@ -140,19 +140,24 @@ namespace oi {
 
 	template<typename T>
 	Array<T>::Array(size_t count) : count(count) {
-		data = new T[count]();
+		if (count)
+			data = new T[count]();
 	}
 
 	template<typename T>
 	Array<T>::Array(size_t count, const T *dat) : count(count) {
-		data = new T[count]();
-		TCopyArray<T>::exec(data, dat, count);
+		if (count) {
+			data = new T[count]();
+			TCopyArray<T>::exec(data, dat, count);
+		}
 	}
 
 	template<typename T>
 	Array<T>::Array(const Array &arr) : count(arr.count) {
-		data = new T[count]();
-		TCopyArray<T>::exec(data, arr.data, count);
+		if (count) {
+			data = new T[count]();
+			TCopyArray<T>::exec(data, arr.data, count);
+		}
 	}
 
 	template<typename T>
@@ -163,8 +168,14 @@ namespace oi {
 
 	template<typename T>
 	Array<T> &Array<T>::operator=(const Array &arr) {
-		data = new T[count = arr.count]();
-		TCopyArray<T>::exec(data, arr.data, count);
+
+		count = arr.count;
+
+		if (count) {
+			data = new T[count]();
+			TCopyArray<T>::exec(data, arr.data, count);
+		}
+
 		return *this;
 	}
 
@@ -179,22 +190,28 @@ namespace oi {
 
 	template<typename T>
 	Array<T>::Array(size_t count, const T &def) : count(count) {
+		if (count) {
 
-		data = new T[count]();
+			data = new T[count]();
 
-		for (size_t i = 0; i < count; ++i)
-			data[i] = def;
+			for (size_t i = 0; i < count; ++i)
+				data[i] = def;
 
+		}
 	}
 
 	template<typename T>
 	Array<T>::Array(const T *begin, const T *end) {
 
-		data = new T[count = (end - begin)]();
+		count = (end - begin);
 
-		for (size_t i = 0; i < count; ++i)
-			data[i] = begin[i];
+		if (count) {
+			
+			data = new T[count]();
 
+			for (size_t i = 0; i < count; ++i)
+				data[i] = begin[i];
+		}
 	}
 
 	///Statically sized array implementations
@@ -212,6 +229,7 @@ namespace oi {
 	template<typename T, size_t count>
 	Array<T, count> &Array<T, count>::operator=(const Array &arr) {
 		TCopyArray<T>::exec(data, arr.data, count);
+		return *this;
 	}
 
 	template<typename T, size_t count>

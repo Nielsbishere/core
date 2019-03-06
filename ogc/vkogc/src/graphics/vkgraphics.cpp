@@ -86,7 +86,7 @@ void Graphics::init(Window *w){
 	this->buffering = 3;				//Assume triple buffering
 
 	//Init platform dependent data
-	alloc(ext);
+	ext = alloc<GraphicsExt>();
 
 	//Get instance extensions and layers
 
@@ -620,7 +620,7 @@ void Graphics::initSurface(Window *w) {
 		for (u32 i = 0; i < buffering; ++i) {
 
 			Texture *tex = textures[i] = new Texture(TextureInfo(size, format, TextureUsage::Render_target));
-			alloc(tex->ext);
+			tex->ext = alloc<TextureExt>();
 			TextureExt &vkTex = tex->getExtension();
 			vkTex.resource = swapchainImages[i];
 

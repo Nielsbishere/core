@@ -168,7 +168,7 @@ ShaderDataExt &ShaderData::getExtension() { return *ext; }
 
 bool ShaderData::initData() {
 
-	g->alloc(ext);
+	ext = g->alloc<ShaderDataExt>();
 
 	GraphicsExt &gext = g->getExtension();
 

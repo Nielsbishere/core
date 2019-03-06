@@ -29,7 +29,7 @@ bool Pipeline::initData() {
 	if (info.raytracingInfo.shaders.size() == 0 && info.computeInfo.shader == nullptr && info.graphicsInfo.shader == nullptr)
 		return Log::throwError<VkPipeline, 0x0>("Pipeline requires a shader");
 
-	g->alloc(ext);
+	ext = g->alloc<PipelineExt>();
 
 	GraphicsExt &gext = g->getExtension();
 

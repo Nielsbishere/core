@@ -13,7 +13,7 @@ PipelineStateExt &PipelineState::getExtension() { return *ext; }
 
 bool PipelineState::init() {
 
-	g->alloc(ext);
+	ext = g->alloc<PipelineStateExt>();
 
 	if (std::pow(2, (u32) std::log2(info.samples)) != info.samples)
 		return Log::throwError<PipelineStateExt, 0x0>("PipelineState creation failed; sample count has to be base2");

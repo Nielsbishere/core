@@ -15,7 +15,7 @@ TextureExt &Texture::getExtension() { return *ext; }
 bool Texture::initData() {
 
 	if(ext == nullptr)
-		g->alloc(ext);
+		ext = g->alloc<TextureExt>();
 
 	GraphicsExt &graphics = g->getExtension();
 

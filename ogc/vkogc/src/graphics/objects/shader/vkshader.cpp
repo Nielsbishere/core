@@ -13,7 +13,7 @@ ShaderExt &Shader::getExtension() { return *ext; }
 
 bool Shader::initData() {
 
-	g->alloc(ext);
+	ext = g->alloc<ShaderExt>();
 
 	ext->stage.resize(info.stage.size());
 

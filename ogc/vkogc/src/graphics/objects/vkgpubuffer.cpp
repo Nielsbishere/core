@@ -43,7 +43,7 @@ bool GPUBuffer::shouldStage() {
 
 bool GPUBuffer::init() {
 
-	g->alloc(ext);
+	ext = g->alloc<GPUBufferExt>();
 
 	GraphicsExt &graphics = g->getExtension();
 	info.changes.resize(GPUBufferExt::isVersioned(info.type) ? g->getBuffering() : 1);

@@ -87,10 +87,10 @@ namespace oi {
 			[[nodiscard]] std::vector<GraphicsObject*> get();
 
 			template<typename T>
-			void alloc(T *&t);
+			T *alloc();
 
 			template<typename T>
-			void alloc(T *&t, const T &def);
+			T *alloc(const T &def);
 
 			template<typename T>
 			void dealloc(T *&t);
@@ -220,13 +220,13 @@ namespace oi {
 		}
 
 		template<typename T>
-		void Graphics::alloc(T *&t) {
-			t = allocator.alloc<T>();
+		T *Graphics::alloc() {
+			return allocator.alloc<T>();
 		}
 
 		template<typename T>
-		void Graphics::alloc(T *&t, const T &def) {
-			t = allocator.alloc<T>(def);
+		T *Graphics::alloc(const T &def) {
+			return allocator.alloc<T>(def);
 		}
 
 		template<typename T>

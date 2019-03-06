@@ -19,7 +19,7 @@ ShaderStage::~ShaderStage() {
 
 bool ShaderStage::init() {
 
-	g->alloc(ext);
+	ext = g->alloc<ShaderStageExt>();
 
 	GraphicsExt &graphics = g->getExtension();
 

@@ -93,7 +93,7 @@ bool RenderTarget::initData() {
 
 	GraphicsExt &gext = g->getExtension();
 
-	g->alloc(ext);
+	ext = g->alloc<RenderTargetExt>();
 
 	if (!info.isComputeTarget) {
 

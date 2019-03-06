@@ -15,7 +15,7 @@ SamplerExt &Sampler::getExtension() { return *ext; }
 
 bool Sampler::init() {
 
-	g->alloc(ext);
+	ext = g->alloc<SamplerExt>();
 
 	VkSamplerCreateInfo samplerInfo;
 	memset(&samplerInfo, 0, sizeof(samplerInfo));

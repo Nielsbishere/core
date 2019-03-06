@@ -156,7 +156,7 @@ void CommandList::end() {
 
 bool CommandList::init() {
 
-	g->alloc(ext);
+	ext = g->alloc<CommandListExt>();
 
 	GraphicsExt &glext = g->getExtension();
 

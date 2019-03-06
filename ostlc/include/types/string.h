@@ -10,15 +10,21 @@ namespace oi {
 
 	//TODO: char functions instead of String
 	//TODO: number conversions
-	class String : public Array<char> {
+	class String {
 
 	public:
 
-		using Array<char>::Array;
+		static constexpr size_t nowhere = size_t_MAX, stackSize = 32;
 
-		static constexpr size_t nowhere = size_t_MAX;
+	private:
 
-		String() {}
+		size_t len;					//Length (excluding null character)
+		Array<char> heapData;		//Heap data
+		Array<char, stackSize> stackData;	//Stack data (if string is smaller than 32 chars)
+
+	public:
+
+		String(): len(0) {}
 		String(const char *dat);
 		String(size_t count, const char &def);
 		String(size_t count, const char *dat);
@@ -113,6 +119,7 @@ namespace oi {
 
 		size_t getHash() const;
 		size_t size() const;
+		size_t dataSize() const;
 
 		char *begin();
 		char *last();
@@ -123,6 +130,9 @@ namespace oi {
 		const char *end() const;
 
 		size_t lastIndex() const;
+
+		char &operator[](size_t i);
+		const char &operator[](size_t i) const;
 
 		//Conversions to and from data types
 
