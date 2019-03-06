@@ -362,7 +362,7 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 	std::pair<MeshBufferInfo, MeshInfo> result;
 
 	std::vector<std::vector<std::pair<String, TextureFormat>>> vbos(file.vbos.size());
-	std::vector<Buffer> vb(vbos.size());
+	Array<Buffer> vb(vbos.size());
 	Buffer ib;
 
 	u32 i = 0, j = 0;

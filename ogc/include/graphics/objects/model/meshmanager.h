@@ -32,7 +32,7 @@ namespace oi {
 			MeshBuffer *meshBuffer = nullptr;
 			MeshAllocationHint hintMaxVertices = MeshAllocationHint::FORCE_EXISTING, hintMaxIndices = MeshAllocationHint::FORCE_EXISTING;
 
-			std::vector<Buffer> vbos;
+			Array<Buffer> vbos;
 			Buffer ibo;
 
 			Mesh *mesh = nullptr;
@@ -45,7 +45,7 @@ namespace oi {
 			MeshAllocationInfo(String path, MeshAllocationHint hintMaxVertices = MeshAllocationHint::FORCE_EXISTING, MeshAllocationHint hintMaxIndices = MeshAllocationHint::ALLOCATE_DEFAULT) : path(path), name(path), hintMaxVertices(hintMaxVertices), hintMaxIndices(hintMaxIndices) {}
 
 			//Allocates into VBOs and/or IBO into MeshBuffer
-			MeshAllocationInfo(String name, MeshBuffer *meshBuffer, std::vector<Buffer> vbos, Buffer ibo = {}) : name(name), meshBuffer(meshBuffer), vbos(vbos), ibo(ibo) {}
+			MeshAllocationInfo(String name, MeshBuffer *meshBuffer, Array<Buffer> vbos, Buffer ibo = {}) : name(name), meshBuffer(meshBuffer), vbos(vbos), ibo(ibo) {}
 
 			//Null buffer
 			MeshAllocationInfo() : MeshAllocationInfo("", nullptr) {}

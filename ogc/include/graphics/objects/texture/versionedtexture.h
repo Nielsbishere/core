@@ -12,9 +12,9 @@ namespace oi {
 			typedef VersionedTexture ResourceType;
 
 			u32 versions = 0;
-			std::vector<Texture*> version;
+			Array<Texture*> version;
 
-			VersionedTextureInfo(std::vector<Texture*> version) : versions((u32)version.size()), version(version) {}
+			VersionedTextureInfo(Array<Texture*> version) : versions((u32)version.size()), version(version) {}
 			VersionedTextureInfo() {}
 
 		};

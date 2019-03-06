@@ -15,12 +15,12 @@ namespace oi {
 			u32 vertices, indices;
 
 			MeshBuffer *buffer;
-			std::vector<Buffer> vbo;
+			Array<Buffer> vbo;
 			Buffer ibo;
 
 			MeshAllocation allocation;
 
-			MeshInfo(MeshBuffer *buffer, u32 vertices, u32 indices, std::vector<Buffer> vbo, Buffer ibo = {}) : buffer(buffer), vbo(vbo), ibo(ibo), vertices(vertices), indices(indices) { }
+			MeshInfo(MeshBuffer *buffer, u32 vertices, u32 indices, Array<Buffer> vbo, Buffer ibo = {}) : buffer(buffer), vbo(vbo), ibo(ibo), vertices(vertices), indices(indices) { }
 
 			MeshInfo() : MeshInfo(nullptr, 0, 0, {}) {}
 

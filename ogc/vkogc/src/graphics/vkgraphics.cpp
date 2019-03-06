@@ -571,8 +571,8 @@ void Graphics::initSurface(Window *w) {
 
 	//Create the swapchain images
 	
-	std::vector<VkImage> swapchainImages = std::vector<VkImage>(buffering);
-	vkGetSwapchainImagesKHR(ext->device, ext->swapchain, &buffering, swapchainImages.data());
+	Array<VkImage> swapchainImages = Array<VkImage>(buffering);
+	vkGetSwapchainImagesKHR(ext->device, ext->swapchain, &buffering, swapchainImages.begin());
 
 	//Create present fence
 
@@ -582,10 +582,10 @@ void Graphics::initSurface(Window *w) {
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	ext->presentFence.resize(buffering);
+	ext->presentFence = Array<VkFence>(buffering);
 	for (u32 i = 0; i < buffering; ++i) {
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		vkCheck<0x11>(vkCreateFence(ext->device, &fenceInfo, vkAllocator, ext->presentFence.data() + i), "Couldn't create the present fence");
+		vkCheck<0x11>(vkCreateFence(ext->device, &fenceInfo, vkAllocator, ext->presentFence.begin() + i), "Couldn't create the present fence");
 		vkName(*ext, ext->presentFence[i], VK_OBJECT_TYPE_FENCE, String("Present stall fence #") + i);
 	}
 
@@ -596,16 +596,16 @@ void Graphics::initSurface(Window *w) {
 
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-	ext->submitSemaphore.resize(buffering);
-	ext->swapchainSemaphore.resize(buffering);
+	ext->submitSemaphore = Array<VkSemaphore>(buffering);
+	ext->swapchainSemaphore = Array<VkSemaphore>(buffering);
 
 	for (u32 i = 0; i < buffering; ++i) {
-		vkCheck<0x12>(vkCreateSemaphore(ext->device, &semaphoreInfo, vkAllocator, ext->submitSemaphore.data() + i), "Couldn't create submit semaphore");
+		vkCheck<0x12>(vkCreateSemaphore(ext->device, &semaphoreInfo, vkAllocator, ext->submitSemaphore.begin() + i), "Couldn't create submit semaphore");
 		vkName(*ext, ext->submitSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Submit stall semaphore #") + i);
 	}
 
 	for (u32 i = 0; i < buffering; ++i) {
-		vkCheck<0x13>(vkCreateSemaphore(ext->device, &semaphoreInfo, vkAllocator, ext->swapchainSemaphore.data() + i), "Couldn't create swapchain semaphore");
+		vkCheck<0x13>(vkCreateSemaphore(ext->device, &semaphoreInfo, vkAllocator, ext->swapchainSemaphore.begin() + i), "Couldn't create swapchain semaphore");
 		vkName(*ext, ext->swapchainSemaphore[i], VK_OBJECT_TYPE_SEMAPHORE, String("Swapchain stall semaphore #") + i);
 	}
 
@@ -615,7 +615,7 @@ void Graphics::initSurface(Window *w) {
 
 		//Create textures from it
 
-		std::vector<Texture*> textures = std::vector<Texture*>(buffering);
+		Array<Texture*> textures = Array<Texture*>(buffering);
 
 		for (u32 i = 0; i < buffering; ++i) {
 
@@ -689,7 +689,7 @@ void Graphics::initSurface(Window *w) {
 
 	} else {
 
-		std::vector<Texture*> &versions = backBuffer->info.textures[0]->info.version;
+		Array<Texture*> &versions = backBuffer->info.textures[0]->info.version;
 
 		for (u32 i = 0, j = (u32)versions.size(); i < j; ++i)
 			versions[i]->ext->resource = swapchainImages[i];
@@ -733,8 +733,8 @@ void Graphics::begin() {
 
 	ext->frameId = ext->frames % buffering;
 
-	vkCheck<0x15>(vkWaitForFences(ext->device, 1, ext->presentFence.data() + ext->frameId, VK_TRUE, u64_MAX), "Couldn't wait for fences");
-	vkCheck<0x16>(vkResetFences(ext->device, 1, ext->presentFence.data() + ext->frameId), "Couldn't reset fences");
+	vkCheck<0x15>(vkWaitForFences(ext->device, 1, ext->presentFence.begin() + ext->frameId, VK_TRUE, u64_MAX), "Couldn't wait for fences");
+	vkCheck<0x16>(vkResetFences(ext->device, 1, ext->presentFence.begin() + ext->frameId), "Couldn't reset fences");
 
 	//Get next image
 
@@ -821,9 +821,9 @@ void Graphics::end() {
 	submitInfo.commandBufferCount = (u32)commandBuffer.size();
 	submitInfo.pCommandBuffers = commandBuffer.data();
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = ext->submitSemaphore.data() + ext->frameId;
+	submitInfo.pSignalSemaphores = ext->submitSemaphore.begin() + ext->frameId;
 	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = ext->swapchainSemaphore.data() + ext->frameId;
+	submitInfo.pWaitSemaphores = ext->swapchainSemaphore.begin() + ext->frameId;
 	submitInfo.pWaitDstStageMask = &stageWait;
 
 	vkCheck<0x17>(vkQueueSubmit(ext->queue, 1, &submitInfo, ext->presentFence[ext->frameId]), "Couldn't submit queue");
@@ -841,7 +841,7 @@ void Graphics::end() {
 	presentInfo.pResults = &result;
 	presentInfo.pImageIndices = &ext->swapchainId;
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = ext->submitSemaphore.data() + ext->frameId;
+	presentInfo.pWaitSemaphores = ext->submitSemaphore.begin() + ext->frameId;
 
 	vkCheck<0x18>(vkQueuePresentKHR(ext->queue, &presentInfo), "Couldn't present image");
 	vkCheck<0x19>(result, "Couldn't present image");

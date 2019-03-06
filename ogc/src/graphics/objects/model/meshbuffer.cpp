@@ -161,8 +161,8 @@ bool MeshBuffer::init() {
 
 	u32 i = 0;
 
-	info.vbos.resize(info.buffers.size());
-	info.vboStrides.resize(info.buffers.size());
+	info.vbos = Array<GPUBuffer*>(info.buffers.size());
+	info.vboStrides = Array<u32>(info.buffers.size());
 
 	for (auto &buf : info.buffers) {
 

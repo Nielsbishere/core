@@ -16,7 +16,7 @@ namespace oi {
 			VkPipelineLayout layout = VK_NULL_HANDLE;
 			VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
 			VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-			std::vector<VkDescriptorSet> descriptorSet;
+			Array<VkDescriptorSet> descriptorSet;
 
 		};
 

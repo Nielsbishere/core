@@ -15,7 +15,7 @@ namespace oi {
 
 			typedef GPUBuffer BaseType;
 
-			std::vector<VkBuffer> resource;
+			Array<VkBuffer> resource;
 			std::vector<GPUAllocationExt> allocations;
 			u32 alignment = 0;
 

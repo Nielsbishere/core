@@ -51,7 +51,7 @@ bool GPUBuffer::init() {
 	for (Vec2u &change : info.changes)
 		change = Vec2u(u32_MAX, 0);
 
-	ext->resource.resize(info.changes.size());
+	ext->resource = Array<VkBuffer>(info.changes.size());
 
 	//Create buffer and allocate memory
 
@@ -69,7 +69,7 @@ bool GPUBuffer::init() {
 		bufferInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	for (u32 i = 0, j = (u32)ext->resource.size(); i < j; ++i) {
-		vkCheck<0x0, GPUBufferExt>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, ext->resource.data() + i), "Failed to create buffer");
+		vkCheck<0x0, GPUBufferExt>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, ext->resource.begin() + i), "Failed to create buffer");
 		vkName(graphics, ext->resource[i], VK_OBJECT_TYPE_BUFFER, getName() + " #" + i);
 	}
 
@@ -119,7 +119,7 @@ void GPUBuffer::push() {
 		//Create staging buffer
 
 		GPUBufferExt stagingBuffer;
-		stagingBuffer.resource.resize(1);
+		stagingBuffer.resource = Array<VkBuffer>(1);
 
 		VkBufferCreateInfo bufferInfo;
 		memset(&bufferInfo, 0, sizeof(bufferInfo));
@@ -131,7 +131,7 @@ void GPUBuffer::push() {
 		bufferInfo.queueFamilyIndexCount = 1;
 		bufferInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-		vkCheck<0x1, GPUBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, stagingBuffer.resource.data()), "Failed to create staging buffer");
+		vkCheck<0x1, GPUBuffer>(vkCreateBuffer(graphics.device, &bufferInfo, vkAllocator, stagingBuffer.resource.begin()), "Failed to create staging buffer");
 		vkName(graphics, stagingBuffer.resource[0], VK_OBJECT_TYPE_BUFFER, getName() + " staging buffer");
 
 		graphics.alloc(stagingBuffer, info.type, getName() + " staging buffer", true);

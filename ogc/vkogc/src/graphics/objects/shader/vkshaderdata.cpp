@@ -38,11 +38,11 @@ void ShaderData::update() {
 
 		changed[frame] = false;
 
-		std::vector<VkWriteDescriptorSet> descriptorSet(info.registers.size());
-		memset(descriptorSet.data(), 0, sizeof(VkWriteDescriptorSet) * descriptorSet.size());
+		Array<VkWriteDescriptorSet> descriptorSet(info.registers.size());
+		memset(descriptorSet.begin(), 0, sizeof(VkWriteDescriptorSet) * descriptorSet.size());
 
-		std::vector<VkDescriptorBufferInfo> buffers(info.buffer.size());
-		memset(buffers.data(), 0, sizeof(VkDescriptorBufferInfo) * buffers.size());
+		Array<VkDescriptorBufferInfo> buffers(info.buffer.size());
+		memset(buffers.begin(), 0, sizeof(VkDescriptorBufferInfo) * buffers.size());
 
 		u32 samplers = 0, images = 0;
 
@@ -51,11 +51,11 @@ void ShaderData::update() {
 			else if (reg.type == ShaderRegisterType::Image || reg.type == ShaderRegisterType::Texture2D) images += reg.size;
 		}
 
-		std::vector<VkDescriptorImageInfo> imageInfo(images);
-		memset(imageInfo.data(), 0, sizeof(VkDescriptorImageInfo) * images);
+		Array<VkDescriptorImageInfo> imageInfo(images);
+		memset(imageInfo.begin(), 0, sizeof(VkDescriptorImageInfo) * images);
 
-		std::vector<VkDescriptorImageInfo> samplerInfo(samplers);
-		memset(samplerInfo.data(), 0, sizeof(VkDescriptorImageInfo) * samplers);
+		Array<VkDescriptorImageInfo> samplerInfo(samplers);
+		memset(samplerInfo.begin(), 0, sizeof(VkDescriptorImageInfo) * samplers);
 
 		u32 bufferId = 0, samplerId = 0, imageId = 0;
 
@@ -81,7 +81,7 @@ void ShaderData::update() {
 				if (reg.type != ShaderRegisterType::UBO && reg.type != ShaderRegisterType::SSBO)
 					Log::throwError<ShaderDataExt, 0x1>("A ShaderBuffer has been placed on a register not meant for buffers");
 
-				VkDescriptorBufferInfo *bufferInfo = buffers.data() + bufferId;
+				VkDescriptorBufferInfo *bufferInfo = buffers.begin() + bufferId;
 				descriptor.pBufferInfo = bufferInfo;
 
 				GPUBuffer *buf = res->isType<ShaderBuffer>() ? ((ShaderBuffer*)res)->getBuffer() : (GPUBuffer*)res;
@@ -89,7 +89,7 @@ void ShaderData::update() {
 				if (buf == nullptr)
 					Log::throwError<ShaderDataExt, 0x0>("Shader mentions an invalid buffer");
 
-				std::vector<VkBuffer> resources = buf->getExtension().resource;
+				Array<VkBuffer> &resources = buf->getExtension().resource;
 
 				bufferInfo->buffer = resources[frame % resources.size()];
 				bufferInfo->range = (VkDeviceSize)buf->getSize();
@@ -102,7 +102,7 @@ void ShaderData::update() {
 
 				Sampler *samp = (Sampler*)res;
 
-				VkDescriptorImageInfo *image = samplerInfo.data() + samplerId;
+				VkDescriptorImageInfo *image = samplerInfo.begin() + samplerId;
 				descriptor.pImageInfo = image;
 
 				image->sampler = samp->getExtension().obj;
@@ -121,7 +121,7 @@ void ShaderData::update() {
 				if (tex->getSize() == Vec2u())
 					Log::throwError<ShaderDataExt, 0xD>("Uninitialized RenderTargets can't be forwarded to Shader into a Texture register, use RenderTarget::resize to initialize it or set a valid resolution");
 
-				VkDescriptorImageInfo *image = imageInfo.data() + imageId;
+				VkDescriptorImageInfo *image = imageInfo.begin() + imageId;
 				descriptor.pImageInfo = image;
 
 				image->imageView = tex->getExtension().view;
@@ -138,7 +138,7 @@ void ShaderData::update() {
 				if (textures->size() != reg.size)
 					Log::throwError<ShaderDataExt, 0x5>("A TextureList had invalid size!");
 
-				VkDescriptorImageInfo *image = imageInfo.data() + imageId;
+				VkDescriptorImageInfo *image = imageInfo.begin() + imageId;
 				descriptor.pImageInfo = image;
 
 				for (u32 z = 0; z < reg.size; ++z) {
@@ -160,7 +160,7 @@ void ShaderData::update() {
 				Log::throwError<ShaderDataExt, 0xC>("Shader mentions an invalid resource type");
 		}
 
-		vkUpdateDescriptorSets(g->getExtension().device, (u32)descriptorSet.size(), descriptorSet.data(), 0, nullptr);
+		vkUpdateDescriptorSets(g->getExtension().device, (u32)descriptorSet.size(), descriptorSet.begin(), 0, nullptr);
 	}
 }
 
@@ -174,7 +174,7 @@ bool ShaderData::initData() {
 
 	//Set up descriptors
 
-	std::vector<VkDescriptorSetLayoutBinding> descriptorSet(info.registers.size());
+	Array<VkDescriptorSetLayoutBinding> descriptorSet(info.registers.size());
 
 	struct OrderedRegister {
 
@@ -230,7 +230,7 @@ bool ShaderData::initData() {
 
 	descInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	descInfo.bindingCount = (u32)descriptorSet.size();
-	descInfo.pBindings = descriptorSet.data();
+	descInfo.pBindings = descriptorSet.begin();
 
 	vkCheck<0x8, ShaderDataExt>(vkCreateDescriptorSetLayout(gext.device, &descInfo, vkAllocator, &ext->setLayout), "Couldn't create descriptor set layout");
 	vkName(gext, ext->setLayout, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, getName() + " descriptor set layout");
@@ -249,7 +249,7 @@ bool ShaderData::initData() {
 
 	//Create descriptor pool
 
-	std::vector<VkDescriptorPoolSize> descriptorPool(orderedRegisters.size());
+	Array<VkDescriptorPoolSize> descriptorPool(orderedRegisters.size());
 
 	i = 0;
 	for (auto &reg : orderedRegisters) {
@@ -268,7 +268,7 @@ bool ShaderData::initData() {
 
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolInfo.poolSizeCount = (u32)descriptorPool.size();
-	poolInfo.pPoolSizes = descriptorPool.data();
+	poolInfo.pPoolSizes = descriptorPool.begin();
 	poolInfo.maxSets = g->getBuffering();
 
 	vkCheck<0xA, ShaderDataExt>(vkCreateDescriptorPool(gext.device, &poolInfo, vkAllocator, &ext->descriptorPool), "Couldn't create descriptor pool");
@@ -279,7 +279,7 @@ bool ShaderData::initData() {
 	VkDescriptorSetAllocateInfo setInfo;
 	memset(&setInfo, 0, sizeof(setInfo));
 
-	std::vector<VkDescriptorSetLayout> layouts(g->getBuffering());
+	Array<VkDescriptorSetLayout> layouts(g->getBuffering());
 
 	for (i = 0; i < g->getBuffering(); ++i)
 		layouts[i] = ext->setLayout;
@@ -287,11 +287,11 @@ bool ShaderData::initData() {
 	setInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	setInfo.descriptorPool = ext->descriptorPool;
 	setInfo.descriptorSetCount = g->getBuffering();
-	setInfo.pSetLayouts = layouts.data();
+	setInfo.pSetLayouts = layouts.begin();
 
-	ext->descriptorSet.resize(g->getBuffering());
+	ext->descriptorSet = Array< VkDescriptorSet>(g->getBuffering());
 
-	vkCheck<0xB, ShaderDataExt>(vkAllocateDescriptorSets(gext.device, &setInfo, ext->descriptorSet.data()), "Couldn't create descriptor sets");
+	vkCheck<0xB, ShaderDataExt>(vkAllocateDescriptorSets(gext.device, &setInfo, ext->descriptorSet.begin()), "Couldn't create descriptor sets");
 
 	for (u32 j = 0, k = (u32)ext->descriptorSet.size(); j < k; ++j)
 		vkName(gext, ext->descriptorSet[j], VK_OBJECT_TYPE_DESCRIPTOR_SET, getName() + " descriptor set " + j);

@@ -15,7 +15,7 @@ bool Shader::initData() {
 
 	ext = g->alloc<ShaderExt>();
 
-	ext->stage.resize(info.stage.size());
+	ext->stage = Array<ShaderStageExt*>(info.stage.size());
 
 	for (u32 i = 0; i < (u32) ext->stage.size(); ++i)
 		ext->stage[i] = &info.stage[i]->getExtension();

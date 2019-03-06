@@ -53,9 +53,9 @@ bool RenderTarget::resize(Vec2u size) {
 
 	//Create framebuffers
 
-	ext->frameBuffer = std::vector<VkFramebuffer>(buffering);
+	ext->frameBuffer = Array<VkFramebuffer>(buffering);
 
-	std::vector<VkImageView> fbAttachment(targets);
+	Array<VkImageView> fbAttachment(targets);
 
 	for (u32 i = 0; i < buffering; ++i) {
 
@@ -77,9 +77,9 @@ bool RenderTarget::resize(Vec2u size) {
 		fbInfo.height = info.res.y;
 		fbInfo.layers = 1;
 		fbInfo.attachmentCount = targets;
-		fbInfo.pAttachments = fbAttachment.data();
+		fbInfo.pAttachments = fbAttachment.begin();
 
-		vkCheck<0x1, RenderTargetExt>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext->frameBuffer.data() + i), "Couldn't create framebuffers for render target");
+		vkCheck<0x1, RenderTargetExt>(vkCreateFramebuffer(gext.device, &fbInfo, vkAllocator, ext->frameBuffer.begin() + i), "Couldn't create framebuffers for render target");
 		vkName(gext, ext->frameBuffer[i], VK_OBJECT_TYPE_FRAMEBUFFER, getName() + " framebuffer " + i);
 
 	}
@@ -105,7 +105,7 @@ bool RenderTarget::initData() {
 		u32 ctargets = info.targets;
 		u32 targets = ctargets + depthTarget;
 
-		std::vector<VkAttachmentDescription> attachments(targets);
+		Array<VkAttachmentDescription> attachments(targets);
 
 		for (u32 i = 0; i < targets; ++i) {
 
@@ -139,13 +139,13 @@ bool RenderTarget::initData() {
 		VkSubpassDescription subpass;
 		memset(&subpass, 0, sizeof(subpass));
 
-		std::vector<VkAttachmentReference> colorAttachment(ctargets);
+		Array<VkAttachmentReference> colorAttachment(ctargets);
 
 		for (u32 i = 0; i < ctargets; ++i)
 			colorAttachment[i] = { i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.pColorAttachments = colorAttachment.data();
+		subpass.pColorAttachments = colorAttachment.begin();
 		subpass.colorAttachmentCount = ctargets;
 
 		VkAttachmentReference depthRef;
@@ -162,7 +162,7 @@ bool RenderTarget::initData() {
 		memset(&passInfo, 0, sizeof(passInfo));
 
 		passInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		passInfo.pAttachments = attachments.data();
+		passInfo.pAttachments = attachments.begin();
 		passInfo.attachmentCount = targets;
 		passInfo.pSubpasses = &subpass;
 		passInfo.subpassCount = 1;

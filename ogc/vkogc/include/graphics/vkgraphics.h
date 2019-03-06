@@ -35,8 +35,8 @@ namespace oi {
 			VkColorSpaceKHR colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 			VkFormat colorFormat = VK_FORMAT_UNDEFINED;
 
-			std::vector<VkFence> presentFence;
-			std::vector<VkSemaphore> submitSemaphore, swapchainSemaphore;
+			Array<VkFence> presentFence;
+			Array<VkSemaphore> submitSemaphore, swapchainSemaphore;
 
 			CommandList *stagingCmdList;
 			std::vector<std::unordered_map<String, GPUBufferExt>> stagingBuffers;

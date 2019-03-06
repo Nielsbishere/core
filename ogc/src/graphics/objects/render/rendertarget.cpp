@@ -49,7 +49,7 @@ bool RenderTarget::init(bool isOwned) {
 	std::vector<VersionedTexture*> &textures = info.textures;
 	textures.resize(info.targets);
 
-	std::vector<Texture*> vtextures(g->getBuffering());
+	Array<Texture*> vtextures(g->getBuffering());
 
 	for (u32 i = 0; i < info.targets; ++i) {
 

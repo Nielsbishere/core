@@ -76,10 +76,9 @@ namespace oi {
 			TCopyArray<T>::exec(data, dat, count);
 		}
 
-		template<typename ...args>
-		Array(const T &t0, const T &t1, const args&... arg) : count(2 + sizeof...(args)) {
+		Array(std::initializer_list<T> val): count(val.end() - val.begin()) {
 			data = new T[count]();
-			TFillArray<T, T, args...>::exec(data, 0, size_t_MAX, t0, t1, arg...);
+			TCopyArray<T>::exec(data, (T*) val.begin(), count);
 		}
 
 		Array(const Array &arr);

@@ -37,12 +37,12 @@ namespace oi {
 			FillMode fillMode;
 
 			VirtualBlockAllocator *vertices = nullptr, *indices = nullptr;
-			std::vector<u32> vboStrides;
+			Array<u32> vboStrides;
 
 			std::vector<MeshStruct> meshes;
 			Bitset freeMeshes;
 
-			std::vector<GPUBuffer*> vbos;
+			Array<GPUBuffer*> vbos;
 			GPUBuffer *ibo = nullptr, *meshBuffer = nullptr;
 
 			MeshBufferInfo(u32 maxVertices, u32 maxIndices, u32 maxMeshes, std::vector<std::vector<std::pair<String, TextureFormat>>> vbos, TopologyMode topologyMode = TopologyMode::Triangle, FillMode fillMode = FillMode::Fill) : maxVertices(maxVertices), maxIndices(maxIndices), buffers(vbos), topologyMode(topologyMode), fillMode(fillMode), maxMeshes(maxMeshes), freeMeshes(maxMeshes), meshes(maxMeshes) { }

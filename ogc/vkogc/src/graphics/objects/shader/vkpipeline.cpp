@@ -42,7 +42,7 @@ bool Pipeline::initData() {
 
 		ShaderExt &shext = pinfo.shader->getExtension();
 
-		std::vector<VkPipelineShaderStageCreateInfo> stage(shext.stage.size());
+		Array<VkPipelineShaderStageCreateInfo> stage(shext.stage.size());
 		for (u32 i = 0; i < (u32)stage.size(); ++i)
 			stage[i] = shext.stage[i]->pipeline;
 
@@ -75,7 +75,7 @@ bool Pipeline::initData() {
 		//Shader
 
 		pipelineInfo.stageCount = (u32)stage.size();
-		pipelineInfo.pStages = stage.data();
+		pipelineInfo.pStages = stage.begin();
 		pipelineInfo.layout = info.shaderData->getExtension().layout;
 
 		//PipelineState
@@ -92,7 +92,7 @@ bool Pipeline::initData() {
 			rasterizer.lineWidth = 1.f;
 
 		VkPipelineColorBlendStateCreateInfo blending = psext.blending;
-		std::vector<VkPipelineColorBlendAttachmentState> attachments(pinfo.renderTarget->getInfo().targets);
+		Array<VkPipelineColorBlendAttachmentState> attachments(pinfo.renderTarget->getInfo().targets);
 
 		u32 j = (u32) attachments.size();
 
@@ -100,7 +100,7 @@ bool Pipeline::initData() {
 			attachments[i] = *blending.pAttachments;
 
 		blending.attachmentCount = j;
-		blending.pAttachments = attachments.data();
+		blending.pAttachments = attachments.begin();
 
 		pipelineInfo.pInputAssemblyState = &assembler;
 		pipelineInfo.pRasterizationState = &rasterizer;
@@ -121,9 +121,9 @@ bool Pipeline::initData() {
 		for (auto &elem : meshBuffer.buffers)
 			attributes += (u32) elem.size();
 
-		auto binding = std::vector<VkVertexInputBindingDescription>(meshBuffer.buffers.size());
-		auto attribute = std::vector<VkVertexInputAttributeDescription>(attributes);
-		memset(attribute.data(), 0, sizeof(VkVertexInputAttributeDescription) * attribute.size());
+		auto binding = Array<VkVertexInputBindingDescription>(meshBuffer.buffers.size());
+		auto attribute = Array<VkVertexInputAttributeDescription>(attributes);
+		memset(attribute.begin(), 0, sizeof(VkVertexInputAttributeDescription) * attribute.size());
 
 		u32 i = 0;
 
@@ -169,9 +169,9 @@ bool Pipeline::initData() {
 
 		inputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		inputInfo.vertexBindingDescriptionCount = (u32)binding.size();
-		inputInfo.pVertexBindingDescriptions = binding.data();
+		inputInfo.pVertexBindingDescriptions = binding.begin();
 		inputInfo.vertexAttributeDescriptionCount = (u32)attribute.size();
-		inputInfo.pVertexAttributeDescriptions = attribute.data();
+		inputInfo.pVertexAttributeDescriptions = attribute.begin();
 		pipelineInfo.pVertexInputState = &inputInfo;
 
 		//RenderTarget
@@ -231,10 +231,10 @@ bool Pipeline::initData() {
 			for (Shader *shader : pinfo.shaders)
 				stageCount += (u32) shader->getInfo().stage.size();
 
-			std::vector<VkPipelineShaderStageCreateInfo> stage(stageCount);
+			Array<VkPipelineShaderStageCreateInfo> stage(stageCount);
 
-			std::vector<VkRayTracingShaderGroupCreateInfoNV> groups(pinfo.shaders.size());
-			memset(groups.data(), 0, groups.size() * sizeof(VkRayTracingPipelineCreateInfoNV));
+			Array<VkRayTracingShaderGroupCreateInfoNV> groups(pinfo.shaders.size());
+			memset(groups.begin(), 0, groups.size() * sizeof(VkRayTracingPipelineCreateInfoNV));
 
 			u32 i = 0, j = 0;
 
@@ -297,10 +297,10 @@ bool Pipeline::initData() {
 			pipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_NV;
 			pipelineInfo.layout = info.shaderData->getExtension().layout;
 			pipelineInfo.stageCount = stageCount;
-			pipelineInfo.pStages = stage.data();
+			pipelineInfo.pStages = stage.begin();
 			pipelineInfo.maxRecursionDepth = pinfo.maxRecursionDepth;
 			pipelineInfo.groupCount = (u32) groups.size();
-			pipelineInfo.pGroups = groups.data();
+			pipelineInfo.pGroups = groups.begin();
 
 			//Create the pipeline
 

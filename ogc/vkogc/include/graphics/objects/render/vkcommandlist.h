@@ -14,7 +14,7 @@ namespace oi {
 			typedef CommandList BaseType;
 
 			VkCommandPool pool = VK_NULL_HANDLE;
-			std::vector<VkCommandBuffer> cmds;
+			Array<VkCommandBuffer> cmds;
 
 			VkCommandBuffer &cmd(GraphicsExt &g);
 

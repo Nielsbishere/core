@@ -59,7 +59,7 @@ namespace oi {
 
 		protected:
 
-			bool bind(std::vector<GPUBuffer*> vertices, GPUBuffer *indices = nullptr);
+			bool bind(Array<GPUBuffer*> vertices, GPUBuffer *indices = nullptr);
 			bool bind(MeshBuffer *meshBuffer);
 
 			~CommandList();

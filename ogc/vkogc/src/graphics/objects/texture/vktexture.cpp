@@ -19,14 +19,21 @@ bool Texture::initData() {
 
 	GraphicsExt &graphics = g->getExtension();
 
+	//Query depth / depth stencil format
 	if (info.format == TextureFormat::Depth || info.format == TextureFormat::Depth_stencil) {
 
-		static const std::vector<TextureFormatExt> stencil = { TextureFormatExt::D32S8, TextureFormatExt::D24S8, TextureFormatExt::D16S8 };
-		static const std::vector<TextureFormatExt> depth = { TextureFormatExt::D32, TextureFormatExt::D16 };
+		static const Array<TextureFormatExt, 4> stencil = { TextureFormatExt::D32S8, TextureFormatExt::D24S8, TextureFormatExt::D16S8, TextureFormatExt::Undefined };
+		static const Array<TextureFormatExt, 4> depth = { TextureFormatExt::D32, TextureFormatExt::D16, TextureFormatExt::Undefined, TextureFormatExt::Undefined };
 
-		static const std::vector<TextureFormatExt> &priorities = info.format == TextureFormat::Depth ? depth : stencil;
+		const Array<TextureFormatExt, 4> &priorities = info.format == TextureFormat::Depth ? depth : stencil;
+
+		info.format = TextureFormat::Undefined;
 
 		for (const TextureFormatExt &f : priorities) {
+
+			if (f == TextureFormatExt::Undefined)
+				break;
+
 			VkFormatProperties fprop;
 			vkGetPhysicalDeviceFormatProperties(graphics.pdevice, (VkFormat) f.getValue().value, &fprop);
 
@@ -36,7 +43,7 @@ bool Texture::initData() {
 			}
 		}
 
-		if (info.format == TextureFormat::Depth || info.format == TextureFormat::Depth_stencil)
+		if (info.format == TextureFormat::Undefined)
 			return Log::throwError<TextureExt, 0x0>("Couldn't get depth texture; no optimal format available");
 
 	}
@@ -48,6 +55,7 @@ bool Texture::initData() {
 
 	TextureUsageExt usage = info.usage.getName();
 
+	//Create image and image view
 	if (info.res.x != 0 && info.res.y != 0) {
 
 		if (owned) {
@@ -330,7 +338,7 @@ void Texture::push() {
 	//Construct staging buffer with data
 
 	GPUBufferExt gbext;
-	gbext.resource.resize(1);
+	gbext.resource = Array<VkBuffer>(1);
 
 	VkBufferCreateInfo stagingInfo;
 	memset(&stagingInfo, 0, sizeof(stagingInfo));
@@ -342,7 +350,7 @@ void Texture::push() {
 	stagingInfo.queueFamilyIndexCount = 1;
 	stagingInfo.pQueueFamilyIndices = &graphics.queueFamilyIndex;
 
-	vkCheck<0x4, TextureExt>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.data()), "Couldn't send texture data to GPU");
+	vkCheck<0x4, TextureExt>(vkCreateBuffer(graphics.device, &stagingInfo, vkAllocator, gbext.resource.begin()), "Couldn't send texture data to GPU");
 	vkName(graphics, gbext.resource[0], VK_OBJECT_TYPE_IMAGE, getName() + " staging buffer");
 
 	graphics.alloc(gbext, GPUBufferType::SSBO /* unused */, getName() + " staging buffer", true);

@@ -19,7 +19,7 @@ using namespace oi::gc;
 using namespace oi;
 
 CommandList::~CommandList() {
-	vkFreeCommandBuffers(g->getExtension().device, ext->pool, (u32) ext->cmds.size(), ext->cmds.data());
+	vkFreeCommandBuffers(g->getExtension().device, ext->pool, (u32) ext->cmds.size(), ext->cmds.begin());
 	g->dealloc(ext);
 }
 
@@ -80,7 +80,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	u32 ctargets = target->getTargets();
 	u32 targets = ctargets + depthTarget;
 
-	std::vector<VkClearValue> clearValue(targets);
+	Array<VkClearValue> clearValue(targets);
 
 	for (u32 i = 0; i < targets; ++i) {
 
@@ -113,7 +113,7 @@ void CommandList::begin(RenderTarget *target, RenderTargetClear clear) {
 	beginInfo.renderPass = rtext.renderPass;
 	beginInfo.framebuffer = rtext.frameBuffer[rid];
 	beginInfo.clearValueCount = (u32)clearValue.size();
-	beginInfo.pClearValues = clearValue.data();
+	beginInfo.pClearValues = clearValue.begin();
 
 	vkCmdBeginRenderPass(ext_cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -165,14 +165,14 @@ bool CommandList::init() {
 	VkCommandBufferAllocateInfo allocInfo;
 	memset(&allocInfo, 0, sizeof(allocInfo));
 
-	ext->cmds.resize( g->getBuffering());
+	ext->cmds = Array<VkCommandBuffer>( g->getBuffering());
 
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandBufferCount = (u32) ext->cmds.size();
 	allocInfo.commandPool = glext.pool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-	vkCheck<0x2, CommandListExt>(vkAllocateCommandBuffers(glext.device, &allocInfo, ext->cmds.data()), "Couldn't allocate command list");
+	vkCheck<0x2, CommandListExt>(vkAllocateCommandBuffers(glext.device, &allocInfo, ext->cmds.begin()), "Couldn't allocate command list");
 
 	for (u32 i = 0; i < allocInfo.commandBufferCount; ++i)
 		vkName(glext, ext->cmds[i], VK_OBJECT_TYPE_COMMAND_BUFFER, getName() + " #" + i);
@@ -207,13 +207,13 @@ void CommandList::bind(Pipeline *pipeline) {
 
 	pipeline->getData()->update();
 
-	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getData()->getExtension().layout, 0, 1, pipeline->getData()->getExtension().descriptorSet.data() + g->getExtension().frameId, 0, nullptr);
+	vkCmdBindDescriptorSets(ext_cmd, pipelinePoint, pipeline->getData()->getExtension().layout, 0, 1, pipeline->getData()->getExtension().descriptorSet.begin() + g->getExtension().frameId, 0, nullptr);
 
 }
 
-bool CommandList::bind(std::vector<GPUBuffer*> vbos, GPUBuffer *ibo) {
+bool CommandList::bind(Array<GPUBuffer*> vbos, GPUBuffer *ibo) {
 
-	std::vector<VkBuffer> vkBuffer(vbos.size());
+	Array<VkBuffer> vkBuffer(vbos.size());
 
 	u32 i = 0;
 
@@ -226,7 +226,7 @@ bool CommandList::bind(std::vector<GPUBuffer*> vbos, GPUBuffer *ibo) {
 	VkDeviceSize zero = 0;
 
 	if (vbos.size() != 0)
-		vkCmdBindVertexBuffers(ext_cmd, 0, (u32) vkBuffer.size(), vkBuffer.data(), &zero);
+		vkCmdBindVertexBuffers(ext_cmd, 0, (u32) vkBuffer.size(), vkBuffer.begin(), &zero);
 
 	if (ibo != nullptr) {
 

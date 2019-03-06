@@ -12,7 +12,7 @@ namespace oi {
 
 			typedef Shader BaseType;
 
-			std::vector<ShaderStageExt*> stage;
+			Array<ShaderStageExt*> stage;
 
 		};
 

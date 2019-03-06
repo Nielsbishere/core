@@ -13,7 +13,7 @@ namespace oi {
 			typedef RenderTarget BaseType;
 
 			VkRenderPass renderPass = VK_NULL_HANDLE;
-			std::vector<VkFramebuffer> frameBuffer;
+			Array<VkFramebuffer> frameBuffer;
 
 		};
 
