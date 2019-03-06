@@ -1,3 +1,4 @@
+#ifdef __SHADER_COMPILATION__
 #include "graphics/graphics.h"
 #include "graphics/format/oish.h"
 #include "graphics/helper/spvhelper.h"
@@ -363,3 +364,5 @@ bool SpvHelper::addStage(CopyBuffer b, ShaderStageType type, ShaderInfo &info, b
 	info.stages.push_back(ShaderStageInfo(b, type, input, output));
 	return true;
 }
+
+#endif

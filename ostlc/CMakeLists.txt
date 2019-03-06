@@ -1,13 +1,13 @@
+include_directories(include)
+include_directories(../deps)
+include_directories(../deps/rapidjson/include)
+
 file(GLOB_RECURSE ostlc_SRC
 	"include/*.h"
 	"src/*.c"
 	"include/*.hpp"
 	"src/*.cpp"
 )
-
-include_directories(include)
-include_directories(../deps)
-include_directories(../deps/rapidjson/include)
 
 add_library(
 	ostlc STATIC

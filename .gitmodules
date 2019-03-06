@@ -1,21 +1,21 @@
-[submodule "deps/glslang"]
-	path = deps/glslang
-	url = https://github.com/KhronosGroup/glslang
-[submodule "deps/SPIRV-Cross"]
-	path = deps/SPIRV-Cross
-	url = https://github.com/KhronosGroup/SPIRV-Cross
-[submodule "deps/stb"]
-	path = deps/stb
-	url = https://github.com/nothings/stb
 [submodule "deps/rapidjson"]
 	path = deps/rapidjson
 	url = https://github.com/Tencent/rapidjson
 [submodule "deps/zlib"]
 	path = deps/zlib
 	url = https://github.com/madler/zlib
-[submodule "deps/SPIRV-Tools"]
-	path = deps/SPIRV-Tools
-	url = https://github.com/KhronosGroup/SPIRV-Tools
-[submodule "deps/SPIRV-Headers"]
-	path = deps/SPIRV-Headers
+[submodule "ogc/deps/SPIRV-Headers"]
+	path = ogc/deps/SPIRV-Headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers
+[submodule "ogc/deps/stb"]
+	path = ogc/deps/stb
+	url = https://github.com/nothings/stb
+[submodule "ogc/deps/glslang"]
+	path = ogc/deps/glslang
+	url = https://github.com/KhronosGroup/glslang
+[submodule "ogc/deps/SPIRV-Cross"]
+	path = ogc/deps/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross
+[submodule "ogc/deps/SPIRV-Tools"]
+	path = ogc/deps/SPIRV-Tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools

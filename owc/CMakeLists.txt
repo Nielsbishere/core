@@ -2,7 +2,7 @@
 include_directories(include)
 
 if(Android)
-include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
+	include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 endif()
 
 file(GLOB_RECURSE owc_SRC

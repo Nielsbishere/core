@@ -45,10 +45,32 @@ else()
 	message ("-- Console - enabled")
 endif()
 
+# (Future) VR support
+
+option(VR "VR" OFF)
+
+# The ability to compile shaders (in apps this is RUNTIME compilation while oibaker does OFFLINE compilation)
+
+option(shader_compilation "shader_compilation" OFF)
+
+if(shader_compilation)
+	add_definitions(-D__SHADER_COMPILATION__)
+	message("-- Shader compilation - enabled")
+else()
+	message("-- Shader compilation - disabled")
+endif()
+
+# Enable oibaker project (requires shaderCompilation for shader compilation)
+
+option(enable_oibaker "enable_oibaker" OFF)
+
+if(enable_oibaker AND NOT shader_compilation)
+	message(FATAL_ERROR "oibaker is enabled, but runtime shader compilation is disabled. oibaker requires shader compilation")
+endif()
+
 # Android
 
 option(Android "Android" OFF)
-option(VR "VR" OFF)
 
 if(Android)
 
@@ -121,9 +143,12 @@ add_subdirectory(owc)
 add_subdirectory(ogc)
 set_property(TARGET ostlc owc ogc PROPERTY FOLDER ocore)
 
-# desktop conversion tools
-add_subdirectory(oibaker)
-set_property(TARGET oibaker PROPERTY FOLDER tools)
+# desktop resource conversion tools
+
+if(enable_oibaker)
+	add_subdirectory(oibaker)
+	set_property(TARGET oibaker PROPERTY FOLDER tools)
+endif()
 
 # app projects
 add_subdirectory(app)

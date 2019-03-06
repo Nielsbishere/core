@@ -1,7 +1,11 @@
 #include "file/filemanager.h"
+
+#ifdef __SHADER_COMPILATION__
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/StandAlone/ResourceLimits.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
+#endif
+
 #include "graphics/helper/spvhelper.h"
 #include "graphics/format/oish.h"
 #include "graphics/objects/shader/shader.h"
@@ -30,6 +34,8 @@ ShaderInfo oiSH::compile(ShaderSource &source, bool stripDebug) {
 	std::vector<String> deps;
 	return compile(source, deps, stripDebug);
 }
+
+#ifdef __SHADER_COMPILATION__
 
 //Allow including files through our FileManager
 struct FileIncluder : glslang::TShader::Includer {
@@ -371,3 +377,12 @@ ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies
 	return info;
 
 }
+
+#else
+
+ShaderInfo oiSH::compile(ShaderSource &, std::vector<String> &, bool) {
+	Log::throwError<oiSH, 0xFFFFFFFF>("oiSH::compile is only available when shader compilation is enabled. The app disabled it");
+	return {};
+}
+
+#endif

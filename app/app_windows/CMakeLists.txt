@@ -63,10 +63,7 @@ if(Windows)
 	
 endif()
 
-target_link_libraries(app_windows ostlc)
-target_link_libraries(app_windows owc)
-target_link_libraries(app_windows ogc)
-target_link_libraries(app_windows app)
+target_link_libraries(app_windows ostlc owc ogc app)
 
 if(MSVC)
 	set_target_properties(app_windows PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")

@@ -53,6 +53,8 @@ declParam abi abi
 declParam lvl lvl
 declParam dev dev
 declParam jobs jobs
+declFlag shader_compilation shcmp
+declFlag enable_oibaker enoib
 
 if [ "$abi" == "all" ] ; then
 	abi=x86,x64,ARM32,ARM64
@@ -90,6 +92,8 @@ if [ $helpMe ] ; then
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged)"
 	echo "-strip_debug_info Strips debug info (shaders)"
 	echo "-jobs=2 To set the max compilation jobs for parallel compilation"
+	echo "-shader_compilation Allows runtime shader compilation"
+	echo "-enable_oibaker Enables oibaker (for baking resources; requires runtime shader compilation)"
 	exit
 fi
 
@@ -168,6 +172,18 @@ if ! [ $jobs ] ; then
 	params="-j"
 else
 	params="-j$jobs"
+fi
+
+if [ $shcmp ] ; then
+	params="-Dshader_compilation=ON $params"
+else
+	params="-Dshader_compilation=OFF $params"
+fi
+
+if [ $enoib ] ; then
+	params="-Denable_oibaker=ON $params"
+else
+	params="-Denable_oibaker=OFF $params"
 fi
 
 if [ $rebuild ] ; then

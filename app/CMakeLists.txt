@@ -30,9 +30,7 @@ add_library(
 	${app_SRC}
 )
 
-target_link_libraries(app ostlc)
-target_link_libraries(app owc)
-target_link_libraries(app ogc)
+target_link_libraries(app ostlc owc ogc)
 
 if(Android)
 	add_subdirectory(app_android)

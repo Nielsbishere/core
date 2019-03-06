@@ -47,6 +47,8 @@ declFlag help helpMe
 declFlag no_console noConsole
 declFlag strip_debug_info strip
 declFlag cmake cmake
+declFlag shader_compilation shcmp
+declFlag enable_oibaker enoib
 declParam env env
 
 if [ "$env" == "all" ] ; then
@@ -66,6 +68,8 @@ then
 	echo "-exclude_ext_formats Exclude external formats (only allow baked formats to be packaged; including pngs)"
 	echo "-no_console Hides console (program can still redirect console calls)"
 	echo "-strip_debug_info Strips debug info (shaders)"
+	echo "-shader_compilation Allows runtime shader compilation"
+	echo "-enable_oibaker Enables oibaker (for baking resources; requires runtime shader compilation)"
 	exit
 fi
 
@@ -82,16 +86,6 @@ reload(){
 }
 
 # Prepare resources
-
-cd app
-
-if [ $strip ] ; then
-	"../oibaker.exe" -strip_debug_info
-else
-	"../oibaker.exe"
-fi
-
-cd ../
 
 checkErrors
 
@@ -127,6 +121,18 @@ if [ $exexfo ] ; then
 	params="-Dexclude_ext_formats=ON $params"
 else
 	params="-Dexclude_ext_formats=OFF $params"
+fi
+
+if [ $shcmp ] ; then
+	params="-Dshader_compilation=ON $params"
+else
+	params="-Dshader_compilation=OFF $params"
+fi
+
+if [ $enoib ] ; then
+	params="-Denable_oibaker=ON $params"
+else
+	params="-Denable_oibaker=OFF $params"
 fi
 
 if [ $cmake ] ; then
@@ -177,17 +183,17 @@ mkdir -p build
 # Copy results
 
 if [[ "$env" == *"x64"* ]] ; then
-	cp "x64/bin/$btype/Osomi Core.exe" "build/Osomi Core x64.exe"
+	cp "x64/bin/$btype/app_windows.exe" "build/app_windows x64.exe"
 fi
 
 if [[ "$env" == *"x86"* ]] ; then
-	cp "x86/bin/$btype/Osomi Core.exe" "build/Osomi Core x86.exe"
+	cp "x86/bin/$btype/app_windows.exe" "build/app_windows x86.exe"
 fi
 
 if [[ "$env" == *"ARM64"* ]] ; then
-	cp "ARM64/bin/$btype/Osomi Core.exe" "build/Osomi Core ARM64.exe"
+	cp "ARM64/bin/$btype/app_windows.exe" "build/app_windows ARM64.exe"
 fi
 
 if [[ "$env" == *"ARM32"* ]] ; then
-	cp "ARM/bin/$btype/Osomi Core.exe" "build/Osomi Core ARM.exe"
+	cp "ARM/bin/$btype/app_windows.exe" "build/app_windows ARM.exe"
 fi
