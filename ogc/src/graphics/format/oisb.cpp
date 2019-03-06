@@ -103,7 +103,7 @@ bool oiSB::read(Buffer buf, SBFile &file) {
 	SBHeader &header = file.header = buf.operator[]<SBHeader>(0);
 	buf = buf.offset((u32) sizeof(SBHeader));
 
-	if (String(header.header, 4) != "oiSB")
+	if (String(4, header.header) != "oiSB")
 		return Log::error("Invalid oiSB (header) file");
 
 	SBHeaderVersion v(header.version);

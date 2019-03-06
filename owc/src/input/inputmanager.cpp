@@ -108,7 +108,7 @@ bool InputManager::load(String path) {
 	if (json.exists("bindings"))
 		for (auto &node : json["bindings"]) {
 
-			std::vector<String> strings;
+			Array<String> strings;
 			node.second.serialize(strings, false);
 
 			for (String str : strings) {

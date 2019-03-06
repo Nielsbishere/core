@@ -70,7 +70,7 @@ void SpvHelper::fillStruct(Compiler &comp, u32 id, ShaderBufferInfo &info, u32 v
 		const SPIRType &mem = comp.get_type(type.member_types[i]);
 
 		obj.offset = (u32)comp.type_struct_member_offset(type, i);
-		obj.name = comp.get_member_name(type.parent_type == 0 ? id : type.parent_type, i);
+		obj.name = comp.get_member_name(type.parent_type == 0 ? id : type.parent_type, i).data();
 
 		u32 flags = 0;
 
@@ -123,7 +123,7 @@ void SpvHelper::getStageOutputs(spirv_cross::Compiler &comp, spirv_cross::Shader
 
 	u32 i = 0;
 	for (Resource &r : res.stage_outputs) {
-		output[i] = ShaderOutput(SpvHelper::getFormat(comp.get_type_from_variable(r.id)), r.name, comp.get_decoration(r.id, spv::DecorationLocation));
+		output[i] = ShaderOutput(SpvHelper::getFormat(comp.get_type_from_variable(r.id)), r.name.data(), comp.get_decoration(r.id, spv::DecorationLocation));
 		++i;
 	}
 
@@ -135,7 +135,7 @@ void SpvHelper::getStageInputs(spirv_cross::Compiler &comp, spirv_cross::ShaderR
 
 	u32 i = 0;
 	for (Resource &r : res.stage_inputs) {
-		output[i] = ShaderInput(SpvHelper::getFormat(comp.get_type_from_variable(r.id)), r.name);
+		output[i] = ShaderInput(SpvHelper::getFormat(comp.get_type_from_variable(r.id)), r.name.data());
 		++i;
 	}
 
@@ -167,8 +167,8 @@ bool SpvHelper::addBuffers(spirv_cross::Compiler &comp, ShaderResources &res, Sh
 	u32 i = 0;
 	for (Resource &r : buf) {
 
-		String name = String(r.name).replaceLast("_noalloc", "");
-		bool allocatable = !String(r.name).endsWith("_noalloc");
+		String name = String(r.name.data()).replaceLast("_noalloc", "");
+		bool allocatable = !String(r.name.data()).endsWith("_noalloc");
 
 		u32 binding = comp.get_decoration(r.id, spv::DecorationBinding);
 
@@ -263,7 +263,7 @@ bool SpvHelper::addTextures(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
 		if (itt == info.registers.end()) {
-			info.registers.push_back(ShaderRegister(!isWriteable ? ShaderRegisterType::Texture2D : ShaderRegisterType::Image, stageAccess, r.name, size, binding, format));
+			info.registers.push_back(ShaderRegister(!isWriteable ? ShaderRegisterType::Texture2D : ShaderRegisterType::Image, stageAccess, r.name.data(), size, binding, format));
 			itt = info.registers.end() - 1;
 		} else
 			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);
@@ -283,7 +283,7 @@ bool SpvHelper::addSamplers(Compiler &comp, ShaderResources &res, ShaderInfo &in
 		auto itt = std::find_if(info.registers.begin(), info.registers.end(), [binding](const ShaderRegister &reg) -> bool { return binding == reg.id; });
 
 		if (itt == info.registers.end()) {
-			info.registers.push_back(ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name, 1, binding, TextureFormat::Undefined));
+			info.registers.push_back(ShaderRegister(ShaderRegisterType::Sampler, stageAccess, r.name.data(), 1, binding, TextureFormat::Undefined));
 			itt = info.registers.end() - 1;
 		} else
 			itt->access = (ShaderAccessType)((u32)itt->access | (u32)stageAccess);

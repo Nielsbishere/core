@@ -543,6 +543,17 @@ namespace oi {
 			return (T) this->x / this->y;
 		}
 
+		operator String() {
+
+			String result = this->arr[0];
+
+			for (size_t i = 1; i < n; ++i)
+				result = result + ", " + this->arr[i];
+
+			return result;
+
+		}
+
 		constexpr u32 getLength() const { return n; }
 		constexpr u32 getSize() const { return n * (u32) sizeof(T); }
 
@@ -550,41 +561,6 @@ namespace oi {
 
 		ArrayType getArray() { return this->arr; }
 	};
-
-
-	template<class T, u32 n>
-	String::String(TVec<T, n> t) {
-
-		static_assert(std::is_arithmetic<T>::value, "T is not a number");
-
-		std::stringstream ss;
-
-		for (u32 i = 0; i < n; ++i)
-			ss << t[i] << (i != n - 1 ? ", " : "");
-
-		source = ss.str();
-	}
-
-	template<typename T, u32 n>
-	TVec<T, n> String::toVector() const {
-
-		static_assert(std::is_arithmetic<T>::value, "T is not a number");
-
-		TVec<T, n> result;
-
-		std::vector<String> s = contains(',') ? split(',') : split(' ');
-
-		u32 i = 0;
-		for (auto &e : s) {
-
-			if(i < n)
-				result[i] = (T) e.trim().toFloat();
-
-			++i;
-		}
-
-		return result;
-	}
 
 	template<typename T>
 	using TVec2 = TVec<T, 2>;

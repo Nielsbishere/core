@@ -127,8 +127,8 @@ namespace oi {
 		}
 
 		template<typename ...args>
-		void serializeAll(const std::vector<String> &members, bool save, args&... arg) {
-			JSONSerializeAll<args...>::serialize(this, members.data(), save, arg...);
+		void serializeAll(const Array<String> &members, bool save, args&... arg) {
+			JSONSerializeAll<args...>::serialize(this, members.begin(), save, arg...);
 		}
 
 		template<typename T>

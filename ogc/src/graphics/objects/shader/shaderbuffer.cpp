@@ -249,13 +249,13 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 
 	std::vector<u32> arr;
 
-	for (char *beg = path.ptr(), *c = beg, *end = beg + path.size(), *prev = beg; c < end; ++c) {
+	for (char *beg = path.begin(), *c = beg, *end = path.end(), *prev = beg; c < end; ++c) {
 
 		bool isEnd = c == end - 1;
 
 		if (*c == '/' || isEnd) {
 
-			String str(prev, u32(c - prev + isEnd));
+			String str(c - prev + isEnd, prev);
 
 			if (!str.isUint()) {
 
@@ -271,7 +271,7 @@ ShaderBufferVar ShaderBuffer::get(String path) {
 
 			}
 			else
-				arr.push_back((u32)str.toLong());
+				arr.push_back((u32)str);
 
 			prev = c + 1;
 

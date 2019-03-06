@@ -6,7 +6,7 @@
 using namespace oi;
 
 JSON::JSON(const String fromString): JSON() {
-	json->Parse(fromString.toCString());
+	json->Parse(fromString.begin());
 	reconstruct();
 }
 
@@ -29,7 +29,7 @@ void JSONNodeUtils::setInt(rapidjson::Value *node, i64 val) { node->SetInt64(val
 void JSONNodeUtils::setFloat(rapidjson::Value *node, f64 val) { node->SetDouble(val); }
 void JSONNodeUtils::setBool(rapidjson::Value *node, bool val) { node->SetBool(val); }
 String JSONNodeUtils::getString(rapidjson::Value *node) { return node->GetString(); }
-void JSONNodeUtils::setString(rapidjson::Value *node, String str) { node->SetString(str.toCString(), str.size()); }
+void JSONNodeUtils::setString(rapidjson::Value *node, String str) { node->SetString(str.begin(), (rapidjson::SizeType)str.size()); }
 
 void JSONNode::reconstruct() {
 
@@ -119,11 +119,11 @@ bool JSONNode::mkdir(String var) {
 		node.json = json;
 
 		if (value == nullptr) {
-			json->AddMember(rapidjson::Value(var.toCString(), var.size(), json->GetAllocator()), rapidjson::Value(rapidjson::Type::kObjectType), json->GetAllocator());
-			node.value = &json->FindMember(var.toCString())->value;
+			json->AddMember(rapidjson::Value(var.begin(), (rapidjson::SizeType) var.size(), json->GetAllocator()), rapidjson::Value(rapidjson::Type::kObjectType), json->GetAllocator());
+			node.value = &json->FindMember(var.begin())->value;
 		} else if (value->IsArray()) {
 
-			u32 j = (u32) var.toLong();
+			u32 j = (u32) var;
 
 			auto arr = value->GetArray();
 
@@ -133,8 +133,8 @@ bool JSONNode::mkdir(String var) {
 			node.value = &arr[j];
 
 		} else {
-			value->AddMember(rapidjson::Value(var.toCString(), var.size(), json->GetAllocator()), rapidjson::Value(rapidjson::Type::kObjectType), json->GetAllocator());
-			node.value = &value->FindMember(var.toCString())->value;
+			value->AddMember(rapidjson::Value(var.begin(), (rapidjson::SizeType) var.size(), json->GetAllocator()), rapidjson::Value(rapidjson::Type::kObjectType), json->GetAllocator());
+			node.value = &value->FindMember(var.begin())->value;
 		}
 	}
 

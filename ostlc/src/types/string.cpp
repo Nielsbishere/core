@@ -4,113 +4,322 @@
 #include "types/vector.h"
 #include <cmath>
 #include <algorithm>
+#include <inttypes.h>
 using namespace oi;
 
-String::String() {}
-String::String(std::string source) : source(source) {}
-String::String(const char *source): source(source) { }
-String::String(char *source, u32 len) : source(source, len) {}
-String::String(u32 len, char filler) : source(len, filler) {}
-String::String(i32 i) { *this = fromNumber<i32>(i); }
-String::String(i64 i) { *this = fromNumber<i64>(i); }
-String::String(u64 i) { *this = fromNumber<u64>(i); }
-String::String(u32 i) { *this = fromNumber<u32>(i); }
-String::String(f32 f) { *this = fromNumber<f32>(f); }
-String::String(char c): source(1, c) {}
-String::String(JSON json) {  *this = json.toString(); }
-String::String(const String &str): source(str.source) { }
+String::String(const char *source) : Array(strlen(source) + 1, source) { }
+String::String(size_t count, const char &def) : Array(count + 1) { memset(data, def, count); }
+String::String(size_t count, const char *dat) : Array(count + 1) { memcpy(data, dat, count); }
+String::String(const char *begin, const char *end) : String(end - begin, begin) {}
+String::String(char val) : String(1, val) { }
 
-String::String(void *v){
-	std::stringstream ss;
-	ss << v;
-	source = ss.str();
+String::String(f32 val) : String((f64)val) {}
+String::String(u32 val) : String((u64)val) {}
+String::String(i32 val) : String((i64)val) {}
+String::String(u16 val) : String((u64)val) {}
+String::String(i16 val) : String((i64)val) {}
+String::String(u8 val) : String((u64)val) {}
+String::String(i8 val) : String((i64)val) {}
+
+String::String(f64 val) {
+	int len = snprintf(nullptr, 0, "%f", val);
+	*this = String((size_t)len, ' ');
+	snprintf(data, size() + 1, "%f", val);
 }
 
-u32 String::size() const { return (u32)source.size(); }
-char &String::operator[](u32 i) { return source[i]; }
-char String::at(u32 i) const { return source[i]; }
+String::String(i64 val) {
+	int len = snprintf(nullptr, 0, "%" PRIi64, val);
+	*this = String((size_t)len, ' ');
+	snprintf(data, size() + 1, "%" PRIi64, val);
+}
 
-String String::cutBegin(u32 start) const {
+String::String(u64 val) {
+	int len = snprintf(nullptr, 0, "%" PRIu64, val);
+	*this = String((size_t)len, ' ');
+	snprintf(data, size() + 1, "%" PRIu64, val);
+}
 
+String::String(void *v) {
+	int len = snprintf(nullptr, 0, "%p", v);
+	*this = String((size_t)len, ' ');
+	snprintf(data, size() + 1, "%p", v);
+}
+
+String::operator f64() {
+	f64 result{};
+	sscanf(data, "%lf", &result);
+	return result;
+}
+
+String::operator i64() {
+	i64 result{};
+	sscanf(data, "%" PRIi64, &result);
+	return result;
+}
+
+String::operator u64() {
+	u64 result{};
+	sscanf(data, "%" PRIu64, &result);
+	return result;
+}
+
+String::operator f32() {
+	return (f32) operator f64();
+}
+
+String::operator i32() {
+	return (i32) operator i64();
+}
+
+String::operator u32() {
+	return (u32) operator u64();
+}
+
+String::operator i16() {
+	return (i16) operator i64();
+}
+
+String::operator u16() {
+	return (u16) operator u64();
+}
+
+String::operator i8() {
+	return (i8) operator i64();
+}
+
+String::operator u8() {
+	return (u8) operator u64();
+}
+
+size_t String::size() const { 
+	return (Array::count - 1) * (Array::count != 0);
+}
+
+size_t String::lastIndex() const {
+	return (Array::count - 2) * (Array::count > 1);
+}
+
+char *String::begin() { return data; }
+char *String::last() { return data + lastIndex(); }
+char *String::end() { return data + size(); }
+
+const char *String::begin() const { return data; }
+const char *String::last() const { return data + lastIndex(); }
+const char *String::end() const { return data + size(); }
+
+String String::cutBegin(size_t start) const {
 	if (start >= size()) return String();
-
-	return String(const_cast<char*>(source.c_str() + start), (u32)(source.size() - start));
+	return String(size() - start, data + start);
 }
 
-String String::cutEnd(u32 end) const {
+String String::cutEnd(size_t end) const {
 	if (end == 0) return String();
-
-	return String(const_cast<char*>(source.c_str()), end);
+	return String(end > size() ? size() : end, data);
 }
 
-String String::substring(u32 start, u32 end) const {
+String String::substring(size_t start, size_t end) const {
+
 	if (end <= start || start >= size())
 		return String();
 
-	return String(const_cast<char*>(source.c_str() + start), end > size() ? size() : (end - start));
+	return String(end > size() ? (size() - start) : (end - start), data + start);
 }
 
-u32 String::count(char c) const {
-	size_t offset = 0;
-	u32 count = 0;
-	while ((offset = source.find(c, offset)) != std::string::npos) {
-		++count;
-		++offset;
-	}
-	return count;
+size_t String::count(char c) const {
+
+	size_t i = 0;
+
+	for (const char &cc : *this)
+		i += cc == c;
+
+	return i;
 }
 
-u32 String::count(String s) const {
-	size_t offset = 0;
-	u32 count = 0;
-	while ((offset = source.find(s.source, offset)) != std::string::npos) {
-		++count;
-		offset += s.source.size();
-	}
-	return count;
+bool String::contains(char c) const {
+
+	for (const char &cc : *this)
+		if (cc == c)
+			return true;
+
+	return false;
 }
 
-std::vector<u32> String::find(char c) const {
-	std::vector<u32> result;
-	size_t offset = 0;
-	while ((offset = source.find(c, offset)) != std::string::npos) {
-		result.push_back((u32)offset);
-		++offset;
-	}
+size_t String::count(const String &s) const {
+
+	size_t j = 0, k = 0;
+
+	for (size_t i = 0; i < size(); ++i)
+		if (data[i] == s[j]){
+
+			++j;
+
+			if (j == s.size()) {
+				j = 0;
+				++k;
+			}
+
+		} else if(j != 0) {
+			j = 0;
+			--i;
+		}
+
+	if (j == s.size())
+		++k;
+
+	return k;
+}
+
+bool String::contains(const String &s) const {
+
+	size_t j = 0;
+
+	for (size_t i = 0; i < size(); ++i)
+		if (data[i] == s[j]) {
+
+			++j;
+
+			if (j == s.size())
+				return true;
+
+		} else if (j != 0) {
+			j = 0;
+			--i;
+		}
+	
+	return j == s.size();
+}
+
+Array<size_t> String::find(char c) const {
+
+	Array<size_t> result(count(c));
+
+	size_t i = 0, j = 0;
+
+	for (const char &curr : *this)
+		if (curr == c) {
+			result[j] = i;
+			++j;
+		} else ++i;
 
 	return result;
+
 }
 
-std::vector<u32> String::find(const String s) const {
-	std::vector<u32> result;
-	size_t offset = 0;
-	while ((offset = source.find(s.source, offset)) != std::string::npos) {
-		result.push_back((u32)offset);
-		++offset;
-	}
+Array<size_t> String::find(const String &s) const {
 
-	return result;
+	Array<size_t> found(count(s));
+
+	size_t j = 0, k = 0;
+
+	for (size_t i = 0; i < size(); ++i)
+		if (data[i] == s[j]) {
+
+			++j;
+
+			if (j == s.size()) {
+				j = 0;
+				found[k] = i + 1 - s.size();
+				++k;
+			}
+		} else if(j != 0) {
+			j = 0;
+			--i;
+		}
+
+	if (j == s.size())
+		found[k] = size() + 1 - s.size();
+
+	return found;
+
 }
 
-std::vector<Vec2u> String::find(const String s, const String end, u32 offset) const {
+size_t String::findFirst(char c) const {
 
-	std::vector<u32> sit = find(s);
-	std::vector<Vec2u> strings(sit.size());
+	size_t i = 0;
 
-	u32 j = 0;
-	for (u32 i : sit) {
+	for (const char &curr : *this)
+		if (curr == c)
+			return i;
+		else ++i;
 
-		size_t endit = source.find(end.source, i + s.size());
-		u32 k = 0;
+	return nowhere;
 
-		if (endit == std::string::npos)
-			k = size();
-		else
-			k = (u32) endit;
+}
 
-		strings[j] = i + offset >= k ? Vec2u() : Vec2u(i + offset, k);
+size_t String::findFirst(const String &s) const {
 
-		++j;
+	size_t j = 0;
+
+	for (size_t i = 0; i < size(); ++i)
+		if (data[i] == s[j]) {
+			if (++j == s.size())
+				return i + 1 - s.size();
+		} else if (j != 0) {
+			j = 0;
+			--i;
+		}
+
+	if (j == s.size())
+		return size() + 1 - s.size();
+
+	return nowhere;
+
+}
+
+size_t String::findLast(char c) const {
+
+	size_t i = 0;
+
+	for (const char *it = last(); it >= begin(); it--)
+		if (*it == c)
+			return i;
+		else ++i;
+
+	return nowhere;
+
+}
+
+size_t String::findLast(const String &s) const {
+
+	size_t j = 0;
+
+	for (size_t i = lastIndex(); i != nowhere; --i)
+		if (data[i] == s[s.lastIndex() - j]) {
+			if (++j == s.size())
+				return i;
+		} else if (j != 0) {
+			j = 0;
+			--i;
+		}
+
+	if (j == s.size())
+		return 0;
+
+	return nowhere;
+
+}
+
+Array<TVec<size_t, 2>> String::find(const String &s, const String &end) const {
+
+	Array<size_t> sit = find(s);
+	Array<size_t> endit = find(end);
+	Array<TVec<size_t, 2>> strings(sit.size());
+
+	size_t k = 0;
+
+	for (size_t i : sit) {
+
+		size_t next = size();
+
+		for (size_t j : endit) {
+			if (j > i) {
+				next = j;
+				break;
+			}
+		}
+
+		strings[k] = TVec<size_t, 2>(i, next);
+		++k;
 	}
 
 	return strings;
@@ -118,167 +327,151 @@ std::vector<Vec2u> String::find(const String s, const String end, u32 offset) co
 }
 
 String String::operator+(const String &s) const {
-	return source + s.source;
+
+	String res(size() + s.size(), ' ');
+
+	memcpy(res.data, data, size());
+	memcpy(res.data + size(), s.data, s.size());
+
+	return res;
 }
 
 String &String::operator+=(const String &s) {
-	source += s.source;
-	return *this;
+	return *this = operator+(s);
 }
 
 bool String::operator<(const String &s) const {
-
-	u32 shortest = s.size() < size() ? s.size() : size();
-
-	return memcmp(toCString(), s.toCString(), shortest) < 0;
+	size_t shortest = s.size() < size() ? s.size() : size();
+	return memcmp(data, s.data, shortest) < 0;
 }
 
-String String::replace(String s0, String s1) const {
-	return combine(split(s0), s1);
-}
+String String::replace(const String &s0, const String &s1) const {
 
-String String::replaceFirst(String s0, String s1) const {
-	auto arr = split(s0);
-	String first = arr[0];
-	arr.erase(arr.begin());
-	String last = combine(arr, s0);
-	return first + s1 + last;
-}
+	Array<size_t> pos = find(s0);
 
-String String::replaceLast(String s0, String s1) const {
-	auto arr = split(s0);
-	String last = arr[arr.size() - 1];
-	arr.erase(arr.end() - 1);
-	String first = combine(arr, s0);
-	return first + s1 + last;
-}
+	String result(size() - s0.size() * pos.size() + s1.size() * pos.size(), ' ');
 
-String String::fromLast(String split) const {
+	size_t prev = 0, off = 0;
 
-	std::vector<u32> parts = find(split);
+	for (size_t i : pos) {
 
-	if (parts.size() == 0) return "";
-	return cutBegin(parts[(u32) parts.size() - 1] + 1);
+		memcpy(result.begin() + off, begin() + prev, i - prev);
+		off += i - prev;
+
+		memcpy(result.begin() + off, s1.begin(), s1.size());
+		off += s1.size();
+
+		prev = i + s0.size();
+
+	}
+
+	memcpy(result.begin() + off, begin() + prev, size() - prev);
+
+	return result;
 
 }
 
-String String::untilLast(String split) const {
+String String::replaceFirst(const String &s0, const String &s1) const {
 
-	std::vector<u32> parts = find(split);
+	size_t first = findFirst(s0);
 
-	if (parts.size() == 0) return *this;
-	return cutEnd(parts[(u32)parts.size() - 1]);
+	if (first == nowhere)
+		return *this;
 
+	String replaced(size() - s0.size() + s1.size(), ' ');
+
+	memcpy(replaced.data, data, first);
+	memcpy(replaced.data + first, s1.data, s1.size());
+	memcpy(replaced.data + first + s1.size(), data + first + s0.size(), size() - first - s0.size());
+
+	return replaced;
 }
 
-String String::fromFirst(String split) const {
+String String::replaceLast(const String &s0, const String &s1) const {
 
-	std::vector<u32> parts = find(split);
+	size_t last = findLast(s0);
 
-	if (parts.size() == 0) return "";
-	return cutBegin(parts[0] + 1);
+	if (last == nowhere)
+		return *this;
 
+	String replaced(size() - s0.size() + s1.size(), ' ');
+
+	memcpy(replaced.data, data, last);
+	memcpy(replaced.data + last, s1.data, s1.size());
+	memcpy(replaced.data + last + s1.size(), data + last + s0.size(), size() - last - s0.size());
+
+	return replaced;
 }
 
-String String::untilFirst(String split) const {
-
-	std::vector<u32> parts = find(split);
-
-	if (parts.size() == 0) return *this;
-	return cutEnd(parts[0]);
-
+String String::fromLast(const String &split) const {
+	size_t last = findLast(split);
+	if (last == nowhere) return {};
+	return cutBegin(last + 1);
 }
 
-i64 String::toLong() const {
-
-	i64 object;
-
-	std::stringstream ss;
-	ss << source;
-	ss >> object;
-
-	return object;
+String String::untilLast(const String &split) const {
+	size_t last = findLast(split);
+	return cutEnd(last);
 }
 
-f32 String::toFloat() const {
-
-	f32 object;
-
-	std::stringstream ss;
-	ss << source;
-	ss >> object;
-
-	return object;
+String String::fromFirst(const String &split) const {
+	size_t last = findFirst(split);
+	if (last == nowhere) return {};
+	return cutBegin(last + 1);
 }
 
-std::string String::toStdString() const { return source; }
-const char *String::toCString() const { return source.c_str(); }
-char *String::ptr() { return (char*) source.c_str(); }
+String String::untilFirst(const String &split) const {
+	size_t last = findFirst(split);
+	return cutEnd(last);
+}
 
-String String::combine(std::vector<String> strings, String seperator) {
+String String::combine(const Array<String> &strings, const String &seperator) {
 
-	if (strings.size() == 0) return "";
+	if (strings.size() == 0) return {};
 	if (strings.size() == 1) return strings[0];
 
-	u32 count = 0;
+	size_t count = 0;
 	for (u32 i = 0; i < strings.size(); ++i)
 		if (i == 0) count += strings[i].size();
 		else count += strings[i].size() + seperator.size();
 
-	String res(count, '\0');
+	String res(count, ' ');
+	memcpy(res.data, strings[0].data, strings[0].size());
 
-	u32 begin = 0;
+	size_t begin = 0;
 
-	for (u32 i = 0; i < strings.size(); ++i) {
-		if (i != 0) {
-			memcpy(&res[begin], seperator.source.c_str(), seperator.size());
-			begin += seperator.size();
-		}
-		memcpy(&res[begin], strings[i].source.c_str(), strings[i].size());
-		begin += strings[i].size();
+	for (size_t i = 1; i < strings.size(); ++i) {
+		memcpy(res.data + begin, seperator.data, seperator.size());
+		memcpy(res.data + begin + seperator.size(), strings[i].data, strings[i].size());
+		begin += strings[i].size() + seperator.size();
 	}
 
 	return res;
 }
 
-std::vector<String> String::split(String s) const {
+Array<String> String::split(const String &s) const {
 
-	std::vector<String> res(count(s) + 1);
+	Array<size_t> results(find(s));
+	Array<String> res(results.size() + 1);
 
-	u32 prev = 0;
-	size_t offset = 0;
-	u32 count = 0;
-
-	while ((offset = source.find(s.source, offset)) != std::string::npos) {
-
-		res[count] = substring(prev, (u32)offset);
-
-		offset += s.source.size();
-		prev = (u32)offset;
-		++count;
-	}
-
-	res[res.size() - 1] = substring(prev, size());
+	for (size_t i = 0; i < res.size(); ++i)
+		res[i] = substring(i == 0 ? 0 : results[i - 1] + 1, i == results.size() ? size() : results[i]);
 
 	return res;
-}
-
-std::vector<String> String::splitIgnoreCase(String s) const {
-	return toLowerCase().split(s.toLowerCase());
 }
 
 String String::trim() const {
 
-	u32 start = 0;
-	for (u32 i = 0; i < size(); ++i)
-		if (source[i] != ' ' && source[i] != '\t' && source[i] != '\n' && source[i] != '\0') {
+	size_t start = 0;
+	for (size_t i = 0; i < size(); ++i)
+		if (data[i] != ' ' && data[i] != '\t' && data[i] != '\n') {
 			start = i;
 			break;
 		}
 
-	u32 end = 0;
-	for (u32 i = size() - 1; i != u32_MAX; --i)
-		if (source[i] != ' ' && source[i] != '\t' && source[i] != '\n' && source[i] != '\0') {
+	size_t end = 0;
+	for (size_t i = size() - 1; i != u32_MAX; --i)
+		if (data[i] != ' ' && data[i] != '\t' && data[i] != '\n') {
 			end = i;
 			break;
 		}
@@ -292,8 +485,7 @@ String String::toLowerCase() const {
 	String other(*this);
 
 	for (u32 i = 0; i < size(); ++i)
-		if (other[i] >= 'A' && other[i] <= 'Z')
-			other[i] = other[i] - 'A' + 'a';
+		other[i] = (char) tolower(other[i]);
 
 	return other;
 }
@@ -303,32 +495,66 @@ String String::toUpperCase() const {
 	String other(*this);
 
 	for (u32 i = 0; i < size(); ++i)
-		if (other[i] >= 'a' && other[i] <= 'z')
-			other[i] = other[i] - 'a' + 'A';
+		other[i] = (char) toupper(other[i]);
 
 	return other;
 }
 
-bool String::equalsIgnoreCase(String other) const {
-	return toLowerCase() == other.toLowerCase();
+bool String::equalsIgnoreCase(const String &other) const {
+	
+	if (size() != other.size())
+		return false;
+
+	for (size_t i = 0; i < size(); ++i)
+		if (tolower(data[i]) != tolower(other.data[i]))
+			return false;
+
+	return true;
 }
 
-bool String::endsWithIgnoreCase(String other) const {
-	return toLowerCase().endsWith(other.toLowerCase());
+bool String::endsWithIgnoreCase(const String &other) const {
+
+	if (other.size() > size())
+		return false;
+
+	for (size_t beg = size() - other.size(), i = beg; i < size(); ++i)
+		if (tolower(data[i]) != tolower(other.data[i - beg]))
+			return false;
+
+	return true;
+
 }
 
-bool String::startsWithIgnoreCase(String other) const {
-	return toLowerCase().startsWith(other.toLowerCase());
+bool String::startsWithIgnoreCase(const String &other) const {
+
+	if (other.size() > size())
+		return false;
+
+	for (size_t i = 0; i < other.size(); ++i)
+		if (tolower(data[i]) != tolower(other.data[i]))
+			return false;
+
+	return true;
 }
 
-bool String::endsWith(String other) const {
-	if (other.size() > size()) return false;
-	return cutBegin(size() - other.size()) == other;
+bool String::endsWith(const String &other) const {
+
+	if (other.size() > size())
+		return false;
+
+	for (size_t beg = size() - other.size(), i = beg; i < size(); ++i)
+		if (data[i] != other.data[i - beg])
+			return false;
+
+	return true;
 }
 
-bool String::startsWith(String other) const {
-	if (other.size() > size()) return false;
-	return cutEnd(other.size()) == other;
+bool String::startsWith(const String &other) const {
+
+	if (other.size() > size())
+		return false;
+
+	return memcmp(data, other.data, other.size()) == 0;
 }
 
 String String::getPath() const {
@@ -353,100 +579,111 @@ String String::getFilePath() const {
 }
 
 bool String::isInt() const {
+
 	for (u32 i = 0; i < size(); ++i)
-		if (!(source[i] >= '0' && source[i] <= '9') && !(source[i] == '-' && i == 0))
+		if (!(data[i] >= '0' && data[i] <= '9') && !(data[i] == '-' && i == 0))
 			return false;
-	return true;
+
+	return size() != 0;
 }
 
 bool String::isUint() const {
-	for (u32 i = 0; i < size(); ++i)
-		if (!(source[i] >= '0' && source[i] <= '9'))
+
+	for (const char &c : *this)
+		if (c < '0' || c > '9')
 			return false;
-	return true;
+
+	return size() != 0;
 }
 
 bool String::isFloatNoExp() const {
+
 	bool containsDot = false;
 
 	for (u32 i = 0; i < size(); ++i)
-		if (!(source[i] >= '0' && source[i] <= '9') && !(source[i] == '-' && i == 0)) {
-			if (source[i] == '.' && !containsDot)
+		if (!(data[i] >= '0' && data[i] <= '9') && !(data[i] == '-' && i == 0)) {
+			if (data[i] == '.' && !containsDot)
 				containsDot = true;
 			else
 				return false;
 		}
 
-	return true;
+	return size() != 0;
 }
 
 bool String::isFloat() const {
-	if (!containsIgnoreCase("e"))
-		return isFloatNoExp();
-	
-	std::vector<String> splits = splitIgnoreCase("e");
 
-	if (splits.size() != 2)
-		return false;
+	bool containsDot = false;
+	bool containsE = false;
 
-	return splits[0].isFloatNoExp() && splits[1].isFloatNoExp();
+	for (u32 i = 0; i < size(); ++i)
+		if (!(data[i] >= '0' && data[i] <= '9') && !(data[i] == '-' && i == 0)) {
+			if (data[i] == '.' && !containsDot)
+				containsDot = true;
+			else if (tolower(data[i]) == 'e' && !containsE){
+				containsE = true;
+				containsDot = false;
+			} else
+				return false;
+		}
+
+	return size() != 0;
 }
 
 bool String::isVector() const {
+	
+	bool containsDot = false;
+	bool containsE = false;
 
-	std::vector<String> splits = contains(',') ? splitIgnoreCase(',') : splitIgnoreCase(' ');
+	for (u32 i = 0; i < size(); ++i)
+		if (!(data[i] >= '0' && data[i] <= '9') && !(data[i] == '-' && i == 0)) {
+			if (data[i] == '.' && !containsDot)
+				containsDot = true;
+			else if (tolower(data[i]) == 'e' && !containsE){
+				containsE = true;
+				containsDot = false;
+			} else if(data[i] != ' ' && data[i] != '\t' && data[i] != ',')
+				return false;
+		}
 
-	for (u32 i = 0; i < splits.size(); ++i)
-		if (!splits[i].trim().isFloat())
-			return false;
+	return size() != 0;
 
-	return splits.size() >= 2;
 }
 
-u32 String::getVectorLength() const {
-
+size_t String::getVectorLength() const {
 	if (!isVector()) return 0;
-
-	std::vector<String> splits = splitIgnoreCase(",");
-	return (u32) splits.size();
+	return count(',');
 }
 
-bool String::contains(String other) const {
-	return source.find(other.source) != std::string::npos;
-}
-
-bool String::containsIgnoreCase(String other) const {
-	return toLowerCase().contains(other.toLowerCase());
-}
-
+//CRLF instead of CR or LF (so both Unix, Mac and Windows understand line endings)
 String String::lineEnd() {
-	std::stringstream ss;
-	ss << std::endl;
-	return ss.str();
-}
-
-String &String::operator=(const String &other) {
-	source = other.source;
-	return *this;
+	return "\r\n";
 }
 
 bool String::operator==(const String &other) const {
 	if(size() != other.size()) return false;
-	return memcmp(other.source.c_str(), source.c_str(), size()) == 0;
+	return memcmp(data, other.data, size()) == 0;
 }
 
-bool String::operator!=(String other) const {
-	return !((*this) == other);
+bool String::operator!=(const String &other) const {
+	return !(*this == other);
 }
 
-String String::toHex(u32 u) {
-	u = ((u & 0xFF000000U) >> 24U) | ((u & 0xFF0000U) >> 8U) | ((u & 0xFF00U) << 8U) | ((u & 0xFFU) << 24U);
-	CopyBuffer cb = CopyBuffer((u8*)&u, 4);
-	return cb.toHex();
+String String::toHex(u64 u) {
+
+	u64 cpy = u;
+
+	u = 0;
+
+	for (u32 i = 0; i < 8; ++i)
+		u |= ((cpy & (0xFF << (i * 8))) >> (i * 8)) << ((7 - i) * 8);
+
+	Buffer b = Buffer::construct((u8*)&u, 8);
+	return b.toHex();
 }
 
 String String::getHex(u8 u) {
-	return String(BinaryHelper::hexChar((u & 0xF0) >> 4)) + String(BinaryHelper::hexChar(u & 0xF));
+	return String(BinaryHelper::hexChar((u & 0xF0_u8) >> 4_u8), BinaryHelper::hexChar(u & 0xF_u8));
 }
 
 String String::padStart(char c, u32 maxCount) const {
@@ -459,11 +696,11 @@ String String::padEnd(char c, u32 maxCount) const {
 	return operator+(String(maxCount - size(), c));
 }
 
-String String::decode(Buffer buf, String charset, u8 perChar) {
+String String::decode(const Buffer &buf, const String &charset, u8 perChar) {
 	return decode(buf, charset, perChar, buf.size() * 8 / perChar);
 }
 
-String String::decode(Buffer buf, String charset, u8 perChar, u32 length) {
+String String::decode(const Buffer &buf, const String &charset, u8 perChar, u32 length) {
 
 	if (perChar > 32)
 		Log::throwError<String, 0x0>("Couldn't decode the string; perChar can't be bigger than 32 bits");
@@ -490,7 +727,7 @@ String String::decode(Buffer buf, String charset, u8 perChar, u32 length) {
 
 }
 
-Buffer String::encode(String charset, u8 perChar) const {
+Buffer String::encode(const String &charset, u8 perChar) const {
 	
 	if (perChar > 32)
 		Log::throwError<String, 0x2>("Couldn't encode the string; perChar can't be bigger than 32 bits");
@@ -498,13 +735,13 @@ Buffer String::encode(String charset, u8 perChar) const {
 	if (charset.size() == 0)
 		Log::throwError<String, 0x3>("Couldn't encode the string; keyset requires at least 1 char");
 
-	u32 size = (u32) std::ceil(source.size() * perChar / 8.f);
+	u32 siz = (u32) std::ceil(size() * perChar / 8.f);
 
-	Buffer buf(size);
+	Buffer buf(siz);
 	
-	for (u32 i = 0; i < source.size(); ++i) {
+	for (u32 i = 0; i < size(); ++i) {
 
-		auto it = std::find(charset.begin(), charset.end(), source[i]);
+		auto it = std::find(charset.begin(), charset.end(), data[i]);
 
 		u32 value = it == charset.end() ? 0 : (u32)(it - charset.begin());
 
@@ -515,8 +752,17 @@ Buffer String::encode(String charset, u8 perChar) const {
 	return buf;
 }
 
-String String::getDefaultCharset() { return " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz."; }
+String String::getDefaultCharset() {
+	return " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.";
+}
 
 size_t String::getHash() const {
-	return std::hash<std::string>{}(source);
+
+	size_t hash = 5381;
+
+	for (const char &c : *this)
+		hash += (hash << 5) + c;
+
+	return hash;
+
 }

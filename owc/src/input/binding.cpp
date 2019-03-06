@@ -134,7 +134,7 @@ Binding::Binding(String ostr) {
 			if (end[0] != '#')
 				goto failed;
 
-			u32 num = (u32)end.cutBegin(1).toLong();
+			u32 num = (u32) end.cutBegin(1);
 
 			if (num > 255U)
 				goto failed;

@@ -47,12 +47,12 @@ namespace oi {
 
 	//For vectors
 	template<typename T>
-	struct JSONSerialize<std::vector<T>, false> {
+	struct JSONSerialize<Array<T>, false> {
 
-		static void serialize(JSONNode &json, std::vector<T> &val, bool save) {
+		static void serialize(JSONNode &json, Array<T> &val, bool save) {
 
 			if (!save)
-				val.resize(json.getMembers());
+				val = Array<T>(json.getMembers());
 
 			for (u32 i = 0; i < (u32)val.size(); ++i)
 				JSONSerialize<T>::serialize(json[i], val[i], save);
@@ -166,18 +166,17 @@ ose(X, 0, a, b, c, d, e, f);
 */
 #define ose(className, version, ...)												\
 																					\
-static std::vector<oi::String> _initMembers() {										\
+static oi::Array<oi::String> _initMembers() {										\
 																					\
-	std::vector<oi::String> members = oi::String(#__VA_ARGS__).split(",");			\
+	oi::Array<oi::String> members = oi::String(#__VA_ARGS__).split(",");			\
 	for (u32 i = 0; i < (u32)members.size(); ++i)									\
 		members[i] = members[i].trim();												\
 																					\
-	members.insert(members.begin(), "structVersion");								\
-	return members;																	\
+	return members.pushFront("structVersion");										\
 }																					\
 																					\
-static const std::vector<oi::String> &getMembers() {								\
-	static const std::vector<oi::String> members = _initMembers();					\
+static const oi::Array<oi::String> &getMembers() {									\
+	static const oi::Array<oi::String> members = _initMembers();					\
 	return members;																	\
 }																					\
 																					\
@@ -202,6 +201,7 @@ void toString(oi::String &str) {													\
 	toJSON(json);																	\
 	str = json.toString(false);														\
 }																					\
+																					\
 void fromString(oi::String &str) {													\
 	oi::JSON json = str;															\
 	fromJSON(json);																	\

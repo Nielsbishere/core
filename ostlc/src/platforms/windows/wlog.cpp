@@ -5,11 +5,11 @@
 using namespace oi;
 
 void printstr(String str){
-	printf("%s", str.toCString());
+	printf("%s", str.begin());
 }
 
 void printerr(String str){
-	OutputDebugStringA(str.toCString());
+	OutputDebugStringA(str.begin());
 	printstr(str);
 }
 

@@ -12,10 +12,10 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 	Timer t;
 
 	//Convert obj to oiRM
-	String str((char*) objBuffer.addr(), objBuffer.size());
+	String str(objBuffer.size(), (char*)objBuffer.addr());
 
 	//Find all locations of objects
-	std::vector<Vec2u> objects = str.find("\no ", "\no ", 1);
+	Array<TVec<size_t, 2>> objects = str.find("\no ", "\no ");
 
 	if(objects.size() == 0){
 		Log::error("Couldn't convert Obj; missing an object");
@@ -40,10 +40,10 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 
 	for (u32 i = 0; i < (u32)objects.size(); ++i) {
 
-		Vec2u object = objects[i];
+		TVec<size_t, 2> object = objects[i];
 		String s = str.substring(object.x, object.y);
 
-		std::vector<Vec2u> lines = s.find("\n", "\n", 1);
+		Array<TVec<size_t, 2>> lines = s.find("\n", "\n");
 
 		std::vector<Vec3> positions, normals;
 		std::vector<Vec2> uvs;
@@ -64,21 +64,21 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 			if (!line.contains(' '))
 				continue;
 
-			u32 modifier = line.find(' ')[0];
+			size_t modifier = line.find(' ')[0];
 			String identifier = line.cutEnd(modifier);
 
 			if (identifier == "v") {
-				positions.push_back(line.cutBegin(modifier + 1).toVector<f32, 3>());
+				positions.push_back(line.cutBegin(modifier + 1));
 				hasPos = true;
 			} else if (identifier == "vt"){
-				uvs.push_back(line.cutBegin(modifier + 1).toVector<f32, 2>()); 
+				uvs.push_back(line.cutBegin(modifier + 1)); 
 				hasUv = true;
 			} else if (identifier == "vn"){
-				normals.push_back(line.cutBegin(modifier + 1).toVector<f32, 3>());
+				normals.push_back(line.cutBegin(modifier + 1));
 				hasNrm = true;
 			} else if (identifier == "f") {
 
-				std::vector<String> parts = line.split(' ');
+				Array<String> parts = line.split(' ');
 				stride = (hasPos ? 3 : 0) + (hasUv ? 2 : 0) + (hasNrm ? 3 : 0);
 
 				if ((u32)perVert.size() == 0) {
@@ -91,7 +91,7 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 
 				for (u32 k = 1; k < (u32) parts.size(); ++k) {
 
-					std::vector<String> part = parts[k].split('/');
+					Array<String> part = parts[k].split('/');
 
 					Vec3u vert;
 					u32 m = 0;
@@ -100,7 +100,7 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 
 						String p = part[l];
 						if (p != "")
-							vert[l] = (u32) p.toLong() - 1;
+							vert[l] = (u32) p - 1;
 
 					}
 

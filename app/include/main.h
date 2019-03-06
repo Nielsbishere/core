@@ -41,7 +41,7 @@ struct Planet {
 	f32 minHeight = -0.6f, scale = 1, coastSize = 0.1f;
 	bool randomize = true;
 
-	std::vector<NoiseLayer> noiseLayer = { {} };
+	oi::Array<NoiseLayer> noiseLayer = oi::Array<NoiseLayer>(1);
 
 	//Returns 0-1 for a point on the planet
 	f32 sample(oi::Vec3 pos);

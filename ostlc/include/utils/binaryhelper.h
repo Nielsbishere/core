@@ -9,8 +9,8 @@ namespace oi {
 
 	private:
 
-		static constexpr uint32_t le_test_one = 1;
-		static constexpr uint8_t le_test_one_cast = (const uint8_t&)le_test_one;
+		static constexpr u32 le_test_one = 1_u32;
+		static constexpr u8 le_test_one_cast = (const u8&)le_test_one;
 
 	public:
 

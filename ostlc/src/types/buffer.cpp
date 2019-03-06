@@ -8,7 +8,7 @@ using namespace oi;
 
 Buffer::Buffer() : data(nullptr), length(0) {}
 Buffer::Buffer(u32 length) : data(new u8[length]), length(length) { }
-Buffer::Buffer(String ostr) : Buffer((u8*)ostr.toCString(), ostr.size()) {}
+Buffer::Buffer(String ostr) : Buffer((u8*)ostr.begin(), (u32) ostr.size()) {}
 u32 Buffer::size() const { return length; }
 
 Buffer Buffer::offset(u32 i) const {
@@ -86,12 +86,12 @@ String Buffer::toBinary() const {
 
 String Buffer::getString(u32 where, u32 len) const {
 	if (where >= length) return String();
-	return String((char*)(data + where), length - where < len ? length - where : len);
+	return String(length - where < len ? length - where : len, (char*)(data + where));
 }
 
 bool Buffer::setString(u32 where, String str) {
-	if (where >= this->length) return false;
-	std::memcpy(data + where, str.toCString(), this->length - where < str.size() ? this->length - where : str.size());
+	if (where >= length) return false;
+	std::memcpy(data + where, str.begin(), length - where < str.size() ? length - where : str.size());
 	return true;
 }
 
@@ -198,7 +198,7 @@ void Buffer::setBits(u32 bitoff, u32 bits, u32 value) {
 		setBit(bitoff + i, value & (1U << i));
 }
 
-u32 Buffer::getBits(u32 bitoff, u32 bits) {
+u32 Buffer::getBits(u32 bitoff, u32 bits) const {
 
 	u32 value = 0U;
 
@@ -220,7 +220,7 @@ void Buffer::setBit(u32 bitoff, bool value) {
 		val &= ~mask;
 }
 
-bool Buffer::getBit(u32 bitoff) {
+bool Buffer::getBit(u32 bitoff) const {
 	u8 val = data[bitoff / 8];
 	return val & (1U << (bitoff % 8U));
 }

@@ -1,41 +1,30 @@
 #pragma once
-
-#include <sstream>
-#include "generic.h"
+#include "array.h"
 
 namespace oi {
 
-	template<typename T, u32 n> class TVec;
-
-	class JSON;
 	class Buffer;
 
-	class String {
+	template<typename T, u32 n>
+	class TVec;
+
+	//TODO: char functions instead of String
+	//TODO: number conversions
+	class String : public Array<char> {
 
 	public:
 
-		String();
-		String(std::string source);
-		String(const char *source);
-		String(char *source, u32 len);
-		String(u32 len, char filler);
-		String(JSON json);
-		String(const String &str);
+		using Array<char>::Array;
 
-		template<typename T, u32 n>
-		String(TVec<T, n> t);
+		static constexpr size_t nowhere = size_t_MAX;
 
-		String(i32 i);
-		explicit String(i64 i);
-		String(u32 u);
-		explicit String(u64 u);
-		String(f32 f);
-		String(char c);
+		String() {}
+		String(const char *dat);
+		String(size_t count, const char &def);
+		String(size_t count, const char *dat);
+		String(const char *begin, const char *end);
+
 		explicit String(void *v);
-
-		u32 size() const;
-		char &operator[](u32 i);
-		char at(u32 i) const;
 
 		String operator+(const String &s) const;
 		String &operator+=(const String &s);
@@ -43,68 +32,56 @@ namespace oi {
 		//Sort operator
 		bool operator<(const String &s) const;
 
-		String cutBegin(u32 start) const;
-		String cutEnd(u32 end) const;
-		String substring(u32 start, u32 end) const;
+		String cutBegin(size_t start) const;
+		String cutEnd(size_t end) const;
+		String substring(size_t start, size_t end) const;
 
-		u32 count(char c) const;
-		u32 count(String s) const;
+		bool contains(char c) const;
+		bool contains(const String &s) const;
+		size_t count(char c) const;
+		size_t count(const String &s) const;
 
-		String padStart(char c, u32 count) const;		//Add padding to the start of this string, until it this->size() eaches the specified count
-		String padEnd(char c, u32 count) const;			//Add padding to the end of this string, until it this->size() eaches the specified count
+		String padStart(char c, u32 count) const;		//Add padding to the start of this string, until it this->size() reaches the specified count
+		String padEnd(char c, u32 count) const;			//Add padding to the end of this string, until it this->size() reaches the specified count
 
-		std::vector<u32> find(char c) const;
-		std::vector<u32> find(const String s) const;
+		Array<size_t> find(char c) const;
+		Array<size_t> find(const String &s) const;
+		size_t findFirst(char c) const;
+		size_t findFirst(const String &s) const;
+		size_t findLast(char c) const;
+		size_t findLast(const String &s) const;
 
 		//Get all strings starting at find(s) with length of find(s) - find(end)
 		//If it can't find anything it will just pick size()
-		std::vector<TVec<u32, 2>> find(const String s, const String end, u32 offset) const;
+		Array<TVec<size_t, 2>> find(const String &s, const String &end) const;
 
-		String replace(String s0, String s1) const;
-		String replaceLast(String s0, String s1) const;
-		String replaceFirst(String s0, String s1) const;
+		String replace(const String &needle, const String &replacement) const;
+		String replaceLast(const String &needle, const String &replacement) const;
+		String replaceFirst(const String &needle, const String &replacement) const;
 
-		String fromLast(String split) const;
-		String untilLast(String split) const;
-		String fromFirst(String split) const;
-		String untilFirst(String split) const;
+		String insert(const String &str, size_t loc) const;
+		String replace(const String &str, size_t loc, size_t count) const;
 
-		std::vector<String> split(String s) const;
-		std::vector<String> splitIgnoreCase(String s) const;
+		String fromLast(const String &split) const;
+		String untilLast(const String &split) const;
+		String fromFirst(const String &split) const;
+		String untilFirst(const String &split) const;
+
+		Array<String> split(const String &s) const;
 		String trim() const;
 
-		template<class T>
-		static String fromNumber(T t) {
-
-			static_assert(std::is_arithmetic<T>::value, "T is not a number");
-
-			std::stringstream ss;
-			ss << t;
-			return ss.str();
-		}
-
-		i64 toLong() const;
-		f32 toFloat() const;
-		std::string toStdString() const;
-		const char *toCString() const;
-		char *ptr();
-
-		template<typename T, u32 n>
-		TVec<T, n> toVector() const;
-
-		static String combine(std::vector<String> string, String insert);
+		static String combine(const Array<String> &string, const String &insert);
 
 		String toLowerCase() const;
 		String toUpperCase() const;
 
-		String &operator=(const String &other);
 		bool operator==(const String &other) const;
-		bool operator!=(String other) const;
-		bool equalsIgnoreCase(String other) const;
-		bool endsWithIgnoreCase(String other) const;
-		bool startsWithIgnoreCase(String other) const;
-		bool endsWith(String other) const;
-		bool startsWith(String other) const;
+		bool operator!=(const String &other) const;
+		bool equalsIgnoreCase(const String &other) const;
+		bool endsWithIgnoreCase(const String &other) const;
+		bool startsWithIgnoreCase(const String &other) const;
+		bool endsWith(const String &other) const;
+		bool startsWith(const String &other) const;
 
 		String getPath() const;								//File path without file name
 		String getExtension() const;						//Get extension
@@ -117,32 +94,61 @@ namespace oi {
 		bool isFloat() const;
 		bool isFloatNoExp() const;							//Is float; without e notation (ex. 1e5)
 		bool isVector() const;
-		u32 getVectorLength() const;
-
-		bool contains(String other) const;
-		bool containsIgnoreCase(String other) const;
+		size_t getVectorLength() const;
 
 		static String lineEnd();
-		static String toHex(u32 u);
+		static String toHex(u64 u);
 		static String getHex(u8 u);
 
-		auto begin() const { return source.begin(); }
-		auto end() const { return source.end(); }
+		//Decode the buffer with the given charset
+		static String decode(const Buffer &buf, const String &charset, u8 perChar);
 
-		static String decode(Buffer buf, String charset, u8 perChar);	//Decode the buffer given; perChar is in bits; so you could use decode(buf, { '0', '1' }, 1) to turn it into a binary string (Would not recommend; is slow)
-		static String decode(Buffer buf, String charset, u8 perChar, u32 length);
-		Buffer encode(String charset, u8 perChar) const;				//Encode the String given; allocates a new buffer, make sure to deconstruct it.
+		//Decode the buffer with the given charset
+		static String decode(const Buffer &buf, const String &charset, u8 perChar, u32 length);
+
+		//Encode the string given with the charset
+		Buffer encode(const String &charset, u8 perChar) const;
 
 		static String getDefaultCharset();
 
 		size_t getHash() const;
+		size_t size() const;
 
-		auto begin() { return source.begin(); }
-		auto end() { return source.end(); }
+		char *begin();
+		char *last();
+		char *end();
 
-	protected:
+		const char *begin() const;
+		const char *last() const;
+		const char *end() const;
 
-		std::string source;
+		size_t lastIndex() const;
+
+		//Conversions to and from data types
+
+		String(f64 val);
+		String(u64 val);
+		String(i64 val);
+		String(f32 val);
+		String(u32 val);
+		String(i32 val);
+		String(u16 val);
+		String(i16 val);
+		String(u8 val);
+		String(i8 val);
+		String(char val);
+
+		explicit operator f64();
+		explicit operator i64();
+		explicit operator u64();
+		explicit operator f32();
+		explicit operator i32();
+		explicit operator u32();
+		explicit operator i16();
+		explicit operator u16();
+		explicit operator i8();
+		explicit operator u8();
+
 	};
 
 }

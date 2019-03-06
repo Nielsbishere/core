@@ -35,7 +35,7 @@ ShaderInfo oiSH::compile(ShaderSource &source, bool stripDebug) {
 struct FileIncluder : glslang::TShader::Includer {
 
 	String base;
-	std::string currentFile;
+	String currentFile;
 	std::vector<String> &dependencies;
 
 	FileIncluder(String base, std::vector<String> &dependencies) : base(base), dependencies(dependencies) {}
@@ -48,7 +48,7 @@ struct FileIncluder : glslang::TShader::Includer {
 		if (inclusionDepth >= 256)
 			return (IncludeResult*)Log::error(String("Couldn't read included file \"") + headerName + "\" there were more than 256 nested includes");
 
-		currentFile = std::string("mod/shaders/") + headerName;
+		currentFile = String("mod/shaders/") + headerName;
 		
 		if (std::find(dependencies.begin(), dependencies.end(), currentFile) == dependencies.end())
 			dependencies.push_back(currentFile);
@@ -58,7 +58,7 @@ struct FileIncluder : glslang::TShader::Includer {
 		if (!FileManager::get()->read(currentFile, buf))
 			return (IncludeResult*)Log::error(String("Couldn't read included file \"") + headerName + "\" aka " + currentFile);
 
-		return new IncludeResult(currentFile, (const char*)buf.addr(), buf.size(), nullptr);
+		return new IncludeResult(currentFile.begin(), (const char*)buf.addr(), buf.size(), nullptr);
 
 	}
 
@@ -77,7 +77,7 @@ struct FileIncluder : glslang::TShader::Includer {
 		if (includePath == "")
 			return (IncludeResult*) Log::error("Please supply a valid include base path");
 
-		currentFile = includePath.toStdString() + "/" + headerName;
+		currentFile = includePath + "/" + headerName;
 
 		if (std::find(dependencies.begin(), dependencies.end(), currentFile) == dependencies.end())
 			dependencies.push_back(currentFile);
@@ -87,7 +87,7 @@ struct FileIncluder : glslang::TShader::Includer {
 		if (!FileManager::get()->read(currentFile, buf))
 			return (IncludeResult*) Log::error(String("Couldn't read included file \"") + headerName + "\" aka " + currentFile);
 
-		return new IncludeResult(currentFile, (const char*) buf.addr(), buf.size(), nullptr);
+		return new IncludeResult(currentFile.begin(), (const char*) buf.addr(), buf.size(), nullptr);
 	}
 
 	void releaseInclude(IncludeResult *ir) override { 
@@ -223,7 +223,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 
 		source.src[ext] = preamble + source.src[ext];
 
-		const char *shaderSrc = source.src[ext].toCString();
+		const char *shaderSrc = source.src[ext].begin();
 		std::string shaderSrcRes;
 
 		glslang::TShader *shader = new glslang::TShader(shaderType);
@@ -235,7 +235,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 
 		shader->setStrings(&shaderSrc, 1);
 
-		FileIncluder fileIncluder(basePath, dependencies);
+		FileIncluder fileIncluder(basePath.begin(), dependencies);
 
 		if (!shader->preprocess(&resources, vulkanVersion, EProfile::ENoProfile, false, false, compileFlags, &shaderSrcRes, fileIncluder)) {
 
@@ -247,9 +247,9 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 			return Log::error("Couldn't add stage to shader; couldn't preprocess shader");
 		}
 
-		source.src[ext] = shaderSrcRes;
+		source.src[ext] = shaderSrcRes.data();
 
-		const char *postShaderSrc = source.src[ext].toCString();
+		const char *postShaderSrc = source.src[ext].begin();
 
 		shader->setStrings(&postShaderSrc, 1);
 

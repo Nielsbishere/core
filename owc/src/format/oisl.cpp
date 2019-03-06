@@ -53,7 +53,7 @@ bool oiSL::read(Buffer buf, SLFile &file) {
 	SLHeader &header = file.header = buf.operator[]<SLHeader>(0);
 	buf = buf.offset((u32) sizeof(SLHeader));
 
-	if (String(header.header, 4) != "oiSL")
+	if (String(4, header.header) != "oiSL")
 		return Log::error("Invalid oiSL (header) file");
 
 	SLHeaderVersion v(header.version);
@@ -101,7 +101,7 @@ v1:
 
 		for (u32 i = 0; i < header.names; ++i) {
 			u8 &s = strings[i];
-			str[i] = String((char*)decoded.toCString() + offset, s);
+			str[i] = String(s, (char*)decoded.begin() + offset);
 			offset += s;
 		}
 
@@ -140,7 +140,7 @@ Buffer oiSL::write(SLFile &file) {
 		toEncode += s;
 	}
 
-	u32 keycount = keyset.size() == 1 ? 1 : keyset.size() - 1;
+	size_t keycount = keyset.size() == 1 ? 1 : keyset.size() - 1;
 	u8 perChar = (u8) (std::floor(std::log2(keycount)) + 1);
 
 	Buffer buf = toEncode.encode(keyset, perChar);

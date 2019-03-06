@@ -209,7 +209,7 @@ void Window::initPlatform() {
 	wc.hCursor = LoadCursorA(NULL, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName = NULL;
-	wc.lpszClassName = str.toCString();
+	wc.lpszClassName = str.begin();
 	wc.cbSize = sizeof(WNDCLASSEX);
 
 	if (!RegisterClassExA(&wc)) {
@@ -223,7 +223,7 @@ void Window::initPlatform() {
 	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	ext->window = CreateWindowExA(WS_EX_APPWINDOW, str.toCString(), str.toCString(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext->instance, NULL);
+	ext->window = CreateWindowExA(WS_EX_APPWINDOW, str.begin(), str.begin(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext->instance, NULL);
 
 	if (ext->window == NULL)
 		Log::throwError<WindowExt, 0x1>("Couldn't init Windows window");

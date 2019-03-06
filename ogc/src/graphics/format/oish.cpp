@@ -305,7 +305,7 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 	SHHeader &header = file.header = buf.operator[]<SHHeader>(0);
 	buf = buf.offset((u32) sizeof(SHHeader));
 
-	if (String(header.header, 4) != "oiSH")
+	if (String(4, header.header) != "oiSH")
 		return Log::error("Invalid oiSH (header) file");
 	
 	switch ((SHVersion)header.version) {

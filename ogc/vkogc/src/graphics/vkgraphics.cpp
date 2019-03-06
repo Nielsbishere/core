@@ -147,7 +147,7 @@ void Graphics::init(Window *w){
 
 	for (VkExtensionProperties *extension = extensions; extension != extensions + extensionCount; ++extension)
 		for (u32 i = 0; i < j; ++i)
-			if (String(extension->extensionName) == cextensions[i])
+			if (String((const char*)extension->extensionName) == cextensions[i])
 				extensionPresent[i] = true;
 
 	for(u32 i = 0; i < j; ++i)
@@ -158,7 +158,7 @@ void Graphics::init(Window *w){
 
 	for (VkLayerProperties *layer = layers; layer != layers + layerCount; ++layer)
 		for (u32 i = 0; i < j; ++i)
-			if (String(layer->layerName) == clayers[i])
+			if (String((const char*)layer->layerName) == clayers[i])
 				layerPresent[i] = true;
 
 	for(u32 i = 0; i < j; ++i)
@@ -172,7 +172,7 @@ void Graphics::init(Window *w){
 	
 	application.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	
-	application.pApplicationName = w->getInfo().getTitle().toCString();
+	application.pApplicationName = w->getInfo().getTitle().begin();
 	application.applicationVersion = w->getInfo().getVersion();
 	
 	application.pEngineName = "Osomi Graphics Core";

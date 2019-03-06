@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <stdint.h>
+#include <stddef.h>
 
 using i8 = int8_t;
 using u8 = uint8_t;
@@ -55,6 +56,9 @@ constexpr i32 i32_MAX = 0x7FFFFFFF_i32;
 constexpr i32 i32_MIN = 0x80000000_i32;
 constexpr i64 i64_MAX = 0x7FFFFFFFFFFFFFFF_i64;
 constexpr i64 i64_MIN = 0x8000000000000000_i64;
+
+constexpr size_t size_t_MIN = 0;
+constexpr size_t size_t_MAX = sizeof(size_t) == 8 ? u64_MAX : u32_MAX;
 
 class gbool {
 

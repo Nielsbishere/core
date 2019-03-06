@@ -85,7 +85,7 @@ namespace oi {
 				NULL,                                               // pNext
 				type,												// objectType
 				(uint64_t)val,										// object
-				name.toCString()									// pObjectName
+				name.begin()									// pObjectName
 			};
 
 			if(g.debugNames == nullptr)

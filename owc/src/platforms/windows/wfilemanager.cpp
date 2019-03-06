@@ -15,7 +15,7 @@ bool openFile(String file, std::ifstream &in) {
 
 	file = FileManager::get()->getAbsolutePath(file);
 
-	in = std::ifstream(file.toCString(), std::ios::binary);
+	in = std::ifstream(file.begin(), std::ios::binary);
 
 	if (!in.good())
 		return Log::error(String("Couldn't open file: ") + file);
@@ -27,7 +27,7 @@ bool openFile(String file, std::ofstream &in) {
 
 	file = FileManager::get()->getAbsolutePath(file);
 
-	in = std::ofstream(file.toCString(), std::ios::binary);
+	in = std::ofstream(file.begin(), std::ios::binary);
 
 	if (!in.good())
 		return Log::error(String("Couldn't open file: ") + file);
@@ -45,7 +45,7 @@ namespace oi {
 
 				FileManager *fm = (FileManager*)fileManager;
 				String sname = String(name).toLowerCase();
-				std::vector<String> parts = sname.split("/");
+				Array<String> parts = sname.split("/");
 				String currName = "";
 				u32 last = 0;
 
@@ -83,7 +83,7 @@ bool FileManager::mkdir(String path) const {
 
 	if (!validate(path, FileAccess::WRITE)) return Log::error("Mkdir requires write access");
 
-	std::vector<String> split = path.split("/");
+	Array<String> split = path.split("/");
 	String current;
 
 	for (String &s : split) {
@@ -91,7 +91,7 @@ bool FileManager::mkdir(String path) const {
 		if (current == "") current = s;
 		else current = current + "/" + s;
 
-		if (current != "" && CreateDirectoryA(getAbsolutePath(current).toCString(), NULL) == 0) {
+		if (current != "" && CreateDirectoryA(getAbsolutePath(current).begin(), NULL) == 0) {
 
 			DWORD error = GetLastError();
 			if (error == ERROR_ALREADY_EXISTS) continue;
@@ -111,7 +111,7 @@ String FileManager::getAbsolutePath(String path) const {
 bool FileManager::dirExists(String path) const {
 	if (!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open folder for query");
 	if (path.startsWith("res")) return std::find(dirs.begin(), dirs.end(), path) != dirs.end();
-	return GetFileAttributesA(getAbsolutePath(path).toCString()) & FILE_ATTRIBUTE_DIRECTORY;
+	return GetFileAttributesA(getAbsolutePath(path).begin()) & FILE_ATTRIBUTE_DIRECTORY;
 }
 
 bool FileManager::canModifyAssets() const { return true; }
@@ -119,7 +119,7 @@ bool FileManager::canModifyAssets() const { return true; }
 bool FileManager::fileExists(String path) const {
 	if (!validate(path, FileAccess::QUERY)) return Log::error("Couldn't open file for query");
 	if (path.startsWith("res")) return std::find_if(files.begin(), files.end(), [path](const ParentedFileInfo &info) -> bool { return info.name == path.toLowerCase(); }) != files.end();
-	FILE *file = fopen(getAbsolutePath(path).toCString(), "r");
+	FILE *file = fopen(getAbsolutePath(path).begin(), "r");
 	if (file != nullptr) fclose(file);
 	return file != nullptr;
 }
@@ -130,7 +130,7 @@ bool FileManager::read(String file, String &s) const {
 
 	if (file.startsWith("res")) {
 
-		HRSRC data = FindResourceA(nullptr, file.toCString(), RT_RCDATA);
+		HRSRC data = FindResourceA(nullptr, file.begin(), RT_RCDATA);
 
 		if (data == nullptr)
 			return Log::error("Couldn't find resource");
@@ -143,7 +143,7 @@ bool FileManager::read(String file, String &s) const {
 
 		char *dat = (char*) LockResource(handle);
 
-		s = String(dat, size);
+		s = String(size, dat);
 		UnlockResource(handle);
 		FreeResource(handle);
 		return true;
@@ -152,7 +152,11 @@ bool FileManager::read(String file, String &s) const {
 	std::ifstream in;
 	if (!openFile(file, in)) return Log::error("Couldn't open file for read");
 
-	s = std::string(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+	u32 length = (u32)in.rdbuf()->pubseekoff(0, std::ios_base::end);
+
+	in.seekg(0, std::ios::beg);
+	s = String(length);
+	in.read(s.begin(), length);
 	in.close();
 	return true;
 }
@@ -163,7 +167,7 @@ bool FileManager::read(String file, Buffer &b) const {
 
 	if (file.startsWith("res")) {
 
-		HRSRC data = FindResourceA(nullptr, file.toCString(), RT_RCDATA);
+		HRSRC data = FindResourceA(nullptr, file.begin(), RT_RCDATA);
 
 		if (data == nullptr)
 			return Log::error("Couldn't find resource");
@@ -203,7 +207,7 @@ bool FileManager::write(String file, String &s) const {
 	std::ofstream out;
 	if(!openFile(file, out)) return Log::error("Couldn't open file for write");
 
-	out << s.toCString();
+	out << s.begin();
 	out.close();
 	return true;
 }
@@ -247,7 +251,7 @@ bool FileManager::foreachFile(String path, FileCallback callback) const {
 	path = getAbsolutePath(path) + "/*";
 
 	WIN32_FIND_DATA data;
-	HANDLE file = FindFirstFileA(path.toCString(), &data);
+	HANDLE file = FindFirstFileA(path.begin(), &data);
 	bool first = true;
 
 	if (file == INVALID_HANDLE_VALUE) return Log::error("Couldn't find directory");
@@ -296,9 +300,9 @@ FileInfo FileManager::getFile(String path) const {
 	memset(&attr, 0, sizeof(attr));
 
 	if(!path.startsWith("res"))
-		_stat64(apath.toCString(), &attr);
+		_stat64(apath.begin(), &attr);
 	else if (!isFolder) {
-		if (HRSRC data = FindResourceA(nullptr, path.toCString(), RT_RCDATA))
+		if (HRSRC data = FindResourceA(nullptr, path.begin(), RT_RCDATA))
 			attr.st_size = (u64)SizeofResource(nullptr, data);
 	}
 

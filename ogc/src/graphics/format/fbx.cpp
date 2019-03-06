@@ -64,7 +64,7 @@ FbxNode *FbxNode::read(Buffer &buf, u32 &offset, bool is64bit) {
 	if (buf.size() < node->header.nameLen)
 		return (FbxNode*) Log::error("Couldn't read FbxNode's name; invalid buffer size");
 
-	node->name = String((char*) buf.addr(), node->header.nameLen);
+	node->name = String(node->header.nameLen, (char*)buf.addr());
 	buf = buf.offset(node->header.nameLen);
 	offset += node->header.nameLen;
 
@@ -248,7 +248,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 	FbxFile *file = FbxFile::read(buf);
 
 	const char *zeroNe = "\0\x1";
-	String zerone = String((char*)zeroNe, 2);
+	String zerone = String(2, (char*)zeroNe);
 
 	FbxNodes materials = file->get()->findNodes("Objects/Material");
 

@@ -181,7 +181,7 @@ namespace oi {
 
 				///TODO: [ 0x00, 0x01 ] is used to seperate strings
 
-				vec.push_back(String((char*) buf.addr(), getLength()));
+				vec.push_back(String(getLength(), (char*)buf.addr()));
 
 				offset += getLength();
 				buf = buf.offset(getLength());

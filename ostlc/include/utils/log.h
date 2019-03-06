@@ -17,18 +17,18 @@ namespace oi {
 
 	public:
 
-		static bool warn(String what);
-		static bool error(String what);
-		static void print(String what);
-		static void println(String what);
+		static bool warn(const String &what);
+		static bool error(const String &what);
+		static void print(const String &what);
+		static void println(const String &what);
 
-		static void print(String what, LogLevel level);
+		static void print(const String &what, LogLevel level);
 
 		template<class T, u32 errorId>
-		static bool throwError(String what) {
+		static bool throwError(const String &what) {
 			String errorCode = String("Error [") + String::toHex(errorId) + " " + typeid(T).name() + "]: " + what;
 			error(errorCode);
-			throw std::runtime_error(errorCode.toCString());
+			throw std::runtime_error(errorCode.begin());
 			return false;
 		}
 

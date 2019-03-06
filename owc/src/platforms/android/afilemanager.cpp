@@ -34,13 +34,13 @@ bool FileManager::dirExists(String path) const {
 	String apath = getAbsolutePath(path);
 
 	if (path.startsWith("out")) {
-		DIR *dir = opendir(apath.toCString());
+		DIR *dir = opendir(apath.begin());
 		if (dir != nullptr) closedir(dir);
 		return dir != nullptr;
 	}
 
 	AAssetManager *assetManager = ((android_app*)param)->activity->assetManager;
-	AAssetDir *dir = AAssetManager_openDir(assetManager, path.toCString());
+	AAssetDir *dir = AAssetManager_openDir(assetManager, path.begin());
 	if (dir != nullptr) AAssetDir_close(dir);
 	return dir != nullptr;
 }
@@ -54,13 +54,13 @@ bool FileManager::fileExists(String path) const {
 	String apath = getAbsolutePath(path);
 
 	if (path.startsWith("out")) {
-		FILE *file = fopen(apath.toCString(), "r");
+		FILE *file = fopen(apath.begin(), "r");
 		if (file != nullptr) fclose(file);
 		return file != nullptr;
 	}
 
 	AAssetManager *assetManager = ((android_app*)param)->activity->assetManager;
-	AAsset *file = AAssetManager_open(assetManager, apath.toCString(), AASSET_MODE_BUFFER);
+	AAsset *file = AAssetManager_open(assetManager, apath.begin(), AASSET_MODE_BUFFER);
 	if (file != nullptr) AAsset_close(file);
 	return file != nullptr;
 }
@@ -71,7 +71,7 @@ bool FileManager::mkdir(String path) const {
 
 	path = getAbsolutePath(path);
 
-	std::vector<String> split = path.split("/");
+	Array<String> split = path.split("/");
 	String current;
 
 	for (String &s : split) {
@@ -80,7 +80,7 @@ bool FileManager::mkdir(String path) const {
 		else if (current == "/") current = current + s;
 		else current = current + "/" + s;
 
-		if (current != "" && ::mkdir(current.toCString(), ACCESSPERMS) < 0) {
+		if (current != "" && ::mkdir(current.begin(), ACCESSPERMS) < 0) {
 
 			String err = strerror(errno);
 			if (err == "File exists") continue;
@@ -97,7 +97,7 @@ void resizeType(String &s, u32 len) { s = String(len, '\0'); }
 void resizeType(Buffer &b, u32 len) { b = Buffer(len); }
 
 void *addrType(Buffer b) { return b.addr(); }
-void *addrType(String &s) { return (void*) s.toCString(); }
+void *addrType(String &s) { return (void*) s.begin(); }
 
 template<typename T>
 bool read(String path, T &t, void *param, const FileManager *fm) {
@@ -110,7 +110,7 @@ bool read(String path, T &t, void *param, const FileManager *fm) {
 
 		AAssetManager *assetManager = ((android_app*)param)->activity->assetManager;
 
-		AAsset *file = AAssetManager_open(assetManager, apath.toCString(), AASSET_MODE_BUFFER);
+		AAsset *file = AAssetManager_open(assetManager, apath.begin(), AASSET_MODE_BUFFER);
 
 		if (file == nullptr)
 			return Log::error(String("Couldn't read from file ") + path);
@@ -124,7 +124,7 @@ bool read(String path, T &t, void *param, const FileManager *fm) {
 
 	}
 
-	FILE *file = fopen(apath.toCString(), "r");
+	FILE *file = fopen(apath.begin(), "r");
 
 	if (file == nullptr)
 		return Log::error(String("Couldn't read from file ") + path);
@@ -150,7 +150,7 @@ bool write(String path, T &t, const FileManager *fm) {
 	if (!fm->mkdir(path.getPath()))
 		return Log::error("Couldn't mkdir");
 
-	FILE *file = fopen(apath.toCString(), "w");
+	FILE *file = fopen(apath.begin(), "w");
 
 	if (file == nullptr) {
 		Log::error(strerror(errno));
@@ -178,7 +178,7 @@ bool FileManager::foreachFile(String path, FileCallback callback) const {
 
 	if (path.startsWith("out")) {
 
-		DIR *dir = opendir(apath.toCString());
+		DIR *dir = opendir(apath.begin());
 		struct dirent *subdir;
 
 		while ((subdir = readdir(dir)) != NULL) {
@@ -195,7 +195,7 @@ bool FileManager::foreachFile(String path, FileCallback callback) const {
 			bool isDir = subdir->d_type == DT_DIR;
 
 			struct stat attr;
-			stat(getAbsolutePath(filePath).toCString(), &attr);
+			stat(getAbsolutePath(filePath).begin(), &attr);
 
 			u64 fileSize = isDir ? 0 : (u64) attr.st_size;
 
@@ -212,7 +212,7 @@ bool FileManager::foreachFile(String path, FileCallback callback) const {
 	}
 
 	AAssetManager *assetManager = ((android_app*)param)->activity->assetManager;
-	AAssetDir *dir = AAssetManager_openDir(assetManager, path.toCString());
+	AAssetDir *dir = AAssetManager_openDir(assetManager, path.begin());
 
 	const char *name = nullptr;
 
@@ -223,7 +223,7 @@ bool FileManager::foreachFile(String path, FileCallback callback) const {
 		String filePath = apath + "/" + name;
 
 		AAssetManager *assetManager = ((android_app*)param)->activity->assetManager;
-		AAsset *asset = AAssetManager_open(assetManager, filePath.toCString(), AASSET_MODE_STREAMING);
+		AAsset *asset = AAssetManager_open(assetManager, filePath.begin(), AASSET_MODE_STREAMING);
 
 		bool isFolder = asset == nullptr;
 
@@ -261,7 +261,7 @@ FileInfo FileManager::getFile(String path) const {
 
 		if (!isFolder) {
 			AAssetManager *assetManager = ((android_app*)param)->activity->assetManager;
-			AAsset *asset = AAssetManager_open(assetManager, path.toCString(), AASSET_MODE_STREAMING);
+			AAsset *asset = AAssetManager_open(assetManager, path.begin(), AASSET_MODE_STREAMING);
 			size = AAsset_getLength64(asset);
 			AAsset_close(asset);
 		}
@@ -270,7 +270,7 @@ FileInfo FileManager::getFile(String path) const {
 	}
 
 	struct stat attr;
-	stat(apath.toCString(), &attr);
+	stat(apath.begin(), &attr);
 
 	return FileInfo(isFolder, path, attr.st_mtime, attr.st_size);
 

@@ -34,9 +34,9 @@ namespace oi {
 		String toBinary() const;
 
 		void setBits(u32 bitoff, u32 bits, u32 value);
-		u32 getBits(u32 bitoff, u32 bits);
+		u32 getBits(u32 bitoff, u32 bits) const;
 		void setBit(u32 bitoff, bool value);
-		bool getBit(u32 bitoff);
+		bool getBit(u32 bitoff) const;
 
 		Buffer operator+(u32 off) const;
 		Buffer subbuffer(u32 offset, u32 length) const;
