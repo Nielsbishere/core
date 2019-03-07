@@ -14,10 +14,13 @@
 		"Volume_up key",
 		"Two key"
 	  ],
-	  "Rotate":[
-		"Left mouse",
-		"R3 key #0"
-	  ]
+    "Rotate": [
+      "Left mouse",
+      "R3 key #0"
+    ],
+    "Pause": [
+      "V key"
+    ]
    },
    "axes":{  
       "Move":[  

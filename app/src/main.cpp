@@ -477,7 +477,10 @@ void MainInterface::update(f32 dt) {
 
 	//Update planet rotation
 
-	planetRotation += Vec3(18, 30) * dt;
+	if (getInputManager().isPressed("Pause"))
+		spin = !spin;
+
+	planetRotation += Vec3(18, 30) * dt * spin;
 
 	nodes[1].lRotation = nodes[2].lRotation = Quat::rotate(planetRotation);
 	deferredPipeline->setData("NodeSystem", Buffer::construct((u8*)nodes, u32(sizeof(nodes))));

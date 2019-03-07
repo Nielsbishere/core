@@ -1866,6 +1866,28 @@ The second usage of findNodes is more complicated; it is variadic. This means th
 myFileNode->findNodes("Imaginary/Doesnt/Exist", { 1, 2, 3 }, String("Hello"), 32, true);
 ```
 
+Since nodes are the foundation of Fbx, we added a tool to filter out nodes that you don't know the name of. An example to use this is when you have multiple nodes, but you only want to get the ones that have the child you're looking for:
+
+```cpp
+myFileNode->findNodes("Imaginary/*/Exist")
+```
+
+If we have three nodes in Imaginary (Doesnt, MaybeDoes and Does), of which MaybeDoes doesn't have the Exist child, then it would filter out MaybeDoes. 
+
+Another thing you could do is filter on children it has;
+
+```cpp
+myFileNode->findNodes("Imaginary/*:Exist")
+```
+
+The example above is the same as below, except that it doesn't give you the "Exist" nodes, but their parent. You can also use commas in the secondary expression:
+
+```cpp
+myFileNode->findNodes("Objects/Model:Vertices,PolygonVertexIndex")
+```
+
+This will give you all models that have vertices and indices (**only with Fbx format 6200!**). It only supports *direct children*.
+
 ### FbxProperty
 
 An FbxProperty has virtual functions for reading, cloning and getting the type id of what the property represents. Before you can use a property, you have to cast it to the appropriate version (`.cast<T>`).

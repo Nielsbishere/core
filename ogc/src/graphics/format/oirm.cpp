@@ -690,7 +690,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 						++opOff;
 						++i00;
 						test += 3;
-						totalInd += 3;
+						++totalInd;
 
 					}
 
@@ -705,6 +705,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 					++opOff;
 					++i10;
 					test += 3;
+					++totalInd;
 				}
 
 				if (i01 == 0 && i10 == 0 && i11 == 0) {		//Operations don't have any effect; so don't use them

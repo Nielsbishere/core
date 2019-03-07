@@ -127,8 +127,50 @@ void FbxNode::findNodes(String path, const FbxNodes &loc, FbxNodes &target) {
 	String term = path.untilFirst("/");
 	String child = path.fromFirst("/");
 
+	Array<size_t> childs = term.find(":");
+	Array<String> children;
+
+	size_t s = String::nowhere, i = 0;
+
+	while (i < childs.size()) {
+		s = childs[i];
+
+		if (s == 0 || term[s - 1] != '\\') {
+
+			if (i != childs.size())
+				children = term.cutBegin(s + 1).split(",");
+
+			term = term.cutEnd(s);
+			break;
+		}
+
+		++i;
+	}
+
 	for(FbxNode *node : loc)
-		if (node->getName() == term) {
+		if (node->getName() == term || term == "*") {
+
+			bool valid = true;
+
+			for (String &str : children) {
+
+				bool contains = false;
+
+				for (FbxNode *child : node->childs)
+					if (child->getName().contains(str)) {
+						contains = true;
+						break;
+					}
+
+				if (!contains) {
+					valid = false;
+					break;
+				}
+			}
+
+			if (!valid)
+				continue;
+
 			if (child != "")
 				findNodes(child, node->getChildArray(), target);
 			else
@@ -161,14 +203,15 @@ FbxFile &FbxFile::operator=(const FbxFile &other) { copy(other); return *this; }
 FbxNodes FbxFile::findMeshes() { return get()->findNodes("Objects/Model", { 2 }, String("Mesh")); }
 FbxNodes FbxFile::findLights() { return get()->findNodes("Objects/Model", { 2 }, String("Light")); }
 FbxNodes FbxFile::findCameras() { return get()->findNodes("Objects/Model", { 2 }, String("Camera")); }
-FbxNodes FbxFile::findGeometry() { return get()->findNodes("Objects/Geometry"); }
+FbxNodes FbxFile::findGeometry() { return header.getVersion() <= 6200 ? get()->findNodes("Objects/Model:Vertices") : get()->findNodes("Objects/Geometry"); }
+FbxNodes FbxFile::findMaterials() { return get()->findNodes("Objects/Material"); }
 FbxFile::FbxFile(FbxHeader header, FbxNodes nodes) : header(header), root(new FbxNode(nodes)) {}
 
 u32 FbxNode::getChildren() { return (u32) childs.size(); }
 FbxNode *FbxNode::getChild(u32 i) { return i >= getChildren() ? nullptr : childs[i]; }
 u32 FbxNode::getProperties(){ return (u32) properties.size(); }
 FbxProperty *FbxNode::getProperty(u32 i) { return i >= getProperties() ? nullptr : properties[i]; }
-String FbxNode::getName() { return name; }
+const String &FbxNode::getName() const { return name; }
 
 FbxProperties::iterator FbxNode::getPropertyBegin() { return properties.begin(); }
 FbxProperties::iterator FbxNode::getPropertyEnd() { return properties.end(); }
@@ -250,7 +293,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 	const char *zeroNe = "\0\x1";
 	String zerone = String(2, (char*)zeroNe);
 
-	FbxNodes materials = file->get()->findNodes("Objects/Material");
+	FbxNodes materials = file->findMaterials();
 
 	for (FbxNode *node : materials) {
 
@@ -316,37 +359,62 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 			goto failed;
 		}
 
-		FbxDoubleArray *pos = vertices[0]->getProperty(0)->cast<FbxDoubleArray>();
-		FbxIntArray *posOrder = vertexOrder[0]->getProperty(0)->cast<FbxIntArray>();
+		//TODO: Normals, uv, etc. can also be per-polygon instead of per vertex
 
-		if (pos == nullptr || posOrder == nullptr) {
-			lastError = String("The geometry object \"") + name + "\" has invalid positional data";
-			goto failed;
+		const bool useArray = file->getVersion() > 6200;
+		u32 indCount, vertCount;
+
+		//Vertex positions are only stored once, but referenced to by vertexOrder
+		Vec3d *vpos = nullptr;
+		i32 *ind = nullptr;
+
+		if (useArray) {
+
+			FbxDoubleArray *pos = vertices[0]->getProperty(0)->cast<FbxDoubleArray>();
+			FbxIntArray *posOrder = vertexOrder[0]->getProperty(0)->cast<FbxIntArray>();
+
+			if (pos == nullptr || posOrder == nullptr) {
+				lastError = String("The geometry object \"") + name + "\" has invalid positional data";
+				goto failed;
+			}
+
+			vpos = (Vec3d*)&pos->get();
+			vertCount = pos->size();
+			ind = (i32*)&posOrder->get();
+			indCount = posOrder->size();
+		}
+		else {
+			vertCount = vertices[0]->getProperties();
+			indCount = vertexOrder[0]->getProperties();
 		}
 
 		//required Vec3 pos; optional Vec2 uv; optional Vec3 normal;
 		u32 posuv = 3 + (uvs.size() != 0 ? 2 : 0);
 		u32 stride = posuv + (normals.size() != 0 ? 3 : 0);
-		u32 vertCount = posOrder->size();
-		std::vector<f32> buffer(vertCount * stride);
+		Array<f32> buffer(indCount * stride);
 
 		std::vector<Vec2u> faces;
 		u32 prev = 0, indices = 0;
 
-		//Vertex positions are only stored once, but referenced to by vertexOrder
-		Vec3d *vpos = (Vec3d*)&pos->get();
+		for (u32 i = 0; i < indCount; ++i) {
 
-		for (u32 i = 0; i < vertCount; ++i) {
+			i32 j = useArray ? ind[i] : vertexOrder[0]->getProperty(i)->get<FbxInt>();
 
-			i32 j = posOrder->get(i);
 			i32 k = j < 0 ? (-j - 1) : j;
 
-			if ((u32)k >= pos->size() / 3) {
+			if ((u32)k >= vertCount / 3) {
 				lastError = String("The geometry object \"") + name + "\" has invalid positional data";
 				goto failed;
 			}
 
-			*(Vec3*)(buffer.data() + i * stride) = ((Vec3(vpos[k]) * 1000).round() / 1000).fix();
+			Vec3 v = useArray ? Vec3(vpos[k]) : 
+				Vec3(
+					vertices[0]->get<FbxDouble>(k * 3),
+					vertices[0]->get<FbxDouble>(k * 3 + 1),
+					vertices[0]->get<FbxDouble>(k * 3 + 2)
+				);
+
+			*(Vec3*)(buffer.begin() + i * stride) = ((v * 1000).round() / 1000).fix();
 
 			if (j < 0) {
 				indices += (i - prev - 1) * 3;
@@ -371,17 +439,32 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 				goto failed;
 			}
 
-			FbxDoubleArray *normalp = normalDat[0]->getProperty(0)->cast<FbxDoubleArray>();
+			if (useArray) {
 
-			if (normalp == nullptr) {
-				lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal set";
-				goto failed;
+				FbxDoubleArray *normalp = normalDat[0]->getProperty(0)->cast<FbxDoubleArray>();
+
+				if (normalp == nullptr) {
+					lastError = String("The geometry object \"") + name + "\" doesn't have a valid normal set";
+					goto failed;
+				}
+
+				Vec3d *uvDat = (Vec3d*)normalp->getPtr();
+
+				for (u32 i = 0; i < normalp->size() / 3; ++i)
+					*(Vec3*)(buffer.begin() + i * stride + posuv) = ((Vec3(uvDat[i]) * 1000).round() / 1000).fix();
+
+			} else {
+
+				FbxNode *dat = normalDat[0];
+
+				for (u32 i = 0; i < dat->getProperties() / 3; ++i)
+					*(Vec3*)(buffer.begin() + i * stride + posuv) = ((
+						Vec3(
+							dat->get<FbxDouble>(i * 3),
+							dat->get<FbxDouble>(i * 3 + 1),
+							dat->get<FbxDouble>(i * 3 + 2)
+						) * 1000).round() / 1000).fix();
 			}
-
-			Vec3d *uvDat = (Vec3d*)normalp->getPtr();
-
-			for (u32 i = 0; i < normalp->size() / 3; ++i)
-				*(Vec3*)(buffer.data() + i * stride + posuv) = ((Vec3(uvDat[i]) * 1000).round() / 1000).fix();
 
 		}
 
@@ -402,40 +485,58 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 				goto failed;
 			}
 
-			FbxDoubleArray *uvData = uvDatn[0]->getProperty(0)->cast<FbxDoubleArray>();
+			if (useArray) {
 
-			if (uvData == nullptr) {
-				lastError = String("The geometry object \"") + name + "\" had an invalid UV set";
-				goto failed;
+				FbxDoubleArray *uvData = uvDatn[0]->getProperty(0)->cast<FbxDoubleArray>();
+
+				if (uvData == nullptr) {
+					lastError = String("The geometry object \"") + name + "\" had an invalid UV set";
+					goto failed;
+				}
+
+				Vec2d *uvDat = (Vec2d*)uvData->getPtr();
+
+				FbxIntArray *uvInd = uvIndn[0]->getProperty(0)->cast<FbxIntArray>();
+
+				if (uvInd == nullptr) {
+					lastError = String("The geometry object \"") + name + "\" had an invalid UVIndex array.";
+					goto failed;
+				}
+
+				for (u32 i = 0; i < uvInd->size(); ++i)
+					*(Vec2*)(buffer.begin() + i * stride + 3) = ((Vec2(uvDat[uvInd->get(i)]) * 1000).round() / 1000).fix();
+
 			}
+			else {
 
-			Vec2d *uvDat = (Vec2d*)uvData->getPtr();
+				FbxNode *uvDat = uvDatn[0];
+				FbxNode *uvInd = uvIndn[0];
 
-			FbxIntArray *uvInd = uvIndn[0]->getProperty(0)->cast<FbxIntArray>();
+				for (u32 i = 0; i < uvInd->getProperties(); ++i)
+					*(Vec2*)(buffer.begin() + i * stride + 3) = ((
+						Vec2(
+							uvDat->get<FbxDouble>(uvInd->get<FbxInt>(i) * 2),
+							uvDat->get<FbxDouble>(uvInd->get<FbxInt>(i) * 2 + 1)
+						) * 1000).round() / 1000).fix();
 
-			if (uvInd == nullptr) {
-				lastError = String("The geometry object \"") + name + "\" had an invalid UVIndex array.";
-				goto failed;
+
 			}
-
-			for (u32 i = 0; i < uvInd->size(); ++i)
-				*(Vec2*)(buffer.data() + i * stride + 3) = ((Vec2(uvDat[uvInd->get(i)]) * 1000).round() / 1000).fix();
 
 		}
 
-		u32 ind = 0;
-		std::vector<u32> index(indices);
+		u32 indx = 0;
+		Array<u32> index(indices);
 
 		for (Vec2u face : faces) {
 			for (u32 x = 1; x < face.y - face.x; ++x) {
-				*(Vec3u*)(index.data() + ind) = { face.x + x + 1, face.x + x, face.x };
-				ind += 3;
+				*(Vec3u*)(index.begin() + indx) = { face.x + x + 1, face.x + x, face.x };
+				indx += 3;
 			}
 		}
 
 		/*t.print();*/
 
-		RMFile rfile = oiRM::generate(Buffer::construct((u8*) buffer.data(), vertCount * stride * 4), Buffer::construct((u8*)index.data(), indices * 4), true, uvs.size() != 0, normals.size() != 0, vertCount, indices);
+		RMFile rfile = oiRM::generate(Buffer::construct((u8*) buffer.begin(), buffer.dataSize()), Buffer::construct((u8*)index.begin(), index.dataSize()), true, uvs.size() != 0, normals.size() != 0, buffer.size() / 8, indices);
 		Buffer obuf = oiRM::write(rfile, compression);
 
 		if (obuf.size() == 0) {

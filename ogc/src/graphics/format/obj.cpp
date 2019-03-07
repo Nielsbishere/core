@@ -41,7 +41,7 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 	for (u32 i = 0; i < (u32)objects.size(); ++i) {
 
 		TVec<size_t, 2> object = objects[i];
-		String s = str.substring(object.x, object.y);
+		String s = str.substring(object.x + 1, object.y);
 
 		Array<TVec<size_t, 2>> lines = s.find("\n", "\n");
 
@@ -59,7 +59,7 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 
 		for (u32 j = 0; j < lineCount; ++j) {
 
-			String line = s.substring(lines[j].x, lines[j].y);
+			String line = s.substring(lines[j].x + 1, lines[j].y);
 
 			if (!line.contains(' '))
 				continue;
@@ -155,6 +155,8 @@ Buffer Obj::convert(Buffer objBuffer, bool compression) {
 
 	t.stop();
 	t.print();
+
+	//TODO: Fix obj
 
 	RMFile file = oiRM::generate(Buffer::construct((u8*) avertices, vertexCount * stride * 4), Buffer::construct((u8*) indices.data(), (u32) indices.size() * 4), hasPos, hasUv, hasNrm, vertexCount, (u32) indices.size());
 	return oiRM::write(file, compression);

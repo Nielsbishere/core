@@ -114,6 +114,7 @@ namespace oi {
 
 	//!CopyBuffer copies around the buffer with the object
 	//Useful for arrays of different sizes for example
+	//TODO: CopyBuffer should be Array<u8>
 	class CopyBuffer : public Buffer {
 
 	public:

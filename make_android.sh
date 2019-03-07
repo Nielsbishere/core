@@ -168,22 +168,22 @@ else
 	cmakeParams=-DCMAKE_BUILD_TYPE=Debug
 fi
 
+if [ $shcmp ] ; then
+	cmakeParams="-Dshader_compilation=ON $cmakeParams"
+else
+	cmakeParams="-Dshader_compilation=OFF $cmakeParams"
+fi
+
+if [ $enoib ] ; then
+	cmakeParams="-Denable_oibaker=ON $cmakeParams"
+else
+	cmakeParams="-Denable_oibaker=OFF $cmakeParams"
+fi
+
 if ! [ $jobs ] ; then
 	params="-j"
 else
 	params="-j$jobs"
-fi
-
-if [ $shcmp ] ; then
-	params="-Dshader_compilation=ON $params"
-else
-	params="-Dshader_compilation=OFF $params"
-fi
-
-if [ $enoib ] ; then
-	params="-Denable_oibaker=ON $params"
-else
-	params="-Denable_oibaker=OFF $params"
 fi
 
 if [ $rebuild ] ; then

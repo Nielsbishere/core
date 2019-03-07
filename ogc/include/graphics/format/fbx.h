@@ -258,6 +258,9 @@ namespace oi {
 			template<typename T>
 			T *cast();
 
+			template<typename T>
+			auto &get(u32 i = 0);
+
 		};
 
 		typedef std::vector<FbxProperty*> FbxProperties;
@@ -383,6 +386,11 @@ namespace oi {
 
 		}
 
+		template<typename T>
+		auto &FbxProperty::get(u32 i) {
+			return cast<T>()->get(i);
+		}
+
 		//Allocate a type from a type code (non-last recursion)
 		template<typename T, typename ...args>
 		struct TFbxTypeAlloc {
@@ -479,11 +487,17 @@ namespace oi {
 			u32 getProperties();
 			FbxProperty *getProperty(u32 i);
 
+			template<typename T>
+			auto &get(u32 i, u32 j = 0);
+
+			template<typename T>
+			T *getProperty(u32 i);
+
 			FbxProperties::iterator getPropertyBegin();
 			FbxProperties::iterator getPropertyEnd();
 			const FbxProperties &getPropertyArray();
 
-			String getName();
+			const String& getName() const;
 
 			//Path works just like file paths, but there can be nodes with the same path
 			//Objects/Model is the path for all object data
@@ -528,6 +542,16 @@ namespace oi {
 			FbxNodes childs;
 
 		};
+
+		template<typename T>
+		auto &FbxNode::get(u32 i, u32 j) {
+			return getProperty(i)->get<T>(j);
+		}
+
+		template<typename T>
+		T *FbxNode::getProperty(u32 i) {
+			return getProperty(i)->cast<T>();
+		}
 
 		//Check if the property value matches (non-last recursion)
 		template<typename T, typename ...args>
@@ -661,6 +685,7 @@ namespace oi {
 			FbxNodes findLights();
 			FbxNodes findCameras();
 			FbxNodes findGeometry();
+			FbxNodes findMaterials();
 
 			FbxFile(const FbxFile &other);
 			FbxFile &operator=(const FbxFile &other);

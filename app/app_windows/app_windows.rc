@@ -12,8 +12,4 @@ res/shaders/simple.graphics.oiSH               RCDATA               "../../res/s
 res/textures/osomi.png               RCDATA               "../../res/textures/osomi.png"
 res/textures/rock_dif.png               RCDATA               "../../res/textures/rock_dif.png"
 res/textures/water_dif.png               RCDATA               "../../res/textures/water_dif.png"
-res/textures/water_hgm.png               RCDATA               "../../res/textures/water_hgm.png"
-res/textures/water_met.png               RCDATA               "../../res/textures/water_met.png"
-res/textures/water_nrm.png               RCDATA               "../../res/textures/water_nrm.png"
-res/textures/water_rgn.png               RCDATA               "../../res/textures/water_rgn.png"
 LOGO               ICON               "res/app_windows.ico"

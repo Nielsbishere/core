@@ -89,7 +89,7 @@ private:
 	oi::gc::MaterialRef water, rock;
 	oi::gc::TextureRef twater, trock;
 
-	float exposure = .15f, gamma = .85f, camSpeed = 0.5f;
+	float exposure = .15f, gamma = .85f, camSpeed = 0.5f, spin = 1;
 
 	oi::Vec3 planetRotation;
 
