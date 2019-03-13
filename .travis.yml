@@ -21,7 +21,7 @@ install:
   - sudo pip install cmake --upgrade
   - sudo apt-get install ant
   - export PATH="${PATH}:$HOME/build/Oxsomi/core/cmake/bin"
-  - curl -C https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip --output android_ndk.zip
+  - curl https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip --output android_ndk.zip
   - unzip -q android_ndk.zip -d ./
   - mv android-ndk-r18b ndk
   - export ANDROID_NDK=$HOME/build/Oxsomi/core/ndk
