@@ -12,42 +12,59 @@ file(GLOB_RECURSE vkogc_SRC
 	"src/*.cpp"
 )
 
-add_library(
-	vkogc STATIC
-	${vkogc_SRC}
-)
+if(Android)
+
+	file(GLOB_RECURSE platforms_SRC
+		"platforms/src/android/*.c"
+		"platforms/src/android/*.cpp"
+	)
+
+	add_library(
+		vkogc STATIC
+		${vkogc_SRC}
+		${platforms_SRC}
+	)
+
+else()
+
+	file(GLOB_RECURSE platforms_SRC
+		"platforms/src/windows/*.c"
+		"platforms/src/windows/*.cpp"
+	)
+
+	add_library(
+		vkogc STATIC
+		${vkogc_SRC}
+		${platforms_SRC}
+	)
+endif()
 
 target_link_libraries(vkogc ostlc owc ogc)
 
-if(Vulkan)
+if(Windows)
+	if(DEFINED ENV{VULKAN_SDK})
 
-	if(WIN32)
-		if(DEFINED ENV{VULKAN_SDK})
+		set(VULKAN_LIB vulkan-1)
+		
+		include_directories(vkogc PUBLIC $ENV{VULKAN_SDK}/Include)
 
-			set(VULKAN_LIB vulkan-1)
-			
-			include_directories(vkogc PUBLIC $ENV{VULKAN_SDK}/Include)
-
-			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-				target_link_directories(vkogc PUBLIC $ENV{VULKAN_SDK}/Lib)
-			else()
-				target_link_directories(vkogc PUBLIC $ENV{VULKAN_SDK}/Lib32)
-			endif()
-
+		if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+			target_link_directories(vkogc PUBLIC $ENV{VULKAN_SDK}/Lib)
 		else()
-			message(FATAL_ERROR "-- Vulkan - disabled: Please download the Vulkan SDK so you can compile")
+			target_link_directories(vkogc PUBLIC $ENV{VULKAN_SDK}/Lib32)
 		endif()
-	else()
-		set(VULKAN_LIB vulkan)
-	endif()
 
-	if(Windows)
-		add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_win32_surface")
-		add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
-	elseif(Android)
-		add_definitions(-D__VK_SURFACE_EXT__="VK_KHR_android_surface")
-		add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
+	else()
+		message(FATAL_ERROR "-- Vulkan - disabled: Please download the Vulkan SDK so you can compile")
 	endif()
-	
-	target_link_libraries(vkogc ${VULKAN_LIB})
+else()
+	set(VULKAN_LIB vulkan)
 endif()
+
+if(Windows)
+	add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
+elseif(Android)
+	add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
+endif()
+
+target_link_libraries(vkogc ${VULKAN_LIB})

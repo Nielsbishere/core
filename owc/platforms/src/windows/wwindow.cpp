@@ -1,5 +1,3 @@
-#ifdef __WINDOWS__
-
 #include "window/windowinterface.h"
 #include "window/windowmanager.h"
 #include "input/mouse.h"
@@ -296,5 +294,3 @@ void Window::updatePlatform() {
 
 	info.pending = WindowAction::NONE;
 }
-
-#endif

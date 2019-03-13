@@ -1,5 +1,3 @@
-#ifdef __WINDOWS__
-
 #include "input/inputhandler.h"
 #include "input/keyboard.h"
 #include "input/mouse.h"
@@ -19,5 +17,3 @@ void InputHandler::init() {
 		devices[(InputDeviceBinding)((u32) InputDeviceBinding::CONTROLLER0 + i)] = new Controller(i);
 
 }
-
-#endif

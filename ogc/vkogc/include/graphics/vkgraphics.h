@@ -72,6 +72,12 @@ namespace oi {
 			void dealloc(GPUBufferExt &ext, String name);
 			void dealloc(TextureExt &ext, String name);
 
+			void getDebugInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions);
+			void getPlatformInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions);
+			void getInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions);
+
+			void initializePlatform();
+
 		};
 
 	}

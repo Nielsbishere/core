@@ -81,6 +81,18 @@ Graphics::~Graphics(){
 	
 }
 
+void GraphicsExt::getInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions) {
+
+	#ifdef __DEBUG__
+		getDebugInstanceParams(layers, extensions);
+	#endif
+
+	getPlatformInstanceParams(layers, extensions);
+
+	extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+}
+
 void Graphics::init(Window *w){
 
 	this->buffering = 3;				//Assume triple buffering
@@ -119,24 +131,8 @@ void Graphics::init(Window *w){
 	
 	const u32 majorVersion = 1, minorVersion = 0, patchVersion = 0;					///Vulkan version
 	
-	std::vector<const char*> clayers, cextensions = std::vector<const char*>(2);	///Instance layers and extensions
-	cextensions[0] = "VK_KHR_surface";
-	cextensions[1] = __VK_SURFACE_EXT__;
-
-	#ifdef __DEBUG__
-
-		#ifdef __ANDROID__
-			clayers = { "VK_LAYER_GOOGLE_threading", "VK_LAYER_LUNARG_parameter_validation", "VK_LAYER_LUNARG_object_tracker",
-					"VK_LAYER_LUNARG_core_validation", "VK_LAYER_GOOGLE_unique_objects" };
-		#else 
-			clayers.push_back("VK_LAYER_LUNARG_standard_validation");
-			cextensions.push_back("VK_EXT_debug_utils");
-		#endif
-
-		cextensions.push_back("VK_EXT_debug_report");
-	#endif
-
-	cextensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+	std::vector<const char*> clayers, cextensions;	///Instance layers and extensions
+	ext->getInstanceParams(clayers, cextensions);
 
 	//Validate instance extensions & layers
 
@@ -420,13 +416,7 @@ void Graphics::init(Window *w){
 	Log::println("Successfully created device");
 	delete[] families;
 
-	#if defined(__DEBUG__) && defined(__WINDOWS__)
-
-		//Debug object names
-
-		ext->debugNames = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(ext->device, "vkSetDebugUtilsObjectNameEXT");
-
-	#endif
+	ext->initializePlatform();
 
 	vkName(*ext, ext->instance, VK_OBJECT_TYPE_INSTANCE, "Vulkan instance");
 	vkName(*ext, ext->device, VK_OBJECT_TYPE_DEVICE, "Vulkan device");

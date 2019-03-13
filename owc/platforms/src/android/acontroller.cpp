@@ -1,5 +1,3 @@
-#ifdef __ANDROID__
-
 #include "input/controller.h"
 #include "window/windowinterface.h"
 #include "window/window.h"
@@ -22,5 +20,3 @@ void Controller::update(Window *w, f32 dt) {
 void Controller::vibrate(Vec2 amount, f32 time) {
 	Log::warn("Controller::vibrate isn't supported on Android");
 }
-
-#endif

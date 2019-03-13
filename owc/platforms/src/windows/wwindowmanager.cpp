@@ -1,5 +1,3 @@
-#ifdef __WINDOWS__
-
 #include "window/windowmanager.h"
 #include "windows/windows.h"
 using namespace oi::wc;
@@ -21,6 +19,3 @@ void WindowManager::waitAll() {
 	}
 
 }
-
-
-#endif

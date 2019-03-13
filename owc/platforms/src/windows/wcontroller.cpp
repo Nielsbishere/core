@@ -1,5 +1,3 @@
-#ifdef __WINDOWS__
-
 #include "input/controller.h"
 #include "window/windowinterface.h"
 #include "window/window.h"
@@ -103,5 +101,3 @@ void Controller::vibrate(Vec2 amount, f32 time) {
 	setVibration(getId(), amount);
 	vibrationTime = time;
 }
-
-#endif

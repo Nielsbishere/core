@@ -1,5 +1,3 @@
-#ifdef __WINDOWS__
-
 #include "utils/log.h"
 #include <Windows.h>
 using namespace oi;
@@ -14,5 +12,3 @@ void printerr(String str){
 }
 
 LogCallback Log::errorc = printerr, Log::warningc = printstr, Log::printc = printstr;
-
-#endif

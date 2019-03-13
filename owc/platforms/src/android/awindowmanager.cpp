@@ -1,5 +1,3 @@
-#ifdef __ANDROID__
-
 #include "android/android.h"
 #include "window/windowmanager.h"
 using namespace oi::wc;
@@ -37,6 +35,3 @@ void WindowManager::waitAll() {
 	}
 
 }
-
-
-#endif

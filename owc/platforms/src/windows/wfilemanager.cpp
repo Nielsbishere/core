@@ -1,5 +1,3 @@
-#ifdef __WINDOWS__
-
 #include <fstream>
 #include <algorithm>
 #include "types/string.h"
@@ -308,5 +306,3 @@ FileInfo FileManager::getFile(String path) const {
 	return FileInfo(isFolder, path, attr.st_mtime, attr.st_size);
 
 }
-
-#endif

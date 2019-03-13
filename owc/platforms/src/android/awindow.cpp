@@ -1,5 +1,3 @@
-#ifdef __ANDROID__
-
 #include "android/android.h"
 #include "window/windowinterface.h"
 #include "window/windowmanager.h"
@@ -277,5 +275,3 @@ void Window::updatePlatform() {
 	if (isSet(info.pending, WindowAction::IN_FOCUS))
 		Log::warn("setFocus action is not supported on Android");
 }
-
-#endif

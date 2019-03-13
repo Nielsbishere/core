@@ -1,5 +1,3 @@
-#ifdef __ANDROID__
-
 #include <android/asset_manager.h>
 #include <sys/stat.h>
 #include <cstring>
@@ -275,5 +273,3 @@ FileInfo FileManager::getFile(String path) const {
 	return FileInfo(isFolder, path, attr.st_mtime, attr.st_size);
 
 }
-
-#endif
