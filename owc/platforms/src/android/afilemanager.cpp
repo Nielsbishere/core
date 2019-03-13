@@ -8,7 +8,7 @@
 #include "types/string.h"
 #include "types/buffer.h"
 #include "utils/log.h"
-#include "platforms/android.h"
+#include "android/android.h"
 #include "file/filemanager.h"
 #include <sys/types.h>
 #include <unistd.h>

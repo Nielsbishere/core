@@ -1,6 +1,6 @@
 #ifdef __ANDROID__
 
-#include "platforms/android.h"
+#include "android/android.h"
 #include "window/windowinterface.h"
 #include "window/windowmanager.h"
 #include "input/mouse.h"

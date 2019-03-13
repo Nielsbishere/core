@@ -127,18 +127,18 @@ void FbxNode::findNodes(String path, const FbxNodes &loc, FbxNodes &target) {
 	String term = path.untilFirst("/");
 	String child = path.fromFirst("/");
 
-	Array<size_t> childs = term.find(":");
-	Array<String> children;
+	Array<size_t> pathChilds = term.find(":");
+	Array<String> pathChildren;
 
 	size_t s = String::nowhere, i = 0;
 
-	while (i < childs.size()) {
-		s = childs[i];
+	while (i < pathChilds.size()) {
+		s = pathChilds[i];
 
 		if (s == 0 || term[s - 1] != '\\') {
 
-			if (i != childs.size())
-				children = term.cutBegin(s + 1).split(",");
+			if (i != pathChilds.size())
+				pathChildren = term.cutBegin(s + 1).split(",");
 
 			term = term.cutEnd(s);
 			break;
@@ -152,12 +152,12 @@ void FbxNode::findNodes(String path, const FbxNodes &loc, FbxNodes &target) {
 
 			bool valid = true;
 
-			for (String &str : children) {
+			for (String &str : pathChildren) {
 
 				bool contains = false;
 
-				for (FbxNode *child : node->childs)
-					if (child->getName().contains(str)) {
+				for (FbxNode *c : node->childs)
+					if (c->getName().contains(str)) {
 						contains = true;
 						break;
 					}
@@ -536,7 +536,7 @@ std::unordered_map<String, Buffer> Fbx::convertMeshes(Buffer buf, bool compressi
 
 		/*t.print();*/
 
-		RMFile rfile = oiRM::generate(Buffer::construct((u8*) buffer.begin(), buffer.dataSize()), Buffer::construct((u8*)index.begin(), index.dataSize()), true, uvs.size() != 0, normals.size() != 0, buffer.size() / 8, indices);
+		RMFile rfile = oiRM::generate(Buffer::construct((u8*) buffer.begin(), (u32) buffer.dataSize()), Buffer::construct((u8*)index.begin(), (u32) index.dataSize()), true, uvs.size() != 0, normals.size() != 0, (u32) buffer.size() / 8, indices);
 		Buffer obuf = oiRM::write(rfile, compression);
 
 		if (obuf.size() == 0) {

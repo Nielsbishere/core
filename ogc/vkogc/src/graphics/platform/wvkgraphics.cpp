@@ -2,7 +2,7 @@
 #include "window/window.h"
 #include "graphics/vulkan.h"
 #include "graphics/graphics.h"
-#include "platforms/windows.h"
+#include "windows/windows.h"
 using namespace oi::gc;
 using namespace oi::wc;
 using namespace oi;

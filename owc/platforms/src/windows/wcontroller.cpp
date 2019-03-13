@@ -3,7 +3,7 @@
 #include "input/controller.h"
 #include "window/windowinterface.h"
 #include "window/window.h"
-#include "platforms/windows.h"
+#include "windows/windows.h"
 using namespace oi::wc;
 using namespace oi;
 

@@ -9,13 +9,38 @@ file(GLOB_RECURSE ostlc_SRC
 	"src/*.cpp"
 )
 
-add_library(
-	ostlc STATIC
-	${ostlc_SRC}
-)
+if(Android)
+
+	file(GLOB_RECURSE platforms_SRC
+		"platforms/android/include/*.h"
+		"platforms/android/src/*.c"
+		"platforms/android/include/*.hpp"
+		"platforms/android/src/*.cpp"
+	)
+
+	add_library(
+		ostlc STATIC
+		${ostlc_SRC}
+		${platforms_SRC}
+	)
+
+	target_link_libraries(ostlc android log)
+	
+else()
+
+	file(GLOB_RECURSE platforms_SRC
+		"platforms/windows/include/*.h"
+		"platforms/windows/src/*.c"
+		"platforms/windows/include/*.hpp"
+		"platforms/windows/src/*.cpp"
+	)
+
+	add_library(
+		ostlc STATIC
+		${ostlc_SRC}
+		${platforms_SRC}
+	)
+	
+endif()
 
 target_link_libraries(ostlc zlib)
-
-if(Android)
-	target_link_libraries(ostlc android log)
-endif()

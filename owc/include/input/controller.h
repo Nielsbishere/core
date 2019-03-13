@@ -1,6 +1,5 @@
 #pragma once
 
-#include "platforms/generic.h"
 #include "inputdevice.h"
 #include "types/vector.h"
 #include "types/bitset.h"
@@ -8,6 +7,8 @@
 namespace oi {
 
 	namespace wc {
+
+		struct WindowsExt;
 
 		class Controller : public InputDevice {
 			

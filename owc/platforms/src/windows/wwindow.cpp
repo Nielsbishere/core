@@ -4,7 +4,7 @@
 #include "window/windowmanager.h"
 #include "input/mouse.h"
 #include "input/keyboard.h"
-#include "platforms/windows.h"
+#include "windows/windows.h"
 using namespace oi::wc;
 using namespace oi;
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "windowinfo.h"
 #include "input/inputmanager.h"
-#include "platforms/generic.h"
 
 namespace oi {
 
@@ -9,6 +8,7 @@ namespace oi {
 
 		class WindowInterface;
 		class WindowManager;
+		struct WindowExt;
 
 		class Window {
 

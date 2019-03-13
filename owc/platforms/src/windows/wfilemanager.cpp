@@ -6,7 +6,7 @@
 #include "types/buffer.h"
 #include "utils/log.h"
 #include "file/filemanager.h"
-#include "platforms/windows.h"
+#include "windows/windows.h"
 using namespace oi::wc;
 using namespace oi;
 

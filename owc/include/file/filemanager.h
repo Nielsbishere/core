@@ -1,6 +1,5 @@
 #pragma once
 #include "types/string.h"
-#include "platforms/generic.h"
 #include <functional>
 
 namespace oi {
@@ -42,6 +41,8 @@ namespace oi {
 				return name == other.name && dirId == other.dirId;
 			}
 		};
+
+		struct AppExt;
 
 		//File reading:
 		//resources (read only): res/

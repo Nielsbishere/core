@@ -2,13 +2,14 @@
 #include "types/string.h"
 #include "types/vector.h"
 #include "windowaction.h"
-#include "platforms/generic.h"
 
 namespace oi {
 
 	namespace wc {
 
 		class Window;
+		struct WindowExt;
+		struct AppExt;
 
 		class WindowInfo {
 

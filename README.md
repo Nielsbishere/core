@@ -25,6 +25,20 @@ Or for already cloned repos:
 git submodule update --init --recursive 
 ```
 
+## Submodules
+
+| Name          | Project | Usage                         | Enable                             |
+| ------------- | ------- | ----------------------------- | ---------------------------------- |
+| rapidjson     | ostlc   | oi::JSON                      | Yes                                |
+| zlib          |         | oi::Buffer (compression)      |                                    |
+| stb(i)        | ogc     | oi::Texture (read/write disk) |                                    |
+| glslang       |         | oi::oiSH (shader compilation) | Only with -shader_compilation flag |
+| SPIRV-Cross   |         |                               |                                    |
+| SPIRV-Headers |         |                               |                                    |
+| SPIRV-Tools   |         |                               |                                    |
+
+These submodules are built-in into the ocore modules and don't have to be linked by the end-user. All ocore modules can be included and linked to if they are already built. The abstractions provide a way to access the libraries without using them directly; allowing us to swap them out in the future, if necessary.
+
 # Dependencies
 
 The following dependencies are required for the entire project:
@@ -85,6 +99,7 @@ This will generate a folder; builds/Windows/build, which includes the x86 and x6
 Android [SDK](https://developer.android.com/studio/install) & [NDK](https://developer.android.com/ndk/)  
 Java  
 [Enable developer mode and USB debugging](https://android.gadgethacks.com/how-to/android-basics-enable-developer-options-usb-debugging-0161948/)
+Android device (API Level >=24, Android Nougat 7.0) with Vulkan capabilities, supported by approx 50% of the Android market at *October 26, 2018*.
 
 ### Environment variables
 

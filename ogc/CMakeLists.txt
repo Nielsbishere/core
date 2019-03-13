@@ -1,5 +1,6 @@
 ﻿include_directories(../ostlc/include)
 include_directories(../owc/include)
+include_directories(../owc/platforms/include)
 include_directories(deps)
 include_directories(include)
 

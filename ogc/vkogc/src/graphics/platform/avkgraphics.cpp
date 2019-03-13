@@ -1,6 +1,6 @@
 #if defined(__ANDROID__)
 #include "window/window.h"
-#include "platforms/android.h"
+#include "android/android.h"
 #include "graphics/vulkan.h"
 #include "graphics/graphics.h"
 using namespace oi::gc;
