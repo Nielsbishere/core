@@ -167,7 +167,7 @@ namespace oi {
 
 		ArrayType getArray() { return data; }
 		u8 *addr() { return data; }
-		CopyBuffer toBuffer() const { return CopyBuffer((u8*)data, bytes); }
+		CopyBuffer toBuffer() const { return CopyBuffer(bytes, (u8*)data); }
 		String toString() const { return Buffer::construct((u8*)data, bytes).toHex(); }
 
 		inline bool fetch(u32 i) const {

@@ -21,7 +21,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 		return RMFile();
 	}
 
-	CopyBuffer fibo(bibo.addr(), indices * 4);
+	CopyBuffer fibo(indices * 4, bibo.addr());
 
 	u32 attributeCount = (u32) hasPos + hasUv + hasNrm;
 	std::vector<String> names;
@@ -76,7 +76,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 		vboInfo,
 		attributes,
 		{},
-		{ vbo },
+		{ CopyBuffer(vbo.size(), vbo.addr()) },
 		fibo,
 		{},
 		SLFile(String::getDefaultCharset(), names)
@@ -160,7 +160,7 @@ V0_0_1:
 
 			*vbdat = CopyBuffer(vbo->stride * file.header.vertices);
 
-			u8 *vbdata = vbdat->addr();
+			u8 *vbdata = vbdat->begin();
 
 			memset(vbdata, 0, vbo->stride * file.header.vertices);
 
@@ -245,7 +245,7 @@ V0_0_1:
 				if (read.size() < index)
 					return Log::error("Couldn't read oiRM file; invalid index buffer length");
 
-				file.indices = CopyBuffer(read.addr(), index);
+				file.indices = CopyBuffer(index, read.addr());
 				read = read.offset(index);
 
 			} else {
@@ -262,7 +262,7 @@ V0_0_1:
 					bitset.read(ind, perIndexb);
 
 					u32 indexRes = file.header.indices * 4;
-					file.indices = CopyBuffer((u8*)ind.data(), indexRes);
+					file.indices = CopyBuffer(indexRes, (u8*)ind.data());
 
 				} else {
 				
@@ -285,7 +285,7 @@ V0_0_1:
 					contents.read(indOps, perIndexb);
 
 					file.indices = CopyBuffer(file.header.indices * 4);
-					u32 *aindices = file.indices.addr<u32>();
+					u32 *aindices = (u32*) file.indices.begin();
 					u32 *aindOps = indOps.data();
 
 					u32 i = 0, j = 0;
@@ -334,7 +334,7 @@ V0_0_1:
 				return Log::error("Couldn't read oiRM file; invalid misc length");
 
 			file.miscBuffer[i] = CopyBuffer(length);
-			memcpy(file.miscBuffer[i].addr(), read.addr(), length);
+			memcpy(file.miscBuffer[i].begin(), read.addr(), length);
 			read = read.offset(length);
 		}
 
@@ -370,7 +370,7 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 	for (RMVBO vbo : file.vbos) {
 
 		vbos[i].resize(vbo.layouts);
-		vb[i] = Buffer(file.vertices[i].addr(), (u32)file.vertices[i].size());
+		vb[i] = Buffer(file.vertices[i].begin(), (u32)file.vertices[i].size());
 
 		for (u32 k = 0; k < vbo.layouts; ++k)
 			vbos[i][k] = { file.names.names[file.vbo[k].name], file.vbo[k].format };
@@ -380,7 +380,7 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 	}
 
 	if (file.header.indices != 0)
-		ib = Buffer(file.indices.addr(), file.header.indices * 4);
+		ib = Buffer(file.indices.begin(), file.header.indices * 4);
 
 	result.first = MeshBufferInfo(file.header.vertices, file.header.indices, 0, vbos, file.header.topologyMode, file.header.fillMode);
 	result.second = MeshInfo(nullptr, file.header.vertices, file.header.indices, vb, ib);
@@ -418,7 +418,7 @@ RMFile oiRM::convert(const MeshInfo &info) {
 		}
 
 		vbos[i] = { (u16) size, (u16) elem.size() };
-		vertices[i] = info.vbo[i];
+		vertices[i] = CopyBuffer(info.vbo[i].size(), info.vbo[i].addr());
 
 		++i;
 	}
@@ -451,7 +451,7 @@ RMFile oiRM::convert(const MeshInfo &info) {
 		attributes,
 		miscs,
 		vertices,
-		info.ibo,
+		CopyBuffer(info.ibo.size(), info.ibo.addr()),
 		{},
 		SLFile(String::getDefaultCharset(), names)
 
@@ -479,10 +479,10 @@ u32 findAttribute(u32 *attributes, u32 totalSize, u32 *channels, u32 channelCoun
 
 bool addChannel(CopyBuffer &buf, u32 bpc, u8 *addr, u32 *channel) {
 
-	*channel = findChannel(buf.addr(), buf.size(), addr, bpc);
+	*channel = findChannel(buf.begin(), (u32) buf.size(), addr, bpc);
 
 	if (*channel == buf.size() / bpc) {
-		buf += CopyBuffer(addr, bpc);
+		buf += CopyBuffer(bpc, addr);
 		return true;
 	}
 
@@ -506,15 +506,15 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 	Buffer b = oiSL::write(file.names);
 	CopyBuffer vertices;
 
-	u32 miscBufLen = 0;
+	size_t miscBufLen = 0;
 	for (CopyBuffer &cb : file.miscBuffer)
 		miscBufLen += cb.size();
 
-	Buffer miscBuf(miscBufLen);
+	Buffer miscBuf((u32)miscBufLen);
 
 	miscBufLen = 0;
 	for (CopyBuffer &cb : file.miscBuffer) {
-		memcpy(miscBuf.addr() + miscBufLen, cb.addr(), cb.size());
+		memcpy(miscBuf.addr() + miscBufLen, cb.begin(), cb.size());
 		miscBufLen += cb.size();
 	}
 
@@ -528,7 +528,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 			RMVBO &vb = file.vbos[j];
 			CopyBuffer &vbo = file.vertices[j];
-			u8 *avbo = vbo.addr();
+			u8 *avbo = vbo.begin();
 
 			u32 offset = 0;
 
@@ -580,7 +580,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 				}
 
-				u32 channelKey = chan.size() / bpc;
+				size_t channelKey = chan.size() / bpc;
 				u32 perChannel = (u32)std::ceil(std::log2(channelKey));
 				u32 totalAttributes = (u32)uniqueChannels.size() / channels;
 				u32 perAttribute = (u32)std::ceil(std::log2(totalAttributes));
@@ -588,7 +588,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 				Bitset bitset(perChannel * (u32)uniqueChannels.size());
 				bitset.write(uniqueChannels, perChannel);
 
-				vertices += CopyBuffer((u8*)&channelKey, 4) + chan + CopyBuffer((u8*)&totalAttributes, 4) + bitset.toBuffer();
+				vertices += CopyBuffer(4, (u8*)&channelKey) + chan + CopyBuffer(4, (u8*)&totalAttributes) + bitset.toBuffer();
 
 				//TODO: Don't export per attribute compression for 1 channel
 				//if (channels != 1) {
@@ -612,8 +612,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 		if (file.header.indices != 0) {
 
-			u32 *aindices = file.indices.addr<u32>();
-			std::vector<u32> indices(aindices, file.indices.addrEnd<u32>());
+			u32 *aindices = (u32*) file.indices.begin();
+			std::vector<u32> indices(aindices, (u32*) (file.indices.begin() + file.indices.size()));
 
 			//Undefined mode is basically triangle; but allows you to turn it into wireframe
 			//This is operation compression
@@ -763,14 +763,14 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 	} else {
 
 		
-		u32 vertexLength = 0;
+		size_t vertexLength = 0;
 		for (CopyBuffer &cb : file.vertices)
 			vertexLength += cb.size();
 
 		vertices = CopyBuffer(vertexLength);
 		vertexLength = 0;
 		for (CopyBuffer &cb : file.vertices) {
-			memcpy(vertices.addr() + vertexLength, cb.addr(), cb.size());
+			memcpy(vertices.begin() + vertexLength, cb.begin(), cb.size());
 			vertexLength += cb.size();
 		}
 
@@ -778,7 +778,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 	}
 
-	file.size = (u32) sizeof(header) + vertexBuffer + vertexAttribute + misc + vertices.size() + ind.size() + miscBuf.size() + file.names.size;
+	file.size = (u32)(sizeof(header) + vertexBuffer + vertexAttribute + misc + vertices.size() + ind.size() + miscBuf.size() + file.names.size);
 
 	Buffer output(file.size);
 	Buffer write = output;
@@ -795,12 +795,11 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 	memcpy(write.addr(), file.miscs.data(), misc);
 	write = write.offset(misc);
 
-	memcpy(write.addr(), vertices.addr(), vertices.size());
-	write = write.offset(vertices.size());
-	vertices.deconstruct();
+	memcpy(write.addr(), vertices.begin(), vertices.size());
+	write = write.offset((u32)vertices.size());
 
-	memcpy(write.addr(), ind.addr(), ind.size());
-	write = write.offset(ind.size());
+	memcpy(write.addr(), ind.begin(), ind.size());
+	write = write.offset((u32)ind.size());
 
 	memcpy(write.addr(), miscBuf.addr(), miscBuf.size());
 	write = write.offset(miscBuf.size());

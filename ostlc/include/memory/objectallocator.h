@@ -243,7 +243,7 @@ namespace oi {
 		}
 
 		Buffer toBuffer() { return Buffer::construct((u8*)data, size); }
-		CopyBuffer toCb() { return CopyBuffer((u8*)data, size); }
+		CopyBuffer toCb() { return CopyBuffer(size, (u8*)data); }
 
 		typedef T (&ArrayType)[n];
 

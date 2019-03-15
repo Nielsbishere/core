@@ -41,7 +41,7 @@ Bitset::Bitset(u32 size, bool def): Bitset(size) {
 }
 
 u8 *Bitset::addr() { return data; }
-CopyBuffer Bitset::toBuffer() const { return CopyBuffer(data, (u32) std::ceil(bits / 8.f)); }
+CopyBuffer Bitset::toBuffer() const { return CopyBuffer((u32) std::ceil(bits / 8.f), data); }
 
 u32 Bitset::getBits() const { return bits; }
 u32 Bitset::getBytes() const { return bytes; }

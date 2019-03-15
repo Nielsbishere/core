@@ -140,9 +140,9 @@ namespace oi {
 
 				if (getEncoding() != 0) {
 
-					CopyBuffer tempVec((u32)vec.size());	//A vector that is dependable, and not a bitset
+					CopyBuffer tempVec(vec.size());	//A vector that is dependable, and not a bitset
 
-					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) tempVec.addr(), getArrayLength() + 1));
+					bool result = buf.subbuffer(0, getCompressedLength()).uncompress(Buffer::construct((u8*) tempVec.begin(), getArrayLength() + 1));
 
 					//Copy it into a bitset
 					for (u32 i = 0; i < (u32)tempVec.size(); ++i)

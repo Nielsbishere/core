@@ -55,7 +55,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 
 	} else {						//Graphics
 
-		u32 codeSize = 0;
+		size_t codeSize = 0;
 		for (ShaderStageInfo &ostage : info.stages)
 			codeSize += ostage.code.size();
 
@@ -80,7 +80,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 			ostage.inputs = (u8) istage.input.size();
 			ostage.outputs = (u8) istage.output.size();
 			
-			memcpy(output.bytecode.addr() + byteIndex, istage.code.addr(), istage.code.size());
+			memcpy(output.bytecode.begin() + byteIndex, istage.code.begin(), istage.code.size());
 
 			shaderFlag = (SHStageTypeFlag)((u32) shaderFlag | (1U << (istage.type.getValue() - 1)));
 
@@ -197,7 +197,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 	info.stages.resize((u32)stage.size());
 	info.computeThreads = Vec3u(*(TVec3<u16>*) &file.header.groupX);
 
-	Buffer codeBuffer = Buffer::construct(file.bytecode.addr(), (u32)file.bytecode.size());
+	Buffer codeBuffer = Buffer::construct(file.bytecode.begin(), (u32)file.bytecode.size());
 
 	std::vector<ShaderInput> inputs;
 	std::vector<ShaderOutput> outputs;
@@ -235,7 +235,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 		else if (st.type == ShaderStageType::Fragment_shader)
 			info.outputs = outputs;
 
-		stage[i] = g->create(info.path + " " + ShaderStageType(file.stage[i].type).getName(), info.stages[i] = ShaderStageInfo(b, ShaderStageType(file.stage[i].type), inputs, outputs));
+		stage[i] = g->create(info.path + " " + ShaderStageType(file.stage[i].type).getName(), info.stages[i] = ShaderStageInfo(CopyBuffer(b.size(), b.addr()), ShaderStageType(file.stage[i].type), inputs, outputs));
 	}
 
 	//Registers
@@ -369,7 +369,7 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 			else
 				buf = buf.offset(file.buffers[i].size);
 
-		file.bytecode = CopyBuffer(buf.addr(), header.codeSize);
+		file.bytecode = CopyBuffer(header.codeSize, buf.addr());
 		buf = buf.offset(header.codeSize);
 
 		goto end;
@@ -447,7 +447,7 @@ Buffer oiSH::write(SHFile &file) {
 		buffer.deconstruct();
 	}
 
-	write.copy(Buffer::construct(file.bytecode.addr(), (u32)file.bytecode.size()), (u32)file.bytecode.size(), 0, 0);
+	write.copy(Buffer::construct(file.bytecode.begin(), (u32)file.bytecode.size()), (u32)file.bytecode.size(), 0, 0);
 	write = write.offset((u32)file.bytecode.size());
 
 	return output;

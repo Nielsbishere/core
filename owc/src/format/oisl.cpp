@@ -91,7 +91,7 @@ v1:
 		CopyBuffer strings(header.names);
 		std::vector<String> &str = file.names = std::vector<String>(header.names);
 
-		memcpy(strings.addr(), buf.addr(), names);
+		memcpy(strings.begin(), buf.addr(), names);
 		buf = buf.offset(names);
 
 		String decoded = String::decode(buf, file.keyset, header.perChar, header.length);
@@ -173,7 +173,7 @@ Buffer oiSL::write(SLFile &file) {
 
 	u32 string = (u32) strings.size();
 
-	memcpy(write.addr(), strings.addr(), string);
+	memcpy(write.addr(), strings.begin(), string);
 	write = write.offset(string);
 
 	write.copy(buf);

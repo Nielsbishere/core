@@ -71,9 +71,7 @@ namespace oi {
 }
 
 void FileManager::init() {
-
-	EnumResourceNamesA(nullptr, RT_RCDATA, FileManagerExt::enumerateFiles, (LONG_PTR) this);
-
+	EnumResourceNamesA(nullptr, RT_RCDATA, (ENUMRESNAMEPROCA) FileManagerExt::enumerateFiles, (LONG_PTR) this);
 }
 
 bool FileManager::mkdir(String path) const {
@@ -149,10 +147,10 @@ bool FileManager::read(String file, String &s) const {
 	std::ifstream in;
 	if (!openFile(file, in)) return Log::error("Couldn't open file for read");
 
-	u32 length = (u32)in.rdbuf()->pubseekoff(0, std::ios_base::end);
+	size_t length = (size_t) in.rdbuf()->pubseekoff(0, std::ios_base::end);
 
 	in.seekg(0, std::ios::beg);
-	s = String(length);
+	s = String(length, '\0');
 	in.read(s.begin(), length);
 	in.close();
 	return true;

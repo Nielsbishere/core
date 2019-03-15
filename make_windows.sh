@@ -183,17 +183,17 @@ mkdir -p build
 # Copy results
 
 if [[ "$env" == *"x64"* ]] ; then
-	cp "x64/bin/$btype/app_windows.exe" "build/app_windows x64.exe"
+	cp "x64/bin/$btype/Osomi Core.exe" "build/Osomi Core x64.exe"
 fi
 
 if [[ "$env" == *"x86"* ]] ; then
-	cp "x86/bin/$btype/app_windows.exe" "build/app_windows x86.exe"
+	cp "x86/bin/$btype/Osomi Core.exe" "build/Osomi Core x86.exe"
 fi
 
 if [[ "$env" == *"ARM64"* ]] ; then
-	cp "ARM64/bin/$btype/app_windows.exe" "build/app_windows ARM64.exe"
+	cp "ARM64/bin/$btype/Osomi Core.exe" "build/Osomi Core ARM64.exe"
 fi
 
 if [[ "$env" == *"ARM32"* ]] ; then
-	cp "ARM/bin/$btype/app_windows.exe" "build/app_windows ARM.exe"
+	cp "ARM/bin/$btype/Osomi Core.exe" "build/Osomi Core ARM.exe"
 fi

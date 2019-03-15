@@ -75,11 +75,12 @@ namespace oi {
 		#define vkExtension(x, graphics) PFN_##x x = (PFN_##x) vkGetInstanceProcAddr(graphics->instance, #x); if (x == nullptr) oi::Log::throwError<oi::gc::GraphicsExt, 0x9>("Couldn't get Vulkan extension");
 		
 
-
-		template<typename T>
-		inline void vkName(GraphicsExt &g, T val, VkObjectType type, String name) {
+		
 			
-			#if defined(__WINDOWS__) && defined(__DEBUG__)
+		#if defined(__WINDOWS__) && defined(__DEBUG__)
+
+			template<typename T>
+			inline void vkName(GraphicsExt &g, T val, VkObjectType type, String name) {
 
 				const VkDebugUtilsObjectNameInfoEXT namedInfo = {
 					VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, // sType
@@ -94,9 +95,16 @@ namespace oi {
 
 				g.debugNames(g.device, &namedInfo);
 
-			#endif
+			}
 
-		}
+		#else
+
+			template<typename T>
+			inline void vkName(GraphicsExt&, T, VkObjectType, String) {
+
+			}
+
+		#endif
 
 		//Reserved for allocation
 		constexpr VkAllocationCallbacks *vkAllocator = nullptr;

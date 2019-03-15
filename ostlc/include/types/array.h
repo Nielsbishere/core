@@ -87,6 +87,9 @@ namespace oi {
 		Array &operator=(const Array &arr);
 		Array &operator=(Array &&arr);
 
+		Array &operator+=(const Array &arr);
+		Array operator+(const Array &arr) const;
+
 		T *begin() { return data; }
 		T *last() { return count == 0 ? data : data + count - 1; }
 		T *end() { return data + count; }
@@ -176,6 +179,24 @@ namespace oi {
 		}
 
 		return *this;
+	}
+	
+	template<typename T>
+	Array<T> &Array<T>::operator+=(const Array &arr) {
+
+		Array<T> cpy(count + arr.count);
+		TCopyArray<T>::exec(cpy.data, data, count);
+		TCopyArray<T>::exec(cpy.data + count, arr.data, arr.count);
+
+		return *this = cpy;
+	}
+	
+	template<typename T>
+	Array<T> Array<T>::operator+(const Array &arr) const {
+		Array<T> cpy(count + arr.count);
+		TCopyArray<T>::exec(cpy.data, data, count);
+		TCopyArray<T>::exec(cpy.data + count, arr.data, arr.count);
+		return cpy;
 	}
 
 	template<typename T>

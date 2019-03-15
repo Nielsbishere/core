@@ -18,17 +18,29 @@ SHFile oiSH::convert(ShaderSource &source, bool stripDebug) {
 	return convert(source, deps, stripDebug);
 }
 
-SHFile oiSH::convert(ShaderSource &source, std::vector<String> &dependencies, bool stripDebug) {
+	#ifdef __SHADER_COMPILATION__
 
-	ShaderInfo info = compile(source, dependencies, stripDebug);
+	SHFile oiSH::convert(ShaderSource &source, std::vector<String> &dependencies, bool stripDebug) {
 
-	if (info.path == "") {
-		Log::error("Couldn't compile to oiSH file");
-		return {};
+		ShaderInfo info = compile(source, dependencies, stripDebug);
+
+		if (info.path == "") {
+			Log::error("Couldn't compile to oiSH file");
+			return {};
+		}
+
+		return oiSH::convert(info);
+
 	}
 
-	return oiSH::convert(info);
-}
+	#else
+
+	SHFile oiSH::convert(ShaderSource&, std::vector<String>&, bool) {
+		Log::throwError<oiSH, u32_MAX>("Shader compilation is turned off, but a shader is compiled. This is not allowed.");
+		return SHFile();
+	}
+
+	#endif
 
 ShaderInfo oiSH::compile(ShaderSource &source, bool stripDebug) {
 	std::vector<String> deps;
@@ -283,7 +295,7 @@ bool oiSH::compileSource(ShaderSource &source, bool useFile, std::vector<String>
 			return Log::error("Couldn't add stage to shader; couldn't convert to spirv");
 		}
 
-		source.spv[ext] = CopyBuffer((u8*)spv.data(), (u32)spv.size() * 4);
+		source.spv[ext] = CopyBuffer((u32)spv.size() * 4, (u8*)spv.data());
 
 		if (!useFile)
 			++it;
@@ -326,10 +338,14 @@ ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies
 
 				ShaderStageType type = SpvHelper::pickType(ext);
 
-				if (type == ShaderStageType::Undefined || !FileManager::get()->read(s, source.spv[ext])) {
+				Buffer temp;
+
+				if (type == ShaderStageType::Undefined || !FileManager::get()->read(s, temp)) {
 					Log::error("Couldn't add stage to shader; spirv was invalid or had the wrong extension");
 					return {};
 				}
+
+				source.spv[ext] = CopyBuffer(temp.size(), temp.addr());
 			}
 
 		case ShaderSourceType::GLSL:
@@ -376,13 +392,6 @@ ShaderInfo oiSH::compile(ShaderSource &source, std::vector<String> &dependencies
 
 	return info;
 
-}
-
-#else
-
-ShaderInfo oiSH::compile(ShaderSource &, std::vector<String> &, bool) {
-	Log::throwError<oiSH, 0xFFFFFFFF>("oiSH::compile is only available when shader compilation is enabled. The app disabled it");
-	return {};
 }
 
 #endif

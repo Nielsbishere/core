@@ -58,7 +58,7 @@ constexpr i64 i64_MAX = 0x7FFFFFFFFFFFFFFF_i64;
 constexpr i64 i64_MIN = 0x8000000000000000_i64;
 
 constexpr size_t size_t_MIN = 0;
-constexpr size_t size_t_MAX = (size_t) u64_MAX;		//if size_t is u32, will cut from u64_MAX to u32_MAX
+constexpr size_t size_t_MAX = size_t(sizeof(size_t) == 8 ? u64_MAX : u32_MAX);		//if size_t is u32, will cut from u64_MAX to u32_MAX
 
 class gbool {
 

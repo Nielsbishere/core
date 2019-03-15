@@ -330,7 +330,7 @@ bool SpvHelper::addStage(CopyBuffer b, ShaderStageType type, ShaderInfo &info, b
 		if (!Shader::isCompatible(type, sinfo.type))
 			return Log::error("Shader stage types are incompatible and shouldn't be compiled into one shader");
 
-	std::vector<uint32_t> bytecode((u32*)b.addr(), (u32*)(b.addr() + b.size()));
+	std::vector<uint32_t> bytecode((u32*)b.begin(), (u32*)(b.begin() + b.size()));
 	Compiler comp(move(bytecode));
 
 	std::vector<ShaderInput> input;
@@ -356,9 +356,9 @@ bool SpvHelper::addStage(CopyBuffer b, ShaderStageType type, ShaderInfo &info, b
 	}
 
 	if (stripDebug) {
-		bytecode = std::vector<uint32_t>((u32*)b.addr(), (u32*)(b.addr() + b.size()));
+		bytecode = std::vector<uint32_t>((u32*)b.begin(), (u32*)(b.begin() + b.size()));
 		spv::spirvbin_t{}.remap(bytecode, spv::spirvbin_base_t::STRIP);
-		b = CopyBuffer((u8*)bytecode.data(), u32(bytecode.size() * 4));
+		b = CopyBuffer(bytecode.size() * 4, (u8*)bytecode.data());
 	}
 
 	info.stages.push_back(ShaderStageInfo(b, type, input, output));

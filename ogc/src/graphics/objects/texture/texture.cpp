@@ -101,16 +101,16 @@ bool Texture::getPixels(Vec2u start, Vec2u length, CopyBuffer &output) {
 	u32 stride = getStride();
 
 	if (length == info.res)
-		output = info.dat;
+		output = CopyBuffer(info.dat.size(), info.dat.addr());
 	else {
 
 		output = CopyBuffer(length.y * length.x * stride);
 
 		if (info.res.x == length.x)
-			memcpy(output.addr(), info.dat.addr() + start.y * info.res.x * stride, length.y * info.res.x * stride);
+			memcpy(output.begin(), info.dat.addr() + start.y * info.res.x * stride, length.y * info.res.x * stride);
 		else {
 			for (u32 j = 0; j < length.y; ++j)
-				memcpy(output.addr() + j * length.x * stride, info.dat.addr() + ((start.y + j) * info.res.x + start.x) * stride, length.x * stride);
+				memcpy(output.begin() + j * length.x * stride, info.dat.addr() + ((start.y + j) * info.res.x + start.x) * stride, length.x * stride);
 		}
 
 	}
@@ -140,7 +140,7 @@ bool Texture::write(String path, Vec2u start, Vec2u length) {
 	int perChannel = (int)(info.loadFormat.getValue() - 1) % 4 + 1;
 
 	int pngLength = 0;
-	u8 *png = stbi_write_png_to_mem(pixels.addr(), 0, (int)length.x, (int)length.y, perChannel, &pngLength);
+	u8 *png = stbi_write_png_to_mem(pixels.begin(), 0, (int)length.x, (int)length.y, perChannel, &pngLength);
 
 	if(png == nullptr)
 		return Log::throwError<Texture, 0xE>("Texture::write couldn't write texture to png");

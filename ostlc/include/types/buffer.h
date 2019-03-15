@@ -12,8 +12,6 @@ namespace oi {
 	//There is no problem with copying it; it doesn't copy the data
 	class Buffer {
 
-		friend class CopyBuffer;
-
 	public:
 
 		Buffer();													//Null buffer
@@ -112,32 +110,7 @@ namespace oi {
 		u32 length;
 	};
 
-	//!CopyBuffer copies around the buffer with the object
-	//Useful for arrays of different sizes for example
-	//TODO: CopyBuffer should be Array<u8>
-	class CopyBuffer : public Buffer {
-
-	public:
-
-		CopyBuffer(u32 length);
-		CopyBuffer(u8 *initData, u32 length);
-		CopyBuffer(Buffer buf);
-		CopyBuffer();
-		~CopyBuffer();
-
-		CopyBuffer(const CopyBuffer &cb);
-		CopyBuffer &operator=(const CopyBuffer &cb);
-		CopyBuffer(CopyBuffer &&cb);
-
-		Buffer &toBuffer() const;
-
-		CopyBuffer &operator+=(const CopyBuffer &cb);
-		CopyBuffer operator+(const CopyBuffer &cb) const;
-
-	private:
-
-		CopyBuffer &copy(const CopyBuffer &cb);
-	};
+	typedef Array<u8> CopyBuffer;
 
 	template<typename T>
 	bool Buffer::read(T &t) {

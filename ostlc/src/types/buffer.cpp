@@ -112,59 +112,6 @@ bool Buffer::read(Bitset &bitset, u32 bits) {
 	return true;
 }
 
-
-CopyBuffer::CopyBuffer(u32 length): Buffer(length) { }
-CopyBuffer::CopyBuffer(u8 *initData, u32 length): Buffer(initData, length) { }
-CopyBuffer::CopyBuffer(Buffer buf): Buffer(buf.addr(), buf.size()) {}
-CopyBuffer::CopyBuffer() : CopyBuffer(0) {}
-CopyBuffer::~CopyBuffer() {
-	deconstruct();
-}
-
-CopyBuffer::CopyBuffer(const CopyBuffer &cb) { copy(cb); }
-CopyBuffer &CopyBuffer::operator=(const CopyBuffer &cb) { return copy(cb); }
-
-Buffer &CopyBuffer::toBuffer() const { return (Buffer&)*this; }
-
-CopyBuffer &CopyBuffer::copy(const CopyBuffer &cb) {
-	length = cb.length;
-	data = new u8[cb.length];
-	Buffer::copy((Buffer&)cb);
-	return *this;
-}
-
-CopyBuffer::CopyBuffer(CopyBuffer &&cb) {
-	length = cb.length;
-	data = cb.data;
-	cb.data = nullptr;
-}
-
-CopyBuffer &CopyBuffer::operator+=(const CopyBuffer &cb) {
-
-	u8 *dat = new u8[length + cb.length];
-	memcpy(dat, data, length);
-	memcpy(dat + length, cb.data, cb.length);
-
-	delete[] data;
-	data = dat;
-	length += cb.length;
-
-	return *this;
-}
-
-CopyBuffer CopyBuffer::operator+(const CopyBuffer &cb) const {
-
-	u8 *dat = new u8[length + cb.length];
-	memcpy(dat, data, length);
-	memcpy(dat + length, cb.data, cb.length);
-
-	CopyBuffer buf;
-	buf.data = dat;
-	buf.length = length + cb.length;
-
-	return buf;
-}
-
 Buffer Buffer::operator+(u32 off) const {
 	return offset(off);
 }
