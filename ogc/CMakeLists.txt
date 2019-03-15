@@ -1,4 +1,4 @@
-﻿include_directories(../ostlc/include)
+﻿include_directories(../otc/include)
 include_directories(../owc/include)
 include_directories(../owc/platforms/include)
 include_directories(deps)
@@ -28,7 +28,7 @@ else()
 	)
 endif()
 
-target_link_libraries(ogc ostlc owc)
+target_link_libraries(ogc otc owc)
 
 # api dependent
 if(Vulkan)

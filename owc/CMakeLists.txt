@@ -1,4 +1,4 @@
-﻿include_directories(../ostlc/include)
+﻿include_directories(../otc/include)
 include_directories(include)
 include_directories(platforms/include)
 
@@ -45,4 +45,4 @@ else()
 	
 endif()
 
-target_link_libraries(owc ostlc)
+target_link_libraries(owc otc)

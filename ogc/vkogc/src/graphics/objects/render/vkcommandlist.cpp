@@ -165,7 +165,7 @@ bool CommandList::init() {
 	VkCommandBufferAllocateInfo allocInfo;
 	memset(&allocInfo, 0, sizeof(allocInfo));
 
-	ext->cmds = Array<VkCommandBuffer>( g->getBuffering());
+	ext->cmds = Array<VkCommandBuffer>(g->getBuffering());
 
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandBufferCount = (u32) ext->cmds.size();

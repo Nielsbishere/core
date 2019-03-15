@@ -1,4 +1,4 @@
-﻿include_directories(../ostlc/include)
+﻿include_directories(../otc/include)
 include_directories(../owc/include)
 include_directories(../ogc/include)
 include_directories(include)
@@ -39,7 +39,7 @@ else()
 	)
 endif()
 
-target_link_libraries(vkogc ostlc owc ogc)
+target_link_libraries(vkogc otc owc ogc)
 
 if(Windows)
 	if(DEFINED ENV{VULKAN_SDK})

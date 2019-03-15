@@ -2,7 +2,7 @@ include_directories(include)
 include_directories(../deps)
 include_directories(../deps/rapidjson/include)
 
-file(GLOB_RECURSE ostlc_SRC
+file(GLOB_RECURSE otc_SRC
 	"include/*.h"
 	"src/*.c"
 	"include/*.hpp"
@@ -19,12 +19,12 @@ if(Android)
 	)
 
 	add_library(
-		ostlc STATIC
-		${ostlc_SRC}
+		otc STATIC
+		${otc_SRC}
 		${platforms_SRC}
 	)
 
-	target_link_libraries(ostlc android log)
+	target_link_libraries(otc android log)
 	
 else()
 
@@ -36,11 +36,11 @@ else()
 	)
 
 	add_library(
-		ostlc STATIC
-		${ostlc_SRC}
+		otc STATIC
+		${otc_SRC}
 		${platforms_SRC}
 	)
 	
 endif()
 
-target_link_libraries(ostlc zlib)
+target_link_libraries(otc zlib)

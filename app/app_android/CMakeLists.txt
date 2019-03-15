@@ -1,7 +1,4 @@
-﻿include_directories(../ostlc/include)
-include_directories(../owc/include)
-include_directories(../ogc/include)
-include_directories(../app/include)
+﻿include_directories(../app/include)
 include_directories(include)
 
 file(GLOB_RECURSE app_android_SRC
@@ -17,9 +14,6 @@ add_library(
 	${app_android_SRC}
 )
 
-target_link_libraries(app_android ostlc)
-target_link_libraries(app_android owc)
-target_link_libraries(app_android ogc)
 target_link_libraries(app_android app)
 
 set(APK_DIR ../../bin/build)

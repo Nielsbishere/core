@@ -1,4 +1,4 @@
-﻿include_directories(../ostlc/include)
+﻿include_directories(../otc/include)
 include_directories(../owc/include)
 include_directories(../ogc/include)
 include_directories(include)
@@ -30,7 +30,7 @@ add_library(
 	${app_SRC}
 )
 
-target_link_libraries(app ostlc owc ogc)
+target_link_libraries(app otc owc ogc)
 
 if(Android)
 	add_subdirectory(app_android)

@@ -1,4 +1,4 @@
-# Osomi STandard Library Core (ostlc)
+# Osomi Type Core (otc)
 ## Underscore 'operator'/macro
 Underscore has a specific use in ostlc; it is a 'function' that escapes commas so they can be used in other macros. The reason for this is because C++ macros use a comma as a split character, therefore not allowing you to input any commas into a macro. This does however mean that the syntax will look different, but it is worth it, seeing all of the benefits from it:
 ```cpp

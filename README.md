@@ -29,7 +29,7 @@ git submodule update --init --recursive
 
 | Name          | Project | Usage                         | Enable                             |
 | ------------- | ------- | ----------------------------- | ---------------------------------- |
-| rapidjson     | ostlc   | oi::JSON                      | Yes                                |
+| rapidjson     | otc     | oi::JSON                      | Yes                                |
 | zlib          |         | oi::Buffer (compression)      |                                    |
 | stb(i)        | ogc     | oi::Texture (read/write disk) |                                    |
 | glslang       |         | oi::oiSH (shader compilation) | Only with -shader_compilation flag |
@@ -209,7 +209,7 @@ Please do yourself and us a favor and don't push this directory onto your repo, 
 
 If you want to use ocore cross platform, it is recommended that you use the app entrypoints (app_pc, app_android, etc.).
 # Getting started
-There is documentation on [Oxsomi Graphics Core](docs/ogc.md) (ogc; rendering), [Oxsomi Window Core](docs/owc.md) (owc; window/app and input), [Oxsomi STandard Library Core](docs/ostlc.md) (ostlc; main data types and utils) and the top level entry [app](docs/app.md).
+There is documentation on [Oxsomi Graphics Core](docs/ogc.md) (ogc; rendering), [Oxsomi Window Core](docs/owc.md) (owc; window/app and input), [Oxsomi Type Core](docs/otc.md) (otc; main data types and utils) and the top level entry [app](docs/app.md).
 
 There's also documentation about the file formats used; [oiSL](docs/oiSL.md) (String List), [oiSB](docs/oiSB.md) (Shader Buffer), [oiSH](docs/oiSH.md) (SHader), [oiRM](docs/oiRM.md) (Raw Model), [oiBM](docs/oiBM.md) (BakeManager).
 

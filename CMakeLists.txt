@@ -137,11 +137,11 @@ endif()
 add_subdirectory(deps)
 	
 # ocore
-add_subdirectory(ostlc)
+add_subdirectory(otc)
 add_subdirectory(owc)
 
 add_subdirectory(ogc)
-set_property(TARGET ostlc owc ogc PROPERTY FOLDER ocore)
+set_property(TARGET otc owc ogc PROPERTY FOLDER ocore)
 
 # desktop resource conversion tools
 
