@@ -13,7 +13,6 @@ namespace oi {
 		struct MeshBufferInfo;
 
 		UEnum(RMHeaderVersion, Undefined = 0, V0_0_1 = 1);
-		UEnum(RMHeaderFlag1, None = 0, Contains_materials = 1, Per_tri_materials = 2, Uses_compression = 4);
 
 		enum class RMOperationFlag {
 			NoOp = 0b00,		/* 3 indices = 1 triangle; [i, j, k] */
@@ -27,14 +26,19 @@ namespace oi {
 			char header[4];			//oiRM
 
 			u8 version;				//RMHeaderVersion
-			u8 flags;				//RMHeaderFlag1
+
+			u8 containsMaterials : 1;
+			u8 perTriMaterials : 1;
+			u8 usesCompression : 1;
+			u8 p0 : 5;
+
 			u8 vertexBuffers;
 			u8 vertexAttributes;
 
 			u8 topologyMode;		//TopologyMode
 			u8 fillMode;			//FillMode
 			u8 miscs;
-			u8 p0;
+			u8 p1;
 
 			u32 indexOperations;	//can only be non zero if indices != 0 and Uses_compression and topologyMode supports triangle
 
@@ -76,54 +80,6 @@ namespace oi {
 			
 		};
 
-		struct RMMaterial {
-
-			u16 name;
-			u16 t_diffuse;
-
-			u16 t_opacitySpecular;
-			u16 t_emissive;
-
-			u16 t_rahm;
-			u16 t_normal;
-
-			u16 roughness;			// / 65535.f
-			u16 metallic;			//^
-
-			//----
-
-			u16 transparency;		//^
-			u16 clearCoat;			//^
-
-			u16 clearCoatGloss;		//^
-			u16 reflectiveness;		//^
-
-			u16 sheen;				//^
-			u16 shininess;			//^
-
-			f32 shininessExponent;
-
-			//----
-
-			Vec3 emissive;
-
-			f32 diffuseScale;
-
-			//----
-
-			u16 specularScale;		//( - 32766.f) / 32765 (starting at 1)
-			u16 ambientScale;		//^
-
-			TVec3<u8> diffuse;
-			TVec3<u8> specular;
-			TVec3<u8> ambient;
-
-			TVec3<u8> p0;
-
-			//----
-
-		};
-
 		struct RMFile {
 
 			RMHeader header;
@@ -134,6 +90,7 @@ namespace oi {
 			CopyBuffer indices;
 			std::vector<CopyBuffer> miscBuffer;			//Per misc data
 			SLFile names;
+			//MLFile materials;
 
 			u32 size = 0;
 

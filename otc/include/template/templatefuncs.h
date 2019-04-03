@@ -90,7 +90,7 @@ namespace oi {
 
 	};
 
-	//Copying an array
+	//Copying an array (or just 1 value)
 
 	template<typename T, bool b = std::is_arithmetic<T>::value || std::is_pod<T>::value>
 	struct TCopyArray {

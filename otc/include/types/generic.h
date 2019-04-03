@@ -39,6 +39,16 @@ constexpr i64 operator ""_i64(unsigned long long test) { return (i64)test; }
 constexpr f32 operator ""_f32(long double test) { return (f32)test; }
 constexpr f64 operator ""_f64(long double test) { return (f64)test; }
 
+constexpr u32 operator ""_magicNum(const char *dat, size_t siz) {
+
+	u32 num{};
+
+	for (size_t i = 0; i < siz && i < 4; ++i)
+		num |= u32(dat[i]) << (8 * i);
+
+	return num;
+}
+
 constexpr u8 u8_MAX = 0xFF_u8;
 constexpr u8 u8_MIN = 0_u8;
 constexpr u16 u16_MAX = 0xFFFF_u16;

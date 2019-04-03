@@ -39,7 +39,7 @@ ShaderBufferInfo oiSB::convert(SBFile file, SLFile *names) {
 				sbst.offset,
 				sbst.length,
 				sbst.flags == 0 ? std::vector<u32>() : file.arrays[sbst.arrayIndex],
-				names == nullptr ? sbst.nameIndex : names->names[sbst.nameIndex],
+				names == nullptr ? sbst.nameIndex : names->strings[sbst.nameIndex],
 				TextureFormat::Undefined,
 				(SBOFlag) sbst.flags
 			};
@@ -61,7 +61,7 @@ ShaderBufferInfo oiSB::convert(SBFile file, SLFile *names) {
 				sbva.offset,
 				Graphics::getFormatSize(TextureFormat(sbva.type)),
 				sbva.flags == 0 ? std::vector<u32>() : file.arrays[sbva.arrayIndex],
-				names == nullptr ? sbva.nameIndex : names->names[sbva.nameIndex],
+				names == nullptr ? sbva.nameIndex : names->strings[sbva.nameIndex],
 				TextureFormat(sbva.type),
 				(SBOFlag) sbva.flags
 			};

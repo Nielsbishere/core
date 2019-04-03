@@ -2,8 +2,6 @@
 include_directories(../owc/include)
 include_directories(../ogc/include)
 include_directories(include)
-include_directories(../deps/glslang)
-include_directories(../deps)
 
 file(GLOB_RECURSE vkogc_SRC
 	"include/*.h"

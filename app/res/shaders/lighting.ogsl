@@ -12,41 +12,42 @@
 //Handle to a view (0 - 255) (MAX_VIEWS)
 #define ViewHandle u32
 
+//Material flags
+const u32 MaterialFlag_Diffuse = 1 << 0;
+const u32 MaterialFlag_Opacity = 1 << 1;
+const u32 MaterialFlag_Emissive = 1 << 2;
+const u32 MaterialFlag_Roughness = 1 << 3;
+const u32 MaterialFlag_AO = 1 << 4;
+const u32 MaterialFlag_Height = 1 << 5;
+const u32 MaterialFlag_Metallic = 1 << 6;
+const u32 MaterialFlag_Normal = 1 << 7;
+
 //Material
-//128 bytes; ~8192 material (structs) per MiB
+//96 bytes; ~11k material (structs) per MiB
 struct MaterialStruct {
 
 	Vec3 diffuse;
-	MaterialHandle id;
+	f32 opacity;
 
-	Vec3 ambient;
-	f32 shininess;
-
-	Vec3 emissive;
-	f32 shininessExponent;
-
-	Vec3 specular;
+	Vec3 reflective;
 	f32 roughness;
 
+	Vec3 emissive;
 	f32 metallic;
-	f32 transparency;
-	f32 clearcoat;
-	f32 clearcoatGloss;
 
-	f32 reflectiveness;
-	f32 sheen;
-	TextureHandle t_diffuse;			//sRGB8 (3 Bpp)
+	MaterialHandle id;
+	u32 textureFlags;					//& MaterialFlag
+	TextureHandle t_diffuse;			//sRGB8 (3 Bpp) or HDR RGB16f (6 Bpp)
 	TextureHandle t_opacity;			//R8 (1 Bpp)
-	
+
 	TextureHandle t_emissive;			//RGB16 (6 Bpp)
 	TextureHandle t_roughness;			//R8 (1 Bpp)
 	TextureHandle t_ao;					//R8 (1 Bpp)
 	TextureHandle t_height;				//R8 (1 Bpp)
 
+	Vec2u padding;
 	TextureHandle t_metallic;			//R8 (1 Bpp)
 	TextureHandle t_normal;				//RGB8s (3 Bpp)
-	TextureHandle t_specular;			//R8 (1 Bpp)
-	u32 p1;
 	
 };
 
@@ -145,7 +146,7 @@ inline LightResult calculateSpot(Light sli, Vec3 pos, Vec3 normal, Vec3 cdir, f3
 }
 
 inline Vec3 calculateLighting(LightResult res, Vec3 col, Vec3 ambient, MaterialStruct mat){
-	return (res.diffuse * mat.diffuse + res.specular * mat.specular * mat.shininess + ambient * mat.ambient) * col;
+	return (res.diffuse * mat.diffuse + res.specular + ambient) * col;
 }
 
 inline Vec3 reconstructPosition(Vec2 uv, f32 depth, Matrix vpInv) {

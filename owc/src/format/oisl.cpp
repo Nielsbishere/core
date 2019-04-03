@@ -2,33 +2,43 @@
 #include "format/oisl.h"
 #include "types/buffer.h"
 #include "file/filemanager.h"
+#include "types/bitset.h"
 using namespace oi::wc;
 using namespace oi;
 
-SLFile::SLFile(String keyset, std::vector<String> names) : keyset(keyset), names(names) {}
 SLFile::SLFile() : SLFile("", {}) {}
+SLFile::SLFile(const String &keyset, const Array<String> &strings) : keyset(keyset), strings(strings) {
+	for (const String &s : strings)
+		if (s.size() >= maxStringSize)
+			Log::throwError<SLFile, 0x0>("String exceed maximum length limit");
+}
 
-u32 SLFile::lookup(String name) {
-	u32 i = 0U;
-	for (String &n : names)
-		if (n == name) break;
+u32 SLFile::lookup(const String &string) const {
+
+	u32 i{};
+
+	for (const String &n : strings)
+		if (n == string) break;
 		else ++i;
 
 	return i;
 }
 
-u32 SLFile::add(String name) {
+u32 SLFile::add(const String &string) {
 
-	u32 id = lookup(name);
+	if (string.size() >= maxStringSize)
+		Log::throwError<SLFile, 0x1>("String exceed maximum length limit");
 
-	if (id == names.size())
-		names.push_back(name);
+	u32 id = lookup(string);
+
+	if (id == u32(strings.size()))
+		strings.pushBack(string);
 
 	return id;
 
 }
 
-bool oiSL::read(String path, SLFile &file) {
+bool SLFile::read(String path, SLFile &file) {
 
 	Buffer buf;
 	FileManager::get()->read(path, buf);
@@ -43,24 +53,22 @@ bool oiSL::read(String path, SLFile &file) {
 	return true;
 }
 
-bool oiSL::read(Buffer buf, SLFile &file) {
+bool SLFile::read(Buffer buf, SLFile &file) {
 
 	Buffer start = buf;
 
 	if (buf.size() < sizeof(SLHeader))
 		return Log::error("Invalid oiSL file");
 
-	SLHeader &header = file.header = buf.operator[]<SLHeader>(0);
+	SLHeader header = buf.operator[]<SLHeader>(0);
 	buf = buf.offset((u32) sizeof(SLHeader));
 
-	if (String(4, header.header) != "oiSL")
+	if (header.magicNumber != SLFile::magicNumber)
 		return Log::error("Invalid oiSL (header) file");
 
-	SLHeaderVersion v(header.version);
+	switch (header.version) {
 
-	switch (v.getValue()) {
-
-	case SLHeaderVersion::v1.value:
+	case SLVersion::V1:
 		goto v1;
 
 	default:
@@ -71,12 +79,12 @@ bool oiSL::read(Buffer buf, SLFile &file) {
 v1:
 	{
 
-		u32 names = header.names;
+		u32 names = header.strings;
 
 		if (buf.size() < header.keys + names)
 			return Log::error("Invalid oiSL file");
 
-		if (header.flags & (u8) SLHeaderFlags::USE_DEFAULT)
+		if (header.useDefaultCharset)
 			file.keyset = String::getDefaultCharset();
 		else {
 
@@ -88,19 +96,24 @@ v1:
 			buf = buf.offset(header.keys);
 		}
 
-		CopyBuffer strings(header.names);
-		std::vector<String> &str = file.names = std::vector<String>(header.names);
+		Array<SizeType> strings(header.strings);
+		Array<String> &str = file.strings = Array<String>(header.strings);
 
 		memcpy(strings.begin(), buf.addr(), names);
 		buf = buf.offset(names);
 
-		String decoded = String::decode(buf, file.keyset, header.perChar, header.length);
-		buf = buf.offset((u32) std::ceil(header.length * header.perChar / 8.f));
+		size_t length = 0, perChar = file.getBitDepth();
+
+		for (SizeType &st : strings)
+			length += st;
+
+		String decoded = String::decode(buf, file.keyset, perChar, length);
+		buf = buf.offset((u32)std::ceil(length * perChar / 8.f));
 
 		u32 offset = 0;
 
-		for (u32 i = 0; i < header.names; ++i) {
-			u8 &s = strings[i];
+		for (u32 i = 0; i < header.strings; ++i) {
+			SizeType &s = strings[i];
 			str[i] = String(s, (char*)decoded.begin() + offset);
 			offset += s;
 		}
@@ -111,20 +124,20 @@ v1:
 
 end:
 
-	if(buf.size() != 0)
+	if (buf.size() != 0)
 		file.size = (u32)(buf.addr() - start.addr());
 	else
 		file.size = start.size();
 
-	Log::println(String("Successfully loaded oiSL file with version ") + v.getName() + " (" + file.size + " bytes)");
+	Log::println(String("Successfully loaded oiSL file with version ") + size_t(header.version) + " (" + file.size + " bytes)");
 
 	return true;
 }
 
-Buffer oiSL::write(SLFile &file) {
+Buffer SLFile::write(SLFile &file) {
 
 	String &keyset = file.keyset;
-	std::vector<String> &names = file.names;
+	Array<String> &names = file.strings;
 
 	bool useDefault = keyset == String::getDefaultCharset();
 
@@ -150,16 +163,15 @@ Buffer oiSL::write(SLFile &file) {
 
 	Buffer write = toFile;
 
-	file.header = write.operator[]<SLHeader>(0) = {
-		{ 'o', 'i', 'S', 'L' },
+	write.operator[]<SLHeader>(0) = {
+		SLFile::magicNumber,
 
-		(u8) SLHeaderVersion::v1,
-		perChar,
-		(u8)(useDefault ? 0 : keyset.size()),
-		(u8)(useDefault ? SLHeaderFlags::USE_DEFAULT : SLHeaderFlags::NONE),
+		u16(keyset.size()),
+		SLVersion::V1,
+		useDefault,
+		0,
 
-		(u16) names.size(),
-		(u16) toEncode.size()
+		u32(names.size())
 	};
 	write = write.offset((u32) sizeof(SLHeader));
 
@@ -183,7 +195,7 @@ Buffer oiSL::write(SLFile &file) {
 	return toFile;
 }
 
-bool oiSL::write(SLFile &file, String path) {
+bool SLFile::write(SLFile &file, String path) {
 
 	Buffer buf = write(file);
 
@@ -195,4 +207,23 @@ bool oiSL::write(SLFile &file, String path) {
 	buf.deconstruct();
 	return true;
 
+}
+
+
+size_t SLFile::getBitDepth() const {
+	return size_t(std::fmax(std::ceil(std::log2(keyset.size())), 1));
+}
+
+size_t SLFile::getStringsBitCount() const {
+
+	size_t bitDepth = getBitDepth(), encodedBits = 0;
+
+	for (const String &str : strings)
+		encodedBits += bitDepth * str.size();
+
+	return encodedBits;
+}
+
+size_t SLFile::getStringsDataSize() const {
+	return size_t(std::ceil(getStringsBitCount() / 8.0));
 }

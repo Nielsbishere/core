@@ -9,7 +9,7 @@ namespace oi {
 	class TVec;
 
 	//TODO: char functions instead of String
-	//TODO: number conversions
+	//TODO: union instead of storing 2 arrays
 	class String {
 
 	public:

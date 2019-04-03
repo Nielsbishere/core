@@ -221,7 +221,7 @@ Bitset &Bitset::operator&=(const Bitset &other) {
 
 }
 
-void Bitset::write(const std::vector<u32> &values, u32 bitsPerVal) {
+void Bitset::write(const Array<u32> &values, u32 bitsPerVal) {
 
 	if (bits != bitsPerVal * values.size())
 		Log::throwError<Bitset, 0x0>("Couldn't write values to bitset; bitset didn't have enough space");
@@ -231,14 +231,14 @@ void Bitset::write(const std::vector<u32> &values, u32 bitsPerVal) {
 
 }
 
-void Bitset::read(std::vector<u32> &values, u32 bitsPerVal) {
+void Bitset::read(Array<u32> &values, u32 bitsPerVal) {
 
 	if (bits != bitsPerVal * values.size())
 		Log::throwError<Bitset, 0x1>("Couldn't read values from bitset; bitset didn't have enough space");
 
-	memset(values.data(), 0, values.size() * sizeof(u32));
+	memset(values.begin(), 0, values.size() * sizeof(u32));
 
-	u32 *dest = values.data(), *src = (u32*) data;
+	u32 *dest = values.begin(), *src = (u32*) data;
 
 	u32 mask = (1 << bitsPerVal) - 1, offset = 0;
 

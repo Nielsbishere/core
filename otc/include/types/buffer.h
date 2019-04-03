@@ -1,6 +1,5 @@
 #pragma once
 
-#include "string.h"
 #include "utils/log.h"
 #include "utils/binaryhelper.h"
 

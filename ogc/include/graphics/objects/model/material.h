@@ -20,32 +20,24 @@ namespace oi {
 			HEIGHT = 5,
 			METALLIC = 6,
 			NORMAL = 7,
-			SPECULAR = 8,
 			LENGTH
 		};
 
+		//Stride 6 * 16 = 96
 		struct MaterialStruct {
 
 			Vec3 diffuse = 1.f;
-			MaterialHandle id = u32_MAX;
+			f32 opacity = 1.f;
 
-			Vec3 ambient = 0.1f;
-			f32 shininess = 0.f;
+			Vec3 reflective = 1.f;
+			f32 roughness = 1.f;
 
 			Vec3 emissive = 0.f;
-			f32 shininessExponent = 1.f;
+			f32 metallic = 0.f;
 
-			Vec3 specular = 1.f;
-			f32 roughness = 0.5f;
-
-			f32 metallic = 0.5f;
-			f32 transparency = 0.f;
-			f32 clearcoat = 0.5f;
-			f32 clearcoatGloss = 0.5f;
-
-			f32 reflectiveness = 0.f;
-			f32 sheen = 0.f;
-			TextureHandle t_diffuse = 0;			//sRGB8 (3 Bpp)
+			MaterialHandle id = u32_MAX;
+			u32 textureFlags = 0;					//1 << MaterialTextureType
+			TextureHandle t_diffuse = 0;			//sRGB8 (3 Bpp) or HDR RGB16f (6 Bpp)
 			TextureHandle t_opacity = 0;			//R8 (1 Bpp)
 
 			TextureHandle t_emissive = 0;			//RGB16 (6 Bpp)
@@ -53,10 +45,9 @@ namespace oi {
 			TextureHandle t_ao = 0;					//R8 (1 Bpp)
 			TextureHandle t_height = 0;				//R8 (1 Bpp)
 
-			TextureHandle t_metallic = 0;			//R8 (1 Bpp); Metallic
+			Vec2u padding = 0;
+			TextureHandle t_metallic = 0;			//R8 (1 Bpp)
 			TextureHandle t_normal = 0;				//RGB8s (3 Bpp)
-			TextureHandle t_specular = 0;			//R8 (1 Bpp)
-			u32 p0 = 0;
 
 		};
 
@@ -68,9 +59,8 @@ namespace oi {
 
 			MaterialList *parent;
 			MaterialStruct *ptr;
-			StaticBitset<9> usedTextures;
 
-			MaterialInfo(MaterialList *parent) : parent(parent), ptr(&temp), usedTextures(false) {}
+			MaterialInfo(MaterialList *parent) : parent(parent), ptr(&temp) {}
 
 			MaterialStruct *operator->() { return ptr; }
 			const MaterialStruct *operator->() const { return ptr; }
@@ -90,18 +80,11 @@ namespace oi {
 			MaterialList *getParent() const;
 
 			void setDiffuse(Vec3 dif);
-			void setAmbient(Vec3 amb);
-			void setShininess(f32 shn);
 			void setEmissive(Vec3 emi);
-			void setShininessExponent(f32 sne);
-			void setSpecular(Vec3 spc);
 			void setRoughness(f32 rgh);
 			void setMetallic(f32 met);
-			void setTransparency(f32 trn);
-			void setClearcoat(f32 clc);
-			void setClearcoatGloss(f32 clg);
-			void setReflectiveness(f32 rfn);
-			void setSheen(f32 shn);
+			void setOpacity(f32 trn);
+			void setReflectiveColor(Vec3 rfn);
 
 			void setDiffuse(Texture *difTex);
 			void setOpacity(Texture *opcTex);
@@ -111,7 +94,6 @@ namespace oi {
 			void setHeight(Texture *hghTex);
 			void setMetallic(Texture *metTex);
 			void setNormal(Texture *nrmTex);
-			void setSpecular(Texture *spcTex);
 
 		protected:
 

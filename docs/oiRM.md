@@ -1,4 +1,4 @@
-# Osomi Raw Model (.oiRM)
+# Oxsomi Raw Model (.oiRM)
 The file format was created to support the choice between low load times and small file sizes, as well as being more game-based, allowing the specification of any texture format. Unlike fbx, obj or other formats, you can choose the texture format you need for every variable, as well as allowing to use multiple vbos to support that decision. This format would correspond to a VBO/IBO and VAO in OpenGL, which are very easily creatable from plain oiRM. This type is also a binary format, making it harder to modify and keeping your assets safe(r). Other than that, oiRM stores the topology and fill mode of the model, allowing you to specify that the model should only be rendered the way you tell it to. However; setting these to undefined will allow them to be used as anything. Last but not least, oiRM supports miscs, which is a primitive or a group of primitives with a special meaning, this could also have an offset or just be a point in model space. Miscs could be used for gameplay features, such as anchor points, spawn points and more.  
 The compression flag turns oiRM from high file size and very fast / almost immediate load in into a very compact, yet still very fast file format. This version with compression is shortened as oiRMc.
 # File specification
@@ -26,7 +26,7 @@ The compression flag turns oiRM from high file size and very fast / almost immed
 
 };
 ```
-'version' is the oiRM version; v_0_0_1 is the first version, but other versions will probably pop up, to support other features in the future.  
+'version' is the oiRM version; v0_0_1 is the first version, but other versions will probably pop up, to support other features in the future.  
 'flags' include the following; Contains_materials (1) if there's materials embedded with the model. Per_tri_materials (2) if there's multiple materials per triangle, this will be `u8[triangles]` that specifies which triangle has which material. Uses_compression (4) if you prefer small file size over fast load times.  
 'vertexBuffers' is the number of 'RMVBO' structs that are included, they represent a physical buffer.  
 'vertexAttributes' is the number of 'RMAttribute' structs that are included, they represent a variable in a buffer.  

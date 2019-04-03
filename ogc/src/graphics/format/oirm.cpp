@@ -24,24 +24,23 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 	CopyBuffer fibo(indices * 4, bibo.addr());
 
 	u32 attributeCount = (u32) hasPos + hasUv + hasNrm;
-	std::vector<String> names;
+	Array<String> names;
 	std::vector<RMAttribute> attributes;
 
-	names.reserve(attributeCount);
 	attributes.reserve(attributeCount);
 
 	if (hasPos) {
-		names.push_back("inPosition");
+		names.pushBack("inPosition");
 		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)0 });
 	}
 
 	if (hasUv) {
-		names.push_back("inUv");
+		names.pushBack("inUv");
 		attributes.push_back({ (u8)TextureFormat::RG32f, (u16)attributes.size() });
 	}
 
 	if (hasNrm) {
-		names.push_back("inNormal");
+		names.pushBack("inNormal");
 		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)attributes.size() });
 	}
 
@@ -57,7 +56,7 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 		{
 			{ 'o', 'i', 'R', 'M' },
 			(u8)RMHeaderVersion::V0_0_1,
-			(u8)RMHeaderFlag1::None,
+			0, 0, 0, 0,
 			(u8)1,
 			(u8)attributeCount,
 
@@ -148,13 +147,13 @@ V0_0_1:
 		read = read.offset(misc);
 
 		u32 attr = 0;
-		bool compression = isSet((RMHeaderFlag1_s) file.header.flags, RMHeaderFlag1::Uses_compression);
+		bool compression = file.header.usesCompression;
 
 		file.vertices.resize(file.header.vertexBuffers);
 
 		RMVBO *vbo = file.vbos.data();
 		CopyBuffer *vbdat = file.vertices.data();
-		std::vector<u32> indices, indices0;
+		Array<u32> indices, indices0;
 
 		for (u32 i = 0; i < file.header.vertexBuffers; ++i) {
 
@@ -203,7 +202,7 @@ V0_0_1:
 					if (!read.read(bitset, keyset * channels * perKey))
 						return Log::error("Couldn't read oiRM file; invalid bitset");
 
-					indices.resize(keyset * channels);
+					indices = Array<u32>(keyset * channels);
 					bitset.read(indices, perKey);
 
 					perKey = (u32)std::ceil(std::log2((f64)keyset));
@@ -212,12 +211,12 @@ V0_0_1:
 					if (!read.read(bitset, keyset * perKey))
 						return Log::error("Couldn't read oiRM file; invalid bitset");
 
-					indices0.resize(keyset);
+					indices0 = Array<u32>(keyset);
 					bitset.read(indices0, perKey);
 
 					u8 *dest = values.addr();
-					u32 *aindices = indices.data();
-					u32 *aindices0 = indices0.data();
+					u32 *aindices = indices.begin();
+					u32 *aindices0 = indices0.begin();
 
 					for (u32 k = 0; k < channels * file.header.vertices; ++k)
 						memcpy(vbdata + offset + k / channels * vbo->stride + k % channels * bpc, dest + aindices[aindices0[k / channels] * channels + k % channels] * bpc, bpc);
@@ -258,11 +257,11 @@ V0_0_1:
 					if (!read.read(bitset, indexb))
 						return Log::error("Couldn't read oiRM file; invalid index buffer length");
 
-					std::vector<u32> ind(file.header.indices);
+					Array<u32> ind(file.header.indices);
 					bitset.read(ind, perIndexb);
 
 					u32 indexRes = file.header.indices * 4;
-					file.indices = CopyBuffer(indexRes, (u8*)ind.data());
+					file.indices = CopyBuffer(indexRes, (u8*) ind.begin());
 
 				} else {
 				
@@ -281,12 +280,12 @@ V0_0_1:
 					if(!read.read(contents, opLen * perIndexb))
 						return Log::error("Couldn't read oiRM file; invalid operationData bitset length");
 
-					std::vector<u32> indOps(opLen);
+					Array<u32> indOps(opLen);
 					contents.read(indOps, perIndexb);
 
 					file.indices = CopyBuffer(file.header.indices * 4);
 					u32 *aindices = (u32*) file.indices.begin();
-					u32 *aindOps = indOps.data();
+					u32 *aindOps = indOps.begin();
 
 					u32 i = 0, j = 0;
 					while (i < file.header.indices) {
@@ -373,7 +372,7 @@ std::pair<MeshBufferInfo, MeshInfo> oiRM::convert(RMFile file) {
 		vb[i] = Buffer(file.vertices[i].begin(), (u32)file.vertices[i].size());
 
 		for (u32 k = 0; k < vbo.layouts; ++k)
-			vbos[i][k] = { file.names.names[file.vbo[k].name], file.vbo[k].format };
+			vbos[i][k] = { file.names.strings[file.vbo[k].name], file.vbo[k].format };
 
 		j += vbo.layouts;
 		++i;
@@ -396,7 +395,7 @@ RMFile oiRM::convert(const MeshInfo &info) {
 	u32 attributeCount = 0;
 
 	std::vector<RMAttribute> attributes;
-	std::vector<String> names;
+	Array<String> names;
 	std::vector<RMVBO> vbos(buffers.size());
 	std::vector<CopyBuffer> vertices(buffers.size());
 
@@ -406,13 +405,12 @@ RMFile oiRM::convert(const MeshInfo &info) {
 
 		attributeCount += (u32) elem.size();
 		attributes.reserve(attributeCount);
-		names.reserve(attributeCount);
 
 		u32 size = 0;
 
 		for (auto &pair : elem) {
 			attributes.push_back({ (u8)pair.second.getValue(), (u16)j });
-			names.push_back(pair.first);
+			names.pushBack(pair.first);
 			size += Graphics::getFormatSize(pair.second);
 			++j;
 		}
@@ -431,7 +429,7 @@ RMFile oiRM::convert(const MeshInfo &info) {
 			{ 'o', 'i', 'R', 'M' },
 
 			(u8)RMHeaderVersion::V0_0_1,
-			(u8)RMHeaderFlag1::None,
+			0, 0, 0, 0,
 			(u8)buffers.size(),
 			(u8)attributeCount,
 
@@ -547,8 +545,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 				std::vector<u32> currentChannel(channels);
 				u32 *acurrentChannel = currentChannel.data();
 
-				std::vector<u32> attributes(file.header.vertices);
-				u32 *aattributes = attributes.data();
+				Array<u32> attributes(file.header.vertices);
+				u32 *aattributes = attributes.begin();
 
 				CopyBuffer chan;
 
@@ -585,8 +583,10 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 				u32 totalAttributes = (u32)uniqueChannels.size() / channels;
 				u32 perAttribute = (u32)std::ceil(std::log2(totalAttributes));
 
+				auto uniqueChannel = Array<u32>(uniqueChannels.data(), uniqueChannels.data() + uniqueChannels.size());
+
 				Bitset bitset(perChannel * (u32)uniqueChannels.size());
-				bitset.write(uniqueChannels, perChannel);
+				bitset.write(uniqueChannel, perChannel);
 
 				vertices += CopyBuffer(4, (u8*)&channelKey) + chan + CopyBuffer(4, (u8*)&totalAttributes) + bitset.toBuffer();
 
@@ -613,7 +613,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 		if (file.header.indices != 0) {
 
 			u32 *aindices = (u32*) file.indices.begin();
-			std::vector<u32> indices(aindices, (u32*) (file.indices.begin() + file.indices.size()));
+			Array<u32> indices(aindices, (u32*) (file.indices.begin() + file.indices.size()));
 
 			//Undefined mode is basically triangle; but allows you to turn it into wireframe
 			//This is operation compression
@@ -720,8 +720,8 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 					file.header.indexOperations = opOff;
 
 					Bitset operationData(totalInd * perIndexb);
-					std::vector<u32> indOpBuf(totalInd);
-					u32 *aindOpBuf = indOpBuf.data();
+					Array<u32> indOpBuf(totalInd);
+					u32 *aindOpBuf = indOpBuf.begin();
 
 					u32 j = 0;
 					for (u32 i = 0; i < opOff; ++i) {
@@ -758,7 +758,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 		//Turn on the flag
 
-		header.flags |= RMHeaderFlag1::Uses_compression;
+		header.usesCompression = 1;
 
 	} else {
 

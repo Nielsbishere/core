@@ -1,49 +1,49 @@
 #pragma once
-
 #include "template/enum.h"
 
 namespace oi {
 
-	DEnum(SLHeaderVersion, u8,
-		Undefined = 0, v1 = 1
-	);
-
-	enum class SLHeaderFlags {
-		NONE = 0,
-		USE_DEFAULT = 1
+	enum class SLVersion : u8 {
+		UNDEFINED = 0,
+		V1 = 1
 	};
 
 	struct SLHeader {
 
-		char header[4];		//oiSL
+		u32 magicNumber;
 
-		u8 version;			//SLHeaderVersion_s
-		u8 perChar;
-		u8 keys;
-		u8 flags;			//SLHeaderFlags_s
+		u16 keys;
+		SLVersion version;
+		u8 useDefaultCharset : 1;
+		u8 flags : 7;
 
-		u16 names;
-		u16 length;
+		u32 strings;
 
 	};
 
 	struct SLFile {
 
-		SLHeader header;
+		using SizeType = u8;
+
+		static constexpr u32 magicNumber = "oiSL"_magicNum;
+		static constexpr size_t maxStringSize = SizeType(-1);
+
+		//SLHeader header;
 		String keyset;
-		std::vector<String> names;
+		//Array<SizeType> stringLengths;
+		Array<String> strings;				//Bitset of getBitDepth() per character indexing into keyset
 
-		u32 size;
+		size_t size;
 
-		SLFile(String keyset, std::vector<String> names);
+		SLFile(const String &keyset, const Array<String> &strings);
 		SLFile();
 
-		u32 lookup(String name);
-		u32 add(String name);
+		u32 lookup(const String &string) const;
+		u32 add(const String &string);
 
-	};
-
-	struct oiSL {
+		size_t getBitDepth() const;
+		size_t getStringsBitCount() const;
+		size_t getStringsDataSize() const;
 
 		static bool read(String path, SLFile &file);
 		static bool read(Buffer data, SLFile &file);

@@ -152,7 +152,7 @@ SHFile oiSH::convert(ShaderInfo info) {
 		u32 id = 0U;
 
 		for (auto &rep : output.registers)
-			if (output.stringlist.names[rep.nameIndex] == elem.first) {
+			if (output.stringlist.strings[rep.nameIndex] == elem.first) {
 				rep.representation = (u16)(id + 1);
 				break;
 			} else if (rep.type <= u32(ShaderRegisterType::SSBO))
@@ -190,7 +190,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 	ShaderInfo info;
 
-	info.path = file.stringlist.names[0];
+	info.path = file.stringlist.strings[0];
 
 	std::vector<ShaderStage*> &stage = info.stage = std::vector<ShaderStage*>(file.stage.size());
 
@@ -218,13 +218,13 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 		for (u32 j = 0; j < (u32)var.size(); ++j) {
 			SHInput &v = var[j];
 			TextureFormat format = TextureFormat(v.type);
-			inputs[j] = ShaderInput(format, file.stringlist.names[v.nameIndex]);
+			inputs[j] = ShaderInput(format, file.stringlist.strings[v.nameIndex]);
 		}
 
 		for (u32 j = 0; j < (u32) output.size(); ++j) {
 
 			SHOutput &o = output[j];
-			ShaderOutput &out = outputs[j] = ShaderOutput(o.type, file.stringlist.names[o.nameIndex], o.id);
+			ShaderOutput &out = outputs[j] = ShaderOutput(o.type, file.stringlist.strings[o.nameIndex], o.id);
 
 			if (out.type.getValue() == 0)
 				Log::throwError<oiSH, 0x1>("Invalid shader output");
@@ -245,7 +245,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 	for (u32 i = 0; i < (u32)file.registers.size(); ++i) {
 		SHRegister &r = file.registers[i];
 
-		ShaderRegister &reg = registers[i] = ShaderRegister(r.type, (ShaderAccessType) r.access, file.stringlist.names[r.nameIndex], (u32) r.size, r.id, TextureFormat::find(r.format));
+		ShaderRegister &reg = registers[i] = ShaderRegister(r.type, (ShaderAccessType) r.access, file.stringlist.strings[r.nameIndex], (u32) r.size, r.id, TextureFormat::find(r.format));
 
 		if (reg.type.getValue() == 0)
 			Log::throwError<oiSH, 0x0>(String("ShaderRegister ") + reg.name + " is invalid");
@@ -271,7 +271,7 @@ ShaderInfo oiSH::convert(Graphics *g, SHFile file) {
 
 			--buf;
 
-			String name = file.stringlist.names[r.nameIndex];
+			String name = file.stringlist.strings[r.nameIndex];
 
 			buffers[name] = oiSB::convert(file.buffers[buf], &file.stringlist);
 			++bufId;

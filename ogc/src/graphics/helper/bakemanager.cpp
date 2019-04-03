@@ -242,17 +242,17 @@ void BakeManager::load() {
 			out.dependencies.resize(bmbf.dependencies);
 
 			for (u32 j = 0; j < bmbf.inputs; ++j)
-				out.inputs[j] = file.strings.names[bakedInfop[j]];
+				out.inputs[j] = file.strings.strings[bakedInfop[j]];
 
 			bakedInfop += bmbf.inputs;
 
 			for (u32 j = 0; j < bmbf.outputs; ++j)
-				out.outputs[j] = file.strings.names[bakedInfop[j]];
+				out.outputs[j] = file.strings.strings[bakedInfop[j]];
 
 			bakedInfop += bmbf.outputs;
 
 			for (u32 j = 0; j < bmbf.dependencies; ++j)
-				out.dependencies[j] = file.strings.names[bakedInfop[j]];
+				out.dependencies[j] = file.strings.strings[bakedInfop[j]];
 
 			bakedInfop += bmbf.dependencies;
 			++i;
@@ -409,7 +409,7 @@ void BakeManager::write() {
 		file.header.flags = makeFlags();
 
 		file.strings.keyset = "";
-		file.strings.names.clear();
+		file.strings.strings = {};
 
 		for (BakedFile &bmbf : file.files) {
 
