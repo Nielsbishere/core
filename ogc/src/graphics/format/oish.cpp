@@ -356,10 +356,10 @@ bool oiSH::read(Buffer buf, SHFile &file) {
 
 		SLFile &sl = file.stringlist;
 
-		if (!oiSL::read(buf, sl))
+		if (!SLFile::read(buf, sl))
 			return Log::error("Invalid oiSH (oiSL) file");
 
-		buf = buf.offset(sl.size);
+		buf = buf.offset(u32(sl.size));
 
 		file.buffers.resize(header.buffers);
 
@@ -399,7 +399,7 @@ Buffer oiSH::write(SHFile &file) {
 		stageInOut += stage.inputs * (u32)sizeof(SHInput) + stage.outputs * (u32)sizeof(SHOutput);
 	}
 
-	Buffer b = oiSL::write(file.stringlist);
+	Buffer b = SLFile::write(file.stringlist);
 	std::vector<Buffer> buffers(file.buffers.size());
 
 	u32 bufferSize = 0U;
@@ -409,7 +409,7 @@ Buffer oiSH::write(SHFile &file) {
 		bufferSize += file.buffers[i].size;
 	}
 
-	file.size = (u32) sizeof(header) + stages + stageInOut + registers + header.codeSize + file.stringlist.size + bufferSize;
+	file.size = u32(sizeof(header) + stages + stageInOut + registers + header.codeSize + file.stringlist.size + bufferSize);
 
 	Buffer output(file.size);
 	Buffer write = output;

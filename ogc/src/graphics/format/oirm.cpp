@@ -337,10 +337,10 @@ V0_0_1:
 			read = read.offset(length);
 		}
 
-		if (!oiSL::read(read, file.names))
+		if (!SLFile::read(read, file.names))
 			return Log::error("Couldn't read oiRM file; invalid oiSL");
 
-		read = read.offset(file.names.size);
+		read = read.offset(u32(file.names.size));
 		goto end;
 	}
 
@@ -501,7 +501,7 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 
 	CopyBuffer ind;
 
-	Buffer b = oiSL::write(file.names);
+	Buffer b = SLFile::write(file.names);
 	CopyBuffer vertices;
 
 	size_t miscBufLen = 0;

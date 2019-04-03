@@ -228,7 +228,7 @@ void BakeManager::load() {
 
 		u16 *bakedInfop = bakedInfo.data();
 
-		if (!oiSL::read(write, file.strings))
+		if (!SLFile::read(write, file.strings))
 			Log::throwError<BakeManager, 0x4>("Invalid BakeManager strings");
 
 		file.files.resize(header.files);
@@ -431,7 +431,7 @@ void BakeManager::write() {
 
 		}
 
-		Buffer buf = oiSL::write(file.strings);
+		Buffer buf = SLFile::write(file.strings);
 
 		Buffer output(size + buf.size());
 		output.clear();

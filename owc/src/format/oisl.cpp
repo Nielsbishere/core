@@ -107,7 +107,7 @@ v1:
 		for (SizeType &st : strings)
 			length += st;
 
-		String decoded = String::decode(buf, file.keyset, perChar, length);
+		String decoded = String::decode(buf, file.keyset, u8(perChar), u32(length));
 		buf = buf.offset((u32)std::ceil(length * perChar / 8.f));
 
 		u32 offset = 0;
