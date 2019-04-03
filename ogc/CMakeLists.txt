@@ -58,7 +58,7 @@ if(shader_compilation)
 	
 	# spirv-cross
 	add_subdirectory(deps/SPIRV-Cross)
-	set_property(TARGET spirv-cross spirv-cross-core spirv-cross-glsl spirv-cross-hlsl spirv-cross-msl spirv-cross-reflect spirv-cross-util spirv-cross-cpp spirv-cross-c spirv-cross-c-api-test extinst_tables enum_string_mapping core_tables PROPERTY FOLDER spirv-cross)
+	set_property(TARGET spirv-cross spirv-cross-core spirv-cross-glsl spirv-cross-hlsl spirv-cross-msl spirv-cross-reflect spirv-cross-util spirv-cross-cpp spirv-cross-c extinst_tables enum_string_mapping core_tables PROPERTY FOLDER spirv-cross)
 
 	# suppress warnings that aren't mine
 	if(MSVC)

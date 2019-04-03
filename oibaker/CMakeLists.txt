@@ -1,4 +1,4 @@
-﻿include_directories(../ostlc/include)
+﻿include_directories(../otc/include)
 include_directories(../owc/include)
 include_directories(../ogc/include)
 include_directories(include)
@@ -15,4 +15,4 @@ add_executable(
 	${oibaker_SRC}
 )
 
-target_link_libraries(oibaker ostlc owc ogc)
+target_link_libraries(oibaker otc owc ogc)

@@ -32,7 +32,7 @@ u32 SLFile::add(const String &string) {
 	u32 id = lookup(string);
 
 	if (id == u32(strings.size()))
-		strings.pushBack(string);
+		strings = strings.pushBack(string);
 
 	return id;
 
@@ -81,7 +81,7 @@ v1:
 
 		u32 names = header.strings;
 
-		if (buf.size() < header.keys + names)
+		if (buf.size() < header.keys * (1 - header.useDefaultCharset) + names * sizeof(SizeType))
 			return Log::error("Invalid oiSL file");
 
 		if (header.useDefaultCharset)

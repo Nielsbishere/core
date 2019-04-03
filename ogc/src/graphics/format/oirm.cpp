@@ -30,17 +30,17 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 	attributes.reserve(attributeCount);
 
 	if (hasPos) {
-		names.pushBack("inPosition");
+		names = names.pushBack("inPosition");
 		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)0 });
 	}
 
 	if (hasUv) {
-		names.pushBack("inUv");
+		names = names.pushBack("inUv");
 		attributes.push_back({ (u8)TextureFormat::RG32f, (u16)attributes.size() });
 	}
 
 	if (hasNrm) {
-		names.pushBack("inNormal");
+		names = names.pushBack("inNormal");
 		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)attributes.size() });
 	}
 
@@ -410,7 +410,7 @@ RMFile oiRM::convert(const MeshInfo &info) {
 
 		for (auto &pair : elem) {
 			attributes.push_back({ (u8)pair.second.getValue(), (u16)j });
-			names.pushBack(pair.first);
+			names = names.pushBack(pair.first);
 			size += Graphics::getFormatSize(pair.second);
 			++j;
 		}
