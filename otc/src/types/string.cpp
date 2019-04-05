@@ -4,6 +4,7 @@
 #include "types/vector.h"
 #include <cmath>
 #include <algorithm>
+#include <string>
 #include <inttypes.h>
 using namespace oi;
 
@@ -13,7 +14,11 @@ String::~String() {
 }
 
 String::String(const char *begin, const char *end) : String(end - begin, begin) {}
-String::String(char val) : len(1) { stackData[0] = val; stackData[1] = 0; }
+
+String::String(const char val) : len(1) { 
+	stackData[0] = val; 
+	stackData[1] = 0; 
+}
 
 String::String(const char *source) {
 
@@ -28,7 +33,7 @@ String::String(const char *source) {
 	memset(begin() + size(), 0, 1);
 }
 
-String::String(size_t count, const char &def): len(count) {
+String::String(const size_t count, const char &def): len(count) {
 
 	if (len + 1 >= stackSize) {
 		heapData = Array<char>(len + 1);
@@ -39,7 +44,7 @@ String::String(size_t count, const char &def): len(count) {
 	memset(begin() + size(), 0, 1);
 }
 
-String::String(size_t count, const char *dat) {
+String::String(const size_t count, const char *dat) {
 
 	len = count;
 
@@ -52,34 +57,34 @@ String::String(size_t count, const char *dat) {
 	memset(begin() + size(), 0, 1);
 }
 
-String::String(f32 val) : String(f64(val)) {}
-String::String(u32 val) : String(u64(val)) {}
-String::String(i32 val) : String(i64(val)) {}
-String::String(u16 val) : String(u64(val)) {}
-String::String(i16 val) : String(i64(val)) {}
-String::String(u8 val) : String(u64(val)) {}
-String::String(i8 val) : String(i64(val)) {}
+String::String(const f32 val) : String(f64(val)) {}
+String::String(const u32 val) : String(u64(val)) {}
+String::String(const i32 val) : String(i64(val)) {}
+String::String(const u16 val) : String(u64(val)) {}
+String::String(const i16 val) : String(i64(val)) {}
+String::String(const u8 val) : String(u64(val)) {}
+String::String(const i8 val) : String(i64(val)) {}
 
-String::String(f64 val) {
-	int siz = snprintf(nullptr, 0, "%f", val);
+String::String(const f64 val) {
+	const int siz = snprintf(nullptr, 0, "%f", val);
 	*this = String(size_t(siz), ' ');
 	snprintf(begin(), dataSize(), "%f", val);
 }
 
-String::String(i64 val) {
-	int siz = snprintf(nullptr, 0, "%" PRIi64, val);
+String::String(const i64 val) {
+	const int siz = snprintf(nullptr, 0, "%" PRIi64, val);
 	*this = String(size_t(siz), ' ');
 	snprintf(begin(), dataSize(), "%" PRIi64, val);
 }
 
-String::String(u64 val) {
-	int siz = snprintf(nullptr, 0, "%" PRIu64, val);
+String::String(const u64 val) {
+	const int siz = snprintf(nullptr, 0, "%" PRIu64, val);
 	*this = String(size_t(siz), ' ');
 	snprintf(begin(), dataSize(), "%" PRIu64, val);
 }
 
-String::String(void *v) {
-	int siz = snprintf(nullptr, 0, "%p", v);
+String::String(const void *v) {
+	const int siz = snprintf(nullptr, 0, "%p", v);
 	*this = String(size_t(siz), ' ');
 	snprintf(begin(), dataSize(), "%p", v);
 }
@@ -117,67 +122,70 @@ String &String::operator=(const String &toCpy) {
 	return *this;
 }
 
-String::operator f64() {
+String::operator f64() const {
 	f64 result{};
 	sscanf(begin(), "%lf", &result);
 	return result;
 }
 
-String::operator i64() {
+String::operator i64() const {
 	i64 result{};
 	sscanf(begin(), "%" PRIi64, &result);
 	return result;
 }
 
-String::operator u64() {
+String::operator u64() const {
 	u64 result{};
 	sscanf(begin(), "%" PRIu64, &result);
 	return result;
 }
 
-String::operator f32() { return f32(operator f64()); }
-String::operator i32() { return i32(operator i64()); }
-String::operator u32() { return u32(operator u64()); }
-String::operator i16() { return i16(operator i64()); }
-String::operator u16() { return u16(operator u64()); }
-String::operator i8() { return i8(operator i64()); }
-String::operator u8() { return u8(operator u64()); }
+String::operator f32() const { return f32(operator f64()); }
+String::operator i32() const { return i32(operator i64()); }
+String::operator u32() const { return u32(operator u64()); }
+String::operator i16() const { return i16(operator i64()); }
+String::operator u16() const { return u16(operator u64()); }
+String::operator i8() const { return i8(operator i64()); }
+String::operator u8() const { return u8(operator u64()); }
 
-size_t String::size() const { return len * ((len >= 0) * 2 - 1); }
+size_t String::size() const {
+	return size_t(pickIfTrue(len, -len, len < 0));
+}
+
 size_t String::dataSize() const { return size() + 1; }
 
 size_t String::lastIndex() const {
 	return (size() - 1) * (size() > 0);
 }
 
-char &String::operator[](size_t i) { return begin()[i]; }
-const char &String::operator[](size_t i) const { return begin()[i]; }
+char &String::operator[](const size_t i) { return begin()[i]; }
+const char &String::operator[](const size_t i) const { return begin()[i]; }
 
 char *String::begin() { 
-	return (char*)(size_t(heapData.begin()) * (len < 0) + size_t(stackData.begin()) * (len >= 0));
+	return pickIfTrue(stackData.begin(), heapData.begin(), len < 0);
 }
 
 char *String::last() { return begin() + lastIndex(); }
 char *String::end() { return begin() + size(); }
 
-const char *String::begin() const { 
-	return (const char*)(size_t(heapData.begin()) * (len < 0) + size_t(stackData.begin()) * (len >= 0));
+const char *String::begin() const {
+	return pickIfTrue(stackData.begin(), heapData.begin(), len < 0);
 }
 
 const char *String::last() const { return begin() + lastIndex(); }
 const char *String::end() const { return begin() + size(); }
 
-String String::cutBegin(size_t start) const {
+String String::cutBegin(const size_t start) const {
 	if (start >= size()) return String();
 	return String(size() - start, begin() + start);
 }
 
-String String::cutEnd(size_t end) const {
+String String::cutEnd(const size_t end) const {
 	if (end == 0) return String();
 	return String(end > size() ? size() : end, begin());
 }
 
-String String::substring(size_t start, size_t end) const {
+String String::substring(const size_t start, const size_t end) const {
 
 	if (end <= start || start >= size())
 		return String();
@@ -185,7 +193,7 @@ String String::substring(size_t start, size_t end) const {
 	return String(end > size() ? (size() - start) : (end - start), begin() + start);
 }
 
-size_t String::count(char c) const {
+size_t String::count(const char c) const {
 
 	size_t i = 0;
 
@@ -195,7 +203,7 @@ size_t String::count(char c) const {
 	return i;
 }
 
-bool String::contains(char c) const {
+bool String::contains(const char c) const {
 
 	for (const char &cc : *this)
 		if (cc == c)
@@ -249,7 +257,7 @@ bool String::contains(const String &s) const {
 	return j == s.size();
 }
 
-Array<size_t> String::find(char c) const {
+Array<size_t> String::find(const char c) const {
 
 	Array<size_t> result(count(c));
 	size_t i = 0, j = 0;
@@ -291,7 +299,7 @@ Array<size_t> String::find(const String &s) const {
 	return found;
 }
 
-size_t String::findFirst(char c) const {
+size_t String::findFirst(const char c) const {
 
 	size_t i = 0;
 
@@ -321,7 +329,7 @@ size_t String::findFirst(const String &s) const {
 	return nowhere;
 }
 
-size_t String::findLast(char c) const {
+size_t String::findLast(const char c) const {
 
 	size_t i = 0;
 
@@ -353,17 +361,17 @@ size_t String::findLast(const String &s) const {
 
 Array<TVec<size_t, 2>> String::find(const String &s, const String &end) const {
 
-	Array<size_t> sit = find(s);
-	Array<size_t> endit = find(end);
+	const Array<size_t> sit = find(s);
+	const Array<size_t> endit = find(end);
 	Array<TVec<size_t, 2>> strings(sit.size());
 
 	size_t k = 0;
 
-	for (size_t i : sit) {
+	for (const size_t i : sit) {
 
 		size_t next = size();
 
-		for (size_t j : endit) {
+		for (const size_t j : endit) {
 			if (j > i) {
 				next = j;
 				break;
@@ -389,19 +397,19 @@ String &String::operator+=(const String &s) {
 }
 
 bool String::operator<(const String &s) const {
-	size_t shortest = s.size() < size() ? s.size() : size();
+	const size_t shortest = s.size() < size() ? s.size() : size();
 	return memcmp(begin(), s.begin(), shortest) < 0;
 }
 
 String String::replace(const String &s0, const String &s1) const {
 
-	Array<size_t> pos = find(s0);
+	const Array<size_t> pos = find(s0);
 
 	String result(size() - s0.size() * pos.size() + s1.size() * pos.size(), ' ');
 
 	size_t prev = 0, off = 0;
 
-	for (size_t i : pos) {
+	for (const size_t i : pos) {
 
 		memcpy(result.begin() + off, begin() + prev, i - prev);
 		off += i - prev;
@@ -414,13 +422,12 @@ String String::replace(const String &s0, const String &s1) const {
 	}
 
 	memcpy(result.begin() + off, begin() + prev, size() - prev);
-
 	return result;
 }
 
 String String::replaceFirst(const String &s0, const String &s1) const {
 
-	size_t first = findFirst(s0);
+	const size_t first = findFirst(s0);
 
 	if (first == nowhere)
 		return *this;
@@ -436,7 +443,7 @@ String String::replaceFirst(const String &s0, const String &s1) const {
 
 String String::replaceLast(const String &s0, const String &s1) const {
 
-	size_t last = findLast(s0);
+	const size_t last = findLast(s0);
 
 	if (last == nowhere)
 		return *this;
@@ -451,24 +458,24 @@ String String::replaceLast(const String &s0, const String &s1) const {
 }
 
 String String::fromLast(const String &split) const {
-	size_t last = findLast(split);
+	const size_t last = findLast(split);
 	if (last == nowhere) return {};
 	return cutBegin(last + 1);
 }
 
 String String::untilLast(const String &split) const {
-	size_t last = findLast(split);
+	const size_t last = findLast(split);
 	return cutEnd(last);
 }
 
 String String::fromFirst(const String &split) const {
-	size_t last = findFirst(split);
+	const size_t last = findFirst(split);
 	if (last == nowhere) return {};
 	return cutBegin(last + 1);
 }
 
 String String::untilFirst(const String &split) const {
-	size_t last = findFirst(split);
+	const size_t last = findFirst(split);
 	return cutEnd(last);
 }
 
@@ -498,7 +505,7 @@ String String::combine(const Array<String> &strings, const String &seperator) {
 
 Array<String> String::split(const String &s) const {
 
-	Array<size_t> results(find(s));
+	const Array<size_t> results(find(s));
 	Array<String> res(results.size() + 1);
 
 	for (size_t i = 0; i < res.size(); ++i)
@@ -519,7 +526,7 @@ String String::trim() const {
 	}
 
 	size_t end = 0;
-	for (size_t i = size() - 1; i != u32_MAX; --i) {
+	for (size_t i = size() - 1; i != size_t_MAX; --i) {
 		const char &c = begin()[i];
 		if (c != ' ' && c != '\t' && c != '\n') {
 			end = i;
@@ -535,7 +542,7 @@ String String::toLowerCase() const {
 
 	String other(*this);
 
-	for (u32 i = 0; i < size(); ++i)
+	for (size_t i = 0; i < size(); ++i)
 		other[i] = char(tolower(other[i]));
 
 	return other;
@@ -545,7 +552,7 @@ String String::toUpperCase() const {
 
 	String other(*this);
 
-	for (u32 i = 0; i < size(); ++i)
+	for (size_t i = 0; i < size(); ++i)
 		other[i] = char(toupper(other[i]));
 
 	return other;
@@ -653,7 +660,7 @@ bool String::isFloatNoExp() const {
 
 	bool containsDot = false;
 
-	for (u32 i = 0; i < size(); ++i) {
+	for (size_t i = 0; i < size(); ++i) {
 		const char &c = begin()[i];
 		if (!(c >= '0' && c <= '9') && !(c == '-' && i == 0)) {
 			if (c == '.' && !containsDot)
@@ -730,36 +737,35 @@ bool String::operator!=(const String &other) const {
 
 String String::toHex(u64 u) {
 
-	u64 cpy = u;
-
+	const u64 cpy = u;
 	u = 0;
 
-	for (u32 i = 0; i < 8; ++i)
+	for (size_t i = 0; i < 8; ++i)
 		u |= ((cpy & (0xFF << (i * 8))) >> (i * 8)) << ((7 - i) * 8);
 
 	Buffer b = Buffer::construct((u8*)&u, 8);
 	return b.toHex();
 }
 
-String String::getHex(u8 u) {
+String String::getHex(const u8 u) {
 	return String(BinaryHelper::hexChar((u & 0xF0_u8) >> 4_u8), BinaryHelper::hexChar(u & 0xF_u8));
 }
 
-String String::padStart(char c, u32 maxCount) const {
+String String::padStart(const char c, const size_t maxCount) const {
 	if (size() >= maxCount) return *this;
 	return String(maxCount - size(), c) + *this;
 }
 
-String String::padEnd(char c, u32 maxCount) const {
+String String::padEnd(const char c, const size_t maxCount) const {
 	if (size() >= maxCount) return *this;
 	return operator+(String(maxCount - size(), c));
 }
 
-String String::decode(const Buffer &buf, const String &charset, u8 perChar) {
+String String::decode(const Buffer &buf, const String &charset, const u8 perChar) {
 	return decode(buf, charset, perChar, buf.size() * 8 / perChar);
 }
 
-String String::decode(const Buffer &buf, const String &charset, u8 perChar, u32 length) {
+String String::decode(const Buffer &buf, const String &charset, const u8 perChar, const size_t length) {
 
 	if (perChar > 32)
 		Log::throwError<String, 0x0>("Couldn't decode the string; perChar can't be bigger than 32 bits");
@@ -767,12 +773,12 @@ String String::decode(const Buffer &buf, const String &charset, u8 perChar, u32 
 	if (charset.size() == 0)
 		Log::throwError<String, 0x1>("Couldn't decode the string; keyset requires at least 1 char");
 
-	u32 i = 0;
+	size_t i = 0;
 	String decoded(length, ' ');
 
 	while ((perChar * (i + 1)) / 8 <= buf.size()) {
 
-		u32 value = buf.getBits(perChar * i, perChar);
+		u32 value = buf.getBits(perChar * u32(i), perChar);
 		decoded[i] = charset[value >= charset.size() ? 0 : value];
 
 		++i;
@@ -783,7 +789,7 @@ String String::decode(const Buffer &buf, const String &charset, u8 perChar, u32 
 	return decoded;
 }
 
-Buffer String::encode(const String &charset, u8 perChar) const {
+Buffer String::encode(const String &charset, const u8 perChar) const {
 	
 	if (perChar > 32)
 		Log::throwError<String, 0x2>("Couldn't encode the string; perChar can't be bigger than 32 bits");
@@ -791,12 +797,12 @@ Buffer String::encode(const String &charset, u8 perChar) const {
 	if (charset.size() == 0)
 		Log::throwError<String, 0x3>("Couldn't encode the string; keyset requires at least 1 char");
 
-	u32 siz = u32(std::ceil(size() * perChar / 8.f));
+	const u32 siz = u32(std::ceil(size() * perChar / 8.f));
 	Buffer buf(siz);
 	
-	for (u32 i = 0; i < size(); ++i) {
+	for (size_t i = 0; i < size(); ++i) {
 		auto it = std::find(charset.begin(), charset.end(), begin()[i]);
-		buf.setBits(i * perChar, perChar, it == charset.end() ? 0 : u32(it - charset.begin()));
+		buf.setBits(u32(i) * perChar, perChar, it == charset.end() ? 0 : u32(it - charset.begin()));
 	}
 
 	return buf;

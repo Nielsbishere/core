@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <type_traits>
 #include <vector>
 #include <unordered_map>
 #include <stdint.h>
@@ -84,3 +84,16 @@ private:
 	u32 val;
 
 };
+
+template<typename T>
+static inline T pickIfTrue(T ifFalse, T ifTrue, bool val) {
+
+	static_assert(std::is_arithmetic<T>::value, "Please use an arithmetic type in pickIfTrue");
+
+	return ifFalse * (!val) + ifTrue * val;
+}
+
+template<typename T>
+static inline T *pickIfTrue(T *ifFalse, T *ifTrue, bool val) {
+	return (T*) pickIfTrue<size_t>(size_t(ifFalse), size_t(ifTrue), val);
+}

@@ -31,8 +31,8 @@ namespace oi {
 		String(): len(0) {}
 		~String();
 		String(const char *dat);
-		String(size_t count, const char &def);
-		String(size_t count, const char *dat);
+		String(const size_t count, const char &def);
+		String(const size_t count, const char *dat);
 		String(const char *begin, const char *end);
 
 		String(String &&toMov);
@@ -40,7 +40,7 @@ namespace oi {
 		String &operator=(String &&toMov);
 		String &operator=(const String &toCpy);
 
-		explicit String(void *v);
+		explicit String(const void *v);
 
 		String operator+(const String &s) const;
 		String &operator+=(const String &s);
@@ -48,23 +48,23 @@ namespace oi {
 		//Sort operator
 		bool operator<(const String &s) const;
 
-		String cutBegin(size_t start) const;
-		String cutEnd(size_t end) const;
-		String substring(size_t start, size_t end) const;
+		String cutBegin(const size_t start) const;
+		String cutEnd(const size_t end) const;
+		String substring(const size_t start, size_t end) const;
 
-		bool contains(char c) const;
+		bool contains(const char c) const;
 		bool contains(const String &s) const;
-		size_t count(char c) const;
+		size_t count(const char c) const;
 		size_t count(const String &s) const;
 
-		String padStart(char c, u32 count) const;		//Add padding to the start of this string, until it this->size() reaches the specified count
-		String padEnd(char c, u32 count) const;			//Add padding to the end of this string, until it this->size() reaches the specified count
+		String padStart(const char c, const size_t count) const;		//Add padding to the start of this string, until it this->size() reaches the specified count
+		String padEnd(const char c, const size_t count) const;			//Add padding to the end of this string, until it this->size() reaches the specified count
 
-		Array<size_t> find(char c) const;
+		Array<size_t> find(const char c) const;
 		Array<size_t> find(const String &s) const;
-		size_t findFirst(char c) const;
+		size_t findFirst(const char c) const;
 		size_t findFirst(const String &s) const;
-		size_t findLast(char c) const;
+		size_t findLast(const char c) const;
 		size_t findLast(const String &s) const;
 
 		//Get all strings starting at find(s) with length of find(s) - find(end)
@@ -75,8 +75,8 @@ namespace oi {
 		String replaceLast(const String &needle, const String &replacement) const;
 		String replaceFirst(const String &needle, const String &replacement) const;
 
-		String insert(const String &str, size_t loc) const;
-		String replace(const String &str, size_t loc, size_t count) const;
+		String insert(const String &str, const size_t loc) const;
+		String replace(const String &str, const size_t loc, const size_t count) const;
 
 		String fromLast(const String &split) const;
 		String untilLast(const String &split) const;
@@ -114,16 +114,16 @@ namespace oi {
 
 		static String lineEnd();
 		static String toHex(u64 u);
-		static String getHex(u8 u);
+		static String getHex(const u8 u);
 
 		//Decode the buffer with the given charset
-		static String decode(const Buffer &buf, const String &charset, u8 perChar);
+		static String decode(const Buffer &buf, const String &charset, const u8 perChar);
 
 		//Decode the buffer with the given charset
-		static String decode(const Buffer &buf, const String &charset, u8 perChar, u32 length);
+		static String decode(const Buffer &buf, const String &charset, const u8 perChar, const size_t length);
 
 		//Encode the string given with the charset
-		Buffer encode(const String &charset, u8 perChar) const;
+		Buffer encode(const String &charset, const u8 perChar) const;
 
 		static String getDefaultCharset();
 
@@ -141,33 +141,33 @@ namespace oi {
 
 		size_t lastIndex() const;
 
-		char &operator[](size_t i);
-		const char &operator[](size_t i) const;
+		char &operator[](const size_t i);
+		const char &operator[](const size_t i) const;
 
 		//Conversions to and from data types
 
-		String(f64 val);
-		String(u64 val);
-		String(i64 val);
-		String(f32 val);
-		String(u32 val);
-		String(i32 val);
-		String(u16 val);
-		String(i16 val);
-		String(u8 val);
-		String(i8 val);
-		String(char val);
+		String(const f64 val);
+		String(const u64 val);
+		String(const i64 val);
+		String(const f32 val);
+		String(const u32 val);
+		String(const i32 val);
+		String(const u16 val);
+		String(const i16 val);
+		String(const u8 val);
+		String(const i8 val);
+		String(const char val);
 
-		explicit operator f64();
-		explicit operator i64();
-		explicit operator u64();
-		explicit operator f32();
-		explicit operator i32();
-		explicit operator u32();
-		explicit operator i16();
-		explicit operator u16();
-		explicit operator i8();
-		explicit operator u8();
+		explicit operator f64() const;
+		explicit operator i64() const;
+		explicit operator u64() const;
+		explicit operator f32() const;
+		explicit operator i32() const;
+		explicit operator u32() const;
+		explicit operator i16() const;
+		explicit operator u16() const;
+		explicit operator i8() const;
+		explicit operator u8() const;
 
 	};
 
