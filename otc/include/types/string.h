@@ -9,7 +9,6 @@ namespace oi {
 	class TVec;
 
 	//TODO: char functions instead of String
-	//TODO: union instead of storing 2 arrays
 	class String {
 
 	public:
@@ -18,17 +17,28 @@ namespace oi {
 
 	private:
 
-		size_t len;					//Length (excluding null character)
-		Array<char> heapData;		//Heap data
-		Array<char, stackSize> stackData;	//Stack data (if string is smaller than 32 chars)
+		union {
+
+			Array<char, stackSize> stackData;	//Stack data (if string is smaller than 32 chars)
+			Array<char> heapData;				//Heap data
+
+		};
+
+		i64 len;								//Length (excluding null character)
 
 	public:
 
 		String(): len(0) {}
+		~String();
 		String(const char *dat);
 		String(size_t count, const char &def);
 		String(size_t count, const char *dat);
 		String(const char *begin, const char *end);
+
+		String(String &&toMov);
+		String(const String &toCpy);
+		String &operator=(String &&toMov);
+		String &operator=(const String &toCpy);
 
 		explicit String(void *v);
 
