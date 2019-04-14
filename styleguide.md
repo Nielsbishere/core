@@ -5,6 +5,7 @@ This style guide applies to everything written in this library, other libraries 
 ## Headers and source files
 
 - Header files should have as little code as possible, only one-liners like getters and setters can be provided in the header file (with exception to template functions). They should provide a quick and easy overview of what the class represents.
+- Template functions should be defined at the bottom instead of the top of the header, to make sure the class's overview isn't cluttered. (with exception of one-liners).
 
 ## File names
 
@@ -68,6 +69,7 @@ This style guide applies to everything written in this library, other libraries 
 
 - Avoid code duplication with and through templates
 - Ensure template functions / classes are "safe" through type checking if possible (static_assert).
+- Should be C++ standard, so no template functions in template classes or explicit template function declarations.
 
 ## Functions & variables
 

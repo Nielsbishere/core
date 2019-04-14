@@ -83,18 +83,21 @@ namespace oi {
 		struct RMFile {
 
 			RMHeader header;
-			std::vector<RMVBO> vbos;
-			std::vector<RMAttribute> vbo;
-			std::vector<RMMisc> miscs;
-			std::vector<CopyBuffer> vertices;
+			Array<RMVBO> vbos;
+			Array<RMAttribute> vbo;
+			Array<RMMisc> miscs;
+			Array<CopyBuffer> vertices;
 			CopyBuffer indices;
-			std::vector<CopyBuffer> miscBuffer;			//Per misc data
+			Array<CopyBuffer> miscBuffer;			//Per misc data
 			SLFile names;
 			//MLFile materials;
 
 			u32 size = 0;
 
-			RMFile(RMHeader header, std::vector<RMVBO> vbos, std::vector<RMAttribute> vbo, std::vector<RMMisc> miscs, std::vector<CopyBuffer> vertices, CopyBuffer indices, std::vector<CopyBuffer> miscBuffer, SLFile names) : header(header), vbos(vbos), vbo(vbo), miscs(miscs), vertices(vertices), indices(indices), miscBuffer(miscBuffer), names(names) {}
+			RMFile(RMHeader header, Array<RMVBO> vbos, Array<RMAttribute> vbo, Array<RMMisc> miscs, 
+				   Array<CopyBuffer> vertices, CopyBuffer indices, Array<CopyBuffer> miscBuffer, SLFile names) : 
+				header(header), vbos(vbos), vbo(vbo), miscs(miscs), vertices(vertices), indices(indices), miscBuffer(miscBuffer), names(names) {}
+
 			RMFile() { memset(&header, 0, sizeof(header)); }
 
 		};

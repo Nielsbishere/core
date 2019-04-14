@@ -85,15 +85,24 @@ private:
 
 };
 
-template<typename T>
-static inline T pickIfTrue(T ifFalse, T ifTrue, bool val) {
-
+template<typename T, typename T2>
+static inline T pickIfTrue(T ifFalse, T2 ifTrue, bool val) {
 	static_assert(std::is_arithmetic<T>::value, "Please use an arithmetic type in pickIfTrue");
-
 	return ifFalse * (!val) + ifTrue * val;
 }
 
 template<typename T>
 static inline T *pickIfTrue(T *ifFalse, T *ifTrue, bool val) {
 	return (T*) pickIfTrue<size_t>(size_t(ifFalse), size_t(ifTrue), val);
+}
+
+template<typename T>
+static inline T pickIfTrue(T ifTrue, bool val) {
+	static_assert(std::is_arithmetic<T>::value, "Please use an arithmetic type in pickIfTrue");
+	return ifTrue * val;
+}
+
+template<typename T>
+static inline T *pickIfTrue(T *ifTrue, bool val) {
+	return (T*) pickIfTrue<size_t>(size_t(ifTrue), val);
 }

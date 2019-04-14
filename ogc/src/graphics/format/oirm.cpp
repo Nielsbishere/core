@@ -9,7 +9,7 @@ using namespace oi;
 
 RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool hasNrm, u32 vertices, u32 indices) {
 
-	u32 stride = (hasPos ? 12 : 0) + (hasUv ? 8 : 0) + (hasNrm ? 12 : 0);
+	u32 stride = pickIfTrue(12, hasPos) + pickIfTrue(8, hasUv) + pickIfTrue(12, hasNrm);
 
 	if (vbo.size() != stride * vertices) {
 		Log::error("Couldn't generate oiRM file; the vbo was of invalid size");
@@ -24,27 +24,29 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 	CopyBuffer fibo(indices * 4, bibo.addr());
 
 	u32 attributeCount = (u32) hasPos + hasUv + hasNrm;
-	Array<String> names;
-	std::vector<RMAttribute> attributes;
 
+	List<String> names;
+	names.reserve(attributeCount);
+
+	List<RMAttribute> attributes;
 	attributes.reserve(attributeCount);
 
 	if (hasPos) {
-		names = names.pushBack("inPosition");
-		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)0 });
+		names.pushBack("inPosition");
+		attributes.pushBack(RMAttribute((u8)TextureFormat::RGB32f, (u16)0));
 	}
 
 	if (hasUv) {
-		names = names.pushBack("inUv");
-		attributes.push_back({ (u8)TextureFormat::RG32f, (u16)attributes.size() });
+		names.pushBack("inUv");
+		attributes.pushBack(RMAttribute((u8)TextureFormat::RG32f, (u16)attributes.size()));
 	}
 
 	if (hasNrm) {
-		names = names.pushBack("inNormal");
-		attributes.push_back({ (u8)TextureFormat::RGB32f, (u16)attributes.size() });
+		names.pushBack("inNormal");
+		attributes.pushBack(RMAttribute((u8)TextureFormat::RGB32f, (u16)attributes.size()));
 	}
 
-	std::vector<RMVBO> vboInfo(1); 
+	Array<RMVBO> vboInfo(1); 
 	vboInfo[0] = RMVBO(
 		(u16)((hasPos ? sizeof(Vec3) : 0) + (hasUv ? sizeof(Vec2) : 0) + (hasNrm ? sizeof(Vec3) : 0)),
 		(u16)attributeCount
@@ -73,12 +75,12 @@ RMFile oiRM::generate(Buffer vbo, Buffer bibo, bool hasPos, bool hasUv, bool has
 		},
 
 		vboInfo,
-		attributes,
+		attributes.toArray(),
 		{},
 		{ CopyBuffer(vbo.size(), vbo.addr()) },
 		fibo,
 		{},
-		SLFile(String::getDefaultCharset(), names)
+		SLFile(String::getDefaultCharset(), names.toArray())
 	);
 }
 
@@ -134,25 +136,25 @@ V0_0_1:
 		if (read.size() < destSize)
 			return Log::error("Couldn't read oiRM file; invalid size");
 
-		file.vbos.resize(file.header.vertexBuffers);
-		memcpy(file.vbos.data(), read.addr(), vertexBuffer);
+		file.vbos = Array<RMVBO>(file.header.vertexBuffers);
+		memcpy(file.vbos.begin(), read.addr(), vertexBuffer);
 		read = read.offset(vertexBuffer);
 
-		file.vbo.resize(file.header.vertexAttributes);
-		memcpy(file.vbo.data(), read.addr(), vertexAttribute);
+		file.vbo = Array<RMAttribute>(file.header.vertexAttributes);
+		memcpy(file.vbo.begin(), read.addr(), vertexAttribute);
 		read = read.offset(vertexAttribute);
 
-		file.miscs.resize(file.header.miscs);
-		memcpy(file.miscs.data(), read.addr(), misc);
+		file.miscs = Array<RMMisc>(file.header.miscs);
+		memcpy(file.miscs.begin(), read.addr(), misc);
 		read = read.offset(misc);
 
 		u32 attr = 0;
 		bool compression = file.header.usesCompression;
 
-		file.vertices.resize(file.header.vertexBuffers);
+		file.vertices = Array<CopyBuffer>(file.header.vertexBuffers);
 
-		RMVBO *vbo = file.vbos.data();
-		CopyBuffer *vbdat = file.vertices.data();
+		RMVBO *vbo = file.vbos.begin();
+		CopyBuffer *vbdat = file.vertices.begin();
 		Array<u32> indices, indices0;
 
 		for (u32 i = 0; i < file.header.vertexBuffers; ++i) {
@@ -175,7 +177,7 @@ V0_0_1:
 
 			} else {
 
-				RMAttribute *attrib = file.vbo.data();
+				RMAttribute *attrib = file.vbo.begin();
 
 				for (u32 j = 0, offset = 0; j < vbo->layouts; ++j) {
 
@@ -324,7 +326,7 @@ V0_0_1:
 			}
 		}
 
-		file.miscBuffer.resize(file.header.miscs);
+		file.miscBuffer = Array<CopyBuffer>(file.header.miscs);
 		for (u32 i = 0; i < file.header.miscs; ++i) {
 
 			u32 length = file.miscs[i].size;
@@ -394,23 +396,23 @@ RMFile oiRM::convert(const MeshInfo &info) {
 	auto buffers = meshBuffer.buffers;
 	u32 attributeCount = 0;
 
-	std::vector<RMAttribute> attributes;
-	Array<String> names;
-	std::vector<RMVBO> vbos(buffers.size());
-	std::vector<CopyBuffer> vertices(buffers.size());
+	List<RMAttribute> attributes;
+	List<String> names;
+	Array<RMVBO> vbos(buffers.size());
+	Array<CopyBuffer> vertices(buffers.size());
 
 	u32 i = 0, j = 0;
 
 	for (auto &elem : buffers) {
 
-		attributeCount += (u32) elem.size();
+		attributeCount += u32(elem.size());
 		attributes.reserve(attributeCount);
 
 		u32 size = 0;
 
 		for (auto &pair : elem) {
-			attributes.push_back({ (u8)pair.second.getValue(), (u16)j });
-			names = names.pushBack(pair.first);
+			attributes.pushBack(RMAttribute((u8)pair.second.getValue(), (u16)j));
+			names.pushBack(pair.first);
 			size += Graphics::getFormatSize(pair.second);
 			++j;
 		}
@@ -421,9 +423,9 @@ RMFile oiRM::convert(const MeshInfo &info) {
 		++i;
 	}
 
-	std::vector<RMMisc> miscs;
+	Array<RMMisc> miscs;
 
-	return {
+	return RMFile(
 
 		{
 			{ 'o', 'i', 'R', 'M' },
@@ -446,14 +448,14 @@ RMFile oiRM::convert(const MeshInfo &info) {
 		},
 
 		vbos,
-		attributes,
+		attributes.toArray(),
 		miscs,
 		vertices,
 		CopyBuffer(info.ibo.size(), info.ibo.addr()),
 		{},
-		SLFile(String::getDefaultCharset(), names)
+		SLFile(String::getDefaultCharset(), names.toArray())
 
-	};
+	);
 }
 
 u32 findChannel(u8 *data, u32 totalSize, u8 *c, u32 bpc) {
@@ -786,13 +788,13 @@ Buffer oiRM::write(RMFile &file, bool compression) {
 	memcpy(write.addr(), &header, sizeof(header));
 	write = write.offset((u32) sizeof(header));
 
-	memcpy(write.addr(), file.vbos.data(), vertexBuffer);
+	memcpy(write.addr(), file.vbos.begin(), vertexBuffer);
 	write = write.offset(vertexBuffer);
 
-	memcpy(write.addr(), file.vbo.data(), vertexAttribute);
+	memcpy(write.addr(), file.vbo.begin(), vertexAttribute);
 	write = write.offset(vertexAttribute);
 
-	memcpy(write.addr(), file.miscs.data(), misc);
+	memcpy(write.addr(), file.miscs.begin(), misc);
 	write = write.offset(misc);
 
 	memcpy(write.addr(), vertices.begin(), vertices.size());

@@ -1,5 +1,6 @@
 #pragma once
 #include "template/enum.h"
+#include "types/list.hpp"
 
 namespace oi {
 
@@ -31,7 +32,7 @@ namespace oi {
 		//SLHeader header;
 		String keyset;
 		//Array<SizeType> stringLengths;
-		Array<String> strings;				//Bitset of getBitDepth() per character indexing into keyset
+		List<String> strings;				//Bitset of getBitDepth() per character indexing into keyset
 
 		size_t size;
 

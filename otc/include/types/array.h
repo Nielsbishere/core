@@ -5,6 +5,9 @@ namespace oi {
 
 	///Statically sized array
 
+	//TODO: Move constructor
+	//TODO: Make Array<T, x> more like Array<T, 0>
+
 	template<typename T, size_t count = 0>
 	class Array {
 
@@ -69,16 +72,12 @@ namespace oi {
 		Array(size_t count, const T *dat);
 		Array(size_t count, const T &def);
 		Array(const T *begin, const T *end);
+		Array(const std::initializer_list<T> &val);
 
-		template<size_t _count>
-		Array(const T(&dat)[_count]) : count(_count) {
+		template<size_t tcount>
+		Array(const T(&dat)[tcount]) : count(tcount) {
 			data = new T[count]();
 			TCopyArray<T>::exec(data, dat, count);
-		}
-
-		Array(std::initializer_list<T> val): count(val.end() - val.begin()) {
-			data = new T[count]();
-			TCopyArray<T>::exec(data, (T*) val.begin(), count);
 		}
 
 		Array(const Array &arr);
@@ -91,22 +90,8 @@ namespace oi {
 		Array operator+(const Array &arr) const;
 
 		T *begin() { return data; }
-		T *last() { return count == 0 ? data : data + count - 1; }
+		T *last() { return pickIfTrue(data, data + count - 1, count != 0); }
 		T *end() { return data + count; }
-
-		Array pushFront(const T &t) const {
-			Array copy(count + 1);
-			TCopyArray<T>::exec(copy.data + 1, data, count);
-			copy[0] = t;
-			return copy;
-		}
-
-		Array pushBack(const T &t) const {
-			Array copy(count + 1);
-			TCopyArray<T>::exec(copy.data, data, count);
-			*copy.last() = t;
-			return copy;
-		}
 
 		T &operator[](size_t i) { return data[i]; }
 		const T &operator[](size_t i) const { return data[i]; }
@@ -114,7 +99,7 @@ namespace oi {
 		void set(size_t i, const T &t) { data[i] = t; }
 
 		const T *begin() const { return data; }
-		const T *last() const { return count == 0 ? data : data + count - 1; }
+		const T *last() const { return pickIfTrue(data, data + count - 1, count != 0); }
 		const T *end() const { return data + count; }
 
 		size_t lastIndex() const { return (count - 1) * (count > 0); }
@@ -136,8 +121,15 @@ namespace oi {
 
 	template<typename T>
 	Array<T>::~Array() {
-		if (data)
+		if (data) {
+
+			if constexpr (!std::is_pod<T>::value && !std::is_arithmetic<T>::value)
+				for (size_t i = 0; i < count; ++i)
+					data[i].~T();
+
 			delete[] data;
+			data = nullptr;
+		}
 	}
 
 	template<typename T>
@@ -169,7 +161,16 @@ namespace oi {
 	}
 
 	template<typename T>
+	Array<T>::Array(const std::initializer_list<T> &val) : count(val.end() - val.begin()) {
+		data = new T[count]();
+		TCopyArray<T>::exec(data, (const T*)val.begin(), count);
+	}
+
+	template<typename T>
 	Array<T> &Array<T>::operator=(const Array &arr) {
+
+		if (data)
+			delete[] data;
 
 		count = arr.count;
 
@@ -177,6 +178,7 @@ namespace oi {
 			data = new T[count]();
 			TCopyArray<T>::exec(data, arr.data, count);
 		}
+		else data = nullptr;
 
 		return *this;
 	}
@@ -185,7 +187,7 @@ namespace oi {
 	Array<T> &Array<T>::operator+=(const Array &arr) {
 
 		Array<T> cpy(count + arr.count);
-		TCopyArray<T>::exec(cpy.data, data, count);
+		TMoveArray<T>::exec(cpy.data, data, count);
 		TCopyArray<T>::exec(cpy.data + count, arr.data, arr.count);
 
 		return *this = cpy;
@@ -201,6 +203,10 @@ namespace oi {
 
 	template<typename T>
 	Array<T> &Array<T>::operator=(Array &&arr) {
+
+		if (data)
+			delete[] data;
+
 		data = arr.data;
 		count = arr.count;
 		arr.data = nullptr;
@@ -223,14 +229,11 @@ namespace oi {
 	template<typename T>
 	Array<T>::Array(const T *begin, const T *end) {
 
-		count = (end - begin);
+		count = size_t(end - begin);
 
 		if (count) {
-			
 			data = new T[count]();
-
-			for (size_t i = 0; i < count; ++i)
-				data[i] = begin[i];
+			TCopyArray<T>::exec(data, begin, count);
 		}
 	}
 

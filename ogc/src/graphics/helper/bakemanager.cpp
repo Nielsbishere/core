@@ -409,7 +409,7 @@ void BakeManager::write() {
 		file.header.flags = makeFlags();
 
 		file.strings.keyset = "";
-		file.strings.strings = {};
+		file.strings.strings = List<String>();
 
 		for (BakedFile &bmbf : file.files) {
 

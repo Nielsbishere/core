@@ -28,7 +28,7 @@ namespace oi {
 
 	public:
 
-		String(): len(0) {}
+		String() : len(0), stackData{} {}
 		~String();
 		String(const char *dat);
 		String(const size_t count, const char &def);

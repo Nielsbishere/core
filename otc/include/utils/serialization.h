@@ -3,6 +3,7 @@
 //JSON serialization
 
 #include "utils/json.h"
+#include "types/list.hpp"
 
 namespace oi {
 
@@ -168,11 +169,11 @@ ose(X, 0, a, b, c, d, e, f);
 																					\
 static oi::Array<oi::String> _initMembers() {										\
 																					\
-	oi::Array<oi::String> members = oi::String(#__VA_ARGS__).split(",");			\
-	for (u32 i = 0; i < (u32)members.size(); ++i)									\
+	oi::List<oi::String> members = oi::String(#__VA_ARGS__).split(",");				\
+	for (size_t i = 0; i < members.size(); ++i)										\
 		members[i] = members[i].trim();												\
 																					\
-	return members.pushFront("structVersion");										\
+	return members.pushFront("structVersion").toArray();							\
 }																					\
 																					\
 static const oi::Array<oi::String> &getMembers() {									\

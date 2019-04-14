@@ -94,12 +94,16 @@ namespace oi {
 	struct TCopyArray {
 
 		static inline void exec(T *dst, const T *src, size_t count, size_t offset = 0) {
+			return execInternal(dst, src, count + offset, offset, 0);
+		}
 
-			if (count == offset)
+		static inline void execInternal(T *dst, const T *src, size_t end, size_t offset, size_t index) {
+
+			if (offset >= end)
 				return;
 
-			dst[offset] = src[offset];
-			exec(dst, src, count, offset + 1);
+			dst[offset] = src[index];
+			execInternal(dst, src, end, offset + 1, index + 1);
 
 		}
 
@@ -108,8 +112,41 @@ namespace oi {
 	template<typename T>
 	struct TCopyArray<T, true> {
 
-		static inline void exec(T *dst, const T *src, size_t count) {
-			memcpy(dst, src, count * sizeof(T));
+		static inline void exec(T *dst, const T *src, size_t count, size_t offset = 0) {
+			if ((dst + offset + count > src && dst < src) || (src + offset + count > dst && src < dst))
+				memmove(dst + offset, src, count * sizeof(T));
+			else
+				memcpy(dst + offset, src, count * sizeof(T));
+		}
+
+	};
+
+	//Moving an array (or just 1 value)
+
+	template<typename T, bool b = std::is_arithmetic<T>::value || std::is_pod<T>::value>
+	struct TMoveArray {
+
+		static inline void exec(T *dst, const T *src, size_t count, size_t offset = 0) {
+			return execInternal(dst, src, count + offset, offset, 0);
+		}
+
+		static inline void execInternal(T *dst, const T *src, size_t end, size_t offset, size_t index) {
+
+			if (offset >= end)
+				return;
+
+			dst[offset] = std::move(src[index]);
+			execInternal(dst, src, end, offset + 1, index + 1);
+
+		}
+
+	};
+
+	template<typename T>
+	struct TMoveArray<T, true> {
+
+		static inline void exec(T *dst, const T *src, size_t count, size_t offset = 0) {
+			return TCopyArray<T>::exec(dst, src, count, offset);
 		}
 
 	};
