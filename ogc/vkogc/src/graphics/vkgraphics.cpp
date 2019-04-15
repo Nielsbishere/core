@@ -168,8 +168,8 @@ void Graphics::init(Window *w){
 	
 	application.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	
-	application.pApplicationName = w->getInfo().getTitle().begin();
-	application.applicationVersion = w->getInfo().getVersion();
+	application.pApplicationName = w->getTitle().begin();
+	application.applicationVersion = w->getVersion();
 	
 	application.pEngineName = "Osomi Graphics Core";
 	application.engineVersion = 1;
@@ -501,7 +501,7 @@ void Graphics::initSurface(Window *w) {
 	if (size == Vec2u::max())
 		Log::throwError<GraphicsExt, 0x3>("Size is undefined; this is not supported!");
 
-	if (size != w->getInfo().getSize())
+	if (size != w->getViewport()->getLayers()[0].size)
 		Log::throwError<GraphicsExt, 0x4>(String("Render size didn't match ") + size);
 
 	Log::println(String("Successfully created surface (") + size + ")");
@@ -845,29 +845,4 @@ GraphicsExt &Graphics::getExtension() { return *ext; }
 void Graphics::finish() {
 	vkQueueWaitIdle(ext->queue);
 	ext->frames = 0;
-}
-
-void Window::updateAspect() {
-
-	GraphicsInterface *irf = dynamic_cast<GraphicsInterface*>(wi);
-
-	if (irf == nullptr)
-		return;
-
-	Graphics &g = irf->getGraphics();
-	GraphicsExt &gext = g.getExtension();
-
-	VkSurfaceCapabilitiesKHR capabilities;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gext.pdevice, gext.surface, &capabilities);
-
-	if (!initialized)
-		info.flippedOnStart = capabilities.currentTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-	
-	info.flipped = capabilities.currentTransform != VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-
-	if (wi != nullptr) {
-		f32 aspect = Vec2(info.size).getAspect();
-		wi->onAspectChange(info.flipped != info.flippedOnStart ? 1 / aspect : aspect);
-	}
-
 }

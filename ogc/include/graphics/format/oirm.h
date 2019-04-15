@@ -60,12 +60,13 @@ namespace oi {
 
 		struct RMAttribute {
 
-			u8 padding = 0;
+			u8 padding;
 			u8 format;			//TextureFormat
 			u16 name;
 
-			RMAttribute(u8 format, u16 name) : format(format), name(name) {}
+			RMAttribute(u8 format, u16 name) : format(format), name(name), padding(0) {}
 			RMAttribute() : RMAttribute(0, 0) {}
+			bool operator==(const RMAttribute &attr) { return format == attr.format && name == attr.name; }
 
 		};
 

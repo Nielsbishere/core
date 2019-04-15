@@ -25,5 +25,5 @@ void BasicGraphicsInterface::initScene() {
 }
 
 void BasicGraphicsInterface::onAspectChange(float asp) {
-	cameraFrustum->resize(getParent()->getInfo().getSize(), asp);
+	cameraFrustum->resize(getParent()->getViewport()->getLayer(0).size, asp);
 }

@@ -51,9 +51,13 @@ namespace oi {
 		List &pushFront(const T &val);
 		List &pushFront(const List<T> &val);
 
+		List &pushBackUnique(const T &val);
+		List &pushFrontUnique(const T &val);
+
 		List &popBack(const size_t count = 1);
 		List &popFront(const size_t count = 1);
 
+		List &insertUnique(const T &val, size_t pos);
 		List &insert(const T &val, size_t pos);
 		List &insert(const List<T> &val, const size_t pos);
 		List &erase(const size_t pos, const size_t count = 1);
@@ -75,9 +79,11 @@ namespace oi {
 		size_t dataSize() const { return objects * sizeof(T); }
 		bool empty() const { return objects != 0; }
 
-	private:
+	protected:
 
 		size_t objects{};
+
+		List &insertInternal(const T *val, size_t pos, size_t count, bool unique);
 
 	};
 
@@ -134,12 +140,7 @@ namespace oi {
 
 	template<typename T>
 	size_t List<T>::find(const T &val) {
-
-		for (size_t i = 0; i < objects; ++i)
-			if (this->data[i] == val)
-				return i;
-
-		return objects;
+		return TFindElement<T>::exec(this->data, end(), val);
 	}
 
 	template<typename T>
@@ -245,9 +246,32 @@ namespace oi {
 
 	template<typename T>
 	List<T> &List<T>::insert(const T &val, size_t pos) {
+		return insertInternal(&val, pos, 1, false);
+	}
+
+	template<typename T>
+	List<T> &List<T>::pushFrontUnique(const T &t) {
+		return insertUnique(t, 0);
+	}
+
+	template<typename T>
+	List<T> &List<T>::pushBackUnique(const T &t) {
+		return insertUnique(t, size());
+	}
+
+	template<typename T>
+	List<T> &List<T>::insertUnique(const T &val, size_t pos) {
+		return insertInternal(&val, pos, 1, true);
+	}
+
+	template<typename T>
+	List<T> &List<T>::insertInternal(const T *val, size_t pos, size_t count, bool unique) {
+
+		if (unique && find(*val) != size())
+			return *this;
 
 		pos = pickIfTrue(pos, size(), pos > size());
-		bool shouldExpand = objects + 1 > this->count;
+		bool shouldExpand = objects + count > this->count;
 
 		if (shouldExpand) {
 
@@ -256,33 +280,29 @@ namespace oi {
 			if(pos != 0)
 				TMoveArray<T>::exec(copy.begin(), this->data, pos);
 
-			TCopyArray<T>::exec(copy.begin(), &val, 1, pos);
+			TCopyArray<T>::exec(copy.begin(), val, count, pos);
 
 			if (pos != size())
-				TMoveArray<T>::exec(copy.begin() + pos + 1, this->data + pos, size() - pos);
+				TMoveArray<T>::exec(copy.begin() + pos + count, this->data + pos, size() - pos);
 
 			Array<T>::operator=(std::move(copy));
 
-		} else {
+		} else if (pos != size()) {
 
-			if (pos != size()) {
-				Array<T> result(this->count);
+			Array<T> result(this->count);
 
-				if (pos != 0)
-					TMoveArray<T>::exec(result.begin(), this->data, pos);
+			if (pos != 0)
+				TMoveArray<T>::exec(result.begin(), this->data, pos);
 
-				TCopyArray<T>::exec(result.begin() + pos, &val, 1);
-				TMoveArray<T>::exec(result.begin() + pos + 1, this->data + pos, size() - pos);
-				Array<T>::operator=(std::move(result));
-				++objects;
-				return *this;
-			}
+			TCopyArray<T>::exec(result.begin() + pos, val, count);
+			TMoveArray<T>::exec(result.begin() + pos + count, this->data + pos, size() - pos);
 
-			TCopyArray<T>::exec(this->data + pos, &val, 1);
+			Array<T>::operator=(std::move(result));
 
-		}
+		} else
+			TCopyArray<T>::exec(this->data + pos, val, count);
 
-		++objects;
+		objects += count;
 		return *this;
 	}
 

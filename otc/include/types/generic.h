@@ -106,3 +106,13 @@ template<typename T>
 static inline T *pickIfTrue(T *ifTrue, bool val) {
 	return (T*) pickIfTrue<size_t>(size_t(ifTrue), val);
 }
+
+template<typename T>
+static inline void destroyPointer(T *&ptr) {
+
+	if (ptr)
+		delete ptr;
+
+	ptr = nullptr;
+
+}

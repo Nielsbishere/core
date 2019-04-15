@@ -38,7 +38,7 @@ When a state can't be determined, it will be set to "default".
 
 `pose <name>` for a pose action (vec3).
 
-`haptic vibrate <name>` for a vibration haptic.
+`haptic_vibrate <name>` for a vibration haptic.
 
 ### Haptics
 

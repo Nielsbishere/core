@@ -21,10 +21,16 @@ namespace oi {
 		public:
 		
 			struct IDBHash {
-				size_t operator()(const InputDeviceBinding &idb) const { return (size_t) idb; }
+				size_t operator()(const InputDeviceBinding &idb) const { return size_t(idb); }
 			};
 
-			void init();
+			InputHandler();
+			~InputHandler() = default;
+			InputHandler(const InputHandler&) = delete;
+			InputHandler(InputHandler&&) = delete;
+			InputHandler &operator=(const InputHandler&) = delete;
+			InputHandler &operator=(InputHandler&&) = delete;
+
 			void update(Window *w, f32 dt);
 
 			InputDevice *getDevice(InputDeviceBinding binding);

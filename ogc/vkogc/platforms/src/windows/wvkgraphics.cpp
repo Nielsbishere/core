@@ -1,4 +1,5 @@
 #include "window/window.h"
+#include "viewport/windowviewport.hpp"
 #include "graphics/vulkan.h"
 #include "graphics/graphics.h"
 #include "windows/windows.h"
@@ -8,16 +9,20 @@ using namespace oi;
 
 void Graphics::setupSurface(Window *w) {
 
-	//Setup device surface
+	if (WindowViewport *wv = w->getViewport<WindowViewport>()) {
 
-	VkWin32SurfaceCreateInfoKHR surfaceInfo;
-	memset(&surfaceInfo, 0, sizeof(surfaceInfo));
-	surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		//Setup device surface
 
-	surfaceInfo.hinstance = w->getExtension().instance;
-	surfaceInfo.hwnd = w->getExtension().window;
+		VkWin32SurfaceCreateInfoKHR surfaceInfo;
+		memset(&surfaceInfo, 0, sizeof(surfaceInfo));
+		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 
-	vkCheck<0xE>(vkCreateWin32SurfaceKHR(ext->instance, &surfaceInfo, vkAllocator, &ext->surface), "Couldn't obtain surface");
+		surfaceInfo.hinstance = wv->getExt()->instance;
+		surfaceInfo.hwnd = wv->getExt()->window;
+
+		vkCheck<0xE>(vkCreateWin32SurfaceKHR(ext->instance, &surfaceInfo, vkAllocator, &ext->surface), "Couldn't obtain surface");
+
+	}
 
 }
 

@@ -9,7 +9,7 @@ namespace oi {
 
 		class Keyboard : public InputDevice {
 
-			friend struct WindowExt;
+			friend struct WindowViewportExt;
 
 		public:
 

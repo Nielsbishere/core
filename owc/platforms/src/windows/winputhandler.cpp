@@ -8,7 +8,7 @@ u32 InputHandler::getControllers(){
 	return 4U;
 }
 
-void InputHandler::init() {
+InputHandler::InputHandler() {
 
 	devices[InputDeviceBinding::KEYBOARD] = new Keyboard();
 	devices[InputDeviceBinding::MOUSE] = new Mouse();

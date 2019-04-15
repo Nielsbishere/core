@@ -25,7 +25,7 @@ String::String(const char *source) {
 	len = strlen(source);
 
 	if (len + 1 >= stackSize) {
-		heapData = Array<char>(len + 1);
+		::new(&heapData) Array<char>(len + 1);
 		len *= -1;
 	}
 
@@ -36,7 +36,7 @@ String::String(const char *source) {
 String::String(const size_t count, const char &def): len(count) {
 
 	if (len + 1 >= stackSize) {
-		heapData = Array<char>(len + 1);
+		::new(&heapData) Array<char>(len + 1);
 		len *= -1;
 	}
 
@@ -49,7 +49,7 @@ String::String(const size_t count, const char *dat) {
 	len = count;
 
 	if (len + 1 >= stackSize) {
-		heapData = Array<char>(len + 1);
+		::new(&heapData) Array<char>(len + 1);
 		len *= -1;
 	}
 
@@ -93,16 +93,19 @@ String::String(String &&toMov): len(toMov.len) {
 	if (len >= 0)
 		stackData = toMov.stackData;
 	else
-		heapData = std::move(toMov.heapData);
+		::new(&heapData) Array<char>(std::move(toMov.heapData));
 }
 
 String &String::operator=(String &&toMov) {
 
-	if ((len = toMov.len) >= 0)
+	if (toMov.len >= 0)
 		stackData = toMov.stackData;
-	else
+	else if (len < 0)
 		heapData = std::move(toMov.heapData);
+	else
+		::new(&heapData) Array<char>(std::move(toMov.heapData));
 
+	len = toMov.len;
 	return *this;
 }
 
@@ -110,15 +113,19 @@ String::String(const String &toCpy): len(toCpy.len) {
 	if (len >= 0)
 		stackData = toCpy.stackData;
 	else
-		heapData = toCpy.heapData;
+		::new(&heapData) Array<char>(toCpy.heapData);
 }
 
 String &String::operator=(const String &toCpy) {
-	if ((len = toCpy.len) >= 0)
-		stackData = toCpy.stackData;
-	else
-		heapData = toCpy.heapData;
 
+	if (toCpy.len >= 0)
+		stackData = toCpy.stackData;
+	else if (len < 0)
+		heapData = std::move(toCpy.heapData);
+	else
+		::new(&heapData) Array<char>(toCpy.heapData);
+
+	len = toCpy.len;
 	return *this;
 }
 

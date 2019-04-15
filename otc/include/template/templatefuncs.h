@@ -151,4 +151,38 @@ namespace oi {
 
 	};
 
+	//Finding a value
+
+	template<typename T, bool b = std::is_arithmetic<T>::value || std::is_pod<T>::value>
+	struct TFindElement {
+
+		static inline size_t exec(T *beg, T *end, const T &val) {
+
+			size_t j = end - beg;
+
+			for (size_t i = 0; i < j; ++i)
+				if (beg[i] == val)
+					return i;
+
+			return j;
+		}
+
+	};
+
+	template<typename T>
+	struct TFindElement<T, true> {
+
+		static inline size_t exec(T *beg, T *end, const T &val) {
+
+			size_t j = end - beg;
+
+			for (size_t i = 0; i < j; ++i)
+				if (memcmp(beg + i, &val, sizeof(val)) == 0)
+					return i;
+
+			return j;
+		}
+
+	};
+
 }

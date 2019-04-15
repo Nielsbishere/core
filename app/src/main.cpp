@@ -3,14 +3,12 @@
 #include "utils/random.h"
 #include "file/filemanager.h"
 #include "math/simplexnoise.h"
-#include "window/windowmanager.h"
 #include "input/inputhandler.h"
-#include "input/mouse.h"
-#include "input/keyboard.h"
 #include "graphics/format/oirm.h"
 #include "graphics/format/fbx.h"
 #include "graphics/objects/model/mesh.h"
 #include "types/array.h"
+#include "viewport/windowviewport.hpp"
 
 using namespace oi::gc;
 using namespace oi::wc;
@@ -20,10 +18,9 @@ using namespace oi;
 void Application::instantiate(AppExt *param){
 	Random::seedRandom();
 	FileManager fmanager(param);
-	WindowManager wmanager;
-	Window *w = wmanager.create(WindowInfo(__PROJECT_NAME__, 1, param));
+	Window *w = Window::create<WindowViewport>(__PROJECT_NAME__, 1, WindowInfo(param));
 	w->setInterface(new MainInterface());
-	wmanager.waitAll();
+	w->wait();
 }
 
 //Set up the interface
@@ -454,8 +451,10 @@ void MainInterface::update(f32 dt) {
 
 	//Key events
 
-	if (getInputManager().isPressed("Fullscreen"))
-		getParent()->getInfo().toggleFullScreen();
+	if (getInputManager().isPressed("Fullscreen")) {
+		if(WindowViewport *wv = getParent()->getViewport<WindowViewport>())
+			wv->setFullScreen(!wv->isFullScreen());
+	}
 
 	if (getInputManager().isPressed("Print graphics objects"))
 		g.printObjects();

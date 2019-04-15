@@ -1,77 +1,48 @@
 #include "window/window.h"
 #include "window/windowinterface.h"
-#include "window/windowmanager.h"
 #include "utils/timer.h"
 using namespace oi;
 using namespace wc;
 
-Window::Window(WindowManager *manager, WindowInfo info) : parent(manager), inputHandler(), inputManager(&inputHandler), info(info) {}
-Window::~Window() { if (wi != nullptr) delete wi; }
+Window *Window::window = nullptr;
 
-WindowInfo &Window::getInfo() { return info; }
-InputHandler &Window::getInputHandler() { return inputHandler; }
-InputManager &Window::getInputManager() { return inputManager; }
-WindowInterface *Window::getInterface() { return wi; }
-WindowManager *Window::getParent() { return parent; }
+Window::Window(const String &title, const u32 version) : inputHandler(), inputManager(&inputHandler), title(title), version(version) { }
+
+Window::~Window() {
+	window = nullptr;
+	destroyPointer(wi);
+	destroyPointer(viewport);
+}
 
 void Window::setInterface(WindowInterface *wif) {
 
-	if (wi != nullptr)
-		delete wi;
+	if (wi == wif)
+		return;
 
+	destroyPointer(wi);
 	wi = wif;
 
-	if (wi != nullptr)
+	if (wi)
 		wi->parent = this;
 
+	if (viewport)
+		viewport->setInterface(wif);
 }
 
-void Window::init() {
+bool Window::update() {
 
-	lastTick = Timer::getGlobalTimer().getDuration();
-	
-	inputHandler.init();
-	initPlatform();
-	
-}
+	if (!viewport)
+		return false;
 
-void Window::finalize(){
-	if(wi != nullptr){
-		if(finalizeCount == 0){
-			wi->init();
-			wi->initSurface(info.size);
-		}
-		else
-			wi->initSurface(info.size);
-	}
-	
-	++finalizeCount;
-}
-
-void Window::update() {
-
-	if(!initialized || info.size.x == 0 || info.size.y == 0 || info.isMinimized()){
-		lastTick = Timer::getGlobalTimer().getDuration();
-		hasPrevFrame = false;
-		return;
-	}
-
-	updatePlatform();
-
-	f32 dt = Timer::getGlobalTimer().getDuration() - lastTick;
-
-	if (wi != nullptr)
-		wi->update(dt);
-
-	lastTick = Timer::getGlobalTimer().getDuration();
-
-	if (wi != nullptr)
-		wi->render();
-
-	hasPrevFrame = true;
+	viewport->begin();
+	f32 dt = viewport->update();
+	viewport->end();
 	
 	inputManager.update();
 	inputHandler.update(this, dt);
+	return true;
 }
 
-bool Window::hasPreviousFrame() { return hasPrevFrame; }
+void Window::wait() {
+	while (update());
+}

@@ -16,7 +16,7 @@ namespace oi {
 
 		class Window;
 
-		struct WindowExt {
+		struct WindowViewportExt {
 
 			HINSTANCE instance;
 			HWND window;

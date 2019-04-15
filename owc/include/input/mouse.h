@@ -9,7 +9,7 @@ namespace oi {
 
 		class Mouse : public InputDevice {
 
-			friend struct WindowExt;
+			friend struct WindowViewportExt;
 
 		public:
 

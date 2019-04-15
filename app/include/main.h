@@ -15,6 +15,12 @@ namespace oi {
 
 	}
 
+	namespace wc {
+
+		struct AppExt;
+
+	}
+
 }
 
 struct Application {

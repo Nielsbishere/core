@@ -1,35 +1,35 @@
 #include "window/windowinterface.h"
-#include "window/windowmanager.h"
 #include "input/mouse.h"
 #include "input/keyboard.h"
 #include "windows/windows.h"
+#include "window/window.h"
+#include "viewport/windowviewport.hpp"
 using namespace oi::wc;
 using namespace oi;
 
-Window *WindowExt::getByHandle(HWND hwnd) {
+Window *WindowViewportExt::getByHandle(HWND hwnd) {
 
-	WindowManager *wm = WindowManager::get();
-
-	for (u32 i = 0; i < wm->getWindows(); ++i) {
-		Window *w = wm->operator[](i);
-
-		if (w->getExtension().window == hwnd)
-			return w;
-	}
+	if (Window *w = Window::get())
+		if(WindowViewport *wv = w->getViewport<WindowViewport>())
+			if(wv->getExt()->window == hwnd)
+				return w;
 
 	return nullptr;
 }
 
-LRESULT CALLBACK WindowExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowViewportExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 	PAINTSTRUCT ps;
 	HDC hdc;
 
 	Window *w = getByHandle(hwnd);
-	if (w == nullptr) return DefWindowProc(hwnd, message, wParam, lParam);
+	if (w == nullptr) return DefWindowProcA(hwnd, message, wParam, lParam);
+
+	WindowViewport *wv = w->getViewport<WindowViewport>();
+	if (wv == nullptr) return DefWindowProcA(hwnd, message, wParam, lParam);
 
 	WindowInterface *wi = w->getInterface();
-	WindowInfo &win = w->getInfo();
+	WindowInfo &win = wv->getInfo();
 
 	WORD xid = GET_XBUTTON_WPARAM(wParam);
 
@@ -56,7 +56,7 @@ LRESULT CALLBACK WindowExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam,
 		break;
 
 	case WM_CLOSE:
-		w->getParent()->remove(w);
+		delete w;
 		break;
 
 	case WM_SIZE:
@@ -64,10 +64,8 @@ LRESULT CALLBACK WindowExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam,
 		RECT rect;
 		GetClientRect(hwnd, &rect);
 
-		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
-
-		Vec2u prevSize = win.size;
-		win.size = size;
+		Vec2u &size = wv->getLayer(0).size, prevSize = size;
+		size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 
 		win.minimized = IsIconic(hwnd);
 
@@ -112,7 +110,7 @@ LRESULT CALLBACK WindowExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam,
 
 	case WM_MOUSEMOVE:
 		{
-			Vec2 c = Vec2(LOWORD(lParam), HIWORD(lParam)) / Vec2(w->getInfo().getSize());
+			Vec2 c = Vec2(LOWORD(lParam), HIWORD(lParam)) / Vec2(wv->getLayer(0).size);
 			Mouse *mouse = w->getInputHandler().getMouse();
 			
 			c.y = -c.y;
@@ -188,64 +186,41 @@ LRESULT CALLBACK WindowExt::windowEvents(HWND hwnd, UINT message, WPARAM wParam,
 }
 
 
-void Window::initPlatform() {
+WindowViewport::WindowViewport(const WindowInfo &info) : Viewport({ ViewportLayer() }), info(info) {
+	ext = new WindowViewportExt();
+}
 
-	ext = new WindowExt();
+void WindowViewport::setFullScreen(bool isFullScreen) {
 
-	ext->instance = GetModuleHandle(NULL);
+	fullScreen = isFullScreen;
 
-	String str = info.getTitle();
+	DWORD dwStyle = GetWindowLongA(ext->window, GWL_STYLE);
+	MONITORINFO mi = { sizeof(mi) };
 
-	WNDCLASSEX wc;
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = WindowExt::windowEvents;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = ext->instance;
-	wc.hIcon = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 32, 32, 0);
-	wc.hIconSm = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 16, 16, 0);
-	wc.hCursor = LoadCursorA(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = str.begin();
-	wc.cbSize = sizeof(WNDCLASSEX);
-
-	if (!RegisterClassExA(&wc)) {
-		HRESULT res = GetLastError();
-		Log::error(res);
-		Log::throwError<WindowExt, 0x0>("Couldn't init Windows class");
+	if (fullScreen && GetMonitorInfoA(MonitorFromWindow(ext->window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
+		SetWindowLongA(ext->window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+		SetWindowPos(ext->window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	} else {
+		SetWindowLongA(ext->window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+		SetWindowPos(ext->window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 	}
-
-	int nStyle = WS_OVERLAPPED | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
-
-	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-	ext->window = CreateWindowExA(WS_EX_APPWINDOW, str.begin(), str.begin(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext->instance, NULL);
-
-	if (ext->window == NULL)
-		Log::throwError<WindowExt, 0x1>("Couldn't init Windows window");
 
 	RECT rect;
 	GetClientRect(ext->window, &rect);
 
-	info.size = Vec2u((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top));
+	Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
+	w->getViewport()->getLayer(0).size = size;
 
-	info.focus();
-	updatePlatform();
-	
-	initialized = true;
-	finalize();
+	if (wi) {
+		wi->onResize(size);
+		wi->onAspectChange(Vec2(size).getAspect());
+	}
 
-	if(wi != nullptr)
-		wi->onAspectChange(Vec2(info.size).getAspect());
 }
 
-WindowExt &Window::getExtension() { return *ext; }
+WindowViewport::~WindowViewport() {
 
-void Window::destroyPlatform() {
-
-	if (ext->window != NULL) {
+	if (ext->window) {
 		PostQuitMessage(0);
 		DestroyWindow(ext->window);
 		ext->window = NULL;
@@ -254,43 +229,84 @@ void Window::destroyPlatform() {
 	delete ext;
 }
 
-void Window::updatePlatform() {
+void WindowViewport::init(Window *window) {
 
-	if (isSet(info.pending, WindowAction::IN_FOCUS))
-		if (info.isInFocus()) {
-			ShowWindow(ext->window, SW_SHOW);
-			SetForegroundWindow(ext->window);
-			SetFocus(ext->window);
-		}
+	w = window;
 
+	ext->instance = GetModuleHandleA(NULL);
 
-	if (isSet(info.pending, WindowAction::FULL_SCREEN)) {
+	WNDCLASSEX wc;
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc = WindowViewportExt::windowEvents;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = ext->instance;
+	wc.hIcon = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 32, 32, 0);
+	wc.hIconSm = (HICON)LoadImageA(GetModuleHandleA(NULL), "LOGO", IMAGE_ICON, 16, 16, 0);
+	wc.hCursor = LoadCursorA(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = w->getTitle().begin();
+	wc.cbSize = sizeof(WNDCLASSEX);
 
-		DWORD dwStyle = GetWindowLongA(ext->window, GWL_STYLE);
-		MONITORINFO mi = { sizeof(mi) };
-
-		if (info.fullScreen && GetMonitorInfoA(MonitorFromWindow(ext->window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
-			SetWindowLongA(ext->window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
-			SetWindowPos(ext->window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-		}
-		else {
-			SetWindowLongA(ext->window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
-			SetWindowPos(ext->window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-		}
-
-		RECT rect;
-		GetClientRect(ext->window, &rect);
-
-		Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
-
-		info.size = size;
-
-		if (wi != nullptr) {
-			wi->onResize(size);
-			wi->onAspectChange(Vec2(size).getAspect());
-		}
-
+	if (!RegisterClassExA(&wc)) {
+		HRESULT res = GetLastError();
+		Log::error(res);
+		Log::throwError<WindowViewportExt, 0x0>("Couldn't init Windows class");
 	}
 
-	info.pending = WindowAction::NONE;
+	int nStyle = WS_OVERLAPPED | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
+
+	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	ext->window = CreateWindowExA(WS_EX_APPWINDOW, w->getTitle().begin(), w->getTitle().begin(), nStyle, info.getPosition().x, info.getPosition().y, screenWidth, screenHeight, NULL, NULL, ext->instance, NULL);
+
+	if (ext->window == NULL)
+		Log::throwError<WindowViewportExt, 0x1>("Couldn't init Windows window");
+
+	RECT rect;
+	GetClientRect(ext->window, &rect);
+
+	Vec2u size((u32)(rect.right - rect.left), (u32)(rect.bottom - rect.top));
+	getLayer(0).size = size;
+
+	ShowWindow(ext->window, SW_SHOW);
+	SetFocus(ext->window);
+
+}
+
+void WindowViewport::setInterface(WindowInterface *wif) {
+
+	wi = wif;
+	finalizeCount = 0;
+
+	if (!wi)
+		return;
+
+	wi->init();
+	wi->initSurface(getLayer(0).size);
+	wi->onAspectChange(Vec2(getLayer(0).size).getAspect());
+}
+
+f32 WindowViewport::update() {
+
+	MSG msg;
+
+	if (PeekMessageA(&msg, NULL, 0U, 0U, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessageA(&msg);
+		return 0;
+	}
+
+	if (!wi) {
+		lastTick = Timer::getGlobalTimer().getDuration();
+		return 0;
+	}
+
+	f32 dt = Timer::getGlobalTimer().getDuration() - lastTick;
+	wi->update(dt);
+	lastTick = Timer::getGlobalTimer().getDuration();
+	wi->render();
+	return dt;
 }
