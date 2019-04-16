@@ -7,7 +7,7 @@
 
 namespace oi {
 
-	typedef void (*LogCallback)(String str);
+	typedef void (*LogCallback)(const String &str);
 
 	enum class LogLevel {
 		PRINT, WARN, ERROR, FATAL
@@ -33,6 +33,11 @@ namespace oi {
 		}
 
 		static void setCallback(LogCallback callback, LogLevel ll = LogLevel::PRINT);
+
+	protected:
+
+		static bool setupExitHandler();
+		static bool setupExitHandlerValue;
 
 	private:
 

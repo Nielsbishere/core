@@ -2,11 +2,11 @@
 #include <Windows.h>
 using namespace oi;
 
-void printstr(String str){
+void printstr(const String &str){
 	printf("%s", str.begin());
 }
 
-void printerr(String str){
+void printerr(const String &str){
 	OutputDebugStringA(str.begin());
 	printstr(str);
 }

@@ -451,11 +451,6 @@ void MainInterface::update(f32 dt) {
 
 	//Key events
 
-	if (getInputManager().isPressed("Fullscreen")) {
-		if(WindowViewport *wv = getParent()->getViewport<WindowViewport>())
-			wv->setFullScreen(!wv->isFullScreen());
-	}
-
 	if (getInputManager().isPressed("Print graphics objects"))
 		g.printObjects();
 

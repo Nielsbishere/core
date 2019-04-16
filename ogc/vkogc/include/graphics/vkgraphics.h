@@ -1,6 +1,7 @@
 #pragma once
 #include "vulkan/vulkan.h"
 #include "types/string.h"
+#include "types/list.hpp"
 #include "objects/vkgpubuffer.h"
 #include "objects/render/vkcommandlist.h"
 
@@ -72,9 +73,9 @@ namespace oi {
 			void dealloc(GPUBufferExt &ext, String name);
 			void dealloc(TextureExt &ext, String name);
 
-			void getDebugInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions);
-			void getPlatformInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions);
-			void getInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions);
+			void getDebugInstanceParams(List<String> &layers, List<String> &extensions);
+			void getPlatformInstanceParams(List<String> &layers, List<String> &extensions);
+			void getInstanceParams(List<String> &layers, List<String> &extensions);
 
 			void initializePlatform();
 

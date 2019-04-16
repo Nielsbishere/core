@@ -24,7 +24,7 @@ namespace oi {
 			TCopyArray<T>::exec(this->data, dat, tcount);
 		}
 
-		List(const List &arr) : Array<T>(arr), objects(objects) { }
+		List(const List &arr) : Array<T>(arr), objects(arr.objects) { }
 		List(List &&arr) : Array<T>(arr), objects(arr.objects) { }
 
 		List &operator=(const List &arr);
@@ -275,7 +275,7 @@ namespace oi {
 
 		if (shouldExpand) {
 
-			Array<T> copy(this->count * 2);
+			Array<T> copy(this->count * 2 + 1);
 
 			if(pos != 0)
 				TMoveArray<T>::exec(copy.begin(), this->data, pos);

@@ -19,7 +19,7 @@ namespace oi {
 
 		public:
 
-			WindowInfo(AppExt *app);
+			WindowInfo(AppExt *app, bool decorated = false);
 
 			Vec2i getPosition() const;
 			Window *getParent() const;
@@ -27,6 +27,7 @@ namespace oi {
 
 			bool isInFocus() const;
 			bool isMinimized() const;
+			bool isDecorated() const;
 
 		protected:
 
@@ -35,7 +36,7 @@ namespace oi {
 		private:
 
 			Vec2i position{};
-			bool inFocus = true, minimized = false;
+			bool inFocus = true, minimized = false, decorated = false;
 
 			Window *parent;
 			AppExt *handle;

@@ -9,7 +9,7 @@ namespace oi {
 
 		class Window;
 
-		struct WindowExt {
+		struct WindowViewportExt {
 			
 			struct android_app *app;
 

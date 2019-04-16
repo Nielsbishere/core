@@ -62,7 +62,7 @@ namespace oi {
 		};
 
 		template<typename T, typename ...args>
-		static Window *Window::create(const String &title, const u32 version, const args&... arg) {
+		Window *Window::create(const String &title, const u32 version, const args&... arg) {
 
 			if (window)
 				Log::throwError<Window, 0x0>("There can only be one main window");

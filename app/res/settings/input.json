@@ -1,26 +1,23 @@
 {
    "bindings":{
-      "Fullscreen":[  
-         "F11 key"
+	    "Print graphics objects":[
+		    "Enter key"
+	    ],
+	    "Reload planet":[
+		    "Volume_down key",
+		    "One key"
+	    ],
+	    "Save planet":[
+		    "Volume_up key",
+		    "Two key"
+	    ],
+      "Rotate": [
+        "Left mouse",
+        "R3 key #0"
       ],
-	  "Print graphics objects":[
-		"Enter key"
-	  ],
-	  "Reload planet":[
-		"Volume_down key",
-		"One key"
-	  ],
-	  "Save planet":[
-		"Volume_up key",
-		"Two key"
-	  ],
-    "Rotate": [
-      "Left mouse",
-      "R3 key #0"
-    ],
-    "Pause": [
-      "V key"
-    ]
+      "Pause": [
+        "V key"
+      ]
    },
    "axes":{  
       "Move":[  

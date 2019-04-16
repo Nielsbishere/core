@@ -8,11 +8,11 @@ namespace oi {
 
 	namespace wc {
 
-		struct WindowsExt;
+		struct WindowViewportExt;
 
 		class Controller : public InputDevice {
 			
-			friend struct WindowExt;
+			friend struct WindowViewportExt;
 
 		public:
 

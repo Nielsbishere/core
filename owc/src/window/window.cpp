@@ -36,6 +36,10 @@ bool Window::update() {
 
 	viewport->begin();
 	f32 dt = viewport->update();
+
+	if (dt == f32_MAX)
+		return false;
+
 	viewport->end();
 	
 	inputManager.update();

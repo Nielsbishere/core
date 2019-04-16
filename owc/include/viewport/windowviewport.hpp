@@ -24,8 +24,9 @@ namespace oi {
 			WindowInfo &getInfo() { return info; }
 			WindowViewportExt *getExt() { return ext; }
 
-			void setFullScreen(bool fullScreen);
-			bool isFullScreen() { return fullScreen; }
+		protected:
+
+			f32 updateInternal();
 
 		private:
 			
@@ -37,7 +38,6 @@ namespace oi {
 			WindowViewportExt *ext;
 
 			f32 lastTick = 0;
-			bool fullScreen = false;
 
 		};
 

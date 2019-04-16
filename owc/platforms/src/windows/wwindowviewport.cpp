@@ -10,7 +10,7 @@ using namespace oi;
 Window *WindowViewportExt::getByHandle(HWND hwnd) {
 
 	if (Window *w = Window::get())
-		if(WindowViewport *wv = w->getViewport<WindowViewport>())
+		if(WindowViewport *wv = Window::get()->getViewport<WindowViewport>())
 			if(wv->getExt()->window == hwnd)
 				return w;
 
@@ -190,34 +190,6 @@ WindowViewport::WindowViewport(const WindowInfo &info) : Viewport({ ViewportLaye
 	ext = new WindowViewportExt();
 }
 
-void WindowViewport::setFullScreen(bool isFullScreen) {
-
-	fullScreen = isFullScreen;
-
-	DWORD dwStyle = GetWindowLongA(ext->window, GWL_STYLE);
-	MONITORINFO mi = { sizeof(mi) };
-
-	if (fullScreen && GetMonitorInfoA(MonitorFromWindow(ext->window, MONITOR_DEFAULTTOPRIMARY), &mi)) {
-		SetWindowLongA(ext->window, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
-		SetWindowPos(ext->window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-	} else {
-		SetWindowLongA(ext->window, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
-		SetWindowPos(ext->window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-	}
-
-	RECT rect;
-	GetClientRect(ext->window, &rect);
-
-	Vec2u size = Vec2u(rect.right - rect.left, rect.bottom - rect.top);
-	w->getViewport()->getLayer(0).size = size;
-
-	if (wi) {
-		wi->onResize(size);
-		wi->onAspectChange(Vec2(size).getAspect());
-	}
-
-}
-
 WindowViewport::~WindowViewport() {
 
 	if (ext->window) {
@@ -255,7 +227,12 @@ void WindowViewport::init(Window *window) {
 		Log::throwError<WindowViewportExt, 0x0>("Couldn't init Windows class");
 	}
 
-	int nStyle = WS_OVERLAPPED | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
+	int nStyle = WS_VISIBLE;
+
+	if (info.isDecorated())
+		nStyle |= WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX | WS_MAXIMIZEBOX;
+	else
+		nStyle |= WS_POPUP;
 
 	u32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	u32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -276,37 +253,19 @@ void WindowViewport::init(Window *window) {
 
 }
 
-void WindowViewport::setInterface(WindowInterface *wif) {
-
-	wi = wif;
-	finalizeCount = 0;
-
-	if (!wi)
-		return;
-
-	wi->init();
-	wi->initSurface(getLayer(0).size);
-	wi->onAspectChange(Vec2(getLayer(0).size).getAspect());
-}
-
 f32 WindowViewport::update() {
 
 	MSG msg;
 
-	if (PeekMessageA(&msg, NULL, 0U, 0U, PM_REMOVE)) {
+	while (PeekMessageA(&msg, NULL, 0U, 0U, PM_REMOVE)) {
+
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);
-		return 0;
+
+		if (msg.message == WM_CLOSE)
+			return f32_MAX;
+
 	}
 
-	if (!wi) {
-		lastTick = Timer::getGlobalTimer().getDuration();
-		return 0;
-	}
-
-	f32 dt = Timer::getGlobalTimer().getDuration() - lastTick;
-	wi->update(dt);
-	lastTick = Timer::getGlobalTimer().getDuration();
-	wi->render();
-	return dt;
+	return updateInternal();
 }

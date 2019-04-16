@@ -43,6 +43,7 @@ VkBool32 onDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT, 
 
 Graphics::~Graphics(){
 	
+	finish();
 	destroy(ext->stagingCmdList);
 	destroy(backBuffer);
 
@@ -81,7 +82,7 @@ Graphics::~Graphics(){
 	
 }
 
-void GraphicsExt::getInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions) {
+void GraphicsExt::getInstanceParams(List<String> &layers, List<String> &extensions) {
 
 	#ifdef __DEBUG__
 		getDebugInstanceParams(layers, extensions);
@@ -89,8 +90,8 @@ void GraphicsExt::getInstanceParams(std::vector<const char*> &layers, std::vecto
 
 	getPlatformInstanceParams(layers, extensions);
 
-	extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-	extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+	extensions.pushBackUnique(VK_KHR_SURFACE_EXTENSION_NAME);
+	extensions.pushBackUnique(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 }
 
 void Graphics::init(Window *w){
@@ -131,7 +132,7 @@ void Graphics::init(Window *w){
 	
 	const u32 majorVersion = 1, minorVersion = 0, patchVersion = 0;					///Vulkan version
 	
-	std::vector<const char*> clayers, cextensions;	///Instance layers and extensions
+	List<String> clayers, cextensions;
 	ext->getInstanceParams(clayers, cextensions);
 
 	//Validate instance extensions & layers
@@ -180,13 +181,23 @@ void Graphics::init(Window *w){
 	
 	VkInstanceCreateInfo instanceInfo;
 	std::memset(&instanceInfo, 0, sizeof(instanceInfo));
+
+	std::vector<const char*> vclayers, vcextensions;
+	vclayers.reserve(clayers.size());
+	vcextensions.reserve(cextensions.size());
+
+	for (String &str : clayers)
+		vclayers.push_back(str.begin());
+
+	for (String &str : cextensions)
+		vcextensions.push_back(str.begin());
 	
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceInfo.pApplicationInfo = &application;
 	instanceInfo.enabledLayerCount = (u32) clayers.size();
-	instanceInfo.ppEnabledLayerNames = clayers.data();
+	instanceInfo.ppEnabledLayerNames = vclayers.data();
 	instanceInfo.enabledExtensionCount = (u32) cextensions.size();
-	instanceInfo.ppEnabledExtensionNames = cextensions.data();
+	instanceInfo.ppEnabledExtensionNames = vcextensions.data();
 	
 	//Create instance
 	

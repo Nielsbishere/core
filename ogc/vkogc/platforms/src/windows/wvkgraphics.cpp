@@ -26,14 +26,14 @@ void Graphics::setupSurface(Window *w) {
 
 }
 
-void GraphicsExt::getDebugInstanceParams(std::vector<const char*> &layers, std::vector<const char*> &extensions) {
-	layers.push_back("VK_LAYER_LUNARG_standard_validation");
-	extensions.push_back("VK_EXT_debug_utils");
-	extensions.push_back("VK_EXT_debug_report");
+void GraphicsExt::getDebugInstanceParams(List<String> &layers, List<String> &extensions) {
+	layers.pushBackUnique("VK_LAYER_LUNARG_standard_validation");
+	extensions.pushBackUnique("VK_EXT_debug_utils");
+	extensions.pushBackUnique("VK_EXT_debug_report");
 }
 
-void GraphicsExt::getPlatformInstanceParams(std::vector<const char*>&, std::vector<const char*> &extensions) {
-	extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+void GraphicsExt::getPlatformInstanceParams(List<String>&, List<String> &extensions) {
+	extensions.pushBackUnique(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 }
 
 void GraphicsExt::initializePlatform() {
