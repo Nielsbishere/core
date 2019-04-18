@@ -32,7 +32,7 @@ namespace oi {
 
 			virtual void init(Window*) = 0;
 			virtual void setInterface(WindowInterface *wif) { wi = wif; }
-			virtual void begin() = 0;
+			virtual bool begin() = 0;
 			virtual void end() = 0;
 			virtual f32 update() = 0;
 

@@ -212,15 +212,14 @@ bool Texture::read(String path, Vec2u start, Vec2u length) {
 
 void Texture::resize(Vec2u size) {
 
-	if (size.x == 0 || size.y == 0)
-		Log::throwError<Texture, 0x13>("Resizing to 0,0 is illegal, that resolution is only allowed to reserve a texture handle");
-
 	if (info.usage != TextureUsage::Render_depth && info.usage != TextureUsage::Render_target && info.usage != TextureUsage::Compute_target)
 		Log::throwError<Texture, 0x14>("Resizing a non-target texture is illegal, the creation size is constant");
 
 	info.res = size;
 	destroyData(true);
-	initData();
+
+	if(size != Vec2u())
+		initData();
 
 }
 

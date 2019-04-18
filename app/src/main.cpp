@@ -18,7 +18,7 @@ using namespace oi;
 void Application::instantiate(AppExt *param){
 	Random::seedRandom();
 	FileManager fmanager(param);
-	Window *w = Window::create<WindowViewport>(__PROJECT_NAME__, 1, WindowInfo(param));
+	Window *w = Window::create<WindowViewport>(__PROJECT_NAME__, 1, WindowInfo(param, true));
 	w->setInterface(new MainInterface());
 	w->wait();
 }

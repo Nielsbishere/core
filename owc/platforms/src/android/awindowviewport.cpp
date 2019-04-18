@@ -37,31 +37,6 @@ void WindowViewportExt::handleCmd(struct android_app *app, int32_t cmd) {
 
 	switch (cmd) {
 
-		case APP_CMD_CONTENT_RECT_CHANGED:
-		{
-			ARect rect = app->contentRect;
-
-			Vec2i pos = Vec2i((i32)rect.left, (i32)rect.top);
-			Vec2i oldPos = wv->getInfo().position;
-
-			Vec2u size = Vec2u((u32)ANativeWindow_getWidth(app->window), ANativeWindow_getHeight(app->window));
-			Vec2u oldSize = wv->getLayer(0).size;
-
-			wv->getInfo().position = pos;
-			wv->getLayer(0).size = size;
-
-			if (wi) {
-
-				if(pos != oldPos)
-					wi->onMove(pos);
-
-				if (size != oldSize)
-					wi->onResize(size);
-			}
-
-		}
-		break;
-
 		case APP_CMD_GAINED_FOCUS:
 
 			wv->getInfo().inFocus = true;
@@ -82,6 +57,15 @@ void WindowViewportExt::handleCmd(struct android_app *app, int32_t cmd) {
 
 		case APP_CMD_TERM_WINDOW:
 
+			if (wi) {
+				wi->destroySurface();
+				wv->visible = false;
+			}
+
+			break;
+
+		case APP_CMD_DESTROY:
+
 			delete w;
 			break;
 
@@ -99,13 +83,60 @@ void WindowViewportExt::handleCmd(struct android_app *app, int32_t cmd) {
 
 		case APP_CMD_INIT_WINDOW:
 
-			if (wi && app->savedState)
-				wi->load("out/lifetime.bin");
+			if (wi) {
+
+				if(app->savedState)
+					wi->load("out/lifetime.bin");
+
+				if (!wv->hasInitialized) {
+					wi->init();
+					wv->hasInitialized = true;
+				}
+
+				wv->visible = true;
+				wv->getLayer(0).size = {};
+			}
+
+		case APP_CMD_CONTENT_RECT_CHANGED: {
+
+			ARect rect = app->contentRect;
+
+			Vec2i pos = Vec2i((i32)rect.left, (i32)rect.top);
+			Vec2i oldPos = wv->getInfo().position;
+
+			Vec2u size = Vec2u((u32)ANativeWindow_getWidth(app->window), ANativeWindow_getHeight(app->window));
+			Vec2u oldSize = wv->getLayer(0).size;
+
+			wv->getInfo().position = pos;
+			wv->getLayer(0).size = size;
+
+			if (wi && pos != oldPos)
+				wi->onMove(pos);
+
+			if (!wi || size == oldSize)
+				break;
+
+		}
+
+		case APP_CMD_CONFIG_CHANGED:
+
+			if (wi && wv->visible) {
+				wi->onResize(wv->getLayer(0).size);
+
+				Vec2 size = Vec2(wv->getLayer(0).size);
+
+				if (size.x > size.y)
+					size = size.swap();
+
+				wi->onAspectChange(size.getAspect());
+			}
+
+			break;
 
 		default:
 			break;
 
-		}
+	}
 
 }
 
@@ -223,6 +254,11 @@ int32_t WindowViewportExt::handleInput(struct android_app *app, AInputEvent *iev
 	default:
 		return 0;
 	}
+}
+
+void WindowViewport::setInterface(WindowInterface *wif) {
+	wi = wif;
+	hasInitialized = false;
 }
 
 f32 WindowViewport::update() {

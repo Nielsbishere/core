@@ -15,7 +15,6 @@ namespace oi {
 			void init() override final;
 			virtual void initScene() {}
 			virtual void initSceneSurface(Vec2u) {}
-			virtual void destroySceneSurface(){}
 			
 			void initSurface(Vec2u res) override final;
 			void destroySurface() override final;

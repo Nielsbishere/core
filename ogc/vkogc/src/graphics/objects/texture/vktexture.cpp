@@ -284,19 +284,20 @@ bool Texture::getPixelsGpu(Vec2u start, Vec2u length, CopyBuffer &output) {
 
 void Texture::destroyData(bool resize) {
 
-	if (g != nullptr && info.res.x != 0 && info.res.y != 0) {
+	if (g != nullptr && ext->view) {
 
 		GraphicsExt &graphics = g->getExtension();
 
 		vkDestroyImageView(graphics.device, ext->view, vkAllocator);
+		ext->view = VK_NULL_HANDLE;
 		
 		if(owned)
 			graphics.dealloc(*ext, getName());
 
-	}
+		if(!resize)
+			g->dealloc(ext);
 
-	if(!resize)
-		g->dealloc(ext);
+	}
 
 }
 

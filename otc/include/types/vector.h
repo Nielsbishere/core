@@ -543,6 +543,13 @@ namespace oi {
 			return (T) this->x / this->y;
 		}
 
+		//Swaps x and y
+		//Only works for TVec2
+		TVec swap() const {
+			static_assert(n == 2, "TVec<T, n>::swap is only implemented for TVec2");
+			return { this->y, this->x };
+		}
+
 		operator String() {
 
 			String result = this->arr[0];

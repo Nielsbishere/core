@@ -10,12 +10,14 @@ namespace oi {
 
 		class WindowViewport : public Viewport {
 
+			friend struct WindowViewportExt;
+
 		public:
 
 			WindowViewport(const WindowInfo &info);
 			~WindowViewport();
 			void init(Window*) final override;
-			void begin() final override {}
+			bool begin() final override { return visible; }
 			void end() final override {}
 			f32 update() final override;
 
@@ -32,12 +34,12 @@ namespace oi {
 			
 			WindowInfo info;
 
-			size_t finalizeCount = 0;
 			Window *w;
 			WindowInterface *wi{};
 			WindowViewportExt *ext;
 
 			f32 lastTick = 0;
+			bool visible = true, hasInitialized = false;
 
 		};
 

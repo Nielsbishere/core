@@ -22,25 +22,18 @@ void RenderTarget::destroyData() {
 
 bool RenderTarget::resize(Vec2u size) {
 
-	if (size == Vec2u())
-		return false;
-
-	info.res = size;
+	//Remove old frame buffers
 
 	GraphicsExt &gext = g->getExtension();
 
-	u32 buffering = g->getBuffering();
-
-	Texture *depth = getDepth();
-	bool depthTarget = depth != nullptr;
-
-	u32 ctargets = info.targets;
-	u32 targets = ctargets + depthTarget;
-
-	//Remove old frame buffers
-
 	for (VkFramebuffer &fb : ext->frameBuffer)
 		vkDestroyFramebuffer(gext.device, fb, vkAllocator);
+
+	ext->frameBuffer = Array<VkFramebuffer>();
+
+	//Recursive resize
+
+	Texture *depth = getDepth();
 
 	if (depth != nullptr)
 		depth->resize(size);
@@ -48,8 +41,18 @@ bool RenderTarget::resize(Vec2u size) {
 	for (VersionedTexture *texture : info.textures)
 		texture->resize(size);
 
-	if (isComputeTarget())
-		return true;
+	info.res = size;
+
+	if (size == Vec2u() || isComputeTarget())
+		return false;
+
+	//Create new frame buffers
+
+	u32 buffering = g->getBuffering();
+	bool depthTarget = depth != nullptr;
+
+	u32 ctargets = info.targets;
+	u32 targets = ctargets + depthTarget;
 
 	//Create framebuffers
 

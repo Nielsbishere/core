@@ -52,35 +52,42 @@ size_t captureBacktrace(void **buffer, size_t max) {
 	return state.current - buffer;
 }
 
+//Prints the stack, but jumps back 4, since this is called from the abort handler
 void printStackTrace() {
 
 	constexpr size_t count = 64;
 	void *buffer[count]{};
 
-	captureBacktrace(buffer, count);
+	size_t num = captureBacktrace(buffer, count);
 
-	for (size_t idx = 5; idx < count; ++idx) {
+	Log::println(String("Stacktrace (") + String(num - 4) + ")");
+
+	for (size_t idx = 5; idx < num; ++idx) {
 
 		const void *addr = buffer[idx];
-
-		if (!addr)
-			break;
-
-		const char *symbol = "";
+		String symbol;
 
 		Dl_info info;
 		if (dladdr(addr, &info) && info.dli_sname)
 			symbol = info.dli_sname;
 
-		if (!strlen(symbol)) {
-			Log::error(String(addr));
+		String address("\t");
+		address += String(addr);
+
+		if (!symbol.size()) {
+			Log::error(address);
 			continue;
 		}
 
 		int status = 0;
-		String name = abi::__cxa_demangle(symbol, 0, 0, &status);
+		const char *demang = abi::__cxa_demangle(symbol.begin(), 0, 0, &status);
 
-		Log::error(name + "(" + String(addr) + ")");
+		if (demang) {
+			Log::error(address + " " + demang);
+			free((void*)demang);
+		} else
+			Log::error(address + " " + symbol);
+
 	}
 }
 
@@ -100,7 +107,6 @@ void handleAbort(int signum, siginfo_t *si, void*) {
 	}
 
 	Log::error(value);
-	Log::error("Stacktrace:");
 	printStackTrace();
 
 	//TODO: Call ANativeActivity_finish, but that requires a Window (AppExt), which is handled by owc not otc; move Logging to owc?

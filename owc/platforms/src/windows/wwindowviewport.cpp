@@ -253,6 +253,19 @@ void WindowViewport::init(Window *window) {
 
 }
 
+void WindowViewport::setInterface(WindowInterface *wif) {
+
+	wi = wif;
+	hasInitialized = true;
+
+	if (!wi)
+		return;
+
+	wi->init();
+	wi->initSurface(getLayer(0).size);
+	wi->onAspectChange(Vec2(getLayer(0).size).getAspect());
+}
+
 f32 WindowViewport::update() {
 
 	MSG msg;

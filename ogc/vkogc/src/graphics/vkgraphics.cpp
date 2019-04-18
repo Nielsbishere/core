@@ -49,17 +49,17 @@ Graphics::~Graphics(){
 
 	if(initialized){
 
+		vkDestroyCommandPool(ext->device, ext->pool, vkAllocator);
+
+		destroySurface();
+
 		for (auto &a : objects)
-			for (u32 i = (u32) a.second.size() - 1; i != u32_MAX; --i) {
+			for (u32 i = (u32)a.second.size() - 1; i != u32_MAX; --i) {
 				Log::warn(String("Left over object ") + a.second[i]->getName() + " (" + a.second[i]->getTypeName() + ") #" + i + " and refCount " + a.second[i]->refCount);
 				destroyObject(a.second[i]);
 			}
 
 		objects.clear();
-
-		vkDestroyCommandPool(ext->device, ext->pool, vkAllocator);
-
-		destroySurface();
 
 		Log::println("HI vkDestroyDevice");
 
@@ -509,11 +509,16 @@ void Graphics::initSurface(Window *w) {
 
 	Vec2u size = { capabilities.currentExtent.width, capabilities.currentExtent.height };
 
+	if ((capabilities.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR) || (capabilities.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR))
+		size = size.swap();
+
 	if (size == Vec2u::max())
 		Log::throwError<GraphicsExt, 0x3>("Size is undefined; this is not supported!");
 
-	if (size != w->getViewport()->getLayers()[0].size)
-		Log::throwError<GraphicsExt, 0x4>(String("Render size didn't match ") + size);
+	Vec2u desired = w->getViewport()->getLayers()[0].size;
+
+	if (size != desired && size != desired.swap())
+		Log::throwError<GraphicsExt, 0x4>(String("Render size didn't match ") + size + " (" + desired + ")");
 
 	Log::println(String("Successfully created surface (") + size + ")");
 	
@@ -530,22 +535,25 @@ void Graphics::initSurface(Window *w) {
 	VkPresentModeKHR mode = VK_PRESENT_MODE_FIFO_KHR;
 	VkPresentModeKHR desire = buffering == 1 ? VK_PRESENT_MODE_IMMEDIATE_KHR : VK_PRESENT_MODE_MAILBOX_KHR;
 	
-	if(buffering != 2){
-		
-		u32 modeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(ext->pdevice, ext->surface, &modeCount, nullptr);
-		
-		VkPresentModeKHR *modes = new VkPresentModeKHR[modeCount];
-		vkGetPhysicalDeviceSurfacePresentModesKHR(ext->pdevice, ext->surface, &modeCount, modes);
-		
-			for(u32 i = 0; i < modeCount; ++i)
-				if(modes[i] == desire){
-					mode = modes[i];
-					break;
-				}
+	//Only use fifo for Android, as others aren't supported or provide additional overhead.
+	#ifndef __ANDROID__
+		if(buffering != 2){
 			
-		delete[] modes;
-	}
+			u32 modeCount;
+			vkGetPhysicalDeviceSurfacePresentModesKHR(ext->pdevice, ext->surface, &modeCount, nullptr);
+			
+			VkPresentModeKHR *modes = new VkPresentModeKHR[modeCount];
+			vkGetPhysicalDeviceSurfacePresentModesKHR(ext->pdevice, ext->surface, &modeCount, modes);
+			
+				for(u32 i = 0; i < modeCount; ++i)
+					if(modes[i] == desire){
+						mode = modes[i];
+						break;
+					}
+				
+			delete[] modes;
+		}
+	#endif
 	
 	if(buffering == 1 && mode != desire)
 		Log::throwError<GraphicsExt, 0x5>("Immediate presentMode is required for single buffering");
@@ -561,7 +569,7 @@ void Graphics::initSurface(Window *w) {
 	swapchainInfo.imageArrayLayers = 1;
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	swapchainInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+	swapchainInfo.preTransform = capabilities.currentTransform;
 	swapchainInfo.compositeAlpha = (VkCompositeAlphaFlagBitsKHR) capabilities.supportedCompositeAlpha;
 	swapchainInfo.presentMode = mode;
 
@@ -652,15 +660,9 @@ void Graphics::initSurface(Window *w) {
 
 		Log::println("Successfully created image views of the swapchain");
 
-		//Create depth buffer
-
-		Texture *depthBuffer = create("Swapchain depth", TextureInfo(size, TextureFormat::Depth, TextureUsage::Render_depth));
-		use(depthBuffer);
-
 		//Create a RenderTarget from it
 
-		RenderTargetInfo info(size, depthBuffer->getFormat(), { TextureFormatExt(colorFormat).getName() });
-		info.depth = depthBuffer;
+		RenderTargetInfo info(size, TextureFormat::Undefined, { TextureFormatExt(colorFormat).getName() });
 		info.textures = { vt };
 		backBuffer = new RenderTarget(info);
 

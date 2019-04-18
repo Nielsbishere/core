@@ -10,7 +10,8 @@ void GraphicsInterface::init() {
 
 void GraphicsInterface::initSurface(Vec2u res) {
 
-	g.initSurface(getParent());
+	if(res != Vec2u())
+		g.initSurface(getParent());
 
 	if (!initialized) {
 		initScene();
@@ -23,7 +24,7 @@ void GraphicsInterface::initSurface(Vec2u res) {
 
 void GraphicsInterface::destroySurface() {
 	g.finish();
-	destroySceneSurface();
+	initSurface({});
 	g.destroySurface();
 }
 
@@ -34,6 +35,7 @@ void GraphicsInterface::render() {
 }
 
 void GraphicsInterface::onResize(Vec2u res){
-	destroySurface();
+	g.finish();
+	g.destroySurface();
 	initSurface(res);
 }
